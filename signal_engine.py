@@ -1,0 +1,2816 @@
+from __future__ import annotations
+
+
+# F&O ban cache (refreshed every 30 min)
+_FNO_BAN_CACHE: list = []
+_FNO_BAN_TS: float = 0.0
+
+
+def is_fno_banned(symbol: str) -> bool:
+    """Check if symbol is in F&O ban list. Cached 30 min."""
+    global _FNO_BAN_CACHE, _FNO_BAN_TS
+    import time as _tb
+    if _tb.time() - _FNO_BAN_TS > 1800:
+        try:
+            from omnisource_news_engine import fetch_fno_ban_list
+            _FNO_BAN_CACHE = [s.upper() for s in fetch_fno_ban_list()]
+            _FNO_BAN_TS = _tb.time()
+        except Exception as _e:
+            import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
+    return symbol.upper() in _FNO_BAN_CACHE
+
+
+def get_intelligence_score_modifier() -> float:
+    """
+    Get market intelligence score to boost/reduce signal scores.
+    Strongly bullish news + max pain alignment = +1.5 to signal score.
+    Strongly bearish news = -1.5.
+    """
+    try:
+        from mega_intelligence_engine import get_full_intelligence
+        d = get_full_intelligence()
+        return float(d.get("intelligence_score", 0))
+    except Exception:
+        return 0.0
+
+"""
+signal_engine.py
+
+Higher-level signal engine that combines regime detection, HTF bias,
+per-strategy scoring and regime adjustments, and fallback logic.
+
+Fixes applied
+-------------
+1. Hardcoded capital of ₹10,000 in _get_qty()
+   The original function used `capital = 10000.0` — completely
+   disconnected from the real account size (default ₹1,00,000 in
+   config.py).  Every signal's `qty` field was therefore 10× too small
+   (e.g. qty=4 at NIFTY 22000 instead of 45).
+
+   Because the SelfLearningEngine stores `qty` as a trade feature,
+   this systematically biased the ML model and RL reward magnitudes.
+
+   Fix: `_get_qty()` now accepts `capital` as a required argument.
+   `generate_signal()` accepts an optional `capital` parameter.
+   If no capital is passed, it reads `config.get_runtime_capital()`
+   with a safe fallback to ₹1,00,000 so the import failure mode is
+   handled gracefully.
+
+2. `generate_signal()` now propagates `capital` to the qty calculation
+   in both the candidate-selection path and the fallback path.
+"""
+
+import importlib.util
+try:
+    from market_regime import get_regime_engine as _get_regime
+    _REGIME_AVAIL = True
+except ImportError:
+    _REGIME_AVAIL = False
+
+try:
+    from oi_tracker import get_oi_tracker as _get_oi_tracker
+    _OI_TRACKER_SIG_AVAIL = True
+except ImportError:
+    _OI_TRACKER_SIG_AVAIL = False
+
+try:
+    from greeks_live import (
+        compute_gex, get_implied_move, get_iv_term_structure,
+        get_pcr_by_strike, get_event_playbook,
+    )
+    _GREEKS_AVAIL = True
+except ImportError:
+    _GREEKS_AVAIL = False
+
+try:
+    from hero_zero_strategy import run_hero_zero_strategy
+    _HZ_AVAIL = True
+except ImportError:
+    _HZ_AVAIL = False
+
+try:
+    from elliott_wave  import run_elliott_wave_strategy
+    _EW_AVAIL = True
+except ImportError: _EW_AVAIL = False
+
+try:
+    from order_flow    import run_order_flow_strategy
+    _OF_STRAT_AVAIL = True
+except ImportError:
+    _OF_STRAT_AVAIL = False
+    def run_order_flow_strategy(*a,**k): return {"strategy":"order_flow","score":0.0,"direction":None,"side":None}
+
+try:
+    from hmm_regime    import detect_regime_hmm, get_regime_score_modifier
+    _HMM_AVAIL = True
+except ImportError: _HMM_AVAIL = False
+
+try:
+    from order_flow    import compute_order_flow as _compute_of
+    _OF_AVAIL = True
+except ImportError: _OF_AVAIL = False
+
+try:
+    from dark_pool     import get_dark_pool_score as _get_dp
+    _DP_AVAIL = True
+except ImportError: _DP_AVAIL = False
+
+try:
+    from fii_options_positioning import get_fii_options_positioning as _get_fii_opts
+    _FII_OPT_AVAIL = True
+except ImportError: _FII_OPT_AVAIL = False
+
+try:
+    from meta_learner import composite_score as _meta_composite
+    from meta_learner import get_meta_learner as _get_ml
+    _META_AVAIL = True
+except ImportError:
+    _META_AVAIL = False
+
+try:
+    from signal_refinements import (
+        apply_score_decay, get_nifty_weight_multiplier,
+        check_earnings_risk, detect_sr_levels,
+        get_sector_rotation_score, check_iv_skew,
+    )
+    _REFINE_AVAIL = True
+except ImportError:
+    _REFINE_AVAIL = False
+
+try:
+    from cpr_ema_strategy import run_cpr_ema_strategy
+    _CPR_EMA_AVAIL = True
+except ImportError:
+    _CPR_EMA_AVAIL = False
+
+try:
+    from volume_profile_advanced import (
+        run_vrvp_zone_strategy,
+        run_failed_auction_strategy,
+        run_ema_cloud_sd_strategy,
+        get_global_macro_score as _get_macro,
+        get_president_sentiment_score as _get_president,
+        get_stt_breakeven_points as _get_stt_be,
+    )
+    _VP_ADV_AVAIL = True
+except ImportError:
+    _VP_ADV_AVAIL = False
+
+try:
+    from tradingview_strategies import (
+        run_ema_ribbon_strategy,
+        run_waddah_attar_strategy,
+        run_chaikin_mf_strategy,
+        run_awesome_oscillator_strategy,
+        run_bb_percentb_strategy,
+        run_ehlers_fisher_strategy,
+        run_vix_fix_strategy,
+    )
+    _TV_AVAIL = True
+except ImportError:
+    _TV_AVAIL = False
+
+try:
+    from greeks_live import (
+        compute_gex, get_implied_move, get_iv_term_structure,
+        get_pcr_by_strike, get_event_playbook,
+    )
+    _GREEKS_AVAIL = True
+except ImportError:
+    _GREEKS_AVAIL = False
+
+try:
+    from hero_zero_strategy import run_hero_zero_strategy
+    _HZ_AVAIL = True
+except ImportError:
+    _HZ_AVAIL = False
+
+try:
+    from elliott_wave  import run_elliott_wave_strategy
+    _EW_AVAIL = True
+except ImportError: _EW_AVAIL = False
+
+try:
+    from order_flow    import run_order_flow_strategy
+    _OF_STRAT_AVAIL = True
+except ImportError:
+    _OF_STRAT_AVAIL = False
+    def run_order_flow_strategy(*a,**k): return {"strategy":"order_flow","score":0.0,"direction":None,"side":None}
+
+try:
+    from hmm_regime    import detect_regime_hmm, get_regime_score_modifier
+    _HMM_AVAIL = True
+except ImportError: _HMM_AVAIL = False
+
+try:
+    from order_flow    import compute_order_flow as _compute_of
+    _OF_AVAIL = True
+except ImportError: _OF_AVAIL = False
+
+try:
+    from dark_pool     import get_dark_pool_score as _get_dp
+    _DP_AVAIL = True
+except ImportError: _DP_AVAIL = False
+
+try:
+    from fii_options_positioning import get_fii_options_positioning as _get_fii_opts
+    _FII_OPT_AVAIL = True
+except ImportError: _FII_OPT_AVAIL = False
+
+try:
+    from meta_learner import composite_score as _meta_composite
+    from meta_learner import get_meta_learner as _get_ml
+    _META_AVAIL = True
+except ImportError:
+    _META_AVAIL = False
+
+try:
+    from signal_refinements import (
+        apply_score_decay, get_nifty_weight_multiplier,
+        check_earnings_risk, detect_sr_levels,
+        get_sector_rotation_score, check_iv_skew,
+    )
+    _REFINE_AVAIL = True
+except ImportError:
+    _REFINE_AVAIL = False
+
+try:
+    from cpr_ema_strategy import run_cpr_ema_strategy
+    _CPR_EMA_AVAIL = True
+except ImportError:
+    _CPR_EMA_AVAIL = False
+
+try:
+    from volume_profile_advanced import (
+        run_vrvp_zone_strategy,
+        run_failed_auction_strategy,
+        run_ema_cloud_sd_strategy,
+        get_global_macro_score as _get_macro,
+        get_president_sentiment_score as _get_president,
+        get_stt_breakeven_points as _get_stt_be,
+    )
+    _VP_ADV_AVAIL = True
+except ImportError:
+    _VP_ADV_AVAIL = False
+
+try:
+    from tradingview_strategies import (
+        run_ema_ribbon_strategy,
+        run_volume_profile_full_strategy,
+        run_waddah_attar_strategy,
+        run_chaikin_mf_strategy,
+        run_awesome_oscillator_strategy,
+        run_bb_percentb_strategy,
+        run_ehlers_fisher_strategy,
+        run_vix_fix_strategy,
+    )
+    _TV_AVAIL = True
+except ImportError:
+    _TV_AVAIL = False
+
+try:
+    from institutional_strategies import (
+        run_vsa_strategy,
+        run_anchored_vwap_strategy,
+        run_parabolic_sar_strategy,
+        run_delta_neutral_theta,
+        run_gamma_scalp_strategy,
+        run_event_driven_filter,
+    )
+    _INST_AVAIL = True
+except ImportError:
+    _INST_AVAIL = False
+
+try:
+    from advanced_confluence import (
+        run_smc_strategy,
+        run_vwap_bands_strategy,
+        run_heikin_ashi_strategy,
+        run_orb_2min_strategy,
+        run_canslim_filter,
+    )
+    _ADV_AVAIL = True
+except ImportError:
+    _ADV_AVAIL = False
+try:
+    from price_structure import (
+        run_price_structure_strategy,
+        get_pdh_pdl_pdc, get_weekly_monthly_levels, score_vs_key_levels
+    )
+    _PS_AVAILABLE = True
+except ImportError:
+    _PS_AVAILABLE = False
+
+# Cache for S/R levels — computed once per symbol per hour
+_SR_LEVEL_CACHE: dict = {}  # symbol → {ts, levels}
+
+try:
+    from whale_tracker import get_whale_composite_score as _get_whale_score
+    _WHALE_AVAILABLE = True
+except ImportError:
+    _WHALE_AVAILABLE = False
+
+try:
+    from strategy_evolution import get_evolution as _get_evo
+    _EVO_AVAILABLE = True
+except ImportError:
+    _EVO_AVAILABLE = False
+
+
+import logging
+from typing import Any, Dict, List, Optional
+
+from regime import detect_market_regime
+from signal_score import calculate_signal_score
+from mtf import get_htf_bias
+from time_regime import get_strategy_weight, get_time_zone
+
+# Strategy-specific modules (lazy-safe imports)
+try:
+    from orb_strategy import orb_signal as _orb_signal
+    _ORB_AVAILABLE = True
+except ImportError:
+    _ORB_AVAILABLE = False
+try:
+    from vwap_reversion_strategy import vwap_reversion_signal as _vwap_rev_signal
+    _VWAP_REV_AVAILABLE = True
+except ImportError:
+    _VWAP_REV_AVAILABLE = False
+try:
+    from supertrend_mtf_strategy import supertrend_mtf_signal as _st_mtf_signal
+    _ST_MTF_AVAILABLE = True
+except ImportError:
+    _ST_MTF_AVAILABLE = False
+# ── Advanced strategies (new) ────────────────────────────────────────────────
+try:
+    from advanced_strategies import (
+        rsi_divergence_signal as _rsi_div_sig,
+        gap_fill_signal       as _gap_fill_sig,
+        ichimoku_signal       as _ichimoku_sig,
+        vp_breakout_signal    as _vp_breakout_sig,
+        expiry_week_regime    as _expiry_week_regime,
+    )
+    from advanced_strategies import get_rs_filter as _get_rs_filter
+    from advanced_strategies import get_global_macro as _get_global_macro
+    _ADV_AVAILABLE = True
+except ImportError as _e:
+    _ADV_AVAILABLE = False
+
+try:
+    from greeks_live import (
+        compute_gex, get_implied_move, get_iv_term_structure,
+        get_pcr_by_strike, get_event_playbook,
+    )
+    _GREEKS_AVAIL = True
+except ImportError:
+    _GREEKS_AVAIL = False
+
+try:
+    from hero_zero_strategy import run_hero_zero_strategy
+    _HZ_AVAIL = True
+except ImportError:
+    _HZ_AVAIL = False
+
+try:
+    from elliott_wave  import run_elliott_wave_strategy
+    _EW_AVAIL = True
+except ImportError: _EW_AVAIL = False
+
+try:
+    from order_flow    import run_order_flow_strategy
+    _OF_STRAT_AVAIL = True
+except ImportError:
+    _OF_STRAT_AVAIL = False
+    def run_order_flow_strategy(*a,**k): return {"strategy":"order_flow","score":0.0,"direction":None,"side":None}
+
+try:
+    from hmm_regime    import detect_regime_hmm, get_regime_score_modifier
+    _HMM_AVAIL = True
+except ImportError: _HMM_AVAIL = False
+
+try:
+    from order_flow    import compute_order_flow as _compute_of
+    _OF_AVAIL = True
+except ImportError: _OF_AVAIL = False
+
+try:
+    from dark_pool     import get_dark_pool_score as _get_dp
+    _DP_AVAIL = True
+except ImportError: _DP_AVAIL = False
+
+try:
+    from fii_options_positioning import get_fii_options_positioning as _get_fii_opts
+    _FII_OPT_AVAIL = True
+except ImportError: _FII_OPT_AVAIL = False
+
+try:
+    from meta_learner import composite_score as _meta_composite
+    from meta_learner import get_meta_learner as _get_ml
+    _META_AVAIL = True
+except ImportError:
+    _META_AVAIL = False
+
+try:
+    from signal_refinements import (
+        apply_score_decay, get_nifty_weight_multiplier,
+        check_earnings_risk, detect_sr_levels,
+        get_sector_rotation_score, check_iv_skew,
+    )
+    _REFINE_AVAIL = True
+except ImportError:
+    _REFINE_AVAIL = False
+
+try:
+    from cpr_ema_strategy import run_cpr_ema_strategy
+    _CPR_EMA_AVAIL = True
+except ImportError:
+    _CPR_EMA_AVAIL = False
+
+try:
+    from volume_profile_advanced import (
+        run_vrvp_zone_strategy,
+        run_failed_auction_strategy,
+        run_ema_cloud_sd_strategy,
+        get_global_macro_score as _get_macro,
+        get_president_sentiment_score as _get_president,
+        get_stt_breakeven_points as _get_stt_be,
+    )
+    _VP_ADV_AVAIL = True
+except ImportError:
+    _VP_ADV_AVAIL = False
+
+try:
+    from tradingview_strategies import (
+        run_ema_ribbon_strategy,
+        run_waddah_attar_strategy,
+        run_chaikin_mf_strategy,
+        run_awesome_oscillator_strategy,
+        run_bb_percentb_strategy,
+        run_ehlers_fisher_strategy,
+        run_vix_fix_strategy,
+    )
+    _TV_AVAIL = True
+except ImportError:
+    _TV_AVAIL = False
+
+try:
+    from greeks_live import (
+        compute_gex, get_implied_move, get_iv_term_structure,
+        get_pcr_by_strike, get_event_playbook,
+    )
+    _GREEKS_AVAIL = True
+except ImportError:
+    _GREEKS_AVAIL = False
+
+try:
+    from hero_zero_strategy import run_hero_zero_strategy
+    _HZ_AVAIL = True
+except ImportError:
+    _HZ_AVAIL = False
+
+try:
+    from elliott_wave  import run_elliott_wave_strategy
+    _EW_AVAIL = True
+except ImportError: _EW_AVAIL = False
+
+try:
+    from order_flow    import run_order_flow_strategy
+    _OF_STRAT_AVAIL = True
+except ImportError:
+    _OF_STRAT_AVAIL = False
+    def run_order_flow_strategy(*a,**k): return {"strategy":"order_flow","score":0.0,"direction":None,"side":None}
+
+try:
+    from hmm_regime    import detect_regime_hmm, get_regime_score_modifier
+    _HMM_AVAIL = True
+except ImportError: _HMM_AVAIL = False
+
+try:
+    from order_flow    import compute_order_flow as _compute_of
+    _OF_AVAIL = True
+except ImportError: _OF_AVAIL = False
+
+try:
+    from dark_pool     import get_dark_pool_score as _get_dp
+    _DP_AVAIL = True
+except ImportError: _DP_AVAIL = False
+
+try:
+    from fii_options_positioning import get_fii_options_positioning as _get_fii_opts
+    _FII_OPT_AVAIL = True
+except ImportError: _FII_OPT_AVAIL = False
+
+try:
+    from meta_learner import composite_score as _meta_composite
+    from meta_learner import get_meta_learner as _get_ml
+    _META_AVAIL = True
+except ImportError:
+    _META_AVAIL = False
+
+try:
+    from signal_refinements import (
+        apply_score_decay, get_nifty_weight_multiplier,
+        check_earnings_risk, detect_sr_levels,
+        get_sector_rotation_score, check_iv_skew,
+    )
+    _REFINE_AVAIL = True
+except ImportError:
+    _REFINE_AVAIL = False
+
+try:
+    from cpr_ema_strategy import run_cpr_ema_strategy
+    _CPR_EMA_AVAIL = True
+except ImportError:
+    _CPR_EMA_AVAIL = False
+
+try:
+    from volume_profile_advanced import (
+        run_vrvp_zone_strategy,
+        run_failed_auction_strategy,
+        run_ema_cloud_sd_strategy,
+        get_global_macro_score as _get_macro,
+        get_president_sentiment_score as _get_president,
+        get_stt_breakeven_points as _get_stt_be,
+    )
+    _VP_ADV_AVAIL = True
+except ImportError:
+    _VP_ADV_AVAIL = False
+
+try:
+    from tradingview_strategies import (
+        run_ema_ribbon_strategy,
+        run_volume_profile_full_strategy,
+        run_waddah_attar_strategy,
+        run_chaikin_mf_strategy,
+        run_awesome_oscillator_strategy,
+        run_bb_percentb_strategy,
+        run_ehlers_fisher_strategy,
+        run_vix_fix_strategy,
+    )
+    _TV_AVAIL = True
+except ImportError:
+    _TV_AVAIL = False
+
+# ── Extended strategy imports ─────────────────────────────────────────────
+try:
+    from chart_patterns import run_chart_pattern_strategy
+    _CHPAT_AVAIL = True
+except ImportError:
+    _CHPAT_AVAIL = False
+    def run_chart_pattern_strategy(df, **kw): return {}
+
+try:
+    from tradingview_strategies import (
+        run_ema_ribbon_strategy, run_waddah_attar_strategy,
+        run_chaikin_mf_strategy, run_awesome_oscillator_strategy,
+        run_bb_percentb_strategy, run_ehlers_fisher_strategy,
+        run_vix_fix_strategy, run_volume_profile_full_strategy,
+    )
+    _TVSTRATS_AVAIL = True
+except ImportError:
+    _TVSTRATS_AVAIL = False
+
+try:
+    from volume_profile_advanced import (
+        run_vrvp_zone_strategy, run_failed_auction_strategy,
+        run_ema_cloud_sd_strategy,
+    )
+    _VOLPADV_AVAIL = True
+except ImportError:
+    _VOLPADV_AVAIL = False
+
+try:
+    from williams_systems import (
+        run_williams_r_strategy, run_volatility_breakout_strategy,
+        run_oops_strategy,
+    )
+    _WILLIAMS_AVAIL = True
+except ImportError:
+    _WILLIAMS_AVAIL = False
+
+try:
+    from order_flow import run_order_flow_strategy
+    _ORDERFLOW_AVAIL = True
+except ImportError:
+    _ORDERFLOW_AVAIL = False
+    def run_order_flow_strategy(df, **kw): return {}
+
+
+
+try:
+    from institutional_strategies import (
+        cvd_scalp_signal as _cvd_scalp,
+        order_block_signal as _ob_signal,
+        liquidity_sweep_signal as _liq_sweep,
+        vpoc_magnet_signal as _vpoc_magnet,
+        hour_orb_signal as _hour_orb,
+        market_structure_signal as _ms_signal,
+    )
+    _INST_AVAILABLE = True
+except ImportError:
+    _INST_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
+
+# Per-symbol optimised params from autonomous_backtest.py
+# Loaded at startup from symbol_params.json
+_SYMBOL_PARAMS: dict = {}
+
+def get_symbol_params(symbol: str) -> dict:
+    """Return backtested optimal params for a symbol, or defaults."""
+    p = _SYMBOL_PARAMS.get(symbol, {})
+    return {
+        "stop_mult":   float(p.get("stop_mult",   1.5)),
+        "target_mult": float(p.get("target_mult", 2.5)),
+    }
+
+# ---------------------------------------------------------------------------
+# Runtime capital — read from config once at import time.
+# All call sites that pass `capital` explicitly bypass this default.
+# ---------------------------------------------------------------------------
+_DEFAULT_CAPITAL = 100_000.0
+
+try:
+    import config as _config_module
+    _DEFAULT_CAPITAL = float(_config_module.get_runtime_capital())
+except Exception:
+    logger.debug("signal_engine: config not available, using default capital %.0f", _DEFAULT_CAPITAL)
+
+
+# ---------------------------------------------------------------------------
+# Config defaults
+# ---------------------------------------------------------------------------
+DEFAULT_CONFIG: Dict[str, Any] = {
+    "min_score":                  3.5,
+    "trend_min_score":            4.0,
+    "range_min_score":            3.0,
+    "breakout_min_score":         4.0,
+    "require_htf_alignment":      True,    # ENABLED: blocks counter-HTF entries
+    "allow_sideways_htf":         True,
+    "enable_fallback":            True,
+    "fallback_score_threshold":   2.5,
+    "allow_countertrend_in_range": True,
+    "min_volume_ratio_entry":      0.40,    # reject when vol < 40% of avg
+    "min_breakout_volume_ratio":   1.20,    # breakout requires 120% of avg volume
+}
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _normalize_direction(direction: Optional[str]) -> Optional[str]:
+    if not direction:
+        return None
+    d = str(direction).upper().strip()
+    if d in ("BUY", "LONG", "CALL", "BUY_CALL", "BULLISH"):
+        return "BUY"
+    if d in ("SELL", "SHORT", "PUT", "BUY_PUT", "BEARISH"):
+        return "SELL"
+    return None
+
+
+def _safe_get_htf_bias(df_htf) -> str:
+    try:
+        bias = get_htf_bias(df_htf)
+        return str(bias).upper() if bias else "SIDEWAYS"
+    except Exception:
+        return "SIDEWAYS"
+
+
+def _adjust_score_for_regime(strategy: str, score: float, regime: str) -> float:
+    strategy = str(strategy).lower().strip()
+    regime   = str(regime).upper().strip()
+
+    if regime == "TREND":
+        if strategy == "trend":
+            return score + 1.0
+        if strategy == "breakout":
+            return score + 0.75
+        if strategy == "mean_reversion":
+            return score - 0.50
+
+    if regime == "BREAKOUT":
+        if strategy == "breakout":
+            return score + 1.25
+        if strategy == "trend":
+            return score + 0.50
+
+    if regime == "RANGE":
+        if strategy == "mean_reversion":
+            return score + 1.0
+        if strategy == "trend":
+            return score - 0.25
+        if strategy == "breakout":
+            return score - 0.25
+
+    if regime in ("SIDEWAYS", "UNCLEAR"):
+        if strategy == "mean_reversion":
+            return score + 0.25
+        if strategy == "scalping":
+            return score + 0.50    # scalping does well in sideways markets
+
+    if regime in ("EARLY_TREND",):
+        if strategy == "ma_cross":
+            return score + 0.50   # MA cross excels at catching emerging trends
+
+    return score
+
+
+def _calculate_volatility(df) -> float:
+    try:
+        close_col = "Close" if "Close" in df.columns else "close"
+        returns   = df[close_col].pct_change().dropna()
+        return float(returns.std()) if len(returns) > 0 else 0.0
+    except Exception:
+        return 0.0
+
+
+def _get_price(df) -> float:
+    close_col = "Close" if "Close" in df.columns else "close"
+    return float(df[close_col].iloc[-1])
+
+
+def _get_qty(price: float, capital: float) -> int:
+    """
+    Estimate a naive position size based on account capital.
+    This is an upper-bound estimate — the actual size is determined
+    by PortfolioRiskManager / NiftyOptionsEngine before order placement.
+
+    Parameters
+    ----------
+    price   : float — current market price (or option premium)
+    capital : float — total account capital in INR
+    """
+    if price <= 0 or capital <= 0:
+        return 0
+    return max(1, int(capital / price))
+
+
+
+def _passes_volume_gate(df, cfg: dict) -> bool:
+    """
+    Reject when volume_ratio < min_volume_ratio_entry.
+    Prevents entries during dead-market / zero-participation conditions.
+
+    Default min_volume_ratio_entry = 0.40 (40% of 20-bar average).
+    Set to 0.0 in config to disable.
+    """
+    min_ratio = float(cfg.get("min_volume_ratio_entry", 0.40))
+    if min_ratio <= 0:
+        return True
+    try:
+        vr_col = "volume_ratio" if "volume_ratio" in df.columns else None
+        if vr_col is None:
+            return True   # no volume data — don't block
+        vr = float(df[vr_col].iloc[-1])
+        if vr <= 0:
+            return True   # missing — don't block
+        return vr >= min_ratio
+    except Exception:
+        return True
+
+
+def _passes_htf_filter(
+    direction: str,
+    htf_bias: str,
+    regime: str,
+    cfg: Dict[str, Any],
+) -> bool:
+    if not cfg.get("require_htf_alignment", False):
+        return True
+
+    if htf_bias == "SIDEWAYS":
+        return bool(cfg.get("allow_sideways_htf", True))
+
+    if direction == "BUY"  and htf_bias == "BULLISH":
+        return True
+    if direction == "SELL" and htf_bias == "BEARISH":
+        return True
+
+    if regime == "RANGE" and cfg.get("allow_countertrend_in_range", True):
+        return True
+
+    return False
+
+
+def _min_score_for_regime(regime: str, strategy: str, cfg: Dict[str, Any]) -> float:
+    regime   = str(regime).upper().strip()
+    strategy = str(strategy).lower().strip()
+
+    if regime == "TREND":
+        return float(cfg["trend_min_score"])
+    if regime == "RANGE":
+        return float(cfg["range_min_score"])
+    if regime == "BREAKOUT":
+        return float(cfg["breakout_min_score"])
+    if strategy == "mean_reversion":
+        return float(cfg["range_min_score"])
+    return float(cfg["min_score"])
+
+
+# ---------------------------------------------------------------------------
+# Per-strategy wrappers
+# ---------------------------------------------------------------------------
+
+def run_trend_strategy(df, df_htf, option_data, config=None):
+    score, direction = calculate_signal_score(df, df_htf, option_data)
+    return {
+        "strategy":  "trend",
+        "score":     float(score),
+        "direction": _normalize_direction(direction),
+    }
+
+
+def run_mean_reversion_strategy(df, df_htf, option_data):
+    score, direction = calculate_signal_score(df, df_htf, option_data)
+    return {
+        "strategy":  "mean_reversion",
+        "score":     float(score) - 0.25,
+        "direction": _normalize_direction(direction),
+    }
+
+
+def run_breakout_strategy(df, df_htf, option_data):
+    score, direction = calculate_signal_score(df, df_htf, option_data)
+    return {
+        "strategy":  "breakout",
+        "score":     float(score),
+        "direction": _normalize_direction(direction),
+    }
+
+
+def run_scalping_strategy(df, df_htf, option_data):
+    """
+    Scalping: VWAP + RSI + EMA crossover.
+    Lower score offset (-0.5) to prefer higher-timeframe strategies
+    unless market is quiet (RANGE / SIDEWAYS regime).
+    """
+    score, direction = calculate_signal_score(df, df_htf, option_data)
+    return {
+        "strategy":  "scalping",
+        "score":     float(score) - 0.50,
+        "direction": _normalize_direction(direction),
+    }
+
+
+def run_ma_cross_strategy(df, df_htf, option_data):
+    """
+    Moving average crossover / Supertrend.
+    Score offset +0.10 in trending markets (boosted by regime adjustment).
+    """
+    score, direction = calculate_signal_score(df, df_htf, option_data)
+    return {
+        "strategy":  "ma_cross",
+        "score":     float(score) + 0.10,
+        "direction": _normalize_direction(direction),
+    }
+
+
+def run_orb_strategy(df, df_htf, option_data):
+    """Opening Range Breakout — best in 9:30-10:30 window."""
+    if not _ORB_AVAILABLE:
+        return {"strategy": "orb", "score": 0.0, "direction": None}
+    r = _orb_signal(df)
+    action = r.get("action", "HOLD")
+    return {
+        "strategy":  "orb",
+        "score":     float(r.get("confidence", 0.0)) * 8.0,
+        "direction": _normalize_direction(action) if action != "HOLD" else None,
+    }
+
+def run_vwap_reversion_strategy(df, df_htf, option_data):
+    """VWAP deviation reversion — best in 11:00-13:00 window."""
+    if not _VWAP_REV_AVAILABLE:
+        return {"strategy": "vwap_reversion", "score": 0.0, "direction": None}
+    r = _vwap_rev_signal(df)
+    action = r.get("action", "HOLD")
+    return {
+        "strategy":  "vwap_reversion",
+        "score":     float(r.get("confidence", 0.0)) * 7.5,
+        "direction": _normalize_direction(action) if action != "HOLD" else None,
+    }
+
+def run_supertrend_mtf_strategy(df, df_htf, option_data):
+    """Multi-timeframe Supertrend — works across all session windows."""
+    if not _ST_MTF_AVAILABLE:
+        return {"strategy": "supertrend_mtf", "score": 0.0, "direction": None}
+    r = _st_mtf_signal(df, df_htf)
+    action = r.get("action", "HOLD")
+    return {
+        "strategy":  "supertrend_mtf",
+        "score":     float(r.get("confidence", 0.0)) * 8.5,
+        "direction": _normalize_direction(action) if action != "HOLD" else None,
+    }
+
+
+def run_institutional_scalp_strategy(df, df_htf, option_data):
+    """CVD-based institutional scalping — reads order flow, not lagging EMAs."""
+    if not _INST_AVAILABLE:
+        return {"strategy": "institutional_scalp", "score": 0.0, "direction": None}
+    r = _cvd_scalp(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "institutional_scalp",
+            "score": float(r.get("confidence", 0.0)) * 9.0,
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+def run_order_block_strategy(df, df_htf, option_data):
+    """Order Block retest — institutional entry zones."""
+    if not _INST_AVAILABLE:
+        return {"strategy": "order_block", "score": 0.0, "direction": None}
+    r = _ob_signal(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "order_block",
+            "score": float(r.get("confidence", 0.0)) * 9.0,
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+def run_liquidity_sweep_strategy(df, df_htf, option_data):
+    """Liquidity sweep reversal — catches stop hunts after institutions accumulate."""
+    if not _INST_AVAILABLE:
+        return {"strategy": "liquidity_sweep", "score": 0.0, "direction": None}
+    r = _liq_sweep(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "liquidity_sweep",
+            "score": float(r.get("confidence", 0.0)) * 9.5,
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+def run_vpoc_magnet_strategy(df, df_htf, option_data):
+    """VPOC magnet — price drawn to highest volume level."""
+    if not _INST_AVAILABLE:
+        return {"strategy": "vpoc_magnet", "score": 0.0, "direction": None}
+    r = _vpoc_magnet(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "vpoc_magnet",
+            "score": float(r.get("confidence", 0.0)) * 8.0,
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+def run_hour_orb_strategy(df, df_htf, option_data):
+    """1-Hour ORB — institutional timeframe (9:15-10:15)."""
+    if not _INST_AVAILABLE:
+        return {"strategy": "hour_orb", "score": 0.0, "direction": None}
+    r = _hour_orb(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "hour_orb",
+            "score": float(r.get("confidence", 0.0)) * 9.5,
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+def run_market_structure_strategy(df, df_htf, option_data):
+    """Market structure BOS/CHOCH — institutional trend definition."""
+    if not _INST_AVAILABLE:
+        return {"strategy": "market_structure", "score": 0.0, "direction": None}
+    r = _ms_signal(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "market_structure",
+            "score": float(r.get("confidence", 0.0)) * 9.0,
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+
+
+def run_rsi_divergence_strategy(df, df_htf, option_data):
+    """RSI divergence — bullish/bearish divergence between price and RSI."""
+    if not _ADV_AVAILABLE:
+        return {"strategy": "rsi_divergence", "score": 0.0, "direction": None}
+    r = _rsi_div_sig(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "rsi_divergence",
+            "score": float(r.get("confidence", 0.0)) * 8.5 + float(r.get("score_boost", 0.0)),
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+
+def run_gap_fill_strategy(df, df_htf, option_data):
+    """Gap fill — fade opening gaps > 0.5%. 65% fill same day."""
+    if not _ADV_AVAILABLE:
+        return {"strategy": "gap_fill", "score": 0.0, "direction": None}
+    r = _gap_fill_sig(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "gap_fill",
+            "score": float(r.get("confidence", 0.0)) * 8.0 + float(r.get("score_boost", 0.0)),
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+
+def run_ichimoku_strategy(df, df_htf, option_data):
+    """Ichimoku Cloud — Asian institutional trend confirmation."""
+    if not _ADV_AVAILABLE:
+        return {"strategy": "ichimoku", "score": 0.0, "direction": None}
+    r = _ichimoku_sig(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "ichimoku",
+            "score": float(r.get("confidence", 0.0)) * 8.0 + float(r.get("score_boost", 0.0)),
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+
+def run_vp_breakout_strategy(df, df_htf, option_data):
+    """Volume Profile VAH/VAL breakout — institutional level confirmation."""
+    if not _ADV_AVAILABLE:
+        return {"strategy": "vp_breakout", "score": 0.0, "direction": None}
+    r = _vp_breakout_sig(df)
+    action = r.get("action", "HOLD")
+    return {"strategy": "vp_breakout",
+            "score": float(r.get("confidence", 0.0)) * 8.5 + float(r.get("score_boost", 0.0)),
+            "direction": _normalize_direction(action) if action != "HOLD" else None}
+
+
+def run_stat_arb_strategy(df, df_htf, option_data):
+    """NIFTY-BANKNIFTY statistical arbitrage — DE Shaw Z-score spread."""
+    try:
+        from institutional_alpha import get_alpha_engine
+        alpha = get_alpha_engine()
+        # Needs both spot prices — uses cached values from last cycle
+        nifty_price = float(df["Close"].iloc[-1] if "Close" in df.columns else df["close"].iloc[-1])
+        # BNF price approximated from ratio
+        sig = alpha.stat_arb.signal(nifty_price, nifty_price * 2.2)  # 2.2 approximate ratio
+        action = sig.get("action", "HOLD")
+        preferred = sig.get("preferred", "")
+        return {"strategy": "stat_arb_deshaw",
+                "score": float(sig.get("confidence", 0.0)) * 7.5 + float(sig.get("score_boost", 0.0)),
+                "direction": _normalize_direction(action) if action != "HOLD" and preferred else None}
+    except Exception:
+        return {"strategy": "stat_arb_deshaw", "score": 0.0, "direction": None}
+
+
+def calculate_cpr(df: "pd.DataFrame") -> dict:
+    """
+    Central Pivot Range — most widely used level by Indian traders.
+    CPR = (High + Low + Close) / 3  (using previous day's data)
+    TC  = (Pivot + High) / 2        (Top Central)
+    BC  = (Pivot + Low) / 2         (Bottom Central)
+    """
+    try:
+        import pandas as pd
+        close_col = "Close" if "Close" in df.columns else "close"
+        high_col  = "High"  if "High"  in df.columns else "high"
+        low_col   = "Low"   if "Low"   in df.columns else "low"
+        # Use the full previous session (78 5-min bars = 1 trading day)
+        # If we have more than 156 bars (2 days), use bars 78-156 for prev day
+        if len(df) >= 156:
+            prev = df.iloc[78:156]   # actual previous day
+        else:
+            prev_len = min(78, len(df) - 1)
+            prev     = df.iloc[:prev_len]
+        H = float(prev[high_col].max())
+        L = float(prev[low_col].min())
+        C = float(prev[close_col].iloc[-1])
+        pivot = round((H + L + C) / 3, 2)
+        tc    = round((pivot + H) / 2, 2)
+        bc    = round((pivot + L) / 2, 2)
+        return {"pivot": pivot, "tc": tc, "bc": bc, "H": H, "L": L}
+    except Exception:
+        return {}
+
+
+def run_cpr_strategy(df, df_htf, option_data):
+    """
+    CPR (Central Pivot Range) Strategy.
+
+    BUY signals:
+    - Price crossing ABOVE TC (Top Central) with volume → breakout above CPR
+    - Price bouncing off BC (Bottom Central) as support → reversion buy
+
+    SELL signals:
+    - Price crossing BELOW BC (Bottom Central) → breakdown below CPR
+    - Price rejected at TC (Top Central) → reversion sell
+
+    Score boosted when:
+    - Pivot level is narrow (< 0.3% of price) → trending day likely
+    - Price is far from pivot → strong directional bias
+    """
+    if df is None or len(df) < 80:
+        return {"strategy": "cpr", "score": 0.0, "direction": None}
+
+    try:
+        cpr = calculate_cpr(df)
+        if not cpr or not cpr.get("pivot"):
+            return {"strategy": "cpr", "score": 0.0, "direction": None}
+
+        close_col = "Close" if "Close" in df.columns else "close"
+        vol_col   = "Volume" if "Volume" in df.columns else "volume"
+        close     = float(df[close_col].iloc[-1])
+        prev_close = float(df[close_col].iloc[-2])
+
+        pivot = cpr["pivot"]
+        tc    = cpr["tc"]
+        bc    = cpr["bc"]
+
+        # CPR width as % of price — narrow = strong trend day
+        cpr_width_pct = abs(tc - bc) / pivot
+
+        direction = None
+        score     = 0.0
+
+        # Bullish: price crossed above TC
+        if prev_close <= tc and close > tc:
+            direction = "BUY"
+            score     = 6.5 + (1.5 if cpr_width_pct < 0.003 else 0)
+
+        # Bullish: price at BC support (within 0.1%)
+        elif abs(close - bc) / bc < 0.001 and close > bc * 0.998:
+            direction = "BUY"
+            score     = 5.5
+
+        # Bearish: price crossed below BC
+        elif prev_close >= bc and close < bc:
+            direction = "SELL"
+            score     = 6.5 + (1.5 if cpr_width_pct < 0.003 else 0)
+
+        # Bearish: price rejected at TC (within 0.1%)
+        elif abs(close - tc) / tc < 0.001 and close < tc * 1.002:
+            direction = "SELL"
+            score     = 5.5
+
+        # Price below pivot = overall bearish bias
+        elif close < pivot:
+            direction = "SELL"
+            score     = 4.0
+
+        # Price above pivot = overall bullish bias
+        elif close > pivot:
+            direction = "BUY"
+            score     = 4.0
+
+        if not direction:
+            return {"strategy": "cpr", "score": 0.0, "direction": None}
+
+        return {
+            "strategy":  "cpr",
+            "score":     round(score, 2),
+            "direction": _normalize_direction(direction),
+            "pivot":     pivot,
+            "tc":        tc,
+            "bc":        bc,
+        }
+    except Exception as e:
+        return {"strategy": "cpr", "score": 0.0, "direction": None}
+
+
+# ── Book strategy imports (all optional — system runs without them) ────────────
+
+
+try:
+    from bhav_copy import delivery_pct_score as _bhav_score, oi_quadrant_score as _oi_q
+    _BHAV_AVAILABLE = True
+except ImportError:
+    _BHAV_AVAILABLE = False
+
+try:
+    from cross_asset import get_cross_asset_score as _ca_score, get_market_bias as _ca_bias
+    _CA_AVAILABLE = True
+except ImportError:
+    _CA_AVAILABLE = False
+
+try:
+    from intraday_profile import get_time_bucket_weight as _tb_weight
+    _TB_AVAILABLE = True
+except ImportError:
+    _TB_AVAILABLE = False
+
+try:
+    from strike_pcr import build_strike_pcr_map as _build_pcr, get_score_mod as _pcr_mod
+    _PCR_AVAILABLE = True
+except ImportError:
+    _PCR_AVAILABLE = False
+
+try:
+    from feature_importance import get_tracker as _get_fi_tracker
+    _FI_AVAILABLE = True
+except ImportError:
+    _FI_AVAILABLE = False
+
+
+try:
+    from participant_oi import get_participant_score as _part_score
+    _PART_AVAILABLE = True
+except ImportError:
+    _PART_AVAILABLE = False
+
+try:
+    from fno_ban_list import is_banned as _is_banned
+    _BAN_AVAILABLE = True
+except ImportError:
+    _BAN_AVAILABLE = False
+
+try:
+    from expiry_regime import get_expiry_regime as _get_expiry, apply_expiry_score_modifier as _exp_mod, get_sip_calendar_boost as _sip_boost
+    _EXPIRY_AVAILABLE = True
+except ImportError:
+    _EXPIRY_AVAILABLE = False
+
+try:
+    from bulk_deals import bulk_deal_score as _bulk_score
+    _BULK_AVAILABLE = True
+except ImportError:
+    _BULK_AVAILABLE = False
+
+try:
+    from theta_strategy import get_theta_score_mod as _theta_mod, pcr_momentum_signal as _pcr_mom
+    _THETA_AVAILABLE = True
+except ImportError:
+    _THETA_AVAILABLE = False
+
+try:
+    from index_rebalancing import get_rebalancing_signal as _rebal_score
+    _REBAL_AVAILABLE = True
+except ImportError:
+    _REBAL_AVAILABLE = False
+
+
+try:
+    from news_nlp import get_news_sentiment as _news_score
+    _NEWS_AVAILABLE = True
+except ImportError:
+    _NEWS_AVAILABLE = False
+
+try:
+    from corporate_actions import has_corporate_action_today as _has_ca
+    _CA_AVAILABLE2 = True
+except ImportError:
+    _CA_AVAILABLE2 = False
+
+_INDEX_SYMBOLS_PB = {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY","SENSEX","NIFTYNEXT50","BANKEX"}
+
+try:
+    from bse_option_chain import get_sensex_banknifty_divergence as _bse_div
+    _BSE_DIV = True
+except ImportError:
+    _BSE_DIV = False
+
+
+
+# MTF pivot levels loaded once per generate_signal() call
+_MTF_PIVOT_CACHE: dict = {}   # symbol → {weekly_levels, monthly_levels, ts}
+
+
+try:
+    from pivot_boss import (
+        run_pivot_boss_strategy   as _pb_strategy,
+        calc_cpr                  as _pb_calc_cpr,
+        calc_floor_pivots         as _pb_floor_pivots,
+        calc_camarilla_pivots     as _pb_camarilla,
+        classify_cpr_width        as _pb_cpr_width,
+        is_virgin_cpr             as _pb_virgin_cpr,
+    )
+    _PB_AVAILABLE = True
+except ImportError:
+    _PB_AVAILABLE = False
+
+def _run_pb_index_only(df, df_htf, option_data):
+    """Pivot Boss as strategy — indices only."""
+    if not _PB_AVAILABLE:
+        return {"strategy": "pivot_boss", "score": 0.0, "direction": None}
+    symbol = ""
+    if option_data and isinstance(option_data, dict):
+        symbol = str(option_data.get("symbol", "")).upper()
+    is_stock = bool(symbol) and symbol not in _INDEX_SYMBOLS_PB and                not any(idx in symbol for idx in _INDEX_SYMBOLS_PB)
+    if is_stock:
+        return {"strategy": "pivot_boss", "score": 0.0, "direction": None,
+                "reason": "stock_pivot_boss_indicator_only"}
+    return _pb_strategy(df, df_htf, option_data)
+
+try:
+    from candlestick_signals import run_candlestick_strategy as _cs_strategy
+    _CS_AVAILABLE = True
+except ImportError:
+    _CS_AVAILABLE = False
+
+try:
+    from failed_breakout import run_failed_breakout_strategy as _fb_strategy
+    _FB_AVAILABLE = True
+except ImportError:
+    _FB_AVAILABLE = False
+
+try:
+    from ttm_squeeze import run_ttm_squeeze_strategy as _ttm_strategy
+    _TTM_AVAILABLE = True
+except ImportError:
+    _TTM_AVAILABLE = False
+
+try:
+    from holy_grail import run_holy_grail_strategy as _hg_strategy
+    _HG_AVAILABLE = True
+except ImportError:
+    _HG_AVAILABLE = False
+
+try:
+    from williams_systems import (
+        run_williams_r_strategy          as _wr_strategy,
+        run_volatility_breakout_strategy as _vb_strategy,
+        run_oops_strategy                as _oops_strategy,
+    )
+    _WR_AVAILABLE = True
+except ImportError:
+    _WR_AVAILABLE = False
+
+try:
+    from td_sequential import run_td_sequential_strategy as _td_strategy
+    _TD_AVAILABLE = True
+except ImportError:
+    _TD_AVAILABLE = False
+
+try:
+    from weinstein_stage import run_weinstein_stage_strategy as _ws_strategy
+    _WS_AVAILABLE = True
+except ImportError:
+    _WS_AVAILABLE = False
+
+try:
+    from weinstein_stage import weinstein_stage_filter as _weinstein_filter
+    _WEINSTEIN_AVAILABLE = True
+except ImportError:
+    _WEINSTEIN_AVAILABLE = False
+
+try:
+    from strategy_performance_matrix import get_strategy_matrix as _get_sm
+    _SM_AVAILABLE = True
+    _strat_matrix_global = _get_sm()
+except ImportError:
+    _SM_AVAILABLE = False
+    _strat_matrix_global = None
+
+try:
+    from iv_percentile import get_ivp
+    _IVP_AVAILABLE = True
+except ImportError:
+    _IVP_AVAILABLE = False
+
+
+def run_expiry_scalp_strategy(df, df_htf=None, option_data=None) -> Dict:
+    """
+    0DTE / 1DTE expiry scalping strategy.
+    Fires when price is within 0.5% of max pain on expiry day.
+    Also fires on rapid mean reversion to pivot on expiry afternoon (2-3 PM).
+    This strategy fills the gap left when trend/breakout suppressed on expiry.
+    """
+    try:
+        if _EXPIRY_AVAILABLE:
+            _er = _get_expiry()
+            dte = _er.get("days_to_expiry", 5)
+            if dte > 1:
+                return {"strategy": "expiry_scalp", "score": 0.0, "direction": None}
+        else:
+            return {"strategy": "expiry_scalp", "score": 0.0, "direction": None}
+
+        if df is None or len(df) < 20:
+            return {"strategy": "expiry_scalp", "score": 0.0, "direction": None}
+
+        df_c = df.copy()
+        df_c.columns = [c.lower() for c in df_c.columns]
+        close = float(df_c["close"].iloc[-1])
+        prev  = float(df_c["close"].iloc[-2])
+        chg   = (close - prev) / prev
+
+        # Signal 1: Max pain pull (near max pain = mean revert toward it)
+        score = 0.0
+        direction = None
+        if option_data and option_data.get("max_pain"):
+            mp  = float(option_data.get("max_pain", close))
+            dist = (mp - close) / close
+            if abs(dist) < 0.005:   # within 0.5% of max pain
+                if dist > 0 and chg < 0:   # below max pain, falling → bounce
+                    direction = "BUY";  score = 5.5
+                elif dist < 0 and chg > 0: # above max pain, rising → fade
+                    direction = "SELL"; score = 5.5
+
+        # Signal 2: Power hour momentum (14:30-15:25 on expiry)
+        from datetime import datetime as _dt
+        _now = _dt.now().time()
+        from datetime import time as _dtime
+        if _dtime(14, 30) <= _now <= _dtime(15, 20) and score == 0.0:
+            if "ema_20" in df_c.columns and "ema_50" in df_c.columns:
+                e20 = float(df_c["ema_20"].iloc[-1])
+                e50 = float(df_c["ema_50"].iloc[-1])
+                if close > e20 > e50 and chg > 0:
+                    direction = "BUY";  score = 4.5
+                elif close < e20 < e50 and chg < 0:
+                    direction = "SELL"; score = 4.5
+
+        return {
+            "strategy":  "expiry_scalp",
+            "score":     score,
+            "direction": direction,
+            "side":      direction,
+        }
+    except Exception as e:
+        logger.debug("expiry_scalp: %s", e)
+        return {"strategy": "expiry_scalp", "score": 0.0, "direction": None}
+
+
+def run_morning_momentum_strategy(df, df_htf=None, option_data=None) -> dict:
+    """
+    MORNING MOMENTUM — fires in first 30 min (9:15-9:45 AM).
+    Uses pre-market GIFT Nifty gap + first-bar direction.
+    Fills the gap when ORB hasn't established yet.
+    Requires: GIFT Nifty gap > 0.3% OR strong first-bar move.
+    """
+    try:
+        from datetime import datetime as _dt, time as _dtime
+        _now = _dt.now().time()
+        # Only fire in first 30 min
+        if not (_dtime(9,15) <= _now <= _dtime(9,45)):
+            return {"strategy": "morning_momentum", "score": 0.0, "direction": None, "side": None}
+
+        if df is None or len(df) < 3:
+            return {"strategy": "morning_momentum", "score": 0.0, "direction": None, "side": None}
+
+        df_c = df.copy()
+        df_c.columns = [c.lower() for c in df_c.columns]
+
+        # Today's bars only (after 9:15)
+        today_bars = df_c.tail(min(6, len(df_c)))
+        if len(today_bars) < 1:
+            return {"strategy": "morning_momentum", "score": 0.0, "direction": None, "side": None}
+
+        open_price = float(today_bars["open"].iloc[0]  if "open"  in today_bars.columns else today_bars.iloc[0,-1])
+        close      = float(today_bars["close"].iloc[-1] if "close" in today_bars.columns else today_bars.iloc[-1,-1])
+        prev_close = float(df_c["close"].iloc[-len(today_bars)-1]) if len(df_c) > len(today_bars) else open_price
+
+        gap_pct  = (open_price - prev_close) / prev_close * 100
+        move_pct = (close - open_price) / open_price * 100
+
+        direction = None
+        score     = 0.0
+
+        # Gap up + continuing: buy
+        if gap_pct > 0.3 and move_pct > 0.1:
+            direction = "BUY"
+            score     = 3.5 + min(gap_pct, 1.5)
+        # Gap down + continuing: sell
+        elif gap_pct < -0.3 and move_pct < -0.1:
+            direction = "SELL"
+            score     = 3.5 + min(abs(gap_pct), 1.5)
+        # Strong opening move with no gap (strong institutional order at open)
+        elif abs(move_pct) > 0.5:
+            direction = "BUY" if move_pct > 0 else "SELL"
+            score     = 3.0
+
+        return {
+            "strategy":  "morning_momentum",
+            "score":     round(score, 2),
+            "direction": direction,
+            "side":      direction,
+            "gap_pct":   round(gap_pct, 3),
+            "move_pct":  round(move_pct, 3),
+        }
+    except Exception as e:
+        logger.debug("morning_momentum: %s", e)
+        return {"strategy": "morning_momentum", "score": 0.0, "direction": None, "side": None}
+
+# ── Additional availability flags ─────────────────────────────────────────
+# These flags are set by the try/except import blocks above.
+# Provide safe defaults if not already set by imports.
+try: _CDLSTK_AVAIL
+except NameError: _CDLSTK_AVAIL = False
+
+try: _CHPAT_AVAIL
+except NameError: _CHPAT_AVAIL = False
+
+try: _CPR_EMA_AVAIL
+except NameError: _CPR_EMA_AVAIL = False
+
+try: _TV_AVAIL
+except NameError: _TV_AVAIL = False
+
+try: _VP_ADV_AVAIL
+except NameError: _VP_ADV_AVAIL = False
+
+try: _CDLSTK_AVAIL
+except NameError: _CDLSTK_AVAIL = False
+
+try: _OF_STRAT_AVAIL
+except NameError: _OF_STRAT_AVAIL = False
+
+
+
+# ── Additional AVAIL flags for optional modules ───────────────────────────────
+try:
+    from fno_ban_list import get_ban_list as _fno_get_ban
+    _BAN_AVAIL = True
+except ImportError:
+    _BAN_AVAIL = False
+
+try:
+    from bhavcopy_cache import get_history as _bhav_get
+    _BHAV_AVAIL = True
+except ImportError:
+    _BHAV_AVAIL = False
+
+try:
+    from bulk_deals import get_bulk_deals as _bulk_get
+    _BULK_AVAIL = True
+except ImportError:
+    _BULK_AVAIL = False
+
+try:
+    from corporate_actions import get_corporate_actions as _ca_get
+    _CA_AVAIL = True
+except ImportError:
+    _CA_AVAIL = False
+
+try:
+    from expiry_regime import get_expiry_regime as _expiry_get
+    _EXPIRY_AVAIL = True
+except ImportError:
+    _EXPIRY_AVAIL = False
+
+try:
+    from news_sentiment_engine import get_full_sentiment as _news_sent
+    _NEWS_AVAIL = True
+except ImportError:
+    _NEWS_AVAIL = False
+
+try:
+    from participant_oi import get_participant_oi as _part_oi
+    _PART_AVAIL = True
+except ImportError:
+    _PART_AVAIL = False
+
+try:
+    from price_structure import run_price_structure_strategy as _ps_strat
+    _PS_AVAIL = True
+    _PB_AVAIL = True
+except ImportError:
+    _PS_AVAIL = False
+    _PB_AVAIL = False
+
+try:
+    from index_rebalancing import get_rebalancing_events as _rebal_get
+    _REBAL_AVAIL = True
+except ImportError:
+    _REBAL_AVAIL = False
+
+try:
+    from strategy_performance_matrix import get_strategy_matrix as _sm_get
+    _SM_AVAIL = True
+except ImportError:
+    _SM_AVAIL = False
+
+try:
+    from time_regime import get_time_regime as _tr_get
+    _TB_AVAIL = True
+except ImportError:
+    _TB_AVAIL = False
+
+try:
+    from theta_strategy import run_theta_strategy as _theta_strat
+    _THETA_AVAIL = True
+except ImportError:
+    _THETA_AVAIL = False
+
+try:
+    from whale_tracker import get_whale_activity as _whale_get
+    _WHALE_AVAIL = True
+except ImportError:
+    _WHALE_AVAIL = False
+
+# ── Import all extended strategies with proper guards ───────────────────────
+
+# Advanced Confluence (SMC, VWAP Bands, Heikin Ashi, ORB 2min, CANSLIM)
+try:
+    from advanced_confluence import (
+        run_smc_strategy, run_vwap_bands_strategy,
+        run_heikin_ashi_strategy, run_orb_2min_strategy, run_canslim_filter,
+    )
+    _ADV_AVAIL = True
+except Exception:
+    _ADV_AVAIL = False
+    def run_smc_strategy(df, **kw):          return {}
+    def run_vwap_bands_strategy(df, **kw):   return {}
+    def run_heikin_ashi_strategy(df, **kw):  return {}
+    def run_orb_2min_strategy(df, **kw):     return {}
+    def run_canslim_filter(df, **kw):        return {}
+
+# Candlestick Signals
+try:
+    from candlestick_signals import run_candlestick_strategy
+    _CDLSTK_AVAIL = True
+except Exception:
+    _CDLSTK_AVAIL = False
+    def run_candlestick_strategy(df, **kw): return {}
+
+# Chart Patterns
+try:
+    from chart_patterns import run_chart_pattern_strategy
+    _CHPAT_AVAIL = True
+except Exception:
+    _CHPAT_AVAIL = False
+    def run_chart_pattern_strategy(df, **kw): return {}
+
+# CPR + EMA
+try:
+    from cpr_ema_strategy import run_cpr_ema_strategy
+    _CPREMA_AVAIL = True
+except Exception:
+    _CPREMA_AVAIL = False
+    def run_cpr_ema_strategy(df, **kw): return {}
+
+# Elliott Wave
+try:
+    from elliott_wave import run_elliott_wave_strategy
+    _ELWAVE_AVAIL = True
+except Exception:
+    _ELWAVE_AVAIL = False
+    def run_elliott_wave_strategy(df, **kw): return {}
+
+# Failed Breakout
+try:
+    from failed_breakout import run_failed_breakout_strategy
+    _FAILBK_AVAIL = True
+except Exception:
+    _FAILBK_AVAIL = False
+    def run_failed_breakout_strategy(df, **kw): return {}
+
+# Hero Zero
+try:
+    from hero_zero_strategy import run_hero_zero_strategy
+    _HEROZERO_AVAIL = True
+except Exception:
+    _HEROZERO_AVAIL = False
+    def run_hero_zero_strategy(df, **kw): return {}
+
+# Holy Grail
+try:
+    from holy_grail import run_holy_grail_strategy
+    _HOLYG_AVAIL = True
+except Exception:
+    _HOLYG_AVAIL = False
+    def run_holy_grail_strategy(df, **kw): return {}
+
+# Institutional: VSA, Anchored VWAP, Parabolic SAR, Delta-Neutral, Gamma, Event
+try:
+    from institutional_strategies import (
+        run_vsa_strategy, run_anchored_vwap_strategy,
+        run_parabolic_sar_strategy, run_delta_neutral_theta,
+        run_gamma_scalp_strategy, run_event_driven_filter,
+    )
+    _INST_AVAIL = True
+except Exception:
+    _INST_AVAIL = False
+    def run_vsa_strategy(df, **kw):             return {}
+    def run_anchored_vwap_strategy(df, **kw):   return {}
+    def run_parabolic_sar_strategy(df, **kw):   return {}
+    def run_delta_neutral_theta(df, **kw):       return {}
+    def run_gamma_scalp_strategy(df, **kw):     return {}
+    def run_event_driven_filter(df, **kw):      return {}
+
+# Order Flow
+try:
+    from order_flow import run_order_flow_strategy
+    _ORDERFLOW_AVAIL = True
+except Exception:
+    _ORDERFLOW_AVAIL = False
+    def run_order_flow_strategy(df, **kw): return {}
+
+# Pivot Boss
+try:
+    from pivot_boss import run_pivot_boss_strategy
+    _PIVBOSS_AVAIL = True
+except Exception:
+    _PIVBOSS_AVAIL = False
+    def run_pivot_boss_strategy(df, **kw): return {}
+
+# Price Structure
+try:
+    from price_structure import run_price_structure_strategy
+    _PSTRUCT_AVAIL = True
+except Exception:
+    _PSTRUCT_AVAIL = False
+    def run_price_structure_strategy(df, **kw): return {}
+
+# TD Sequential
+try:
+    from td_sequential import run_td_sequential_strategy
+    _TDSQ_AVAIL = True
+except Exception:
+    _TDSQ_AVAIL = False
+    def run_td_sequential_strategy(df, **kw): return {}
+
+# TTM Squeeze
+try:
+    from ttm_squeeze import run_ttm_squeeze_strategy
+    _TTMSQ_AVAIL = True
+except Exception:
+    _TTMSQ_AVAIL = False
+    def run_ttm_squeeze_strategy(df, **kw): return {}
+
+# TradingView: EMA Ribbon, Waddah Attar, Chaikin MF, AO, BB%B, Ehlers, VIX Fix, Vol Profile
+try:
+    from tradingview_strategies import (
+        run_ema_ribbon_strategy, run_waddah_attar_strategy,
+        run_chaikin_mf_strategy, run_awesome_oscillator_strategy,
+        run_bb_percentb_strategy, run_ehlers_fisher_strategy,
+        run_vix_fix_strategy, run_volume_profile_full_strategy,
+    )
+    _TVSTRATS_AVAIL = True
+except Exception:
+    _TVSTRATS_AVAIL = False
+    def run_ema_ribbon_strategy(df, **kw):           return {}
+    def run_waddah_attar_strategy(df, **kw):         return {}
+    def run_chaikin_mf_strategy(df, **kw):           return {}
+    def run_awesome_oscillator_strategy(df, **kw):   return {}
+    def run_bb_percentb_strategy(df, **kw):          return {}
+    def run_ehlers_fisher_strategy(df, **kw):        return {}
+    def run_vix_fix_strategy(df, **kw):              return {}
+    def run_volume_profile_full_strategy(df, **kw):  return {}
+
+# Volume Profile Advanced: VRVP, Failed Auction, EMA Cloud
+try:
+    from volume_profile_advanced import (
+        run_vrvp_zone_strategy, run_failed_auction_strategy,
+        run_ema_cloud_sd_strategy,
+    )
+    _VOLPADV_AVAIL = True
+except Exception:
+    _VOLPADV_AVAIL = False
+    def run_vrvp_zone_strategy(df, **kw):       return {}
+    def run_failed_auction_strategy(df, **kw):  return {}
+    def run_ema_cloud_sd_strategy(df, **kw):    return {}
+
+# Williams Systems: Williams %R, Volatility Breakout, OOPS
+try:
+    from williams_systems import (
+        run_williams_r_strategy, run_volatility_breakout_strategy,
+        run_oops_strategy,
+    )
+    _WILLIAMS_AVAIL = True
+except Exception:
+    _WILLIAMS_AVAIL = False
+    def run_williams_r_strategy(df, **kw):          return {}
+    def run_volatility_breakout_strategy(df, **kw): return {}
+    def run_oops_strategy(df, **kw):                return {}
+
+# Weinstein Stage Analysis
+try:
+    from weinstein_stage import run_weinstein_stage_strategy
+    _WEINSTEIN_AVAIL = True
+except Exception:
+    _WEINSTEIN_AVAIL = False
+    def run_weinstein_stage_strategy(df, **kw): return {}
+
+# ── STRATEGIES LIST ──────────────────────────────────────────────────────────
+STRATEGIES = [
+    # ── CORE (22 — always loaded) ────────────────────────────────────────────
+    run_trend_strategy,
+    run_mean_reversion_strategy,
+    run_breakout_strategy,
+    run_scalping_strategy,
+    run_ma_cross_strategy,
+    run_orb_strategy,
+    run_vwap_reversion_strategy,
+    run_supertrend_mtf_strategy,
+    run_institutional_scalp_strategy,
+    run_order_block_strategy,
+    run_liquidity_sweep_strategy,
+    run_vpoc_magnet_strategy,
+    run_hour_orb_strategy,
+    run_market_structure_strategy,
+    run_rsi_divergence_strategy,
+    run_gap_fill_strategy,
+    run_ichimoku_strategy,
+    run_vp_breakout_strategy,
+    run_stat_arb_strategy,
+    run_cpr_strategy,
+    run_expiry_scalp_strategy,
+    run_morning_momentum_strategy,
+
+    # ── EXTENDED (conditional) ───────────────────────────────────────────────
+    *([run_price_structure_strategy]   if _PSTRUCT_AVAIL   else []),
+    *([run_smc_strategy, run_vwap_bands_strategy,
+       run_heikin_ashi_strategy, run_orb_2min_strategy,
+       run_canslim_filter]             if _ADV_AVAIL        else []),
+    *([run_candlestick_strategy]       if _CDLSTK_AVAIL    else []),
+    *([run_chart_pattern_strategy]     if _CHPAT_AVAIL     else []),
+    *([run_cpr_ema_strategy]           if _CPREMA_AVAIL    else []),
+    *([run_elliott_wave_strategy]      if _ELWAVE_AVAIL    else []),
+    *([run_failed_breakout_strategy]   if _FAILBK_AVAIL    else []),
+    *([run_hero_zero_strategy]         if _HEROZERO_AVAIL  else []),
+    *([run_holy_grail_strategy]        if _HOLYG_AVAIL     else []),
+    *([run_vsa_strategy, run_anchored_vwap_strategy,
+       run_parabolic_sar_strategy, run_delta_neutral_theta,
+       run_gamma_scalp_strategy, run_event_driven_filter]
+                                       if _INST_AVAIL      else []),
+    *([run_order_flow_strategy]        if _ORDERFLOW_AVAIL else []),
+    *([run_pivot_boss_strategy]        if _PIVBOSS_AVAIL   else []),
+    *([run_td_sequential_strategy]     if _TDSQ_AVAIL      else []),
+    *([run_ema_ribbon_strategy, run_waddah_attar_strategy,
+       run_chaikin_mf_strategy, run_awesome_oscillator_strategy,
+       run_bb_percentb_strategy, run_ehlers_fisher_strategy,
+       run_vix_fix_strategy, run_volume_profile_full_strategy]
+                                       if _TVSTRATS_AVAIL  else []),
+    *([run_ttm_squeeze_strategy]       if _TTMSQ_AVAIL     else []),
+    *([run_vrvp_zone_strategy, run_failed_auction_strategy,
+       run_ema_cloud_sd_strategy]      if _VOLPADV_AVAIL   else []),
+    *([run_williams_r_strategy, run_volatility_breakout_strategy,
+       run_oops_strategy]              if _WILLIAMS_AVAIL  else []),
+    *([run_weinstein_stage_strategy]   if _WEINSTEIN_AVAIL else []),
+]
+
+
+# ---------------------------------------------------------------------------
+# Core engine
+# ---------------------------------------------------------------------------
+
+
+def _get_pivot_score_modifier(
+    df,
+    direction:  str,
+    strategy:   str,
+    day_type:   str = "NORMAL",
+) -> float:
+    """
+    ROLE 2: Pivot Boss as indicator for all strategies.
+    
+    Adjusts any strategy's score based on pivot level relationship:
+    
+    BUY signals:
+      Price just crossed above R1 → +1.5 (pivot confirmed breakout)
+      Price approaching R1/R2 → -1.0 (resistance ahead, reduce target)
+      Price bouncing off S1    → +1.0 (pivot support confirmed)
+      Price below PDL          → -2.0 (strong bearish structure)
+    
+    SELL signals:
+      Price just crossed below S1 → +1.5 (pivot confirmed breakdown)
+      Price approaching S1/S2    → -1.0 (support ahead)
+      Price rejected at R1       → +1.0 (pivot resistance confirmed)
+      Price above PDH            → -2.0 (strong bullish structure)
+    
+    Day type:
+      TRENDING + breakout strategy  → +1.0 (CPR confirms trend)
+      SIDEWAYS + mean_reversion     → +1.0 (CPR confirms range)
+      TRENDING + mean_reversion     → -1.0 (wrong strategy for day type)
+      SIDEWAYS + breakout           → -1.5 (breakout less reliable today)
+    """
+    if not _PB_AVAILABLE or df is None or len(df) < 80:
+        return 0.0
+    
+    try:
+        df_c = df.copy()
+        df_c.columns = [c.lower() for c in df_c.columns]
+        
+        if "close" not in df_c.columns:
+            return 0.0
+        
+        # Get previous day data
+        prev = df_c.iloc[:78] if len(df_c) >= 78 else df_c
+        if len(prev) < 20:
+            return 0.0
+            
+        H = float(prev["high"].max())  if "high"  in prev.columns else 0
+        L = float(prev["low"].min())   if "low"   in prev.columns else 0
+        C = float(prev["close"].iloc[-1])
+        
+        if H <= 0 or L <= 0:
+            return 0.0
+        
+        floor  = _pb_floor_pivots(H, L, C)
+        cpr    = _pb_calc_cpr(H, L, C)
+        
+        close      = float(df_c["close"].iloc[-1])
+        prev_close = float(df_c["close"].iloc[-2])
+        r1 = floor["R1"]; r2 = floor["R2"]
+        s1 = floor["S1"]; s2 = floor["S2"]
+        p  = floor["P"]
+        
+        # PDH/PDL
+        pdh = float(prev["high"].max()) if "high" in prev.columns else 0
+        pdl = float(prev["low"].min())  if "low"  in prev.columns else 0
+        
+        modifier = 0.0
+        
+        # ── Day type modifier ─────────────────────────────────────────
+        strat_lc = strategy.lower()
+        is_breakout = any(x in strat_lc for x in ["breakout","trend","orb","cpr","pivot"])
+        is_reversion = any(x in strat_lc for x in ["mean_rev","vwap","scalp","mr"])
+        
+        if day_type == "TRENDING":
+            if is_breakout:  modifier += 1.0
+            if is_reversion: modifier -= 1.0
+        elif day_type == "SIDEWAYS":
+            if is_reversion: modifier += 1.0
+            if is_breakout:  modifier -= 1.5
+        
+        # ── Price vs pivot levels ─────────────────────────────────────
+        if direction == "BUY":
+            # Just crossed above R1 → pivot breakout confirmed
+            if prev_close <= r1 < close:
+                modifier += 1.5
+            # Approaching R1 (within 0.3%) → resistance ahead
+            elif r1 > 0 and 0 < (r1 - close) / r1 < 0.003:
+                modifier -= 1.0
+            # Bouncing off S1 (within 0.2%)
+            elif s1 > 0 and abs(close - s1) / s1 < 0.002 and close > prev_close:
+                modifier += 1.0
+            # Above PDH → strong structure
+            elif pdh > 0 and close > pdh:
+                modifier += 0.5
+            # Below PDL → bearish structure, don't buy
+            elif pdl > 0 and close < pdl:
+                modifier -= 2.0
+            # Price above pivot = bullish structure
+            if close > p:
+                modifier += 0.3
+            else:
+                modifier -= 0.3
+                
+        elif direction == "SELL":
+            # Just crossed below S1 → pivot breakdown confirmed
+            if prev_close >= s1 > close:
+                modifier += 1.5
+            # Approaching S1 (within 0.3%) → support ahead
+            elif s1 > 0 and 0 < (close - s1) / s1 < 0.003:
+                modifier -= 1.0
+            # Rejected at R1 (within 0.2%)
+            elif r1 > 0 and abs(close - r1) / r1 < 0.002 and close < prev_close:
+                modifier += 1.0
+            # Below PDL → strong bearish structure
+            elif pdl > 0 and close < pdl:
+                modifier += 0.5
+            # Above PDH → bullish structure, don't sell
+            elif pdh > 0 and close > pdh:
+                modifier -= 2.0
+            # Price below pivot = bearish structure
+            if close < p:
+                modifier += 0.3
+            else:
+                modifier -= 0.3
+        
+        return round(modifier, 2)
+        
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).debug("Pivot indicator error: %s", e)
+        return 0.0
+
+
+def get_omnisource_score_modifier(symbol: str, direction: str) -> float:
+    """
+    Apply news + insider + options intelligence to signal score.
+    Called from generate_signal() to boost/reduce confidence.
+    """
+    try:
+        # 1. Symbol-specific news
+        from omnisource_news_engine import get_symbol_specific_news
+        sym_intel = get_symbol_specific_news(symbol)
+
+        # Block if in F&O ban
+        if sym_intel.get("in_fno_ban"):
+            return -5.0  # effectively blocks this signal
+
+        news_adj = sym_intel.get("score_adjustment", 0.0)
+
+        # 2. WOW factors v2
+        from wow_factors_v2 import get_all_wow_scores
+        wow = get_all_wow_scores(symbol, direction)
+        wow_adj = wow.get("total_wow_adj", 0.0) * 0.3  # 30% weight
+
+        return round(news_adj + wow_adj, 2)
+    except Exception:
+        return 0.0
+
+
+def _score_mtf_agreement(signal_5m: dict, df_htf) -> float:
+    """
+    IMPROVEMENT 6: Score multi-timeframe signal agreement.
+    BUY on 5min + BUY on 15min + BUY on 1hr = strong signal (+1.5)
+    BUY on 5min but SELL on 15min = weak signal (-0.5)
+    """
+    if not signal_5m or df_htf is None:
+        return 0.0
+    try:
+        direction = signal_5m.get('direction','NEUTRAL')
+        if direction == 'NEUTRAL':
+            return 0.0
+        # Quick EMA cross on HTF
+        closes = list(df_htf['close'] if hasattr(df_htf,'close') else df_htf.get('close',[]))
+        if len(closes) < 20:
+            return 0.0
+        ema9  = sum(closes[-9:])  / 9
+        ema21 = sum(closes[-21:]) / 21
+        htf_bull = ema9 > ema21
+        htf_bear = ema9 < ema21
+        if direction == 'BUY'  and htf_bull: return  1.0
+        if direction == 'SELL' and htf_bear: return  1.0
+        if direction == 'BUY'  and htf_bear: return -0.5
+        if direction == 'SELL' and htf_bull: return -0.5
+    except Exception as _e:
+        import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
+    return 0.0
+
+
+def get_cost_of_carry_signal(symbol: str) -> dict:
+    """
+    Cost-of-carry / futures basis signal.
+    When futures trade at premium to spot: bulls rolling → bullish
+    When futures at discount (backwardation): bears rolling → bearish
+    Threshold: >0.3% premium = BULLISH, <-0.1% = BEARISH
+    """
+    try:
+        import requests
+        s = requests.Session()
+        s.headers.update({"User-Agent": "Mozilla/5.0",
+                          "Referer": "https://www.nseindia.com"})
+        s.get("https://www.nseindia.com/", timeout=4)
+        r = s.get(
+            f"https://www.nseindia.com/api/quote-derivative?symbol={symbol}",
+            timeout=8
+        )
+        if r.status_code != 200:
+            return {"signal": "NEUTRAL", "score_adj": 0.0, "basis_pct": 0.0}
+        data  = r.json()
+        spot  = float(data.get("underlyingValue", 0) or 0)
+        futures = 0.0
+        for item in data.get("stocks", []):
+            meta = item.get("metadata", {})
+            if meta.get("instrumentType") == "FUT" and spot:
+                futures = float(meta.get("lastPrice", 0) or 0)
+                break
+        if not spot or not futures:
+            return {"signal": "NEUTRAL", "score_adj": 0.0, "basis_pct": 0.0}
+        basis_pct = (futures - spot) / spot * 100
+        if basis_pct > 0.3:
+            return {"signal": "BULLISH", "score_adj": 0.4,
+                    "basis_pct": round(basis_pct, 3),
+                    "reason": f"Futures premium {basis_pct:.2f}% — bulls rolling"}
+        elif basis_pct < -0.1:
+            return {"signal": "BEARISH", "score_adj": -0.4,
+                    "basis_pct": round(basis_pct, 3),
+                    "reason": f"Futures discount {basis_pct:.2f}% — bears rolling"}
+        return {"signal": "NEUTRAL", "score_adj": 0.0, "basis_pct": round(basis_pct, 3)}
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).debug("cost_of_carry %s: %s", symbol, e)
+        return {"signal": "NEUTRAL", "score_adj": 0.0, "basis_pct": 0.0}
+
+
+def generate_signal(
+    df,
+    df_htf,
+    symbol: str,
+    option_data: Optional[dict] = None,
+    config: Optional[Dict[str, Any]] = None,
+    capital: Optional[float] = None,
+) -> Dict[str, Any]:
+    """
+    Generate a trading signal for `symbol`.
+
+    Parameters
+    ----------
+    df          : pd.DataFrame — 5-min OHLCV with indicator columns
+    df_htf      : pd.DataFrame — higher time-frame OHLCV (15-min / 1-hr)
+    symbol      : str          — instrument name (e.g. "NIFTY")
+    option_data : dict | None  — optional option chain data
+    config      : dict | None  — override DEFAULT_CONFIG keys
+    capital     : float | None — account capital for qty sizing.
+                  If None, falls back to config.get_runtime_capital()
+                  then to ₹1,00,000.
+    """
+    cfg = DEFAULT_CONFIG.copy()
+    if config:
+        cfg.update(config)
+
+    # Resolve account capital for position-size estimate
+    effective_capital: float = (
+        float(capital)
+        if capital is not None and float(capital) > 0
+        else _DEFAULT_CAPITAL
+    )
+
+    regime   = detect_market_regime(df)
+    regime   = str(regime).upper() if regime else "NO_TRADE"
+
+    # ── Auto-blacklist + per-symbol pause check ──────────────────────────
+    try:
+        from trade_manager import check_and_blacklist_symbol as _bl_chk
+        if _bl_chk(symbol):
+            return {"strategy":"blacklisted","score":0,"direction":"NEUTRAL",
+                    "reason":f"{symbol} auto-blacklisted (3+ SL hits — 14 day ban)"}
+    except Exception: pass
+    # SL cooldown (smart re-entry)
+    try:
+        from market_intelligence_hub import is_in_sl_cooldown as _isc
+        if _isc(symbol):
+            return {"strategy":"sl_cooldown","score":0,"direction":"NEUTRAL",
+                    "reason":f"{symbol} in SL cooldown — 30min after stop hit"}
+    except Exception: pass
+
+    try:
+        import json as _j, os as _o
+        _pf = "paused_symbols.json"
+        if _o.path.exists(_pf):
+            if symbol.upper() in _j.loads(open(_pf).read()):
+                return {"strategy":"paused","score":0,"direction":"NEUTRAL",
+                        "reason":f"{symbol} manually paused — /pause_sym {symbol} to resume"}
+    except Exception: pass
+
+    # ── Earnings proximity check (GAP 6) ──────────────────────────────
+    try:
+        from data_source_resilience import get_earnings_size_multiplier
+        _em = get_earnings_size_multiplier(symbol)
+        if _em == 0.0:
+            return {"strategy":"earnings_blackout","score":0,
+                    "direction":"NEUTRAL",
+                    "reason":f"{symbol} results today — no trade"}
+        elif _em < 1.0:
+            _result_meta = _result_meta if '_result_meta' in dir() else {}
+            locals_dict = locals()
+            if 'result' in locals_dict:
+                locals_dict['result']['earnings_multiplier'] = _em
+    except Exception: pass
+
+    htf_bias = _safe_get_htf_bias(df_htf)
+
+    candidates: List[Dict[str, Any]] = []
+    rejections: List[str]            = []
+
+    # ── Compute PDH/PDL/PWH/PWL/PMH/PML S/R levels ─────────────────────
+    _sr_levels = {}
+    if _PS_AVAILABLE:
+        try:
+            _now_ts = __import__("time").time()
+            _cached = _SR_LEVEL_CACHE.get(symbol, {})
+            if _now_ts - _cached.get("ts", 0) > 3600:  # refresh hourly
+                _pd_lvls = get_pdh_pdl_pdc(df)
+                _wm_lvls = get_weekly_monthly_levels(df_htf) if df_htf is not None else {}
+                _sr_levels = {**_pd_lvls, **_wm_lvls}
+                _SR_LEVEL_CACHE[symbol] = {"ts": _now_ts, "levels": _sr_levels}
+            else:
+                _sr_levels = _cached.get("levels", {})
+        except Exception: pass
+
+    # ── Compute weekly/monthly pivot levels for MTF context ────────────
+    _weekly_lvls  = {}
+    _monthly_lvls = {}
+    _daily_floor  = {}
+    try:
+        if _PB_AVAILABLE and df_htf is not None and len(df_htf) >= 20:
+            _dfc = df_htf.copy()
+            _dfc.columns = [c.lower() for c in _dfc.columns]
+            # Weekly: last 5 HTF bars
+            _wb = _dfc.tail(6).iloc[:-1]
+            if len(_wb) >= 3:
+                from pivot_boss import calc_weekly_pivots, calc_monthly_pivots, get_mtf_pivot_score_mod, calc_floor_pivots
+                _weekly_lvls = calc_weekly_pivots(
+                    float(_wb["high"].max()), float(_wb["low"].min()), float(_wb["close"].iloc[-1])
+                )
+                # Monthly: last 20 HTF bars
+                _mb = _dfc.tail(22).iloc[:-2]
+                if len(_mb) >= 10:
+                    _monthly_lvls = calc_monthly_pivots(
+                        float(_mb["high"].max()), float(_mb["low"].min()), float(_mb["close"].iloc[-1])
+                    )
+                # Daily floor for confluence check
+                _pb = _dfc.tail(2).iloc[0]
+                _daily_floor = calc_floor_pivots(
+                    float(_pb.get("high",0)), float(_pb.get("low",0)), float(_pb.get("close",0))
+                )
+    except Exception as _e:
+        import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
+
+
+    for strategy_fn in STRATEGIES:
+        # ── Regime-aware strategy routing ─────────────────────────────────
+        try:
+            from market_intelligence_hub import should_strategy_run_in_regime as _rsrr
+            _rn = getattr(strategy_fn,'__name__','')
+            _regime_now = str(regime) if 'regime' in dir() else 'UNKNOWN'
+            _ok_r, _r_reason = _rsrr(_rn, _regime_now)
+            if not _ok_r:
+                rejections.append(f'{_rn}: regime_blocked ({_regime_now})')
+                continue
+        except Exception: pass
+
+        try:
+            # Check if strategy is auto-disabled due to poor performance
+            if _SM_AVAILABLE and _strat_matrix_global:
+                _strat_nm = strategy_fn.__name__.replace("run_","").replace("_strategy","")
+                _should_run, _reason = _strat_matrix_global.should_run_strategy(_strat_nm)
+                if not _should_run:
+                    # Only hard-disable if truly bad — not just a few losses
+                    # Soft-disable: add penalty instead of skipping
+                    _hard_disable = "win_rate" in _reason.lower() or "banned" in _reason.lower()
+                    if _hard_disable:
+                        rejections.append(f"{_strat_nm}: auto_disabled_{_reason}")
+                        continue
+                    else:
+                        # Soft disable: apply penalty but still let it vote
+                        pass  # score penalty applied by strategy_matrix weight below
+            result    = strategy_fn(df, df_htf, option_data)
+            direction = result["direction"]
+            raw_score = float(result["score"])
+            strategy  = str(result["strategy"])
+
+            if not direction:
+                rejections.append(f"{strategy}: no direction")
+                continue
+
+            adjusted_score = _adjust_score_for_regime(strategy, raw_score, regime)
+            # Apply Pivot Boss indicator modifier (Role 2)
+            if _PB_AVAILABLE:
+                try:
+                    _day_type = _pb_cpr_width(
+                        _pb_calc_cpr(
+                            float(df["high"].max() if "high" in df.columns else df.get("High",df.iloc[:,1]).max()),
+                            float(df["low"].min()  if "low"  in df.columns else df.get("Low", df.iloc[:,2]).min()),
+                            float(df["close"].iloc[-1] if "close" in df.columns else df.iloc[-1,3])
+                        )
+                    ).get("day_type","NORMAL")
+                    _pv_mod = _get_pivot_score_modifier(df, direction, strategy, _day_type)
+                    adjusted_score = adjusted_score + _pv_mod
+                except Exception as _e:
+                    import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
+            # ── GATE: Corporate action check ─────────────────────────────
+            if _CA_AVAILABLE2 and symbol and symbol not in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}:
+                try:
+                    if _has_ca(symbol):
+                        return {"strategy": strategy, "score": 0.0, "direction": None,
+                                "reason": "corporate_action_today"}
+                except Exception: pass
+
+            # ── GATE: F&O Ban list check ────────────────────────────────
+            if _BAN_AVAILABLE and symbol and symbol not in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}:
+                try:
+                    if _is_banned(symbol):
+                        logger.debug("Signal blocked: %s in F&O ban list", symbol)
+                        return {"strategy": strategy, "score": 0.0, "direction": None,
+                                "reason": "fno_ban_list"}
+                except Exception: pass
+
+            # ── NEW INTELLIGENCE MODULES ──────────────────────────────────
+            # 1. BhavCopy delivery % score
+            if _BHAV_AVAILABLE and symbol:
+                try:
+                    adjusted_score += _bhav_score(symbol, direction)
+                except Exception: pass
+
+            # 2. Cross-asset momentum score
+            if _CA_AVAILABLE and symbol:
+                try:
+                    adjusted_score += _ca_score(symbol, direction)
+                except Exception: pass
+
+            # 3. Intraday time-bucket weight
+            if _TB_AVAILABLE:
+                try:
+                    from datetime import datetime as _dtnow
+                    _tb = _tb_weight(strategy, _dtnow.now().time())
+                    adjusted_score *= _tb
+                except Exception: pass
+
+            # 4. Participant-wise OI (FII/DII/PRO/CLIENT) + cumulative FII
+            if _PART_AVAILABLE:
+                try:
+                    _pm, _pn = _part_score(direction)
+                    adjusted_score += _pm
+                    from participant_oi import get_cumulative_fii
+                    _cum5 = get_cumulative_fii(5)
+                    # Oversold bounce: 5d outflow > ₹10,000Cr
+                    if _cum5 < -10000 and direction == "BUY":
+                        adjusted_score += 0.8
+                    elif _cum5 > 10000 and direction == "SELL":
+                        adjusted_score += 0.5
+                except Exception: pass
+
+            # 5. Expiry regime modifier — ADDITIVE nudge (never kills signal)
+            if _EXPIRY_AVAILABLE:
+                try:
+                    _er = _get_expiry()
+                    _mods = _er.get("score_modifiers", {})
+                    _stl  = strategy.lower()
+                    # Get multiplier for this strategy type
+                    if any(x in _stl for x in ["break","orb","vp_break"]):
+                        _exp_mult = float(_mods.get("breakout", 1.0))
+                    elif any(x in _stl for x in ["trend","ma_cross","holy","supertrend"]):
+                        _exp_mult = float(_mods.get("trend", 1.0))
+                    elif any(x in _stl for x in ["mean","vwap","cpr","rsi","ichin"]):
+                        _exp_mult = float(_mods.get("mean_rev", 1.0))
+                    elif any(x in _stl for x in ["scalp"]):
+                        _exp_mult = float(_mods.get("scalping", 1.0))
+                    else:
+                        _exp_mult = 1.0
+                    # Convert multiplier to additive nudge: 1.4→+0.4, 0.6→-0.4
+                    # Cap nudge at ±0.8 — never kill a signal
+                    _exp_nudge = round(max(-0.8, min(0.8, _exp_mult - 1.0)), 2)
+                    adjusted_score = adjusted_score + _exp_nudge
+                    # SIP calendar boost (BUY only, 3rd-4th Monday)
+                    if direction == "BUY":
+                        adjusted_score += _sip_boost()
+                    # Friday post-expiry: fresh week ahead, boost trend signals
+                    import datetime as _dttm
+                    if _dttm.datetime.now().weekday() == 4:  # Friday
+                        if any(x in strategy.lower() for x in ["trend","breakout","orb"]):
+                            adjusted_score += 0.4
+                except Exception: pass
+
+            # 6. Bulk deal smart money signal
+            if _BULK_AVAILABLE and symbol:
+                try:
+                    adjusted_score += _bulk_score(symbol, direction)
+                except Exception: pass
+
+            # 7. Theta environment (IV% modifier)
+            if _THETA_AVAILABLE:
+                try:
+                    _ivp = float((option_data or {}).get("iv_percentile", 50))
+                    _vix = float((option_data or {}).get("vix", 15))
+                    adjusted_score += _theta_mod(_ivp, _vix, direction)
+                except Exception: pass
+
+            # 8. Index rebalancing signal
+            if _REBAL_AVAILABLE and symbol:
+                try:
+                    adjusted_score += _rebal_score(symbol, direction)
+                except Exception: pass
+
+            # 9. News NLP sentiment
+            if _NEWS_AVAILABLE and symbol:
+                try:
+                    adjusted_score += _news_score(symbol, direction)
+                except Exception: pass
+
+            # 8a. Regime-based strategy weight modifier
+            if _REGIME_AVAIL:
+                try:
+                    _rw = _get_regime().strategy_weight(strategy)
+                    if _rw != 1.0:
+                        adjusted_score = adjusted_score * _rw
+                except Exception: pass
+            # 8b. Volume confirmation on breakout/trend signals
+            try:
+                _df_c = df.copy()
+                _df_c.columns = [c.lower() for c in _df_c.columns]
+                if "volume" in _df_c.columns and len(_df_c) >= 20:
+                    _vol_now = float(_df_c["volume"].iloc[-1])
+                    _vol_avg = float(_df_c["volume"].tail(20).mean())
+                    _vol_ratio = _vol_now / max(_vol_avg, 1)
+                    _stl = strategy.lower()
+                    # Volume spike: breakout/trend needs above-avg volume
+                    if any(x in _stl for x in ["break","trend","orb","momentum"]):
+                        if _vol_ratio > 1.5:   adjusted_score += 1.0  # strong volume
+                        elif _vol_ratio > 1.2: adjusted_score += 0.5  # moderate volume
+                        elif _vol_ratio < 0.7: adjusted_score -= 1.0  # weak volume: reject
+                    # Volume contraction good for mean reversion
+                    elif any(x in _stl for x in ["mean","vwap","cpr","reversion"]):
+                        if _vol_ratio < 0.8: adjusted_score += 0.5   # low volume pullback
+                    # Store for signal metadata
+                    _sig_meta["volume_ratio"] = round(_vol_ratio, 2)
+            except Exception: pass
+            # 9a. PDH/PDL/PWH/PWL/PMH/PML score modifier
+            if _PS_AVAILABLE and _sr_levels:
+                try:
+                    _price = float(df["close"].iloc[-1] if "close" in df.columns else df.iloc[-1,-1])
+                    _sr_mod, _sr_ctx = score_vs_key_levels(
+                        _price, direction,
+                        pdh=_sr_levels.get("PDH",0), pdl=_sr_levels.get("PDL",0),
+                        pdc=_sr_levels.get("PDC",0),
+                        pwh=_sr_levels.get("PWH",0), pwl=_sr_levels.get("PWL",0),
+                        pmh=_sr_levels.get("PMH",0), pml=_sr_levels.get("PML",0),
+                    )
+                    adjusted_score += _sr_mod
+                    if _sr_mod != 0:
+                        _sig_meta["sr_level_mod"] = _sr_mod
+                        _sig_meta["sr_level_ctx"] = " | ".join(_sr_ctx[:2])
+                except Exception: pass
+            # 10aa. Momentum quality (R-squared) — how clean is the trend?
+            try:
+                import numpy as _np
+                _df_r = df.copy()
+                _df_r.columns = [c.lower() for c in _df_r.columns]
+                if "close" in _df_r.columns and len(_df_r) >= 15:
+                    _c = _df_r["close"].tail(15).values
+                    _x = _np.arange(len(_c))
+                    _p  = _np.polyfit(_x, _c, 1)
+                    _yhat = _np.polyval(_p, _x)
+                    _ss_res = _np.sum((_c - _yhat)**2)
+                    _ss_tot = _np.sum((_c - _np.mean(_c))**2)
+                    _r2 = 1 - _ss_res / max(_ss_tot, 1e-9)
+                    # Clean trend (R²>0.8): boost trend/breakout signals
+                    if _r2 > 0.85 and any(x in strategy.lower() for x in ["trend","break","orb"]):
+                        if (direction=="BUY" and _p[0] > 0) or (direction=="SELL" and _p[0] < 0):
+                            adjusted_score += 0.8
+                            _sig_meta["r_squared"] = round(float(_r2), 3)
+                    # Noisy (R²<0.4): penalise trend signals
+                    elif _r2 < 0.4 and "trend" in strategy.lower():
+                        adjusted_score -= 0.5
+            except Exception: pass
+            # 9c. OI direction modifier (5-min real-time)
+            if _OI_TRACKER_SIG_AVAIL:
+                try:
+                    _sym_for_oi = "BANKNIFTY" if "BANK" in symbol.upper() else "NIFTY"
+                    _oi_dir = _get_oi_tracker().get_current_direction(_sym_for_oi)
+                    if _oi_dir:
+                        _oi_d  = _oi_dir.get("direction","NEUTRAL")
+                        _oi_cv = _oi_dir.get("conviction","")
+                        _oi_w  = {"STRONG":1.5,"MODERATE":0.8,"WEAK":0.3}.get(_oi_cv,0)
+                        if _oi_d == direction and _oi_d != "NEUTRAL":
+                            adjusted_score += _oi_w   # OI confirms signal
+                        elif _oi_d != "NEUTRAL" and _oi_d != direction:
+                            adjusted_score -= _oi_w   # OI contradicts signal
+                except Exception: pass
+            # 9d. Global macro modifier (S&P, crude, USD/INR)
+            if _VP_ADV_AVAIL:
+                try:
+                    _macro = _get_macro(symbol)
+                    _mm    = _macro.get("score_mod", 0.0)
+                    _mbias = _macro.get("bias","NEUTRAL")
+                    if _mm != 0:
+                        # Only apply if macro confirms trade direction
+                        if (direction == "BUY"  and _mbias == "BULLISH") or \
+                           (direction == "SELL" and _mbias == "BEARISH"):
+                            adjusted_score += abs(_mm) * 0.5
+                        elif (direction == "BUY"  and _mbias == "BEARISH") or \
+                             (direction == "SELL" and _mbias == "BULLISH"):
+                            adjusted_score -= abs(_mm) * 0.3
+                except Exception: pass
+            # 9b. HMM regime modifier
+            if _HMM_AVAIL:
+                try:
+                    _hrm = get_regime_score_modifier(regime, str(strategy))
+                    adjusted_score += _hrm
+                except Exception: pass
+            # 9b2. Order flow modifier
+            if _OF_AVAIL:
+                try:
+                    _of = _compute_of(df)
+                    adjusted_score += _of.get("score_modifier",0)
+                except Exception: pass
+            # 9b3. Dark pool modifier
+            if _DP_AVAIL:
+                try:
+                    _dp = _get_dp(symbol)
+                    if _dp.get("direction")==direction:
+                        adjusted_score += min(_dp.get("score",0)*0.3, 0.8)
+                except Exception: pass
+            # 9b4. FII options positioning
+            if _FII_OPT_AVAIL:
+                try:
+                    _fo = _get_fii_opts(symbol)
+                    adjusted_score += _fo.get("score_modifier",0)*0.4
+                except Exception: pass
+            # 9c. GEX + Implied Move modifiers
+            if _GREEKS_AVAIL:
+                try:
+                    _ep = get_event_playbook(symbol)
+                    if _ep.get("has_event") and instrument_type in ("CE","PE"):
+                        adjusted_score += 1.0  # event day = options opportunity
+                except Exception: pass
+            # 9d. Signal refinements
+            if _REFINE_AVAIL:
+                try:
+                    # Score decay by time of day
+                    adjusted_score, _decay_note = apply_score_decay(
+                        adjusted_score, datetime.now(), strategy=str(strategy))
+                    # Nifty weight amplification
+                    _wt = get_nifty_weight_multiplier(symbol)
+                    if _wt > 1.0: adjusted_score *= _wt
+                    # Auto S/R level check
+                    _sr = detect_sr_levels(df)
+                    adjusted_score += _sr.get("score_mod", 0)
+                    # Earnings risk block (options only)
+                    if instrument_type in ("CE","PE"):
+                        _er = check_earnings_risk(symbol, "options")
+                        if _er.get("blocked"): adjusted_score *= 0.3
+                    # Sector rotation modifier
+                    _sect = get_sector_rotation_score(symbol)
+                    _sm = _sect.get("score_mod", 0)
+                    if (direction=="BUY" and _sm>0) or (direction=="SELL" and _sm<0):
+                        adjusted_score += abs(_sm) * 0.5
+                    elif abs(_sm) > 0.5:
+                        adjusted_score -= abs(_sm) * 0.3
+                except Exception: pass
+            # 9d-extra0. BSE announcement score (GAP 7)
+            try:
+                from data_source_resilience import get_bse_announcement_score
+                _bse_score = get_bse_announcement_score(symbol)
+                if abs(_bse_score) > 0.1:
+                    adjusted_score += _bse_score
+                    _sig_meta["bse_announcement"] = _bse_score
+            except Exception: pass
+
+            # 9d-extra1. FII futures positioning signal (GAP 8)
+            try:
+                if symbol.upper() in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}:
+                    from data_source_resilience import get_fii_futures_signal
+                    _fii_f = get_fii_futures_signal()
+                    if abs(_fii_f) > 0.1:
+                        adjusted_score += _fii_f
+                        _sig_meta["fii_futures_signal"] = _fii_f
+            except Exception: pass
+
+            # 9d-extra. Promoter buying signal (strongest fundamental)
+            try:
+                from market_intelligence_hub import get_promoter_signal
+                _prom = get_promoter_signal(symbol)
+                if abs(_prom) > 0.2:
+                    if (_prom > 0 and direction == "BUY") or (_prom < 0 and direction == "SELL"):
+                        adjusted_score += abs(_prom) * 0.8
+                        _sig_meta["promoter_signal"] = _prom
+                    elif (_prom > 0 and direction == "SELL") or (_prom < 0 and direction == "BUY"):
+                        adjusted_score -= abs(_prom) * 0.5  # counter-signal
+            except Exception: pass
+
+            # 9d-extra2. Rollover/cost-of-carry signal
+            try:
+                if symbol.upper() in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}:
+                    from market_intelligence_hub import get_rollover_signal
+                    _rl = get_rollover_signal(symbol)
+                    _rl_score = float(_rl.get("score", 0))
+                    if abs(_rl_score) > 0.1:
+                        if (_rl_score > 0 and direction == "BUY") or (_rl_score < 0 and direction == "SELL"):
+                            adjusted_score += abs(_rl_score) * 0.5
+                        _sig_meta["rollover_signal"] = _rl.get("narrative","")
+            except Exception: pass
+
+            # 9e. FII/DII signal boost
+            try:
+                from fii_tracker import analyse_fii_patterns as _afii
+                _fp = _afii()
+                _fscore = _fp.get("score", 0)
+                # +0.5 for large-cap if FII buying >₹2000Cr 3-day
+                if _fp.get("fii_5d", 0) > 2000 and direction == "BUY":
+                    adjusted_score += 0.5
+                elif _fp.get("fii_5d", 0) < -2000 and direction == "SELL":
+                    adjusted_score += 0.3
+            except Exception: pass
+            # 9f. President/geopolitical sentiment modifier
+            if _VP_ADV_AVAIL:
+                try:
+                    _presn = _get_president()
+                    _tm    = _presn.get("score_mod", 0.0)
+                    _tbias = _presn.get("bias", "NEUTRAL")
+                    if abs(_tm) > 0.3:
+                        if (direction == "BUY"  and _tbias == "BULLISH") or \
+                           (direction == "SELL" and _tbias == "BEARISH"):
+                            adjusted_score += abs(_tm) * 0.5
+                        elif _tbias != "NEUTRAL":
+                            adjusted_score -= abs(_tm) * 0.3
+                except Exception: pass
+            # 10a. Whale/institutional composite score
+            if _WHALE_AVAILABLE:
+                try:
+                    _whale = _get_whale_score(symbol, for_option=True)
+                    _whale_mod = float(_whale.get("score_mod", 0))
+                    if abs(_whale_mod) > 0.1:
+                        adjusted_score += _whale_mod
+                        # Store for signal metadata
+                        _sig_meta["whale_mod"] = _whale_mod
+                        _sig_meta["whale_signal"] = _whale.get("narrative","")[:40]
+                except Exception: pass
+            # 10b. SENSEX vs NIFTY divergence (index signals only)
+            if _BSE_DIV and symbol in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}:
+                try:
+                    _div = _bse_div()
+                    if _div.get("signal") == "IT_SPECIFIC" and "FIN" not in symbol:
+                        adjusted_score += 0.5 if direction == "BUY" and _div["sensex_pct"] > 0 else -0.5
+                    elif _div.get("signal") == "BANK_SPECIFIC":
+                        if symbol == "BANKNIFTY":
+                            adjusted_score += 0.5 if direction == "BUY" and _div["banknifty_pct"] > 0 else -0.5
+                except Exception: pass
+
+            # 10. Multi-timeframe pivot levels (weekly + monthly)
+            if _PB_AVAILABLE and (_weekly_lvls or _monthly_lvls):
+                try:
+                    _mtf_mod, _mtf_ctx = get_mtf_pivot_score_mod(
+                        price          = float(df["close"].iloc[-1] if "close" in df.columns else df.iloc[-1,-1]),
+                        direction      = direction,
+                        daily_levels   = _daily_floor,
+                        weekly_levels  = _weekly_lvls or None,
+                        monthly_levels = _monthly_lvls or None,
+                    )
+                    adjusted_score += _mtf_mod
+                except Exception: pass
+
+            # Apply time-of-day zone weight — ADDITIVE only (never kills signal)
+            # Converts multiplier to ±1.0 nudge: 2.0→+1.0, 0.3→-0.7, 1.0→0.0
+            tz_weight = get_strategy_weight(strategy)
+            tz_nudge  = round(max(-1.0, min(1.0, (tz_weight - 1.0))), 2)
+            adjusted_score = adjusted_score + tz_nudge  # nudge only, never zero out
+            min_score      = _min_score_for_regime(regime, strategy, cfg)
+
+            # Two-stage filter:
+            # Stage 1: vote_threshold — must be credible to vote
+            _vote_threshold = float(cfg.get("vote_threshold", 1.5))
+            if adjusted_score < _vote_threshold:
+                rejections.append(
+                    f"{strategy}: below_vote_threshold raw={raw_score:.2f} "
+                    f"adj={adjusted_score:.2f} min_vote={_vote_threshold:.1f}"
+                )
+                continue
+            # STT breakeven check — April 2026: need 15+ pts minimum
+            if _VP_ADV_AVAIL and symbol:
+                try:
+                    _be = _get_stt_be(symbol)
+                    _min_pts = _be.get("min_target_pts", 0)
+                    _target_pts = abs(raw_score) * 5  # score → approximate points
+                    if _min_pts > 0 and _target_pts < _min_pts * 0.5:
+                        pass  # advisory only — logged not blocked
+                except Exception: pass
+            # Stage 2: per-strategy min_score recorded but NOT used to eliminate
+            # Individual score stored; final gate applied AFTER confluence boost
+            _pre_confluence_min = min_score  # stored for post-confluence check
+
+            # Relax HTF filter on expiry day (HTF often SIDEWAYS on expiry)
+            _htf_passes = _passes_htf_filter(direction, htf_bias, regime, cfg)
+            if not _htf_passes:
+                # On expiry day allow mean-reversion despite SIDEWAYS HTF
+                _is_mr = any(x in strategy.lower() for x in ["mean","vwap","revert","cpr"])
+                _is_expiry_today = False
+                if _EXPIRY_AVAILABLE:
+                    try:
+                        _er_now = _get_expiry()
+                        _is_expiry_today = _er_now.get("is_expiry_day", False)
+                    except Exception: pass
+                if _is_mr and _is_expiry_today:
+                    pass   # allow mean-reversion on expiry despite SIDEWAYS HTF
+                else:
+                    rejections.append(f"{strategy}: HTF misaligned ({htf_bias})")
+                    continue
+
+            # Weinstein Stage filter for stocks
+            if _WEINSTEIN_AVAILABLE and symbol:
+                try:
+                    _ws = _weinstein_filter(symbol, direction, df_htf)
+                    if not _ws.get("allow", True):
+                        rejections.append(f"{strategy}: weinstein_{_ws.get('reason','blocked')}")
+                        continue
+                    adjusted_score += _ws.get("score_mod", 0.0)
+                except Exception as _e:
+                    import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
+
+            if not _passes_volume_gate(df, cfg):
+                rejections.append(f"{strategy}: volume_ratio_too_low")
+                continue
+
+            # Breakout requires stronger volume confirmation
+            if strategy == "breakout":
+                try:
+                    min_bo_vr = float(cfg.get("min_breakout_volume_ratio", 1.20))
+                    vr_col = "volume_ratio" if "volume_ratio" in df.columns else None
+                    if vr_col and min_bo_vr > 0:
+                        vr = float(df[vr_col].iloc[-1])
+                        if 0 < vr < min_bo_vr:
+                            rejections.append(f"breakout: insufficient_volume ratio={vr:.2f}<{min_bo_vr:.2f}")
+                            continue
+                except Exception as _e:
+                    import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
+
+            candidates.append({
+                "symbol":    symbol,
+                "strategy":  strategy,
+                "side":      direction,
+                "score":     round(adjusted_score, 4),
+                "raw_score": round(raw_score, 4),
+            })
+
+        except Exception as exc:
+            rejections.append(f"{strategy_fn.__name__}: {exc}")
+
+    # ── CONFLUENCE ENGINE: All strategies run, vote by direction ────────────
+    # This is the core upgrade — no strategy is time-gated to zero.
+    # Every strategy runs on every bar. Confluence = multiple strategies
+    # pointing the same direction = higher confidence trade.
+    #
+    # Scoring table:
+    #   1 strategy agrees  → no boost (min_score filter still applies)
+    #   2 strategies agree → +1.5 boost (WEAK confluence)
+    #   3 strategies agree → +3.0 boost (MEDIUM confluence)
+    #   4-5 agree          → +5.0 boost (STRONG confluence)
+    #   6+ agree           → +7.0 boost (VERY STRONG confluence)
+    #
+    # Also: conflicting signals (BUY and SELL same bar) reduce score.
+
+    if len(candidates) >= 1:
+        # Count votes by direction
+        buy_cands  = [c for c in candidates if c["side"] in ("BUY","LONG")]
+        sell_cands = [c for c in candidates if c["side"] in ("SELL","SHORT")]
+        n_buy  = len(buy_cands)
+        n_sell = len(sell_cands)
+
+        # Conflict penalty: opposing signals reduce conviction
+        conflict_penalty = 0.0
+        if n_buy > 0 and n_sell > 0:
+            conflict_ratio   = min(n_buy, n_sell) / max(n_buy, n_sell)
+            conflict_penalty = round(-conflict_ratio * 2.0, 2)
+
+        # Pick majority direction
+        if n_buy >= n_sell:
+            majority_dir  = "BUY"
+            n_agree       = n_buy
+            majority_cands = buy_cands
+        else:
+            majority_dir  = "SELL"
+            n_agree       = n_sell
+            majority_cands = sell_cands
+
+        # Confluence boost table
+        # On expiry day: single strategy is enough (max pain pull is the signal)
+        if   n_agree >= 6: boost = 7.0; conf_label = "VERY_STRONG"
+        elif n_agree >= 4: boost = 5.0; conf_label = "STRONG"
+        elif n_agree >= 3: boost = 3.0; conf_label = "MEDIUM"
+        elif n_agree == 2: boost = 1.5; conf_label = "WEAK"
+        elif _is_expiry_day: boost = 0.5; conf_label = "EXPIRY_SINGLE"
+        else:              boost = 0.0; conf_label = "SINGLE"
+
+        total_boost = boost + conflict_penalty
+
+        # Apply boost to all majority candidates
+        for c in majority_cands:
+            c["score"]       = round(c["score"] + total_boost, 4)
+            c["confluence"]  = conf_label
+            c["n_agree"]     = n_agree
+            c["n_conflict"]  = min(n_buy, n_sell)
+            c["conflict_pen"]= conflict_penalty
+
+        # List which strategies agreed
+        agreeing_strategies = [c["strategy"] for c in majority_cands]
+        for c in majority_cands:
+            c["agreeing_strategies"] = agreeing_strategies
+
+        candidates = majority_cands
+
+    # ── POST-CONFLUENCE THRESHOLD — the REAL gate ──────────────────────────────
+    # Now apply the actual min_score threshold on BOOSTED scores
+    # Strategies that were individually weak but collectively strong PASS here
+    _post_min = float(cfg.get("post_confluence_min_score", 3.5))
+    _pre_filter_count = len(candidates)
+    candidates = [c for c in candidates if c.get("score", 0) >= _post_min]
+    if len(candidates) < _pre_filter_count:
+        rejections.append(
+            f"post_confluence_filter: {_pre_filter_count - len(candidates)} "
+            f"candidates below {_post_min:.1f} after boost"
+        )
+
+    if not candidates:
+        # Log what killed all signals — helps debug
+        rejection_summary = {}
+        for r in rejections:
+            reason = r.split(":")[1].strip().split(" ")[0] if ":" in r else "unknown"
+            rejection_summary[reason] = rejection_summary.get(reason, 0) + 1
+        logger.info(
+            "ZERO SIGNALS for %s | regime=%s htf=%s | rejections: %s",
+            symbol, regime, htf_bias,
+            ", ".join(f"{k}×{v}" for k,v in sorted(rejection_summary.items(),key=lambda x:-x[1])[:5])
+        )
+
+    if candidates:
+        best       = sorted(candidates, key=lambda x: x["score"], reverse=True)[0]
+        price      = _get_price(df)
+        qty        = _get_qty(price, effective_capital)
+        volatility = _calculate_volatility(df)
+
+        return {
+            "symbol":     symbol,
+            "side":       best["side"],
+            "direction":  best["side"],   # alias for side — used by some callers
+            "strategy":   best["strategy"],
+            "score":      best["score"],
+            "raw_score":  best["raw_score"],
+            "confluence":  best.get("confluence", "SINGLE"),
+            "n_agree":     best.get("n_agree", 1),
+            "n_conflict":  best.get("n_conflict", 0),
+            "agreeing":    best.get("agreeing_strategies", [best["strategy"]]),
+            "all_candidates": [(c["strategy"],c["score"]) for c in sorted(candidates,key=lambda x:x["score"],reverse=True)[:5]],
+            "price":      price,
+            "qty":        qty,
+            "strength":   best["score"],
+            "volatility": volatility,
+            "regime":     regime,
+            "htf_bias":   htf_bias,
+            "reason":     "best_candidate",
+            "candidates": candidates,
+            "rejections": rejections,
+            "capital_used": effective_capital,
+        }
+
+    # Fallback path
+    if cfg.get("enable_fallback", True):
+        score, direction = calculate_signal_score(df, df_htf, option_data)
+        direction        = _normalize_direction(direction)
+        score            = float(score)
+
+        if direction and score >= float(cfg["fallback_score_threshold"]):
+            price = _get_price(df)
+            qty   = _get_qty(price, effective_capital)
+
+            return {
+                "symbol":     symbol,
+                "side":       direction,
+                "direction":  direction,
+                "strategy":   "fallback",
+                "score":      round(score, 4),
+                "raw_score":  round(score, 4),
+                "price":      price,
+                "qty":        qty,
+                "strength":   score,
+                "volatility": _calculate_volatility(df),
+                "regime":     regime,
+                "htf_bias":   htf_bias,
+                "reason":     "fallback",
+                "rejections": rejections,
+                "capital_used": effective_capital,
+            }
+
+    return {
+        "symbol":     symbol,
+        "side":       None,
+        "reason":     "NO_VALID_SIGNAL",
+        "rejections": rejections,
+        "regime":     regime,
+        "htf_bias":   htf_bias,
+    }

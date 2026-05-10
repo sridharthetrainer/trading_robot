@@ -1,0 +1,22 @@
+[Unit]
+Description=NIFTY Algo Trading Bot
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+Environment=PATH=/home/sridhar/Desktop/trading_robot/venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/sridhar/Desktop/trading_robot/venv/bin/python3 /home/sridhar/Desktop/trading_robot/main_autonomous.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=60
+WatchdogUSec=300000000
+
+[Install]
+WantedBy=multi-user.target

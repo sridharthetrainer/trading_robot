@@ -1,0 +1,223 @@
+"""
+data_download_tracker.py — Track every download attempt across the system.
+
+Records: what was downloaded, from where, size, success/fail, timestamp.
+Produces: daily download report, weekly summary, next-week plan.
+
+HOW IT WORKS:
+  Every data fetch (NSE, BSE, Angel One, yfinance, etc.) calls:
+      tracker.record(source, item, status, size_kb, error)
+  
+  End of day: build full report → Telegram
+  Weekly: what was never fetched, what failed consistently
+"""
+from __future__ import annotations
+
+import json
+import logging
+import sqlite3
+import time
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+_DB   = Path("download_log.db")
+
+_CREATE = """
+CREATE TABLE IF NOT EXISTS downloads (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts         REAL    DEFAULT (strftime('%s','now')),
+    dl_date    TEXT,
+    dl_time    TEXT,
+    source     TEXT,   -- NSE, BSE, AngelOne, yfinance, NewsAPI, etc.
+    category   TEXT,   -- OHLCV, OptionChain, FII, BhavCopy, Pivots, etc.
+    item       TEXT,   -- NIFTY 5m, BANKNIFTY OC, FII_DII, etc.
+    status     TEXT,   -- OK, FAILED, PARTIAL, STALE
+    size_kb    REAL    DEFAULT 0,
+    rows       INTEGER DEFAULT 0,
+    latency_ms REAL    DEFAULT 0,
+    error      TEXT    DEFAULT '',
+    url        TEXT    DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_dl_date ON downloads(dl_date);
+CREATE INDEX IF NOT EXISTS idx_status  ON downloads(status);
+"""
+
+# ── What SHOULD be downloaded every day ──────────────────────────────────────
+DAILY_REQUIRED = {
+    # (source, category, item): description
+    ("NSE",      "Index",       "NIFTY 5m"):          "NIFTY intraday OHLCV",
+    ("NSE",      "Index",       "BANKNIFTY 5m"):       "BANKNIFTY intraday OHLCV",
+    ("NSE",      "Index",       "FINNIFTY 5m"):        "FINNIFTY intraday OHLCV",
+    ("NSE",      "Index",       "MIDCPNIFTY 5m"):      "MIDCPNIFTY intraday OHLCV",
+    ("NSE",      "Index",       "NIFTYNEXT50 5m"):     "NIFTYNEXT50 intraday OHLCV",
+    ("BSE",      "Index",       "SENSEX 5m"):          "SENSEX intraday OHLCV",
+    ("NSE",      "OptionChain", "NIFTY OC"):           "NIFTY option chain",
+    ("NSE",      "OptionChain", "BANKNIFTY OC"):       "BANKNIFTY option chain",
+    ("NSE",      "OptionChain", "FINNIFTY OC"):        "FINNIFTY option chain",
+    ("BSE",      "OptionChain", "SENSEX OC"):          "SENSEX option chain",
+    ("NSE",      "FII",         "FII_DII_Cash"):       "FII/DII cash market flows",
+    ("NSE",      "FII",         "Participant_OI"):     "Participant-wise F&O OI",
+    ("NSE",      "BhavCopy",    "Equity_BhavCopy"):   "NSE equity BhavCopy delivery%",
+    ("NSE",      "Stocks",      "Nifty200_OHLCV"):    "All 194 Nifty200 stocks OHLCV",
+    ("NSE",      "Pivots",      "Daily_Pivots"):       "Daily CPR+pivot levels",
+    ("NSE",      "Events",      "FnO_BanList"):        "F&O ban list",
+    ("NSE",      "Events",      "Corporate_Actions"):  "Corporate actions calendar",
+    ("NSE",      "Events",      "Bulk_Deals"):         "Bulk/block deals",
+    ("External", "CrossAsset",  "USD_INR"):            "USD/INR rate (yfinance)",
+    ("External", "CrossAsset",  "Brent_Crude"):        "Brent crude price (yfinance)",
+    ("External", "CrossAsset",  "US_VIX"):             "US VIX (yfinance)",
+    ("External", "CrossAsset",  "US_10Y"):             "US 10-year yield (yfinance)",
+    ("External", "News",        "Market_News"):        "Market news headlines (NewsAPI)",
+    ("NSE",      "Expiry",      "Expiry_Calendar"):    "NSE expiry dates",
+}
+
+WEEKLY_REQUIRED = {
+    ("NSE",      "Stocks",  "Weekly_OHLCV"):        "Weekly OHLCV all symbols",
+    ("NSE",      "Stocks",  "Monthly_OHLCV"):       "Monthly OHLCV all symbols",
+    ("NSE",      "Index",   "Index_Rebalancing"):   "Index rebalancing announcements",
+    ("NSE",      "FII",     "FII_5d_Cumulative"):   "5-day cumulative FII position",
+    ("External", "ML",      "Model_Retrain"):       "AI model weekly retrain",
+    ("External", "ML",      "Backtest_Full"):       "Full symbol backtest (199 syms)",
+    ("External", "Profile", "Intraday_Profile"):    "Time-bucket profile update",
+    ("External", "Feature", "Feature_IC_Report"):   "Feature information coefficient",
+}
+
+
+class DownloadTracker:
+    def __init__(self, db_path: str = str(_DB)):
+        self.db_path = db_path
+        self._init_db()
+
+    def _conn(self):
+        c = sqlite3.connect(self.db_path, timeout=10)
+        c.row_factory = sqlite3.Row
+        return c
+
+    def _init_db(self):
+        with self._conn() as c:
+            c.executescript(_CREATE)
+
+    def record(
+        self,
+        source:     str,
+        item:       str,
+        status:     str   = "OK",
+        category:   str   = "Data",
+        size_kb:    float = 0,
+        rows:       int   = 0,
+        latency_ms: float = 0,
+        error:      str   = "",
+        url:        str   = "",
+    ) -> None:
+        now = datetime.now()
+        try:
+            with self._conn() as c:
+                c.execute(
+                    "INSERT INTO downloads "
+                    "(dl_date,dl_time,source,category,item,status,size_kb,rows,latency_ms,error,url) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    (now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S"),
+                     source, category, item, status, size_kb, rows, latency_ms, error[:200], url[:200])
+                )
+        except Exception as e:
+            logger.debug("DownloadTracker.record: %s", e)
+
+    def get_daily_summary(self, for_date: str = "") -> dict:
+        """What was downloaded today — success/failure breakdown."""
+        dl_date = for_date or date.today().isoformat()
+        try:
+            with self._conn() as c:
+                rows = c.execute(
+                    "SELECT * FROM downloads WHERE dl_date=? ORDER BY ts",
+                    (dl_date,)
+                ).fetchall()
+            all_rows = [dict(r) for r in rows]
+            ok      = [r for r in all_rows if r["status"] == "OK"]
+            failed  = [r for r in all_rows if r["status"] == "FAILED"]
+            partial = [r for r in all_rows if r["status"] == "PARTIAL"]
+
+            # What was required but missing?
+            downloaded_items = {(r["source"], r["category"], r["item"]) for r in ok}
+            missing_required = {
+                k: v for k, v in DAILY_REQUIRED.items()
+                if k not in downloaded_items
+            }
+
+            return {
+                "date":     dl_date,
+                "total":    len(all_rows),
+                "ok":       len(ok),
+                "failed":   len(failed),
+                "partial":  len(partial),
+                "total_kb": sum(r.get("size_kb",0) for r in ok),
+                "total_rows":sum(r.get("rows",0) for r in ok),
+                "failures": failed,
+                "missing_required": missing_required,
+                "all": all_rows,
+            }
+        except Exception as e:
+            logger.warning("daily_summary: %s", e)
+            return {}
+
+    def get_weekly_summary(self) -> dict:
+        """What was downloaded this week — consistency check."""
+        cutoff = (date.today() - timedelta(days=7)).isoformat()
+        try:
+            with self._conn() as c:
+                rows = c.execute(
+                    "SELECT source,category,item,status,dl_date FROM downloads WHERE dl_date>=?",
+                    (cutoff,)
+                ).fetchall()
+            all_rows = [dict(r) for r in rows]
+            # Count by item
+            item_stats: Dict[str, dict] = {}
+            for r in all_rows:
+                key = f"{r['source']}|{r['item']}"
+                if key not in item_stats:
+                    item_stats[key] = {"ok":0,"failed":0,"days":set()}
+                item_stats[key]["days"].add(r["dl_date"])
+                if r["status"] == "OK":
+                    item_stats[key]["ok"] += 1
+                else:
+                    item_stats[key]["failed"] += 1
+
+            # Reliability per item
+            reliability = {}
+            for key, s in item_stats.items():
+                total = s["ok"] + s["failed"]
+                reliability[key] = {
+                    "ok": s["ok"], "failed": s["failed"],
+                    "pct": round(s["ok"]/total*100) if total > 0 else 0,
+                    "days": len(s["days"]),
+                }
+
+            # Items with < 80% reliability
+            unreliable = {k:v for k,v in reliability.items() if v["pct"] < 80}
+            return {
+                "reliability": reliability,
+                "unreliable":  unreliable,
+                "total_items": len(item_stats),
+                "perfect":     sum(1 for v in reliability.values() if v["pct"]==100),
+            }
+        except Exception as e:
+            logger.warning("weekly_summary: %s", e)
+            return {}
+
+
+# Singleton
+_tracker: Optional[DownloadTracker] = None
+def get_tracker() -> DownloadTracker:
+    global _tracker
+    if _tracker is None:
+        _tracker = DownloadTracker()
+    return _tracker
+
+
+def record(source: str, item: str, status: str = "OK", **kwargs) -> None:
+    """Convenience: get_tracker().record(...)"""
+    try:
+        get_tracker().record(source, item, status, **kwargs)
+    except Exception:
+        pass
