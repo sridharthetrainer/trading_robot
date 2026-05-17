@@ -39,8 +39,21 @@ Fixes applied
    on the sell side of every exit. Recorded per-trade in the trades list.
    Adds a `stt` field to each trade dict for downstream analysis.
 """
-
 from __future__ import annotations
+
+
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 
 import csv
 import logging
@@ -651,8 +664,8 @@ if __name__ == "__main__":
     DEFAULT_INTERVAL    = getattr(cfg_mod, "DEFAULT_INTERVAL",    "5m")
     MAX_OPEN_POSITIONS  = getattr(cfg_mod, "MAX_OPEN_POSITIONS",   1)
 
-    dummy_angel = AngelOne("", "", "", "", paper_trade=True)
-    fetcher     = DataFetcher(dummy_angel, paper_trade=True)
+    dummy_angel = _get_angel_data_fetcher().angel  # use real Angel for data
+    fetcher     = _get_angel_data_fetcher()
 
     symbol   = DEFAULT_SYMBOL
     interval = DEFAULT_INTERVAL

@@ -29,8 +29,22 @@ Usage:
     prob = model.predict(df_5min.tail(30))  # → float 0.0-1.0
     # prob > 0.60 = strong signal, incorporate into final score
 """
-
 from __future__ import annotations
+
+
+# Auto-fix: get DataFetcher with Angel singleton
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 
 import json
 import logging
@@ -413,7 +427,7 @@ if __name__ == "__main__":
 
     try:
         from data_fetcher import DataFetcher
-        df = DataFetcher().get_market_data(args.symbol, interval="5m", days=args.days)
+        df = _get_angel_data_fetcher().get_market_data(args.symbol, interval="5m", days=args.days)
     except Exception:
         import yf_compat as yf  # yfinance replaced: Yahoo API broken
         sym = "^NSEI" if args.symbol == "NIFTY" else f"{args.symbol}.NS"

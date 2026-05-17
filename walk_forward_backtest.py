@@ -32,8 +32,22 @@ WF_TEST_DAYS     : int  = 30    OOS test window
 WF_MIN_WINDOWS   : int  = 3     minimum windows required for valid result
 WF_TOTAL_DAYS    : int  = 210   total history to fetch (train+test × windows)
 """
-
 from __future__ import annotations
+
+
+# Auto-fix: get DataFetcher with Angel singleton
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 
 import json
 import logging
@@ -319,6 +333,23 @@ def run_walk_forward(
 
 # ── Convenience: run all strategies ─────────────────────────────────────────
 
+def _get_wf_symbols() -> list:
+    """Get symbols for walk-forward validation."""
+    symbols = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"]
+    try:
+        import pandas as pd
+        from pathlib import Path
+        csv = Path("nifty200.csv")
+        if csv.exists():
+            df = pd.read_csv(str(csv))
+            for col in df.columns:
+                if "symbol" in col.lower():
+                    symbols += [str(s).strip().upper() for s in df[col].dropna().tolist()[:20]]
+                    break
+    except Exception: pass
+    return list(dict.fromkeys(symbols))[:25]  # max 25 for speed
+
+
 def run_walk_forward_all(
     data_fetcher        = None,
     best_params_dir:    str   = ".",
@@ -462,7 +493,7 @@ if __name__ == "__main__":
     data_fetcher = None
     try:
         from data_fetcher import DataFetcher
-        data_fetcher = DataFetcher()
+        data_fetcher = _get_angel_data_fetcher()
         logger.info("DataFetcher initialised")
     except Exception as exc:
         logger.warning("DataFetcher unavailable: %s", exc)

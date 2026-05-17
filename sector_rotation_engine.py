@@ -235,3 +235,54 @@ def format_telegram_report() -> str:
         "  Based on 5-day momentum + FII flow",
     ]
     return "\n".join(lines)
+
+
+def store_sector_snapshot() -> None:
+    """Store today's sector rotation data to DB."""
+    try:
+        import sqlite3, json
+        from datetime import date
+        conn = sqlite3.connect("trades.db", check_same_thread=False)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sector_rotation_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                sector TEXT NOT NULL,
+                change_5d REAL,
+                relative_strength REAL,
+                weight TEXT,
+                rank INTEGER,
+                UNIQUE(date, sector)
+            )
+        """)
+        sectors = get_all_sector_data()
+        for rank, (name, data) in enumerate(sectors.items(), 1):
+            conn.execute(
+                "INSERT OR REPLACE INTO sector_rotation_history "
+                "(date, sector, change_5d, relative_strength, weight, rank) "
+                "VALUES (?,?,?,?,?,?)",
+                (date.today().isoformat(), name,
+                 float(data.get("change_5d", 0)),
+                 float(data.get("rs", 0)),
+                 data.get("weight", "NEUTRAL"), rank)
+            )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).debug("sector_snapshot: %s", e)
+
+
+def get_sector_history(days: int = 30) -> list:
+    """Get sector rotation history."""
+    try:
+        import sqlite3
+        conn = sqlite3.connect("trades.db", check_same_thread=False)
+        rows = conn.execute(
+            "SELECT * FROM sector_rotation_history "
+            "ORDER BY date DESC, rank LIMIT ?", (days * 15,)
+        ).fetchall()
+        conn.close()
+        return rows
+    except Exception:
+        return []

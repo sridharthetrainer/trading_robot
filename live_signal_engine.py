@@ -720,6 +720,9 @@ class LiveSignalEngine:
     # One cycle
     # ------------------------------------------------------------------
     def _run_cycle(self) -> None:
+        # RULE: Scanning ALWAYS runs regardless of capital.
+        # Capital only determines PAPER vs LIVE for order placement.
+        # Even with ₹0 balance, scan + paper trades continue.
         now = time.time()
         if self.last_run_time and (now - self.last_run_time) < 20:
             return
@@ -816,6 +819,8 @@ class LiveSignalEngine:
         self._refresh_angel_balance()
         # Update capital compounder with current balance
         self._update_capital_tier()
+        # paper_trade_if_no_capital: if balance too low for live,
+        # all signals are logged as paper trades
 
         # GA-4: REST fallback monitoring when WebSocket disconnected
         ws_ok = self.ws_engine and self.ws_engine.is_connected()
@@ -887,6 +892,23 @@ class LiveSignalEngine:
                 import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
 
         candidates = self._evaluate_market_parallel(market_data)
+
+        # Record ALL strategy scores to DB (regardless of capital)
+        try:
+            from strategy_score_tracker import record_strategy_score
+            for _cand in (candidates or []):
+                record_strategy_score(
+                    symbol=_cand.get("symbol",""),
+                    strategy=_cand.get("strategy",""),
+                    score=_cand.get("score",0) or _cand.get("final_rank_score",0),
+                    direction=_cand.get("direction",""),
+                    regime=_cand.get("regime",""),
+                    vix=self._vix_cache_val,
+                    price=_cand.get("price",0),
+                    reasons=_cand.get("reasons",[]),
+                )
+        except Exception: pass
+
 
         if not candidates:
             logger.warning("No candidates from full filter path, trying fallback scan")

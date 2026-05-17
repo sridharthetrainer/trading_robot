@@ -7,6 +7,20 @@ Requires both 5-min and 15-min Supertrend to agree on direction.
 Usage:  python backtest_supertrend_mtf.py [--symbol NIFTY] [--days 30]
 """
 from __future__ import annotations
+
+# Auto-fix: get DataFetcher with Angel singleton
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 import argparse, logging, sys
 from typing import Any, Dict, List, Optional
 import pandas as pd
@@ -27,8 +41,8 @@ ST_MULT         = 3.0
 def fetch_data(symbol: str, days: int) -> Optional[pd.DataFrame]:
     try:
         from data_fetcher import DataFetcher
-        df5  = DataFetcher().get_market_data(symbol, interval="5m",  days=days)
-        df15 = DataFetcher().get_market_data(symbol, interval="15m", days=days)
+        df5  = _get_angel_data_fetcher().get_market_data(symbol, interval="5m",  days=days)
+        df15 = _get_angel_data_fetcher().get_market_data(symbol, interval="15m", days=days)
         return df5, df15
     except Exception:
         pass

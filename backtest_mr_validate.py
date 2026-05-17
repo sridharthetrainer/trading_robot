@@ -12,8 +12,21 @@ What this version improves
 - Produces a comparable score for validation quality
 - Fails clearly if files or data are missing
 """
-
 from __future__ import annotations
+
+
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 
 import json
 import logging
@@ -58,8 +71,8 @@ def load_best_params(path: str = BEST_PARAMS_JSON) -> Tuple[str, Dict]:
 
 
 def fetch_validation_source_data(symbol: str, days: int = 60, interval: str = "5m") -> pd.DataFrame:
-    dummy_angel = AngelOne("", "", "", "", paper_trade=True)
-    fetcher = DataFetcher(dummy_angel, paper_trade=True)
+    dummy_angel = _get_angel_data_fetcher().angel  # use real Angel for data
+    fetcher = _get_angel_data_fetcher()
 
     logger.info("Fetching validation source data | symbol=%s interval=%s days=%d", symbol, interval, days)
     data = fetcher.get_market_data(symbol, interval=interval, days=days)

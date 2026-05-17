@@ -160,8 +160,8 @@ def generate_market_chart(brief_data: dict, output_path: str) -> bool:
                              ("BRENT","Brent"),("USDINR","USD/INR"),
                              ("USVIX","US VIX")]:
             d = global_data.get(key, {})
-            if d and d.get("price"):
-                chg = float(d.get("chg", 0))
+            if d and (d.get("price") or d.get("last")):
+                chg = float(d.get("chg", 0) or d.get("change_pct", 0))
                 markets.append(label)
                 changes.append(chg)
                 colors.append('#00FF88' if chg > 0 else '#FF4444')

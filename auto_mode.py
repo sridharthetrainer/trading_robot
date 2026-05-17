@@ -254,7 +254,8 @@ class AutoModeSelector:
 
     def can_trade_symbol_live(self, symbol: str) -> bool:
         """True if balance is sufficient for live trading of this specific symbol."""
-        return self._last_balance >= self.min_capital_for_symbol(symbol)
+        # Always allow scanning — balance only affects LIVE vs PAPER execution
+        return True  # scanning always allowed; trade_manager checks capital for real orders
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 

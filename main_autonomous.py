@@ -45,8 +45,22 @@ Fixes applied
    now actually consumed.  The duplicated time-parsing logic in
    _market_window() is removed; it delegates to config.get_session_window().
 """
-
 from __future__ import annotations
+
+
+# Auto-fix: get DataFetcher with Angel singleton
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 import concurrent.futures as _cf
 # Shared thread pool — max 8 workers prevents thread exhaustion
 _THREAD_POOL = _cf.ThreadPoolExecutor(max_workers=8, thread_name_prefix="bot_worker")
@@ -2305,7 +2319,7 @@ class AutonomousTradingSystem:
             # ── 6. Range from yesterday's PDH/PDL + weekly levels ────────
             try:
                 from data_fetcher import DataFetcher
-                _ndf2 = DataFetcher().get_market_data("NIFTY", days=5)
+                _ndf2 = _get_angel_data_fetcher().get_market_data("NIFTY", days=5)
                 if _ndf2 is not None and len(_ndf2) >= 2:
                     _ph = float(_ndf2["high"].iloc[-2]) if "high" in _ndf2.columns else 0
                     _pl = float(_ndf2["low"].iloc[-2])  if "low"  in _ndf2.columns else 0

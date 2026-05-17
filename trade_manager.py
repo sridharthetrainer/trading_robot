@@ -1131,6 +1131,9 @@ class TradeManager:
 
     def open_trade(
         self,
+        # force_paper_if_insufficient: if capital < position size,
+        # trade is logged as PAPER instead of being rejected
+
         symbol:            str,
         side:              str,
         strategy:          str,

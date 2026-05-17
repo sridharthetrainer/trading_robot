@@ -269,6 +269,7 @@ class OffHoursEngine:
         ("06:00", "Bhavcopy EOD download",           self._run_bhavcopy_download),
         ("08:00", "Morning video generation",         self._run_morning_video),
         ("08:30", "Morning intelligence brief",       self._run_morning_brief),
+        ("18:15", "Daily data downloads",        self._run_daily_downloads),
         ("07:45", "Overnight gap risk check",    self._run_overnight_risk_check),
         ("09:00", "Sector rotation refresh",          self._run_sector_rotation),
         ("15:35", "EOD performance report",           self._run_eod_performance),
@@ -278,6 +279,8 @@ class OffHoursEngine:
                 ("12:00", "Deep ML training (60d window)",  self._run_deep_ml),
                 ("14:00", "Download historical data",       self._run_historical_download),
                 ("16:00", "Weekly performance analysis",    self._run_weekly_analysis),
+        ("16:05", "EOD ML strategy analysis",    self._run_eod_ml_analysis),
+        ("16:10", "Sector rotation snapshot",    lambda: __import__("sector_rotation_engine").store_sector_snapshot()),
             ]
         else:
             # Sunday: connection checks + next-week prep
@@ -359,10 +362,27 @@ class OffHoursEngine:
             def _make():
                 try:
                     from cross_asset import get_cross_asset_data, get_market_bias
-                    from morning_brief import _fetch_india_vix
+                    from morning_brief import _fetch_india_vix, _fetch_global_snapshot
                     from sector_rotation_engine import get_top_sectors, get_avoid_sectors
                     from news_sentiment_engine import get_full_sentiment
-                    macro = get_cross_asset_data(force=True)
+                    # Fetch global data using morning_brief (Stooq-first chain)
+                    _gsnap = _fetch_global_snapshot()
+                    # Convert snapshot format to cross_asset format for chart
+                    macro = {}
+                    for _gk, _gv in _gsnap.items():
+                        if isinstance(_gv, dict) and _gv.get("price"):
+                            macro[_gk] = {
+                                "price": _gv["price"],
+                                "change_pct": _gv.get("chg", 0),
+                                "prev": _gv["price"] / (1 + _gv.get("chg",0)/100) if _gv.get("chg") else _gv["price"],
+                            }
+                    # Also try cross_asset for any missing keys
+                    try:
+                        _ca = get_cross_asset_data(force=True)
+                        for _ck, _cv in _ca.items():
+                            if _ck not in macro and isinstance(_cv, dict):
+                                macro[_ck] = _cv
+                    except Exception: pass
                     sent  = get_full_sentiment(use_cache=False)
                     brief_data = {
                         "global":           macro,
@@ -890,6 +910,101 @@ class OffHoursEngine:
             logging.getLogger(__name__).debug('walk_forward: %s', e)
 
 
+
+
+    def _run_eod_ml_analysis(self) -> None:
+        """16:00: Run EOD ML analysis on all strategy scores from today."""
+        try:
+            from strategy_score_tracker import run_eod_ml_analysis, record_fii_dii
+            # Record FII/DII data
+            try:
+                from participant_oi import get_participant_data
+                pd = get_participant_data(force=True)
+                if pd:
+                    record_fii_dii(
+                        fii_buy=pd.get('fii_buy',0), fii_sell=pd.get('fii_sell',0),
+                        fii_net=pd.get('fii_net',0),
+                        dii_buy=pd.get('dii_buy',0), dii_sell=pd.get('dii_sell',0),
+                        dii_net=pd.get('dii_net',0),
+                        fii_futures_oi=pd.get('fii_futures_oi',0),
+                        fii_futures_net=pd.get('fii_futures_net',0),
+                    )
+            except Exception: pass
+            # Run ML analysis
+            report = run_eod_ml_analysis()
+            if self.alerts and report:
+                self.alerts.send(report, dedup_key='eod_ml')
+        except Exception as e:
+            import logging; logging.getLogger(__name__).debug('eod_ml: %s', e)
+
+    def _run_daily_data_download(self) -> None:
+        """6:45 PM: Download all required daily data via Angel API."""
+        import logging, os, time
+        _lg = logging.getLogger(__name__)
+        downloaded = 0
+        failed = 0
+        
+        # Get Angel singleton
+        try:
+            from angel import AngelOne
+            ang = AngelOne(
+                api_key=os.getenv("API_KEY",""),
+                client_id=os.getenv("CLIENT_ID",""),
+                password=os.getenv("PASSWORD",""),
+                totp_secret=os.getenv("TOTP_SECRET",""),
+            )
+            from data_fetcher import DataFetcher
+            df = DataFetcher(angel=ang, paper_trade=False)
+        except Exception as e:
+            _lg.warning("Daily download: no Angel: %s", e)
+            df = None
+        
+        # Download 5m data for key indices
+        indices = ["NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY","SENSEX","NIFTYNEXT50"]
+        for sym in indices:
+            try:
+                if df:
+                    data = df.get_market_data(sym, interval="5m", days=5)
+                    if data is not None and len(data) >= 10:
+                        downloaded += 1
+                        _lg.info("Downloaded %s: %d bars", sym, len(data))
+                    else:
+                        failed += 1
+                time.sleep(1)  # rate limit
+            except Exception as e:
+                failed += 1; _lg.debug("dl_%s: %s", sym, e)
+        
+        # Bhavcopy (equity EOD)
+        try:
+            from bhavcopy_cache import download_last_n_days
+            download_last_n_days(5)
+            downloaded += 1
+        except Exception: failed += 1
+        
+        # F&O bhavcopy
+        try:
+            from fno_bhavcopy_oi import download_fno_bhavcopy
+            if download_fno_bhavcopy() is not None: downloaded += 1
+        except Exception: failed += 1
+        
+        # Master contract
+        try:
+            from download_master_contract import download_angel_scrip_master
+            if download_angel_scrip_master(): downloaded += 1
+        except Exception: failed += 1
+        
+        # Report
+        if self.alerts:
+            self.alerts.send(
+                f"📥 <b>DAILY DATA DOWNLOAD</b>\n\n"
+                f"  ✅ Downloaded: {downloaded}\n"
+                f"  ❌ Failed: {failed}\n"
+                f"  Total: {downloaded + failed}\n\n"
+                f"  Indices 5m: {len([1 for s in indices[:6]])} attempted\n"
+                f"  Bhavcopy + F&O + Master: 3 attempted",
+                dedup_key=f"daily_dl_{__import__("datetime").date.today()}"
+            )
+
     def _run_overnight_risk_check(self) -> None:
         """Pre-market 7:45 AM: Check overnight gap risk for open positions."""
         try:
@@ -909,6 +1024,33 @@ class OffHoursEngine:
         except Exception as e:
             import logging
             logging.getLogger(__name__).debug('overnight_risk: %s', e)
+
+
+    def _run_daily_downloads(self) -> None:
+        """Run all daily data downloads and report."""
+        try:
+            from data_download_tracker import run_all_downloads
+            results = run_all_downloads()
+            ok   = results.get('ok', 0)
+            fail = results.get('fail', 0)
+            if self.alerts:
+                lines = [
+                    f'📥 <b>DAILY DOWNLOAD REPORT</b>',
+                    f'',
+                    f'  ✅ Downloaded: {ok}',
+                    f'  ❌ Failed:     {fail}',
+                ]
+                items = results.get('items', [])
+                for item in items[:15]:
+                    lines.append(f'  {item}')
+                self.alerts.send(
+                    '\n'.join(lines),
+                    dedup_key=f'daily_dl_{__import__("datetime").date.today()}',
+                    dedup_cooldown_override=43200
+                )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).debug('daily_downloads: %s', e)
 
     def _run_connection_check(self) -> None:
         """Check all data source connections."""

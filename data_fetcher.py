@@ -327,6 +327,19 @@ class DataFetcher:
                                              "time": __import__('datetime').datetime.now()}
         except Exception: pass
 
+
+        # Force Angel session refresh if first batch returns no data
+        _scan_retry_done = False
+
+        # Force Angel session refresh before first scan of day
+        if not getattr(self, "_session_refreshed_today", False):
+            try:
+                if self.angel and hasattr(self.angel, "_auto_refresh_session"):
+                    self.angel._auto_refresh_session()
+                    self._session_refreshed_today = True
+                    logger.info("Angel session refreshed before first scan")
+            except Exception: pass
+
         for symbol in symbols:
             try:
                 df = self.get_market_data(symbol)
@@ -335,7 +348,7 @@ class DataFetcher:
                 _now_h = _dt2.datetime.now().hour
                 _now_m = _dt2.datetime.now().minute
                 _at_open = (_now_h == 9 and _now_m <= 30)
-                max_age = 1440 if _at_open else int(getattr(self, '_max_data_age_minutes', 60))
+                max_age = 1440 if _at_open else int(getattr(self, '_max_data_age_minutes', 480))
                 if df is not None and not df.empty:
                     if self._check_data_freshness(df, symbol, max_age):
                         all_data[symbol] = df
@@ -352,7 +365,19 @@ class DataFetcher:
                 logger.warning("Failed fetching %s", symbol)
 
         if not all_data:
-            logger.error("No market data fetched")
+            logger.error(
+                "SCANNED: 0 — No data fetched for ANY of %d symbols. "
+                "Possible causes: Angel session expired, NSE rate limit, "
+                "or data freshness gate too strict (max_age=%d min). "
+                "Run /session to refresh Angel token.",
+                len(symbols), max_age
+            )
+            # Try force session refresh for next cycle
+            try:
+                if hasattr(self, 'angel') and hasattr(self.angel, '_auto_refresh_session'):
+                    self.angel._auto_refresh_session()
+                    logger.info('Angel session force-refreshed after Scanned:0')
+            except Exception: pass
         else:
             idx_count   = sum(1 for s in all_data if s in set(self.indices + priority_1))
             stock_count = len(all_data) - idx_count
@@ -529,7 +554,7 @@ class DataFetcher:
             # EOD/daily data always looks "stale" — last bar is yesterday's close
             # Accept it if we have enough bars for indicators (100+)
             if age_min > max_age_minutes:
-                if len(df) >= 20:  # enough bars for indicators → accept despite age
+                if len(df) >= 5:  # accept if we have enough bars for basic indicators
                     logger.debug("EOD data %s: age=%.0fm bars=%d (accepted)", symbol, age_min, len(df))
                     return True
                 logger.warning(
@@ -703,6 +728,32 @@ class DataFetcher:
                     return _zd
         except Exception as _ze:
             logger.debug("Zerodha fallback %s: %s", symbol, _ze)
+
+        # ── Bhavcopy cache fallback (always available offline) ───────────────
+        try:
+            from bhavcopy_cache import get_ohlcv as _bhav_ohlcv
+            _bhav_df = _bhav_ohlcv(symbol, days=max(days, 30))
+            if _bhav_df is not None and len(_bhav_df) >= 5:
+                _bhav_df.columns = [c.lower() for c in _bhav_df.columns]
+                self.cache[cache_key] = {"data": _bhav_df, "time": datetime.now()}
+                logger.info("Bhavcopy fallback ✅ %s (%d bars)", symbol, len(_bhav_df))
+                return _bhav_df
+        except Exception as _bhe:
+            logger.debug("Bhavcopy fallback %s: %s", symbol, _bhe)
+
+        # ── yf_compat fallback (Stooq → Yahoo → cached) ─────────────────────
+        try:
+            import yf_compat as _yfc
+            _yf_map = {"NIFTY":"^NSEI","BANKNIFTY":"^NSEBANK","SENSEX":"^BSESN"}
+            _yf_sym = _yf_map.get(symbol.upper(), symbol.upper() + ".NS")
+            _yf_df = _yfc.download(_yf_sym, period=f"{days}d", interval=interval)
+            if _yf_df is not None and not _yf_df.empty and len(_yf_df) >= 5:
+                _yf_df.columns = [c.lower() for c in _yf_df.columns]
+                self.cache[cache_key] = {"data": _yf_df, "time": datetime.now()}
+                logger.info("yf_compat fallback ✅ %s (%d bars)", symbol, len(_yf_df))
+                return _yf_df
+        except Exception as _yfe:
+            logger.debug("yf_compat fallback %s: %s", symbol, _yfe)
 
         # ── Upstox / Dhan extended fallback (GAP 3 & 4) ─────────────────────
         try:

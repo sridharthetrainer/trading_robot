@@ -13,6 +13,20 @@ HOW IT WORKS:
 """
 from __future__ import annotations
 
+# Auto-fix: get DataFetcher with Angel singleton
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
+
 import json
 import logging
 import sqlite3
@@ -221,3 +235,136 @@ def record(source: str, item: str, status: str = "OK", **kwargs) -> None:
         get_tracker().record(source, item, status, **kwargs)
     except Exception:
         pass
+
+
+def run_all_downloads() -> dict:
+    """Actually download all required items and record results."""
+    import logging
+    logger = logging.getLogger(__name__)
+    tracker = DataDownloadTracker()
+    results = {"ok": 0, "fail": 0, "items": []}
+
+    # 1. Index 5m intraday data
+    for symbol in ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNEXT50"]:
+        try:
+            from data_fetcher import DataFetcher
+            df = _get_angel_data_fetcher()
+            data = df.get_market_data(symbol, interval="5m", days=5)
+            if data is not None and not data.empty:
+                tracker.record("NSE", "Index", f"{symbol} 5m",
+                               True, len(data) * 50)  # rough bytes
+                results["ok"] += 1
+                results["items"].append(f"✅ {symbol} 5m: {len(data)} bars")
+            else:
+                tracker.record("NSE", "Index", f"{symbol} 5m", False, 0)
+                results["fail"] += 1
+                results["items"].append(f"❌ {symbol} 5m: no data")
+        except Exception as e:
+            tracker.record("NSE", "Index", f"{symbol} 5m", False, 0)
+            results["fail"] += 1
+            results["items"].append(f"❌ {symbol} 5m: {str(e)[:30]}")
+
+    # 2. BSE SENSEX
+    try:
+        from data_fetcher import DataFetcher
+        df = _get_angel_data_fetcher()
+        data = df.get_market_data("SENSEX", interval="5m", days=5)
+        if data is not None and not data.empty:
+            tracker.record("BSE", "Index", "SENSEX 5m", True, len(data) * 50)
+            results["ok"] += 1
+        else:
+            tracker.record("BSE", "Index", "SENSEX 5m", False, 0)
+            results["fail"] += 1
+    except Exception:
+        tracker.record("BSE", "Index", "SENSEX 5m", False, 0)
+        results["fail"] += 1
+
+    # 3. Option chains
+    for symbol in ["NIFTY", "BANKNIFTY", "FINNIFTY"]:
+        try:
+            from data_source_resilience import fetch_option_chain
+            oc = fetch_option_chain(symbol)
+            if oc and oc.get("records", {}).get("data"):
+                strikes = len(oc["records"]["data"])
+                tracker.record("NSE", "OptionChain", f"{symbol} OC",
+                               True, strikes * 100)
+                results["ok"] += 1
+                results["items"].append(f"✅ {symbol} OC: {strikes} strikes")
+            else:
+                tracker.record("NSE", "OptionChain", f"{symbol} OC", False, 0)
+                results["fail"] += 1
+        except Exception:
+            tracker.record("NSE", "OptionChain", f"{symbol} OC", False, 0)
+            results["fail"] += 1
+
+    # 4. Bhavcopy
+    try:
+        from bhavcopy_cache import download_latest
+        ok = download_latest()
+        tracker.record("NSE", "Bhavcopy", "EOD Bhavcopy",
+                       bool(ok), 500000 if ok else 0)
+        if ok: results["ok"] += 1
+        else: results["fail"] += 1
+    except Exception:
+        tracker.record("NSE", "Bhavcopy", "EOD Bhavcopy", False, 0)
+        results["fail"] += 1
+
+    # 5. FII/DII data
+    try:
+        from fii_data_fetcher import get_fii_history
+        fii = get_fii_history(5)
+        if fii is not None and not fii.empty:
+            tracker.record("NSE", "Institutional", "FII_DII", True, 1000)
+            results["ok"] += 1
+        else:
+            tracker.record("NSE", "Institutional", "FII_DII", False, 0)
+            results["fail"] += 1
+    except Exception:
+        tracker.record("NSE", "Institutional", "FII_DII", False, 0)
+        results["fail"] += 1
+
+    # 6. Global markets
+    try:
+        from cross_asset import get_cross_asset_data
+        gd = get_cross_asset_data()
+        if gd and len(gd) >= 3:
+            tracker.record("Global", "CrossAsset", "Global Markets", True, 500)
+            results["ok"] += 1
+        else:
+            tracker.record("Global", "CrossAsset", "Global Markets", False, 0)
+            results["fail"] += 1
+    except Exception:
+        tracker.record("Global", "CrossAsset", "Global Markets", False, 0)
+        results["fail"] += 1
+
+    # 7. F&O Bhavcopy (OI baseline)
+    try:
+        from fno_bhavcopy_oi import download_fno_bhavcopy
+        fno = download_fno_bhavcopy()
+        if fno is not None and not fno.empty:
+            tracker.record("NSE", "FnO", "FnO Bhavcopy OI", True, 200000)
+            results["ok"] += 1
+        else:
+            tracker.record("NSE", "FnO", "FnO Bhavcopy OI", False, 0)
+            results["fail"] += 1
+    except Exception:
+        tracker.record("NSE", "FnO", "FnO Bhavcopy OI", False, 0)
+        results["fail"] += 1
+
+    # 8. News
+    try:
+        from omnisource_news_engine import get_omnisource_intelligence
+        news = get_omnisource_intelligence()
+        if news and news.get("headlines"):
+            tracker.record("Multi", "News", "OmniSource News",
+                           True, len(str(news)))
+            results["ok"] += 1
+        else:
+            tracker.record("Multi", "News", "OmniSource News", False, 0)
+            results["fail"] += 1
+    except Exception:
+        tracker.record("Multi", "News", "OmniSource News", False, 0)
+        results["fail"] += 1
+
+    logger.info("Daily download: %d OK, %d failed", results["ok"], results["fail"])
+    return results

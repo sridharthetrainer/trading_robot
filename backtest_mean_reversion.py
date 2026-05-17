@@ -32,8 +32,21 @@ Fix:
     yfinance is still used as a SECONDARY intraday source (5m / 15m)
     before giving up — only the daily fallback is removed.
 """
-
 from __future__ import annotations
+
+
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 
 import sys
 import traceback
@@ -171,7 +184,7 @@ def _normalize_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
 def _fetch_with_datafetcher(symbol: str) -> Optional[pd.DataFrame]:
     """Try to fetch intraday data via the project's DataFetcher."""
     try:
-        fetcher = DataFetcher(angel=None, paper_trade=True)
+        fetcher = _get_angel_data_fetcher()
     except Exception as exc:
         print(f"⚠️ DataFetcher init failed: {exc}")
         return None

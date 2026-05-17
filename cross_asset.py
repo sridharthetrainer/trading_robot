@@ -201,6 +201,63 @@ def _fetch_yahoo_price(ticker: str) -> tuple:
         except Exception as e:
             logger.debug("AlphaV %s: %s", ticker, e)
 
+    # Source 4: TwelveData (FREE 800/day — works from India!)
+    td_map = {
+        "^GSPC": "SPX",    "^DJI": "DJI",     "^IXIC": "IXIC",
+        "^VIX": "VIX",     "^TNX": "TNX",      "BZ=F": "BRENT",
+        "CL=F": "WTI",     "GC=F": "XAU/USD",  "SI=F": "XAG/USD",
+        "DX-Y.NYB": "DXY",
+    }
+    td_sym = td_map.get(ticker)
+    td_key = os.getenv("TWELVE_DATA_KEY", "")
+    if td_sym and td_key:
+        try:
+            import requests
+            r = requests.get(
+                "https://api.twelvedata.com/time_series",
+                params={"symbol": td_sym, "interval": "1day",
+                        "outputsize": "3", "apikey": td_key},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                vals = r.json().get("values", [])
+                if vals and len(vals) >= 2:
+                    curr = float(vals[0].get("close", 0))
+                    prev = float(vals[1].get("close", 0))
+                    if curr > 0:
+                        logger.debug("TwelveData OK %s: %.4f", ticker, curr)
+                        return curr, prev
+        except Exception as e:
+            logger.debug("TwelveData %s: %s", ticker, e)
+
+    # Source 5: Tiingo (FREE 1000/hr — works from India)
+    tiingo_map = {
+        "^GSPC": "SPY",    "^VIX": "VIXY",     "GC=F": "GLD",
+        "BZ=F": "USO",     "DX-Y.NYB": "UUP",
+    }
+    tiingo_sym = tiingo_map.get(ticker)
+    tiingo_key = os.getenv("TIINGO_KEY", "")
+    if tiingo_sym and tiingo_key:
+        try:
+            import requests
+            r = requests.get(
+                f"https://api.tiingo.com/tiingo/daily/{tiingo_sym}/prices",
+                headers={"Authorization": f"Token {tiingo_key}"},
+                params={"startDate": (__import__("datetime").date.today() -
+                         __import__("datetime").timedelta(days=5)).isoformat()},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                data = r.json()
+                if data and len(data) >= 2:
+                    curr = float(data[-1].get("close", 0))
+                    prev = float(data[-2].get("close", 0))
+                    if curr > 0:
+                        logger.debug("Tiingo OK %s: %.4f", ticker, curr)
+                        return curr, prev
+        except Exception as e:
+            logger.debug("Tiingo %s: %s", ticker, e)
+
     return 0.0, 0.0
 
 

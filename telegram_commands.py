@@ -22,6 +22,20 @@ COMMANDS:
   /help            — List all commands
 """
 from __future__ import annotations
+
+# Auto-fix: get DataFetcher with Angel singleton
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 import os
 
 import logging
@@ -73,6 +87,10 @@ class TelegramCommandHandler:
         except Exception as e:
             logger.debug("TG API %s: %s", method, e)
             return {}
+
+    def _now(self) -> str:
+        from datetime import datetime
+        return datetime.now().strftime("%H:%M %d-%b")
 
     def send(self, text: str, chat_id: str = None) -> bool:
         target = str(chat_id) if chat_id else self.chat_id
@@ -564,24 +582,40 @@ class TelegramCommandHandler:
             return f"⚠️ {e}"
 
     def _cmd_signals(self, _="") -> str:
+        """Show recent signals from strategy_scores or trades."""
         try:
-            from signal_log import get_signal_logger
-            sl = get_signal_logger()
             import sqlite3
-            with sl._conn() as conn:
-                rows = conn.execute(
-                    "SELECT symbol,side,strategy,score,confluence,executed,signal_time "
-                    "FROM signal_log ORDER BY id DESC LIMIT 5"
-                ).fetchall()
+            conn = sqlite3.connect("trades.db", check_same_thread=False)
+            rows = []
+            for table, query in [
+                ("strategy_scores",
+                 "SELECT symbol,strategy,score,direction,regime,timestamp FROM strategy_scores WHERE score>3 ORDER BY timestamp DESC,score DESC LIMIT 10"),
+                ("signal_log",
+                 "SELECT symbol,strategy,score,side,confluence,signal_time FROM signal_log ORDER BY id DESC LIMIT 10"),
+                ("trades",
+                 "SELECT symbol,strategy,0,side,status,entry_time FROM trades ORDER BY id DESC LIMIT 10"),
+            ]:
+                if rows: break
+                try: rows = conn.execute(query).fetchall()
+                except Exception: pass
+            conn.close()
             if not rows:
-                return "📡 No recent signals"
-            lines = [f"📡 <b>LAST 5 SIGNALS</b>"]
+                return ("📡 <b>NO SIGNALS YET</b>\n\n"
+                        "  Scan runs every 5 min during market hours\n"
+                        "  Signals appear when score ≥ 5.5\n\n"
+                        "  📱 /health to check data feed")
+            lines_out = ["📡 <b>RECENT SIGNALS</b>", ""]
             for r in rows:
-                ex = "✅EXEC" if r[5] else "❌SKIP"
-                lines.append(f"  {ex} {r[0]} {r[1]} [{r[2]}] score={r[3]:.1f} {r[4]} @{r[6]}")
-            return "\n".join(lines)
+                sym = str(r[0])
+                strat = str(r[1])[:18]
+                score = float(r[2] or 0)
+                dirn = str(r[3] or "")
+                icon = "🟢" if dirn.upper() in ("BUY","BULLISH") else "🔴" if dirn.upper() in ("SELL","BEARISH") else "⚪"
+                lines_out.append(f"  {icon} {sym:12} {strat:18} {score:.1f} {dirn}")
+            lines_out += ["", "  📱 /today · /positions · /pnl"]
+            return "\n".join(lines_out)
         except Exception as e:
-            return f"No signal log: {e}"
+            return f"Signals: {e}"
 
     def _cmd_pause(self, _="") -> str:
         try:
@@ -2581,7 +2615,7 @@ class TelegramCommandHandler:
             # Check 3: Data fetch test
             try:
                 from data_fetcher import DataFetcher
-                df_obj = DataFetcher()
+                df_obj = _get_angel_data_fetcher()
                 test_df = df_obj.get_market_data("NIFTY", interval="5m", days=3)
                 if test_df is not None and len(test_df) > 5:
                     last_bar = str(test_df.index[-1])[:16]

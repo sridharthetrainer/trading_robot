@@ -155,8 +155,10 @@ class AngelOne:
         self._lock = threading.Lock()
         self._paper_order_counter = 0
 
-        if not paper_trade:
-            self.connect()
+        # ALWAYS connect for DATA — paper mode only blocks order placement
+        # This was the root cause of Scanned:0 for 2 months:
+        # paper_trade=True → never connects → obj=None → all data returns None
+        self.connect()
 
     def refresh_session(self) -> bool:
         """Re-login if Angel One session expired (token valid ~8 hours)."""
@@ -473,14 +475,41 @@ class AngelOne:
 
     _last_balance_call: float = 0.0
 
+    def _get_real_ltp(self, symbol: str, exchange: str = None) -> Optional[float]:
+        """Fetch real LTP even in paper mode (for accurate paper trading)."""
+        if not self._ensure_connected() or self.obj is None:
+            return None
+        if exchange is None:
+            exchange = "NFO" if ("CE" in symbol or "PE" in symbol) else "NSE"
+        token = self._get_token_no_lock(symbol, exchange)
+        if not token:
+            return None
+        try:
+            resp = self.obj.ltpData(exchange, symbol, token)
+            if resp and resp.get("data"):
+                return float(resp["data"].get("ltp", 0))
+        except Exception:
+            pass
+        return None
+
     def get_balance(self, force_real: bool = False) -> float:
         """Return real Angel One balance.
         In paper mode returns 0.0 so callers know
         no real balance is available.
         Use force_real=True to bypass paper check (used by dual_mode_engine).
         """
+        # Paper mode: still try real balance for auto-mode switching
         if self.paper_trade and not force_real:
-            return 0.0   # paper mode: no real balance
+            try:
+                if self.obj:
+                    _b_resp = self.obj.rmsLimit()
+                    if _b_resp and _b_resp.get("data"):
+                        _b_val = float(_b_resp["data"].get("availablecash","0") or
+                                       _b_resp["data"].get("net","0") or 0)
+                        if _b_val > 0:
+                            return _b_val
+            except Exception: pass
+            return 0.0
 
         if not self._ensure_connected():
             logger.error("Balance fetch failed: no connection")
@@ -530,7 +559,13 @@ class AngelOne:
 
     @retry(max_retries=2, base_delay=1)
     def get_ltp(self, symbol: str, exchange: Optional[str] = None) -> Optional[float]:
+        # In paper mode, try REAL LTP first, fall back to paper LTP
         if self.paper_trade:
+            try:
+                real_ltp = self._get_real_ltp(symbol, exchange)
+                if real_ltp and real_ltp > 0:
+                    return real_ltp
+            except Exception: pass
             if "CE" in symbol or "PE" in symbol:
                 return PAPER_OPTION_LTP
             return PAPER_SPOT_LTP

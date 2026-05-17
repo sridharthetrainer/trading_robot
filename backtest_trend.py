@@ -48,8 +48,21 @@ Fixes applied
    Required for Method 2 Sharpe annualization. Default 5 (5-min bars).
    Pass 15 for 15-min, 60 for hourly.
 """
-
 from __future__ import annotations
+
+
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 
 import csv
 import logging
@@ -583,8 +596,8 @@ if __name__ == "__main__":
     from angel import AngelOne
     from data_fetcher import DataFetcher
 
-    dummy_angel = AngelOne("", "", "", "", paper_trade=True)
-    fetcher     = DataFetcher(dummy_angel, paper_trade=True)
+    dummy_angel = _get_angel_data_fetcher().angel  # use real Angel for data
+    fetcher     = _get_angel_data_fetcher()
 
     symbol = "NIFTY"
     data   = fetcher.get_market_data(symbol, interval="5m", days=30)

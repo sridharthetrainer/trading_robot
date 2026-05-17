@@ -8,6 +8,20 @@ sells when price deviates significantly above VWAP with overbought RSI.
 Usage:  python backtest_vwap_reversion.py [--symbol NIFTY] [--days 30]
 """
 from __future__ import annotations
+
+# Auto-fix: get DataFetcher with Angel singleton
+def _get_angel_data_fetcher():
+    try:
+        from angel import AngelOne
+        import os as _os_adf
+        _ang = AngelOne(api_key=_os_adf.getenv("API_KEY",""),
+            client_id=_os_adf.getenv("CLIENT_ID",""),
+            password=_os_adf.getenv("PASSWORD",""),
+            totp_secret=_os_adf.getenv("TOTP_SECRET",""))
+    except Exception: _ang = None
+    from data_fetcher import DataFetcher
+    return DataFetcher(angel=_ang, paper_trade=False)
+
 import argparse, logging, sys
 from typing import Any, Dict, List, Optional
 import numpy as np
@@ -32,7 +46,7 @@ DEFAULT_VOL_MIN  = 0.80
 def fetch_data(symbol: str, days: int = 30) -> Optional[pd.DataFrame]:
     try:
         from data_fetcher import DataFetcher
-        df = DataFetcher().get_market_data(symbol, interval="5m", days=days)
+        df = _get_angel_data_fetcher().get_market_data(symbol, interval="5m", days=days)
         if df is not None and not df.empty:
             return df
     except Exception:
