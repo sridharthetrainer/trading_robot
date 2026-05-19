@@ -1703,8 +1703,12 @@ class AutonomousTradingSystem:
                         _cfg_am.PAPER_TRADING = False
                         _cfg_am.PAPER_TRADE   = False
                     else:
-                        _cfg_am.PAPER_TRADING = True
-                        _cfg_am.PAPER_TRADE   = True
+                        # _cfg_am.PAPER_TRADING = True  # DISABLED: paper_trade kills data fetch
+
+                        _cfg_pm = __import__("config")
+
+                        _cfg_pm.PAPER_ORDERS_ONLY = True  # blocks orders, not data
+                        # _cfg_am.PAPER_TRADE   = True  # DISABLED: use PAPER_ORDERS_ONLY instead
 
                 logger.info(
                     "Auto mode decision: %s | balance=₹%.0f | min=₹%.0f",
@@ -3176,8 +3180,12 @@ class AutonomousTradingSystem:
                     _cfg_at.PAPER_TRADE   = False
                     self.runtime_state.mode = "LIVE"
                 else:
-                    _cfg_at.PAPER_TRADING = True
-                    _cfg_at.PAPER_TRADE   = True
+                    # _cfg_at.PAPER_TRADING = True  # DISABLED: paper_trade kills data fetch
+
+                    _cfg_pm = __import__("config")
+
+                    _cfg_pm.PAPER_ORDERS_ONLY = True  # blocks orders, not data
+                    # _cfg_at.PAPER_TRADE   = True  # DISABLED: use PAPER_ORDERS_ONLY instead
                     self.runtime_state.mode = "PAPER"
         except Exception as _e:
             import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
@@ -4139,8 +4147,12 @@ class AutonomousTradingSystem:
                                 _cfg_live.PAPER_TRADE   = False
                                 self.runtime_state.mode  = "LIVE"
                             else:
-                                _cfg_live.PAPER_TRADING = True
-                                _cfg_live.PAPER_TRADE   = True
+                                # _cfg_live.PAPER_TRADING = True  # DISABLED: paper_trade kills data fetch
+
+                                _cfg_pm = __import__("config")
+
+                                _cfg_pm.PAPER_ORDERS_ONLY = True  # blocks orders, not data
+                                # _cfg_live.PAPER_TRADE   = True  # DISABLED: use PAPER_ORDERS_ONLY instead
                                 self.runtime_state.mode  = "PAPER"
                             logger.info(
                                 "Auto mode switched to %s | balance=₹%.0f",

@@ -45,7 +45,9 @@ BASE_DIR = Path(os.getenv("PROJECT_BASE_DIR", ".")).resolve()
 # MODE
 # =============================================================================
 
-PAPER_TRADING = _env("PAPER_TRADING", "true").lower() == "true"
+# Default false — scanning always needs real connection for data
+# Paper mode only affects ORDER PLACEMENT, not data fetch
+PAPER_TRADING = _env("PAPER_TRADING", "false").lower() == "true"
 # Auto-init paper balance if insufficient
 _paper_bal_raw = float(os.getenv("PAPER_CAPITAL", "0") or 0)
 if PAPER_TRADING and _paper_bal_raw < 25000:
@@ -762,7 +764,7 @@ def get_runtime_capital() -> float:
 WEEKLY_LOSS_LIMIT           = _fenv("WEEKLY_LOSS_LIMIT",              9000.0)
 MIN_VOLUME_RATIO_ENTRY      = _fenv("MIN_VOLUME_RATIO_ENTRY",         0.40)
 MIN_BREAKOUT_VOLUME_RATIO   = _fenv("MIN_BREAKOUT_VOLUME_RATIO",      1.20)
-MIN_BARS_FOR_SIGNAL         = _ienv("MIN_BARS_FOR_SIGNAL",            100)
+MIN_BARS_FOR_SIGNAL         = _ienv("MIN_BARS_FOR_SIGNAL",            20)  # lowered: bhavcopy gives ~39-250 bars
 ENABLE_1M_ENTRY_TIMING      = _benv("ENABLE_1M_ENTRY_TIMING",         True)
 OVERNIGHT_UNCERTAINTY_THRESHOLD = _fenv("OVERNIGHT_UNCERTAINTY_THRESHOLD", 0.65)
 OVERNIGHT_GAP_ALERT_PCT     = _fenv("OVERNIGHT_GAP_ALERT_PCT",        0.005)

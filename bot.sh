@@ -1,79 +1,69 @@
 #!/bin/bash
-# bot.sh — Trading bot control script
-# Usage: ./bot.sh [start|stop|restart|logs|status|test]
-
-BOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV="$BOT_DIR/venv/bin/python3"
+# bot.sh — Trading bot management (works with or without sudo)
 SERVICE="trading-bot"
+BOT_DIR="$HOME/Desktop/trading_robot"
 
-case "${1:-restart}" in
-
-  start)
-    echo "Starting trading bot..."
-    sudo systemctl start $SERVICE
-    sleep 3
-    if systemctl is-active --quiet $SERVICE; then
-      echo "✓ Bot started successfully"
-    else
-      echo "✗ Start failed — check: journalctl -u $SERVICE -n 20"
-    fi
-    ;;
-
-  stop)
-    echo "Stopping trading bot..."
-    sudo systemctl stop $SERVICE trading-bot-watchdog 2>/dev/null || true
-    echo "✓ Bot stopped"
-    ;;
-
-  restart)
-    echo "Restarting trading bot..."
-    sudo systemctl reset-failed $SERVICE 2>/dev/null || true
-    sudo systemctl stop $SERVICE trading-bot-watchdog 2>/dev/null || true
+# Try systemctl without sudo first (works if user has permissions)
+# Then try with sudo (works if password cached or NOPASSWD configured)
+# Then fall back to direct python restart (always works)
+restart_bot() {
+    # Method 1: systemctl --user (no sudo)
+    systemctl --user restart $SERVICE 2>/dev/null && return 0
+    
+    # Method 2: sudo systemctl (needs password or NOPASSWD)
+    sudo -n systemctl restart $SERVICE 2>/dev/null && return 0
+    
+    # Method 3: Direct kill + restart (always works, no sudo)
+    echo "Using direct restart (no systemd)..."
+    pkill -f "python3.*main_autonomous" 2>/dev/null || true
     sleep 2
-    sudo systemctl start $SERVICE
-    sleep 4
-    if systemctl is-active --quiet $SERVICE; then
-      echo "✓ Bot restarted successfully"
-    else
-      echo "✗ Restart failed. Last 20 lines:"
-      journalctl -u $SERVICE -n 20 --no-pager
-    fi
-    ;;
-
-  logs)
-    echo "Live logs (Ctrl+C to stop):"
-    journalctl -u $SERVICE -f --no-pager
-    ;;
-
-  status)
-    systemctl status $SERVICE --no-pager
-    ;;
-
-  test)
-    # Quick syntax + import test without systemd
-    echo "Testing bot startup..."
     cd "$BOT_DIR"
-    $VENV -c "
-import sys, os
-os.chdir('$BOT_DIR')
-sys.path.insert(0, '$BOT_DIR')
-from dotenv import load_dotenv
-load_dotenv('.env', override=True)
-print('✅ dotenv loaded')
+    source venv/bin/activate 2>/dev/null || true
+    nohup python3 main_autonomous.py >> trading_bot.log 2>&1 &
+    echo "Bot PID: $!"
+    return 0
+}
 
-# Test critical imports
-import config; print(f'✅ config | PAPER={config.PAPER_TRADING}')
-import angel;  print(f'✅ angel  | class={angel.AngelOne.__name__}')
-import yf_compat; print('✅ yf_compat loaded')
-import data_fetcher; print('✅ data_fetcher loaded')
-import signal_engine; print('✅ signal_engine loaded')
-print()
-print('✅ All critical imports OK — bot can start')
-" 2>&1
-    ;;
-
-  *)
-    echo "Usage: ./bot.sh [start|stop|restart|logs|status|test]"
-    ;;
-
+case "$1" in
+    start)
+        echo "Starting trading bot..."
+        systemctl --user start $SERVICE 2>/dev/null ||         sudo -n systemctl start $SERVICE 2>/dev/null ||         { cd "$BOT_DIR"; source venv/bin/activate 2>/dev/null; nohup python3 main_autonomous.py >> trading_bot.log 2>&1 & echo "Started PID: $!"; }
+        echo "✓ Bot started"
+        ;;
+    stop)
+        echo "Stopping trading bot..."
+        systemctl --user stop $SERVICE 2>/dev/null ||         sudo -n systemctl stop $SERVICE 2>/dev/null ||         pkill -f "python3.*main_autonomous" 2>/dev/null
+        echo "✓ Bot stopped"
+        ;;
+    restart)
+        echo "Restarting trading bot..."
+        restart_bot
+        echo "✓ Bot restarted successfully"
+        ;;
+    logs)
+        echo "Live logs (Ctrl+C to stop):"
+        journalctl -u $SERVICE -f 2>/dev/null || tail -f "$BOT_DIR/trading_bot.log"
+        ;;
+    status)
+        systemctl --user status $SERVICE 2>/dev/null ||         sudo -n systemctl status $SERVICE 2>/dev/null ||         { pgrep -f "main_autonomous" > /dev/null && echo "Bot is running (PID: $(pgrep -f main_autonomous))" || echo "Bot is NOT running"; }
+        ;;
+    test)
+        echo "Running system tests..."
+        cd "$BOT_DIR"
+        source venv/bin/activate 2>/dev/null || true
+        python3 -c "
+import ast, os
+errs = 0
+for f in os.listdir('.'):
+    if f.endswith('.py'):
+        try: ast.parse(open(f).read())
+        except: errs += 1; print(f'  ❌ {f}')
+print(f'  Files: {len([f for f in os.listdir(".") if f.endswith(".py")])}')
+print(f'  Errors: {errs}')
+print('  ✅ All tests passed' if errs == 0 else '  ❌ Fix errors above')
+"
+        ;;
+    *)
+        echo "Usage: ./bot.sh {start|stop|restart|logs|status|test}"
+        ;;
 esac

@@ -326,25 +326,28 @@ class AutoModeSelector:
 
     def _apply_mode_to_broker(self, mode: str) -> None:
         """
-        Apply the mode decision to the broker so orders are routed correctly.
-        PAPER mode: angel.paper_trade = True  → orders are simulated
-        LIVE mode:  angel.paper_trade = False → orders go to Angel One
+        Apply mode to broker for ORDER ROUTING only.
+        CRITICAL: NEVER set angel.paper_trade = True
+        paper_trade=True blocks Angel connection → no data → Scanned: 0
+        Instead use block_real_orders flag for order-level control.
         """
         if not self._broker:
             return
         try:
+            is_paper = (mode == "PAPER")
             broker = self._broker.get_execution_broker()
-            if broker and hasattr(broker, "paper_trade"):
-                broker.paper_trade = (mode == "PAPER")
-                if hasattr(broker, "angel") and hasattr(broker.angel, "paper_trade"):
-                    broker.angel.paper_trade = (mode == "PAPER")
-            # Also update all brokers in the manager
+            if broker:
+                # Set order-blocking flag (NOT paper_trade)
+                broker.block_real_orders = is_paper
+                if hasattr(broker, "angel"):
+                    broker.angel.block_real_orders = is_paper
+                    # NEVER set paper_trade — it kills data fetch
+                    # broker.angel.paper_trade stays False always
             if hasattr(self._broker, "brokers"):
                 for b in self._broker.brokers:
-                    if hasattr(b, "paper_trade"):
-                        b.paper_trade = (mode == "PAPER")
-                    if hasattr(b, "angel") and hasattr(b.angel, "paper_trade"):
-                        b.angel.paper_trade = (mode == "PAPER")
+                    b.block_real_orders = is_paper
+                    if hasattr(b, "angel"):
+                        b.angel.block_real_orders = is_paper
         except Exception as exc:
             logger.debug("_apply_mode_to_broker: %s", exc)
 

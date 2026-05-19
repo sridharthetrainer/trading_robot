@@ -106,7 +106,7 @@ class ExecutionAlgo:
         broker_manager      = None,
         max_slippage_pct:   float = 0.005,   # reject if avg price > 0.5% from first fill
         inter_slice_jitter: float = 0.2,      # random ±20% on slice timing to avoid detection
-        paper_mode:         bool  = True,
+        paper_mode:         bool  = False,  # default False: data always flows
     ) -> None:
         self._broker         = broker_manager
         self.max_slippage    = max_slippage_pct
@@ -432,7 +432,7 @@ class ExecutionAlgo:
 _algo_engine: Optional[ExecutionAlgo] = None
 
 
-def get_execution_algo(broker_manager=None, paper_mode: bool = True) -> ExecutionAlgo:
+def get_execution_algo(broker_manager=None, paper_mode: bool = False) -> ExecutionAlgo:
     global _algo_engine
     if _algo_engine is None:
         _algo_engine = ExecutionAlgo(

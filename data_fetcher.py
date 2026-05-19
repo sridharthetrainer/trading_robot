@@ -236,7 +236,7 @@ class DataFetcher:
     def __init__(
         self,
         angel=None,
-        paper_trade: bool = True,
+        paper_trade: bool = False,  # Default false — data fetch always needs real connection
         symbols_csv: Optional[str] = None,
     ) -> None:
         self.angel       = angel
@@ -583,6 +583,7 @@ class DataFetcher:
                 return cached["data"]
 
         # Angel One — primary data source (free, NSE-native)
+        import time as _rl; _rl.sleep(0.3)  # rate limit Angel
         if self.angel and hasattr(self.angel, "get_historical_data"):
             try:
                 with self._hist_semaphore:
@@ -732,7 +733,7 @@ class DataFetcher:
         # ── Bhavcopy cache fallback (always available offline) ───────────────
         try:
             from bhavcopy_cache import get_ohlcv as _bhav_ohlcv
-            _bhav_df = _bhav_ohlcv(symbol, days=max(days, 30))
+            _bhav_df = _bhav_ohlcv(symbol, days=365)  # always get max history
             if _bhav_df is not None and len(_bhav_df) >= 5:
                 _bhav_df.columns = [c.lower() for c in _bhav_df.columns]
                 self.cache[cache_key] = {"data": _bhav_df, "time": datetime.now()}

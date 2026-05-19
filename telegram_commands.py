@@ -349,6 +349,11 @@ class TelegramCommandHandler:
         self.register("shadow_mode", self._cmd_shadow_mode)
         self.register("churn",       self._cmd_churn)
         self.register("session",         self._cmd_session)
+        self.register("deploy",          self._cmd_remote_deploy)
+        self.register("pull",            self._cmd_remote_deploy)
+        self.register("diagscan",        self._cmd_diag_scan)
+        self.register("fixangel",        self._cmd_fix_angel)
+        self.register("angelcheck",      self._cmd_fix_angel)
         self.register("broker",          self._cmd_broker)
         self.register("brokers",         self._cmd_broker)
         self.register("dhan_setup",      self._cmd_dhan_setup)
@@ -2889,6 +2894,101 @@ class TelegramCommandHandler:
     def _cmd_wow2(self, args: str = "") -> str:
         """Stub for /wow2 — implementation pending."""
         return f"⚠️ /wow2 is not yet implemented in this version"
+
+
+    def _cmd_remote_deploy(self, _="") -> str:
+        """Pull latest zip from Google Drive, deploy, restart."""
+        try:
+            import subprocess, threading
+            def _do_deploy():
+                try:
+                    self.send("🚀 Deploying from Google Drive...")
+                    r = subprocess.run(
+                        ["bash", "remote_deploy.sh"],
+                        capture_output=True, text=True, timeout=300,
+                        cwd="/home/sridhar/Desktop/trading_robot"
+                    )
+                    output = r.stdout[-300:] if r.stdout else "no output"
+                    if r.returncode == 0:
+                        self.send(f"✅ <b>DEPLOY COMPLETE</b>\n<pre>{output}</pre>")
+                    else:
+                        self.send(f"❌ <b>DEPLOY FAILED</b>\n<pre>{r.stderr[-200:]}</pre>")
+                except Exception as e:
+                    self.send(f"❌ Deploy error: {e}")
+            threading.Thread(target=_do_deploy, daemon=True).start()
+            return "🚀 Deploy started — results in ~30 seconds"
+        except Exception as e:
+            return f"❌ Deploy: {e}"
+
+    def _cmd_diag_scan(self, _="") -> str:
+        """Run scan diagnostic and show results."""
+        try:
+            import subprocess
+            r = subprocess.run(
+                ["python3", "diag_scan.py"],
+                capture_output=True, text=True, timeout=60,
+                cwd="/home/sridhar/Desktop/trading_robot"
+            )
+            output = r.stdout[-800:] if r.stdout else "no output"
+            return f"🔧 <b>SCAN DIAGNOSTIC</b>\n<pre>{output}</pre>"
+        except Exception as e:
+            return f"❌ Diagnostic: {e}"
+
+    def _cmd_fix_angel(self, _="") -> str:
+        """Check and fix Angel connection."""
+        try:
+            # Read angel.py and check if fix is applied
+            from pathlib import Path
+            ang_src = Path("angel.py").read_text()
+            has_fix = "ALWAYS connect for DATA" in ang_src
+            
+            # Try connecting
+            from angel import AngelOne
+            import os as _os_fa
+            ang = AngelOne(
+                api_key=_os_fa.getenv("API_KEY",""),
+                client_id=_os_fa.getenv("CLIENT_ID",""),
+                password=_os_fa.getenv("PASSWORD",""),
+                totp_secret=_os_fa.getenv("TOTP_SECRET",""),
+            )
+            
+            lines = [
+                "🔧 <b>ANGEL CONNECTION CHECK</b>",
+                "",
+                f"  Code fix applied: {'✅' if has_fix else '❌ OLD CODE — deploy new zip'}",
+                f"  Angel obj exists: {'✅' if ang.obj else '❌ Connection failed'}",
+                f"  paper_trade:      {ang.paper_trade}",
+                f"  Client ID:        {_os_fa.getenv('CLIENT_ID','NOT SET')}",
+            ]
+            
+            if ang.obj:
+                import time
+                time.sleep(1)
+                bal = ang.get_balance(force_real=True)
+                lines.append(f"  Balance:          ₹{bal:,.0f}")
+                
+                # Try data fetch
+                try:
+                    from data_fetcher import DataFetcher
+                    df_obj = DataFetcher(angel=ang, paper_trade=False)
+                    data = df_obj.get_market_data("NIFTY", interval="5m", days=5)
+                    if data is not None:
+                        lines.append(f"  NIFTY data:       ✅ {len(data)} bars")
+                    else:
+                        lines.append(f"  NIFTY data:       ❌ None returned")
+                except Exception as e:
+                    lines.append(f"  Data fetch:       ❌ {e}")
+            else:
+                lines += [
+                    "",
+                    "  ❌ Angel not connected",
+                    "  Fix: /deploy (pulls new code from Drive)",
+                    "  Or: ./remote_deploy.sh on machine",
+                ]
+            
+            return "\n".join(lines)
+        except Exception as e:
+            return f"❌ Angel check: {e}"
 
     def _cmd_datasource_health(self, _="") -> str:
         """Show health scores of all data sources."""

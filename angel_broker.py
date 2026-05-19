@@ -66,7 +66,7 @@ class AngelBroker(Broker):
         client_id:   str,
         password:    str,
         totp_secret: str,
-        paper_trade: bool = True,
+        paper_trade: bool = False,
     ) -> None:
         self.angel       = AngelOne(api_key, client_id, password, totp_secret, paper_trade)
         self.paper_trade = paper_trade
@@ -171,7 +171,7 @@ class AngelBroker(Broker):
             return None
 
     def is_connected(self) -> bool:
-        return self.angel.obj is not None or self.paper_trade
+        return self.angel.obj is not None  # always check real connection
 
     def get_name(self) -> str:
         return "AngelOne"

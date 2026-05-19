@@ -133,7 +133,7 @@ class AngelOne:
         client_id: str,
         password: str,
         totp_secret: str,
-        paper_trade: bool = True,
+        paper_trade: bool = False,  # Default false — data always fetched
     ):
         if getattr(self, "_initialised", False):
             return
@@ -144,6 +144,7 @@ class AngelOne:
         self.password = password
         self.totp_secret = totp_secret
         self.paper_trade = paper_trade
+        self.block_real_orders = False  # set by auto_mode for PAPER mode
 
         self.obj: Optional[SmartConnect] = None
         self.auth_token: Optional[str] = None
@@ -245,8 +246,14 @@ class AngelOne:
         return False
 
     def _ensure_connected(self) -> bool:
+        # Paper mode: STILL check connection (data fetch needs obj)
+        # Only skip the session validation (getProfile) in paper mode
         if self.paper_trade:
-            return True
+            if self.obj is not None:
+                return True
+            # obj is None — need to connect even in paper mode
+            logger.info("Paper mode but obj=None — connecting for data...")
+            return self.connect()
 
         if self.obj is None:
             logger.warning("No active connection — attempting reconnect...")
@@ -559,16 +566,26 @@ class AngelOne:
 
     @retry(max_retries=2, base_delay=1)
     def get_ltp(self, symbol: str, exchange: Optional[str] = None) -> Optional[float]:
-        # In paper mode, try REAL LTP first, fall back to paper LTP
+        # ALWAYS try real LTP (even in paper mode — needed for accurate paper trades)
+        try:
+            if self._ensure_connected() and self.obj is not None:
+                if exchange is None:
+                    exchange = "NFO" if ("CE" in symbol or "PE" in symbol) else "NSE"
+                token = self._get_token_no_lock(symbol, exchange)
+                if token:
+                    with self._lock:
+                        resp = self.obj.ltpData(exchange, symbol, token)
+                    if resp and resp.get("data"):
+                        ltp = float(resp["data"].get("ltp", 0))
+                        if ltp > 0:
+                            return ltp
+        except Exception: pass
+        # Fallback for paper mode when real LTP unavailable
         if self.paper_trade:
-            try:
-                real_ltp = self._get_real_ltp(symbol, exchange)
-                if real_ltp and real_ltp > 0:
-                    return real_ltp
-            except Exception: pass
             if "CE" in symbol or "PE" in symbol:
                 return PAPER_OPTION_LTP
             return PAPER_SPOT_LTP
+        return None
 
         if not self._ensure_connected():
             return None
