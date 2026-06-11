@@ -157,6 +157,111 @@ def run_walk_forward_validation(alerts=None) -> dict:
         return {}
 
 
+def _run_triple_barrier_labelling(alerts=None) -> dict:
+    """
+    Post-market: fetch EOD OHLCV for all symbols with unlabelled signals,
+    then apply Triple Barrier labels (+1 win / -1 loss / 0 timeout).
+    Must run BEFORE ml_train so the training data is fresh.
+    Scheduled at 16:45 — 15 min after market close, before ML retrain at 17:30.
+    """
+    try:
+        from signal_log import get_signal_logger
+        from data_fetcher import DataFetcher
+        sl = get_signal_logger()
+
+        # Find symbols with pending labels
+        import sqlite3
+        conn = sqlite3.connect(str(sl.db_path), timeout=10)
+        rows = conn.execute(
+            "SELECT DISTINCT symbol FROM signal_log WHERE tb_label = -99 "
+            "AND signal_date <= date('now','-1 day')"
+        ).fetchall()
+        conn.close()
+        symbols = [r[0] for r in rows]
+
+        if not symbols:
+            logger.info("Triple-barrier labelling: no pending signals to label")
+            return {"labelled": 0, "symbols": []}
+
+        # Fetch EOD data for each symbol
+        try:
+            fetcher = DataFetcher(paper_trade=False)
+        except Exception as e:
+            logger.warning("Triple-barrier: DataFetcher unavailable: %s", e)
+            return {"labelled": 0, "error": str(e)}
+
+        df_map = {}
+        for sym in symbols[:20]:  # cap at 20 symbols per cycle
+            try:
+                df = fetcher.get_market_data(sym, interval="5m", days=5)
+                if df is not None and len(df) > 50:
+                    df_map[sym] = df
+            except Exception as e:
+                logger.debug("Triple-barrier fetch %s: %s", sym, e)
+
+        if not df_map:
+            logger.warning("Triple-barrier: no market data fetched for %d symbols", len(symbols))
+            return {"labelled": 0, "symbols": symbols}
+
+        count = sl.apply_triple_barrier_labels(df_map)
+        logger.info("Triple-barrier labelling: %d signals labelled for %d symbols",
+                    count, len(df_map))
+        if alerts and count > 0:
+            try:
+                alerts.send(f"🏷️ Triple-barrier: {count} signals labelled → ML training ready")
+            except Exception: pass
+        return {"labelled": count, "symbols": list(df_map.keys())}
+    except Exception as e:
+        logger.warning("_run_triple_barrier_labelling: %s", e)
+        return {"labelled": 0, "error": str(e)}
+
+
+def _run_calibrator_retrain(alerts=None) -> dict:
+    """Nightly retrain of the logistic regression signal calibrator."""
+    try:
+        from signal_calibrator import retrain_calibrator
+        result = retrain_calibrator()
+        if result.get("trained"):
+            logger.info(
+                "Signal calibrator retrained: n=%d val_acc=%.2f brier=%.4f",
+                result.get("n_train", 0), result.get("val_acc", 0), result.get("val_brier", 0),
+            )
+        else:
+            logger.info("Signal calibrator: %s", result.get("reason", "not trained"))
+        return result
+    except Exception as e:
+        logger.warning("_run_calibrator_retrain: %s", e)
+        return {}
+
+
+def _run_eod_weight_update(alerts=None) -> dict:
+    """Nightly update of strategy and indicator weights from P&L/labels."""
+    try:
+        from eod_weight_engine import run_eod_weight_update
+        return run_eod_weight_update(alerts=alerts)
+    except Exception as e:
+        logger.warning("_run_eod_weight_update: %s", e)
+        return {"error": str(e)}
+
+
+def _run_track_record(alerts=None) -> dict:
+    """Build and save signal_track_record.json nightly after walk-forward completes."""
+    try:
+        from signal_track_record import save_track_record
+        record = save_track_record()
+        n = record.get("summary", {}).get("strategies_tracked", 0)
+        wr = record.get("summary", {}).get("overall_win_rate", 0)
+        logger.info("Track record updated: %d strategies, win_rate=%.1f%%", n, wr * 100)
+        if alerts:
+            try:
+                alerts.send(f"📊 Track record updated: {n} strategies | System win rate: {wr*100:.1f}%")
+            except Exception: pass
+        return record.get("summary", {})
+    except Exception as e:
+        logger.warning("_run_track_record: %s", e)
+        return {}
+
+
 # ── Task 2: Correlation Matrix ────────────────────────────────────────────────
 
 def run_correlation_update(alerts=None) -> dict:
@@ -498,9 +603,13 @@ class IdleEngine:
 
     SCHEDULE = [
         # (hour, min, key, fn, desc)
-        (16, 28, "backtest",     None,                         "Nightly backtest"),
-        (17, 30, "ml_train",     None,                         "ML training"),
+        (16, 28, "backtest",     None,                          "Nightly backtest"),
+        (16, 45, "tb_labels",    _run_triple_barrier_labelling, "Triple-barrier signal labelling"),
+        (17, 30, "ml_train",     None,                          "ML training"),
         (18, 30, "walk_forward", run_walk_forward_validation,  "Walk-forward validation"),
+        (19, 30, "track_record",  _run_track_record,            "Signal track record update"),
+        (20, 30, "calibrator",   _run_calibrator_retrain,      "LR calibrator retrain"),
+        (20, 45, "eod_weights",  _run_eod_weight_update,       "EOD strategy/indicator weights"),
         (19, 0,  "alt_data",     run_alternative_data_download,"Alternative data download"),
         (20, 0,  "correlation",  run_correlation_update,       "Correlation matrix"),
         (21, 0,  "events",       run_event_calendar_scan,      "Event calendar scan"),

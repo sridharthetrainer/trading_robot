@@ -365,7 +365,7 @@ class ExecutionAlgo:
             _ltp = 0.0
             if use_limit:
                 try:
-                    _ltp_raw = broker.get_ltp(slice_symbol)
+                    _ltp_raw = broker.get_ltp(symbol)
                     _ltp = float(_ltp_raw) if _ltp_raw else 0.0
                 except Exception:
                     pass
@@ -374,10 +374,13 @@ class ExecutionAlgo:
             if use_limit and _ltp > 0:
                 _tick  = 0.05   # NSE F&O tick size
                 _buf   = max(2 * _tick, round(_ltp * 0.002, 2))  # 0.2% buffer
-                if slice_side == "BUY":
-                    limit_price = round(_ltp + _buf, 2)
+                # Round to the 0.05 tick, else the exchange rejects
+                # ("price in multiples of 5 paise").
+                _rt = lambda p: round(round(p / _tick) * _tick, 2)
+                if side == "BUY":
+                    limit_price = _rt(_ltp + _buf)
                 else:
-                    limit_price = max(_tick, round(_ltp - _buf, 2))
+                    limit_price = max(_tick, _rt(_ltp - _buf))
                 _order_type = "LIMIT"
             order_result = broker.place_order(
                 symbol         = symbol,

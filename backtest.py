@@ -33,10 +33,9 @@ Fixes applied
    per position per bar (matching the 3-target structure of TrailingStop).
 
 4. STT not modeled
-   NSE charges STT at 0.05% of premium on the sell side of options.
-   On a ₹200 premium × 50 qty position that is ₹5 per trade.
-   Added stt_rate parameter (default 0.0005). Applied in close_trade_leg()
-   on the sell side of every exit. Recorded per-trade in the trades list.
+   Added stt_rate parameter. This engine is an index-point/futures proxy,
+   not a real option-premium backtest, so the default uses futures-style
+   sell-side STT. Applied in close_trade_leg() on every sell-side exit.
    Adds a `stt` field to each trade dict for downstream analysis.
 """
 from __future__ import annotations
@@ -78,14 +77,14 @@ logger = logging.getLogger(__name__)
 # Instrument lot sizes
 # ---------------------------------------------------------------------------
 LOT_SIZES: Dict[str, int] = {
-    "NIFTY":      50,
-    "BANKNIFTY":  50,
-    "FINNIFTY":   40,
-    "MIDCPNIFTY": 75,
-    "SENSEX":     10,
-    "BANKEX":     15,
+    "NIFTY":      65,
+    "BANKNIFTY":  30,
+    "FINNIFTY":   60,
+    "MIDCPNIFTY": 120,
+    "SENSEX":     20,
+    "BANKEX":     30,
 }
-DEFAULT_LOT = 10
+DEFAULT_LOT = 65
 
 # ---------------------------------------------------------------------------
 # Trailing-stop defaults
@@ -300,7 +299,8 @@ def backtest_symbol(
     initial_capital: float      = 100_000.0,
     slippage_percent: float     = 0.05,
     brokerage_per_order: float  = 20.0,
-    stt_rate: float             = 0.0005,    # 0.05% NSE sell-side STT for options
+    # Index-point/futures proxy. Real option-buying must be tested on option premia.
+    stt_rate: float             = 0.0002,    # 0.02% NSE futures sell-side STT
     lot_size: Optional[int]     = None,
     max_open_positions: int     = 1,
     allow_reverse_on_signal: bool = False,
@@ -329,7 +329,7 @@ def backtest_symbol(
     if max_open_positions <= 0:
         raise ValueError("max_open_positions must be > 0")
 
-    slippage_model = SlippageModel(slippage_percent, brokerage_per_order)
+    slippage_model = SlippageModel(slippage_percent, 0.5)
     trail_config   = {k: config.get(k, v) for k, v in TRAIL_DEFAULTS.items()}
 
     capital: float              = float(initial_capital)

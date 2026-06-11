@@ -212,14 +212,14 @@ class CapitalAllocator:
             logger.warning("CapitalAllocator.update_total: invalid capital %.2f", new_total)
             return
 
-        # First call from __init__ sets peak to config value
-        # First REAL broker update resets peak to actual balance
+        # First call from __init__ sets peak to config value and still allocates
+        # buckets so paper/training mode has usable capital immediately.  The
+        # next real broker update can reset the peak without zeroing buckets.
         if not self._initialized:
             self._peak_capital = new_total  # always reset peak on first real update
             self._initialized  = True
             logger.info("CapitalAllocator peak initialised: ₹%.0f", new_total)
-            return
-        if new_total > self._peak_capital:
+        elif new_total > self._peak_capital:
             self._peak_capital = new_total
 
         # Check drawdown

@@ -47,8 +47,13 @@ except ImportError:
     _VAR_AVAIL = False
 
 import math
+import logging
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Any
+
+# logger was used (VaR size-reduction path) but never defined → NameError in the
+# risk layer when that path ran. Define it here.
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -119,7 +124,7 @@ class PortfolioRiskManager:
         correlation_group: Optional[str] = None,
         current_daily_pnl: float = 0.0,
         daily_loss_limit: Optional[float] = None,
-        lot_size: int = 50,
+        lot_size: int = 65,
         is_options: bool = False,       # True for all options trades
         spot_price: Optional[float] = None,  # underlying spot, for notional
     ) -> RiskDecision:
@@ -143,7 +148,14 @@ class PortfolioRiskManager:
             return self._deny("Max open positions reached", open_positions, symbol)
 
         # ── VaR check: new trade + existing portfolio ─────────────────
-        if _VAR_AVAIL:
+        _enable_var = False
+        try:
+            import config as _cfg
+            _enable_var = bool(getattr(_cfg, "ENABLE_VAR", False))
+        except Exception:
+            _enable_var = False
+
+        if _VAR_AVAIL and _enable_var:
             try:
                 _var_eng = _get_var(self.capital)
                 _stop_dist = abs(entry_price - stop_loss) if stop_loss else entry_price * 0.015

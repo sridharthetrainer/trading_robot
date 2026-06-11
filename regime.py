@@ -148,8 +148,8 @@ def detect_market_regime(
         high   = _safe_get(latest, "High",  "high")
         low    = _safe_get(latest, "Low",   "low")
         adx    = _safe_get(latest, "adx",   "ADX",  "Adx")
-        ema20  = _safe_get(latest, "ema20", "EMA20")
-        ema50  = _safe_get(latest, "ema50", "EMA50")
+        ema20  = _safe_get(latest, "ema20", "EMA20", "ema_fast")
+        ema50  = _safe_get(latest, "ema50", "EMA50", "ema_slow", "ema_trend")
         atr    = _safe_get(latest, "atr",   "ATR",  "Atr")
 
         prev_close = _safe_get(prev, "Close", "close")

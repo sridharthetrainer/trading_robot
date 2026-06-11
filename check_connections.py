@@ -66,10 +66,6 @@ def chk_yf_cross():
     return len(vals) > 0, ' | '.join(vals[:3])
 test('Cross-asset data', chk_yf_cross, 'Price Data')
 
-# ── 2. NSE APIs ───────────────────────────────────────────────────────────────
-def nse_session():
-    import requests
-
 def _safe_close(df) -> float:
     """Safe yfinance last close — handles both old Series and new MultiIndex."""
     try:
@@ -80,6 +76,10 @@ def _safe_close(df) -> float:
         if hasattr(v, "iloc"): v = v.iloc[0]
         return float(v)
     except Exception: return 0.0
+
+# ── 2. NSE APIs ───────────────────────────────────────────────────────────────
+def nse_session():
+    import requests
     s = requests.Session()
     s.headers.update({"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                        "Accept":"*/*","Accept-Language":"en-US,en;q=0.9",

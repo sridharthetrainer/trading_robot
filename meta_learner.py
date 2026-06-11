@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 _STATE_FILE = Path("meta_learner_state.json")
 _HALF_LIFE  = 5     # EWMA half-life in days
 _MAX_TRADES = 20    # trades remembered per strategy
-_MIN_TRADES = 5     # minimum before we trust the Sharpe
+_MIN_TRADES = 30    # minimum before we trust the Sharpe (guards against lucky small samples)
 
 # Regime → strategy type multipliers
 _REGIME_MULTIPLIERS = {
@@ -64,7 +64,18 @@ class MetaLearner:
             if _STATE_FILE.exists():
                 d = json.loads(_STATE_FILE.read_text())
                 self._trades = d.get("trades", {})
-        except Exception: pass
+                logger.info("MetaLearner: loaded %d strategy records", len(self._trades))
+            else:
+                # First-run bootstrap: seed each known strategy with a tiny neutral
+                # return so get_weights() never returns {} before real trades arrive.
+                # These tiny seeds are overridden after _MIN_TRADES real trades.
+                for strat in _STRATEGY_TYPES:
+                    self._trades.setdefault(strat, [0.001])   # 0.1% neutral seed
+                logger.info("MetaLearner: no state file — bootstrapped %d strategies with neutral seeds",
+                            len(self._trades))
+                self._save_state()
+        except Exception as e:
+            logger.warning("MetaLearner _load_state: %s", e)
 
     def _save_state(self):
         try:

@@ -76,7 +76,14 @@ class OptionChoice:
 
 class OptionSelector:
 
-    def __init__(self, lot_size: int = 50, max_lots_per_trade: int = 3) -> None:
+    # Per-index strike intervals — ATM rounding MUST use these, not a flat 50,
+    # or non-NIFTY strikes round to non-existent contracts (e.g. BANKNIFTY).
+    STRIKE_STEPS = {
+        "NIFTY": 50, "BANKNIFTY": 100, "FINNIFTY": 50,
+        "MIDCPNIFTY": 25, "SENSEX": 100, "BANKEX": 100,
+    }
+
+    def __init__(self, lot_size: int = 65, max_lots_per_trade: int = 3) -> None:
         self.lot_size          = int(lot_size)
         self.max_lots_per_trade = int(max_lots_per_trade)
 
@@ -164,7 +171,8 @@ class OptionSelector:
                 return None
 
             option_type = "CE" if side == "BUY" else "PE"
-            strike      = self.get_atm_strike(price)
+            step        = self.STRIKE_STEPS.get(str(index).upper(), 50)
+            strike      = self.get_atm_strike(price, step)
             premium     = self._estimate_premium(price)
             symbol      = self.build_option_symbol(index, strike, option_type, expiry)
             style       = self._derive_style(signal)

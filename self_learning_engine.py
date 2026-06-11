@@ -281,6 +281,7 @@ class SelfLearningEngine:
             "AUTO":           5.0,
             "SCALPING":       6.0,
             "SWING":          7.0,
+            "MA_CROSS":       8.0,
         }.get(str(strategy or "").upper(), 0.0)
 
 
@@ -388,33 +389,23 @@ class SelfLearningEngine:
                 weighted.append(t)  # duplicate 2 = 3× total weight
         return weighted
 
-    # Full feature names — 40 dimensions
+    # Feature names must match _extract_features(), predict_for_strategy(), and
+    # explain_signal() exactly.
     FEATURE_NAMES = [
-        # Original signal quality (8)
-        "confidence",        "score",             "raw_score",
-        "regime_score",      "volatility",        "entry_atr",
-        "regime_num",        "side_num",
-        # Strategy identity (2)
-        "strategy_num",      "symbol_type",
-        # Confluence (3) — MOST IMPORTANT
-        "n_agree",           "n_conflict",        "confluence_num",
-        # Market context (6)
-        "india_vix",         "iv_percentile",     "pcr_atm",
-        "fii_net_cash",      "fii_fut_ratio",     "fii_cum_5d",
-        # Institutional context (3)
-        "client_ce_pct",     "delivery_pct",      "bulk_deal_mod",
-        # Pivot context (4)
-        "above_weekly_pvt",  "above_monthly_pvt",
-        "pct_from_w_r1",     "pct_from_m_r1",
-        # Score modifiers (5)
-        "cross_asset_mod",   "participant_mod",   "theta_mod",
-        "news_mod",          "mtf_pivot_mod",
-        # Time context (5)
-        "hour_of_day",       "day_of_week",       "dte",
-        "expiry_dte",        "time_bucket_wt",
-        # Session context (4)
-        "hold_bars",         "trade_number",      "daily_pnl_before",
-        "sector_code",
+        "confidence",
+        "score",
+        "regime_score",
+        "volatility",
+        "entry_atr",
+        "regime_num",
+        "side_num",
+        "strategy_num",
+        "hour_of_day",
+        "day_of_week",
+        "dte",
+        "hold_bars",
+        "trade_number",
+        "daily_pnl_before",
     ]
 
     _CONFLUENCE_NUM = {"VERY_STRONG":5,"STRONG":4,"MEDIUM":3,"WEAK":2,"SINGLE":1}
@@ -599,6 +590,119 @@ class SelfLearningEngine:
         except Exception:
             return 0.5
 
+    def explain_signal(
+        self, signal: Dict[str, Any], strategy: str, top_n: int = 3
+    ) -> Dict[str, Any]:
+        """
+        Return SHAP-based explanation for why the model scored this signal.
+
+        Uses TreeExplainer (fast, exact for XGBoost) to compute per-feature
+        SHAP values. Returns the top_n features by |SHAP value| with:
+          - feature name (human-readable)
+          - direction (pushed probability UP or DOWN)
+          - magnitude (how much it moved the probability)
+
+        Falls back to model feature_importances_ if SHAP fails (rare).
+        Returns empty dict if model not trained yet.
+
+        Usage:
+            explanation = engine.explain_signal(signal, strategy)
+            # {"top_features": [{"name": "n_agree", "direction": "UP", "delta": 0.12}, ...],
+            #  "base_prob": 0.50, "final_prob": 0.72, "method": "shap"}
+        """
+        strat_key = str(strategy).lower().replace(" ", "_")
+        model = self._strategy_models.get(strat_key) or self.model
+        if model is None:
+            return {}
+
+        try:
+            enriched = self._enrich_trades_for_features([signal])
+            t = enriched[0] if enriched else signal
+            x = np.array([[
+                float(t.get("confidence",    0.5) or 0.5),
+                float(t.get("score",         0)   or 0),
+                float(t.get("regime_score",  0)   or 0),
+                float(t.get("volatility",    0)   or 0),
+                float(t.get("entry_atr",     0)   or 0),
+                self._regime_to_num(t.get("regime", "")),
+                self._side_to_num(t.get("side", "")),
+                self._strategy_to_num(t.get("strategy", strategy)),
+                float(t.get("_hour_of_day",      0) or 0),
+                float(t.get("_day_of_week",      0) or 0),
+                float(t.get("_dte",              0) or 0),
+                float(t.get("_hold_bars",        0) or 0),
+                float(t.get("_trade_number",     1) or 1),
+                float(t.get("_daily_pnl_before", 0) or 0),
+            ]], dtype=float)
+
+            final_prob = float(model.predict_proba(x)[0][1])
+
+            try:
+                import shap as _shap
+                explainer  = _shap.TreeExplainer(model)
+                shap_vals  = explainer.shap_values(x)
+                # For binary classifier, shap_values may be [neg_class, pos_class]
+                if isinstance(shap_vals, list) and len(shap_vals) == 2:
+                    sv = shap_vals[1][0]   # positive class SHAP for single row
+                else:
+                    sv = shap_vals[0] if hasattr(shap_vals, "__len__") else shap_vals
+
+                base_prob  = float(_shap.TreeExplainer(model).expected_value
+                                   if not isinstance(_shap.TreeExplainer(model).expected_value, (list,))
+                                   else _shap.TreeExplainer(model).expected_value[1])
+
+                # Build feature name list — use FEATURE_NAMES if lengths match
+                fnames = self.FEATURE_NAMES if len(self.FEATURE_NAMES) == len(sv) else [
+                    f"f{i}" for i in range(len(sv))
+                ]
+
+                # Sort by |SHAP| descending
+                shap_pairs = sorted(
+                    zip(fnames, sv), key=lambda p: abs(p[1]), reverse=True
+                )[:top_n]
+
+                top_features = [
+                    {
+                        "name":      name,
+                        "direction": "UP" if val > 0 else "DOWN",
+                        "delta":     round(float(val), 4),
+                        "label":     f"{name} pushed probability {'up' if val>0 else 'down'} by {abs(val):.3f}",
+                    }
+                    for name, val in shap_pairs
+                ]
+
+                return {
+                    "top_features": top_features,
+                    "base_prob":    round(base_prob, 4),
+                    "final_prob":   round(final_prob, 4),
+                    "method":       "shap",
+                }
+
+            except Exception as shap_err:
+                logger.debug("SHAP failed, using feature_importances_: %s", shap_err)
+                # Fallback: use model's own feature importances as proxy
+                if hasattr(model, "feature_importances_"):
+                    fnames = self.FEATURE_NAMES
+                    pairs = sorted(
+                        zip(fnames, model.feature_importances_),
+                        key=lambda p: p[1], reverse=True
+                    )[:top_n]
+                    return {
+                        "top_features": [
+                            {"name": n, "direction": "UP", "delta": round(float(v), 4),
+                             "label": f"{n} importance={v:.3f}"}
+                            for n, v in pairs
+                        ],
+                        "base_prob":  0.5,
+                        "final_prob": round(final_prob, 4),
+                        "method":     "feature_importance_fallback",
+                    }
+                return {"final_prob": round(final_prob, 4), "method": "prob_only"}
+
+        except Exception as exc:
+            logger.debug("explain_signal failed: %s", exc)
+            return {}
+
     # ------------------------------------------------------------------
     # ML training
     # ------------------------------------------------------------------
@@ -629,7 +733,6 @@ class SelfLearningEngine:
         try:
             from xgboost import XGBClassifier
 
-            feature_names = self.FEATURE_NAMES
             model = XGBClassifier(
                 n_estimators=100,
                 max_depth=4,
@@ -642,7 +745,6 @@ class SelfLearningEngine:
                 eval_metric="logloss",
                 random_state=42,
                 verbosity=0,
-                feature_names=feature_names,
             )
             model.fit(x_train, y_train)
 
@@ -813,7 +915,6 @@ class SelfLearningEngine:
                     n_estimators=50, max_depth=3, learning_rate=0.1,
                     subsample=0.8, reg_lambda=2.0,
                     objective="binary:logistic", verbosity=0,
-                    feature_names=self.FEATURE_NAMES,
                 )
                 m.fit(X, y)
                 _path = self._strategy_model_path(f"_seg_{seg_name}")

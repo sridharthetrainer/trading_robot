@@ -19,6 +19,17 @@ if env_path.exists():
 token   = sys.argv[1] if len(sys.argv) > 1 else os.getenv("TELEGRAM_BOT_TOKEN","")
 chat_id = os.getenv("TELEGRAM_CHAT_ID","")
 
+
+def _print_token_fix():
+    print()
+    print("  HOW TO GET NEW TOKEN:")
+    print("  1. Open Telegram → search @BotFather")
+    print("  2. Send: /mybots")
+    print("  3. Select: NIFTY Algo Bot")
+    print("  4. Tap: API Token → Copy the token")
+    print("  5. Run: ./update_token.sh <paste_token_here>")
+
+
 print("=" * 55)
 print("TELEGRAM CONNECTIVITY TEST")
 print("=" * 55)
@@ -135,12 +146,3 @@ else:
     print("  If all tests passed: ./bot.sh restart")
     print("  If token failed:     ./update_token.sh <new_token>")
     print("  Get new token:       @BotFather → /mybots → API Token")
-
-def _print_token_fix():
-    print()
-    print("  HOW TO GET NEW TOKEN:")
-    print("  1. Open Telegram → search @BotFather")
-    print("  2. Send: /mybots")
-    print("  3. Select: NIFTY Algo Bot")
-    print("  4. Tap: API Token → Copy the token")
-    print("  5. Run: ./update_token.sh <paste_token_here>")

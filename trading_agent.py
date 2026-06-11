@@ -36,9 +36,11 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
-CLAUDE_MODEL   = "claude-haiku-4-5-20251001"   # fast + cheap for intraday
-CLAUDE_KEY_ENV = "ANTHROPIC_API_KEY"
+# narrative_engine.py handles all LLM calls (provider-agnostic via LLM_PROVIDER env var).
+# TradingAgent below is kept for backward-compat; new narrative calls go via narrative_engine.
+CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"   # kept for backward compat only
+CLAUDE_MODEL   = "claude-haiku-4-5-20251001"
+CLAUDE_KEY_ENV = "ANTHROPIC_API_KEY"                        # not required if LLM_PROVIDER != anthropic
 
 # Agent state file — persists decisions across bot cycles
 AGENT_STATE_FILE = "agent_state.json"

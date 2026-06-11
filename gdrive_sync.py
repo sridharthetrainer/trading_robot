@@ -56,6 +56,12 @@ logger = logging.getLogger(__name__)
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
+# Files where LOCAL is authoritative — never PULL them from Drive (push-only),
+# even if Drive's copy is newer. Was referenced in the sync loop but never defined
+# → NameError crashed the sync. Empty = no push-only protection (standard sync);
+# add filenames here to stop Drive from overwriting your local copy.
+_PUSH_ONLY: set = set()
+
 # ── CRITICAL: WHITELIST ───────────────────────────────────────────────────────
 # Only these files are allowed to be pulled from Drive.
 # Prevents venv/stdlib files from being synced and corrupting the system.
@@ -69,7 +75,8 @@ _ALLOWED_PY_FILES = {
     'backtest_mr_validate.py','backtest_orb.py','backtest_scalping.py',
     'backtest_supertrend_mtf.py','backtest_trend.py','backtest_trend_grid.py',
     'backtest_vwap_reversion.py','bhav_copy.py','broker_interface.py',
-    'broker_manager.py','bse_option_chain.py','bulk_deals.py','candlestick_signals.py',
+    'broker_manager.py','bse_option_chain.py','bulk_deals.py',
+    'candlestick_patterns.py','candlestick_signals.py',
     'capital_allocator.py','capital_compounder.py','capital_recycler.py',
     'chart_patterns.py','check_connections.py','cloud_backup.py','config.py',
     'connection_monitor.py','corporate_actions.py','cross_asset.py',
@@ -83,15 +90,17 @@ _ALLOWED_PY_FILES = {
     'greeks_sizer.py','health_monitor.py','holy_grail.py','idle_engine.py',
     'index_rebalancing.py','indicators.py','institutional_alpha.py',
     'institutional_indicators.py','institutional_strategies.py','intraday_profile.py',
-    'iv_percentile.py','kill_switch.py','live_signal_engine.py','logger_setup.py',
-    'lstm_model.py','main_autonomous.py','market_context.py','market_data_feeds.py',
+    'indicator_confluence.py','iv_percentile.py','kill_switch.py',
+    'live_signal_engine.py','logger_setup.py',
+    'lstm_model.py','main_autonomous.py','market_context.py',
+    'market_context_builder.py','market_data_feeds.py',
     'market_regime.py','master_contract.py','mean_reversion_signal.py','mtf.py',
     'news_nlp.py','nifty_options_engine.py','nse_master.py','off_hours_engine.py',
-    'oi_strike_builder.py','oi_tracker.py','option_chain_engine.py',
+    'mtf_context.py','oi_strike_builder.py','oi_tracker.py','option_chain_engine.py',
     'option_chain_fetcher.py','option_chain_intelligence.py','option_intelligence.py',
     'option_oi_intelligence.py','option_selector.py','orb_strategy.py',
     'overnight_protection.py','param_bridge.py','participant_oi.py','pivot_boss.py',
-    'portfolio_heat.py','portfolio_risk.py','price_structure.py','quant_models.py',
+    'pivot_scalping_strategy.py','portfolio_heat.py','portfolio_risk.py','price_structure.py','quant_models.py',
     'quote_cache.py','regime.py','remote_dashboard.py','run_backtest.py',
     'scale_in_manager.py','score_calibrator.py','self_healing.py','self_learning.py',
     'self_learning_engine.py','setup_gdrive_backup.py','signal_engine.py',

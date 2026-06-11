@@ -46,12 +46,27 @@ class CloudBackup:
     """
 
     FILES_TO_BACKUP = [
+        # Core trade data
         "trades.db",
+        # Strategy state and ML
         "strategy_state.json",
         "ai_model.pkl",
-        "walk_forward_results.json",
-        "strategy_matrix.json",
         "rl_state.json",
+        "learning_state.json",
+        # Validation and backtest results
+        "walk_forward_results.json",
+        "best_params_trend.json",
+        "best_params_mr.json",
+        "best_params_breakout.json",
+        "best_params_scalping.json",
+        "best_params_ma.json",
+        "validation_results.json",
+        # Calibration and performance
+        "score_calibration.json",
+        "strategy_matrix.json",
+        "rejection_stats.json",
+        # Symbol lists
+        "nifty200.csv",
     ]
 
     def __init__(self) -> None:

@@ -89,7 +89,7 @@ TOP_STOCKS = [
 STOP_MULTS   = [1.0, 1.5, 2.0, 2.5]
 TARGET_MULTS = [1.5, 2.0, 2.5, 3.0, 4.0]
 
-LOT_SIZE = 75    # NIFTY
+LOT_SIZE = 65    # NIFTY
 CAPITAL  = 100_000
 
 # Charges
@@ -156,13 +156,13 @@ def _realistic_slippage(price: float, symbol: str, signal_type: str = "OPTIONS")
     # Futures
     return price * 0.0003
 
-def _charges(entry: float, exit_: float, qty: int) -> Tuple[float, float]:
+def _charges(entry: float, exit_: float, qty: int, symbol: str = "") -> Tuple[float, float]:
     """Returns (gross_pnl, net_pnl)."""
     gross     = (exit_ - entry) * qty
     entry_tv  = entry  * qty
     exit_tv   = exit_  * qty
     brok      = 2 * BROKERAGE
-    _is_opt = "CE" in symbol or "PE" in symbol
+    _is_opt = "CE" in symbol.upper() or "PE" in symbol.upper()
     stt     = exit_tv * (STT_RATE_OPT if _is_opt else STT_RATE_FUT)
     exch      = (entry_tv + exit_tv) * EXCH_RATE / 2
     sebi      = (entry_tv + exit_tv) * SEBI_RATE
@@ -389,7 +389,7 @@ def _run_single(df: pd.DataFrame, df_htf: Optional[pd.DataFrame],
                 ep, er = close, "time"
 
             if ep is not None:
-                gross, net = _charges(t["entry"], ep, qty)
+                gross, net = _charges(t["entry"], ep, qty, symbol)
                 trades.append({
                     "strategy": t["strat"], "side": t["side"],
                     "entry": t["entry"], "exit": ep,
@@ -403,7 +403,7 @@ def _run_single(df: pd.DataFrame, df_htf: Optional[pd.DataFrame],
             try:
                 sig = generate_signal(
                     df=df.iloc[:i+1], df_htf=df_htf.iloc[:i//3+1] if df_htf is not None else None,
-                    symbol=symbol, capital=capital, cfg=None
+                    symbol=symbol, capital=capital, config=None
                 )
                 if sig and sig.get("direction") and float(sig.get("score",0)) >= 3.5:
                     strat = sig.get("strategy","")
@@ -521,7 +521,7 @@ def backtest_strategies_for_symbol(symbol: str, df: pd.DataFrame,
             if ep is None and t["bars"] >= 12:
                 ep,er = close,"time"
             if ep is not None:
-                gross, net = _charges(t["entry"], ep, LOT_SIZE)
+                gross, net = _charges(t["entry"], ep, LOT_SIZE, symbol)
                 s = t["strat"]
                 if s not in by_strat:
                     by_strat[s] = {"trades":0,"wins":0,"pnl":0.0,"charges":0.0}
@@ -537,7 +537,7 @@ def backtest_strategies_for_symbol(symbol: str, df: pd.DataFrame,
                 sig = generate_signal(
                     df=df.iloc[:i+1],
                     df_htf=df_htf.iloc[:i//3+1] if df_htf is not None else None,
-                    symbol=symbol, capital=capital, cfg=None,
+                    symbol=symbol, capital=capital, config=None,
                 )
                 if sig and sig.get("direction") and float(sig.get("score",0)) >= 3.5:
                     d = sig["direction"]

@@ -41,6 +41,11 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+try:
+    from candlestick_patterns import latest_pattern_summary
+except Exception:
+    latest_pattern_summary = None
+
 # Minimum wick-to-body ratio for hammer/shooting star
 HAMMER_WICK_RATIO     = 2.0   # lower wick must be 2x the body
 ENGULF_BODY_RATIO     = 0.5   # engulfing bar body must be 50% larger than previous
@@ -247,7 +252,15 @@ def candlestick_signal(
           "reason":      str,
         }
     """
-    empty = {"direction": None, "pattern": None, "score": 0.0, "at_level": "", "reason": "no_pattern"}
+    empty = {
+        "direction": None,
+        "pattern": None,
+        "score": 0.0,
+        "at_level": "",
+        "reason": "no_pattern",
+        "patterns": [],
+        "all_patterns": {},
+    }
 
     if df is None or len(df) < 5:
         return empty
@@ -262,6 +275,13 @@ def candlestick_signal(
     bars_raw = df_c[["open","high","low","close"]].tail(3).values.tolist()
     if len(bars_raw) < 2:
         return empty
+
+    pattern_summary = {}
+    if latest_pattern_summary is not None:
+        try:
+            pattern_summary = latest_pattern_summary(df_c)
+        except Exception:
+            pattern_summary = {}
 
     o1,h1,l1,c1 = bars_raw[-2]   # previous bar
     o2,h2,l2,c2 = bars_raw[-1]   # current bar
@@ -337,6 +357,18 @@ def candlestick_signal(
         base_score = 3.0
         # direction set below based on pivot proximity
 
+    if pattern is None and pattern_summary.get("patterns"):
+        strongest = pattern_summary.get("signals", {}).get("strongest_pattern")
+        best = next((p for p in pattern_summary.get("patterns", []) if p.get("type") == strongest), pattern_summary["patterns"][0])
+        pattern = str(best.get("type", "")).lower().replace(" ", "_").replace("-", "_")
+        bullish_count = int(pattern_summary.get("signals", {}).get("bullish_count", 0) or 0)
+        bearish_count = int(pattern_summary.get("signals", {}).get("bearish_count", 0) or 0)
+        if bullish_count > bearish_count:
+            direction = "BUY"
+        elif bearish_count > bullish_count:
+            direction = "SELL"
+        base_score = 3.5 + min(float(best.get("confidence", 0.5) or 0.5) * 2.5, 2.0)
+
     if pattern is None:
         return empty
 
@@ -397,6 +429,17 @@ def candlestick_signal(
         "score":      round(min(score, 9.5), 2),
         "at_level":   at_level,
         "reason":     reason,
+        "patterns":    pattern_summary.get("patterns", []) if pattern_summary else [],
+        "all_patterns": {
+            str(p.get("type", "")).lower().replace(" ", "_").replace("-", "_"): {
+                "pattern": str(p.get("type", "")).lower().replace(" ", "_").replace("-", "_"),
+                "direction": "BUY" if p.get("pattern_type") == "bullish" else "SELL" if p.get("pattern_type") == "bearish" else None,
+                "label": p.get("label"),
+                "confidence": p.get("confidence"),
+            }
+            for p in (pattern_summary.get("patterns", []) if pattern_summary else [])
+            if p.get("type")
+        },
     }
 
 
@@ -437,6 +480,8 @@ def run_candlestick_strategy(df, df_htf=None, option_data=None) -> dict:
             "direction": result.get("direction"),
             "reason":    result.get("reason",""),
             "pattern":   result.get("pattern",""),
+            "patterns":  result.get("patterns", []),
+            "all_patterns": result.get("all_patterns", {}),
             "at_level":  result.get("at_level",""),
         }
     except Exception as e:

@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.WARNING, format="%(asctime)s | %(levelname)s |
 DEFAULT_SYMBOL   = "NIFTY"
 DEFAULT_DAYS     = 30
 DEFAULT_CAPITAL  = 100_000.0
-DEFAULT_LOT      = 75
+DEFAULT_LOT      = 65
 DEFAULT_LOTS     = 1
 DEFAULT_BROK     = 40.0
 DEFAULT_STT      = 0.0005
@@ -67,15 +67,17 @@ def backtest_vwap_reversion(
     initial_capital: float = DEFAULT_CAPITAL, lot_size: int = DEFAULT_LOT,
     lots: int = DEFAULT_LOTS, brokerage: float = DEFAULT_BROK,
     stt_rate: float = DEFAULT_STT, slippage_pct: float = DEFAULT_SLIP,
+    interval_minutes: int = 5, close_at_end: bool = True,
     verbose: bool = True,
+    **_: Any,
 ) -> Dict[str, Any]:
     if data is None or len(data) < 30:
         return _empty(symbol, "no_data")
 
-    from indicators import calculate_rsi, calculate_atr, calculate_vwap, calculate_volume_ratio
+    from indicators import calculate_rsi, calculate_atr, calculate_vwap_bands, calculate_volume_ratio
     rsi_s    = calculate_rsi(data, 14)
     atr_s    = calculate_atr(data, 14)
-    vwap_s   = calculate_vwap(data)
+    vwap_lower_s, vwap_s, vwap_upper_s = calculate_vwap_bands(data, period=20, std_mult=1.5)
     vol_r_s  = calculate_volume_ratio(data, 20)
 
     capital  = float(initial_capital)
@@ -88,6 +90,8 @@ def backtest_vwap_reversion(
         row      = data.iloc[i]
         close    = float(row.get("Close", row.get("close", 0)) or 0)
         vwap_v   = float(vwap_s.iloc[i] if pd.notna(vwap_s.iloc[i]) else 0)
+        vwap_l   = float(vwap_lower_s.iloc[i] if pd.notna(vwap_lower_s.iloc[i]) else vwap_v * (1 - dev_min))
+        vwap_u   = float(vwap_upper_s.iloc[i] if pd.notna(vwap_upper_s.iloc[i]) else vwap_v * (1 + dev_min))
         rsi_v    = float(rsi_s.iloc[i]  if pd.notna(rsi_s.iloc[i])  else 50)
         atr_v    = float(atr_s.iloc[i]  if pd.notna(atr_s.iloc[i])  else close * 0.005)
         vol_r    = float(vol_r_s.iloc[i] if pd.notna(vol_r_s.iloc[i]) else 1.0)
@@ -122,18 +126,34 @@ def backtest_vwap_reversion(
         # Entry
         if vol_r < vol_min: equity.append(capital); continue
 
-        if dev_pct <= -dev_min and rsi_v <= rsi_os:
+        below_band = close <= vwap_l or dev_pct <= -dev_min
+        above_band = close >= vwap_u or dev_pct >= dev_min
+
+        if below_band and rsi_v <= rsi_os:
             entry  = close * (1 + slippage_pct / 100)
             stop   = entry - 2 * atr_v
             position = {"side": "BUY", "entry": entry, "stop": stop}
             capital -= brokerage
-        elif dev_pct >= dev_min and rsi_v >= rsi_ob:
+        elif above_band and rsi_v >= rsi_ob:
             entry  = close * (1 - slippage_pct / 100)
             stop   = entry + 2 * atr_v
             position = {"side": "SELL", "entry": entry, "stop": stop}
             capital -= brokerage
 
         equity.append(capital)
+
+    if close_at_end and position and len(data):
+        last = data.iloc[-1]
+        close = float(last.get("Close", last.get("close", 0)) or 0)
+        if close > 0:
+            side = position["side"]
+            exit_p = close * (1 - slippage_pct/100 if side=="BUY" else 1 + slippage_pct/100)
+            gross = (exit_p - position["entry"]) * qty if side=="BUY" else (position["entry"] - exit_p) * qty
+            costs = brokerage + exit_p * qty * stt_rate
+            pnl = gross - costs
+            capital += pnl
+            trades.append({**position, "exit": exit_p, "pnl": pnl})
+            equity.append(capital)
 
     n        = len(trades)
     wins     = sum(1 for t in trades if t["pnl"] > 0)

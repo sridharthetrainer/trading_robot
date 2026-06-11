@@ -83,6 +83,16 @@ def _get_opening_range(
         hour=ORB_WINDOW_END.hour, minute=ORB_WINDOW_END.minute
     )
 
+    # Angel candles carry a tz-aware index (UTC+5:30); match it so the
+    # comparison is valid (was failing: tz-aware vs tz-naive Timestamp).
+    if getattr(df.index, "tz", None) is not None:
+        try:
+            session_start = session_start.tz_localize(df.index.tz)
+            session_end   = session_end.tz_localize(df.index.tz)
+        except (TypeError, ValueError):
+            session_start = session_start.tz_convert(df.index.tz)
+            session_end   = session_end.tz_convert(df.index.tz)
+
     mask = (df.index >= session_start) & (df.index <= session_end)
     orb_bars = df[mask]
 

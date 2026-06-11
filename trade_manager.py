@@ -88,6 +88,15 @@ from alerts import AlertManager
 from broker_manager import BrokerManager
 from adaptive_position_sizer import AdaptivePositionSizer
 
+# Accurate NSE cost model. _calculate_pnl() referenced _CC_AVAILABLE +
+# calculate_net_pnl without importing them (NameError when it ran); import them
+# here with the same guarded pattern as main_autonomous / live_signal_engine.
+try:
+    from capital_compounder import calculate_net_pnl
+    _CC_AVAILABLE = True
+except Exception:
+    _CC_AVAILABLE = False
+
 
 
 def estimate_slippage(symbol: str, price: float, side: str) -> float:
@@ -138,11 +147,11 @@ def check_and_blacklist_symbol(symbol: str, db_path: str = "trades.db") -> bool:
     try:
         conn  = sqlite3.connect(db_path, check_same_thread=False)
         conn.execute('PRAGMA journal_mode=WAL')
-        cutoff = (now - timedelta(days=7)).isoformat()
+        cutoff_ts = (now - timedelta(days=7)).timestamp()
         rows  = conn.execute(
             "SELECT COUNT(*) FROM trades WHERE symbol=? AND exit_reason LIKE '%stop%' "
             "AND entry_time > ? AND status='CLOSED'",
-            (symbol.upper(), cutoff)
+            (symbol.upper(), cutoff_ts)
         ).fetchone()
         conn.close()
         sl_hits = rows[0] if rows else 0
@@ -158,6 +167,7 @@ def check_and_blacklist_symbol(symbol: str, db_path: str = "trades.db") -> bool:
     return False
 
 
+@dataclass
 class ManagedTrade:
     trade_id:          str
     symbol:            str
@@ -180,6 +190,7 @@ class ManagedTrade:
     exit_reason:       Optional[str]          = None
     realized_pnl:      float                  = 0.0
     mode:              str                    = "PAPER"  # PAPER or LIVE
+    trade_type:        str                    = "PAPER"
     confidence:        Optional[float]        = None
     regime:            Optional[str]          = None
     score:             Optional[float]        = None
@@ -222,6 +233,8 @@ class ManagedTrade:
             exit_time        = _safe_float(row.get("exit_time")),
             exit_reason      = row.get("exit_reason"),
             realized_pnl     = float(row.get("realized_pnl") or 0.0),
+            mode             = str(row.get("mode") or "PAPER"),
+            trade_type       = str(row.get("trade_type") or row.get("mode") or "PAPER"),
             confidence       = _safe_float(row.get("confidence")),
             regime           = row.get("regime"),
             score            = _safe_float(row.get("score")),
@@ -246,6 +259,7 @@ def _safe_float(value: Any) -> Optional[float]:
 
 class TradeJournalStore:
     _trade_lock = threading.Lock()
+    MAX_SECTOR_POSITIONS = 2  # max positions in same sector
 
     def __init__(self, db_path: str = "trades.db") -> None:
         self.db_path = str(db_path)
@@ -400,6 +414,7 @@ class TradeJournalStore:
             trade_type = "LIVE"
         else:
             trade_type = "PAPER"
+        trade.trade_type = trade_type
 
         gross_pnl       = getattr(trade, "gross_pnl", meta.get("gross_pnl", 0.0))
         brokerage       = float(cost.get("brokerage",       0))
@@ -577,6 +592,7 @@ class TradeManager:
         self.open_trades:   Dict[str, ManagedTrade] = {}
         self.closed_trades: List[ManagedTrade]      = []
 
+        self._trade_lock      = threading.Lock()
         self._trade_counter    = 1
         self.daily_realized_pnl = 0.0
         self.trading_locked    = False
@@ -880,16 +896,119 @@ class TradeManager:
 
         return round(float(net_pnl), 2)
 
+    def _is_option_trade(self, trade: ManagedTrade) -> bool:
+        """Best-effort asset classifier used for exchange and cost selection."""
+        meta = trade.metadata if isinstance(trade.metadata, dict) else {}
+        asset_type = str(meta.get("asset_type", "")).upper()
+        symbol = str(getattr(trade, "symbol", "") or "").upper()
+        return (
+            asset_type == "OPTION"
+            or symbol.endswith(("CE", "PE"))
+            or " CE" in symbol
+            or " PE" in symbol
+        )
+
+    def _trade_exchange(self, trade: ManagedTrade) -> str:
+        return "NFO" if self._is_option_trade(trade) else "NSE"
+
+    def _is_swing_trade(self, trade: ManagedTrade) -> bool:
+        meta = trade.metadata if isinstance(trade.metadata, dict) else {}
+        return str(meta.get("style", "intraday")).lower() == "swing"
+
+    def _cap_live_qty_to_balance(
+        self,
+        requested_qty: int,
+        entry_price: float,
+        balance: float,
+        metadata: Optional[Dict[str, Any]],
+        side: str,
+    ) -> int:
+        """
+        Return the largest live quantity that can fit in current cash.
+
+        Paper trades keep the strategy-requested size; only the real linked leg
+        is capped. For options, quantity must be a full lot.
+        """
+        qty = int(requested_qty or 0)
+        price = float(entry_price or 0.0)
+        cash = float(balance or 0.0)
+        if qty <= 0 or price <= 0 or cash <= 0:
+            return 0
+
+        try:
+            import config as _cfg_live_qty
+            use_pct = float(getattr(_cfg_live_qty, "LIVE_BALANCE_USE_PCT", 0.95))
+            default_lot = int(getattr(_cfg_live_qty, "OPTION_LOT_SIZE", 65))
+        except Exception:
+            use_pct = 0.95
+            default_lot = 65
+        use_pct = max(0.05, min(1.0, use_pct))
+
+        meta = metadata if isinstance(metadata, dict) else {}
+        is_option = str(meta.get("asset_type", "")).upper() == "OPTION"
+        lot_size = int(meta.get("lot_size") or default_lot or 1)
+        lot_size = max(1, lot_size)
+
+        usable_cash = cash * use_pct
+        affordable_units = int(usable_cash // price)
+        if affordable_units <= 0:
+            return 0
+
+        capped_qty = min(qty, affordable_units)
+        if is_option:
+            capped_qty = (capped_qty // lot_size) * lot_size
+            if capped_qty < lot_size:
+                return 0
+
+        return max(0, int(capped_qty))
+
     def _calculate_today_realized_pnl(self) -> float:
         today = date.today().isoformat()   # compute once outside loop
-        total = 0.0
-        for trade in self.closed_trades:
-            if not trade.exit_time:
-                continue
-            trade_day = time.strftime("%Y-%m-%d", time.localtime(trade.exit_time))
-            if trade_day == today:
-                total += float(trade.realized_pnl)
-        return round(total, 2)
+        try:
+            conn = self.store._connect()
+            row = conn.cursor().execute(
+                """
+                SELECT COALESCE(SUM(realized_pnl), 0)
+                FROM trades
+                WHERE status='CLOSED'
+                  AND date(exit_time,'unixepoch','localtime') = ?
+                """,
+                (today,),
+            ).fetchone()
+            conn.close()
+            return round(float(row[0] or 0.0), 2)
+        except Exception:
+            total = 0.0
+            for trade in self.closed_trades:
+                if not trade.exit_time:
+                    continue
+                trade_day = time.strftime("%Y-%m-%d", time.localtime(trade.exit_time))
+                if trade_day == today:
+                    total += float(trade.realized_pnl)
+            return round(total, 2)
+
+    def _today_trade_counts(self) -> Dict[str, int]:
+        today = date.today().isoformat()
+        try:
+            conn = self.store._connect()
+            row = conn.cursor().execute(
+                """
+                SELECT
+                    SUM(CASE WHEN date(entry_time,'unixepoch','localtime') = ? THEN 1 ELSE 0 END) AS opened_today,
+                    SUM(CASE WHEN status='CLOSED'
+                              AND date(exit_time,'unixepoch','localtime') = ?
+                             THEN 1 ELSE 0 END) AS closed_today
+                FROM trades
+                """,
+                (today, today),
+            ).fetchone()
+            conn.close()
+            return {
+                "opened_today": int(row[0] or 0),
+                "closed_today": int(row[1] or 0),
+            }
+        except Exception:
+            return {"opened_today": 0, "closed_today": 0}
 
     # ------------------------------------------------------------------
     # Guards
@@ -927,8 +1046,12 @@ class TradeManager:
         if not trade.stop_loss or not self.broker_manager:
             return None
 
-        # Skip for simulated/paper orders when not in paper mode
-        if str(trade.order_id or "").startswith("SIM"):
+        meta = trade.metadata or {}
+        live_order_id = str(meta.get("live_order_id", "")).strip()
+
+        # Skip for pure simulated/paper orders.  A paper trade may still have a
+        # linked live leg in dual mode; only that case needs broker-side SL.
+        if str(trade.order_id or "").startswith(("SIM", "PAPER")) and not live_order_id:
             return None
 
         try:
@@ -1098,6 +1221,8 @@ class TradeManager:
                 "entry_price": t.entry_price,
                 "exit_price":  t.exit_price,
                 "pnl":         t.realized_pnl,
+                "mode":        getattr(t, "mode", "PAPER"),
+                "trade_type":  getattr(t, "trade_type", getattr(t, "mode", "PAPER")),
                 "confidence":  float(t.confidence or 0.0),
                 "score":       float(t.score or 0.0),
                 "regime":      t.regime or "UNKNOWN",
@@ -1162,6 +1287,10 @@ class TradeManager:
             logger.error("Invalid side: %s", side)
             return None
 
+        if not stop_loss or float(stop_loss) <= 0:
+            logger.error("open_trade: stop_loss must be set and > 0 for %s — trade rejected", symbol)
+            return None
+
         if not self._can_open_new_trade(symbol=symbol, side=side):
             return None
 
@@ -1187,37 +1316,92 @@ class TradeManager:
             logger.info("Rejected trade — zero quantity | reason=%s", sizing_reason)
             return None
 
-        # ── DUAL MODE: paper order always first ──────────────────────────
-        broker_name, order_id = self._place_order_via_broker(
-            symbol=symbol, qty=qty, buy_sell=side, exchange=exchange
-        )
+        # ── PAPER-FIRST MODE ─────────────────────────────────────────────
+        # Every accepted signal becomes a paper trade for ML/training even
+        # when Angel has no usable funds.  Live execution is an optional
+        # linked leg below, never a prerequisite for recording the trade.
+        broker_name = "PAPER"
+        order_id = f"PAPER-{int(time.time() * 1000)}"
 
         # ── DUAL MODE: live order if balance sufficient ───────────────────
         _live_order_id   = None
         _live_broker_name = None
-        if _DUAL_AVAILABLE:
+        _meta_in = metadata or {}
+        _signal_data = _meta_in.get("signal_data") if isinstance(_meta_in, dict) else {}
+        try:
+            import config as _cfg_live_gate
+            _allow_validation_blocked_live = bool(
+                getattr(_cfg_live_gate, "ALLOW_VALIDATION_BLOCKED_LIVE", False)
+            )
+        except Exception:
+            _allow_validation_blocked_live = False
+        _force_paper = bool(
+            isinstance(_meta_in, dict)
+            and (
+                _meta_in.get("force_paper")
+                or _meta_in.get("paper_training_mode")
+                or (
+                    isinstance(_signal_data, dict)
+                    and (
+                        _signal_data.get("paper_training_mode")
+                        or _signal_data.get("paper_training_only")
+                        or (
+                            _signal_data.get("live_ready") is False
+                            and not _allow_validation_blocked_live
+                        )
+                    )
+                )
+            )
+        )
+        if _force_paper:
+            logger.info(
+                "Live leg skipped: paper-training strategy state | symbol=%s strategy=%s",
+                symbol, strategy,
+            )
+        if _DUAL_AVAILABLE and not _force_paper:
             try:
                 _dual = _get_dual(
                     broker_manager=self.broker_manager,
                     alerts=self.alerts,
                 )
                 if _dual.should_place_live_order():
+                    _dual_status = _dual.get_status() if hasattr(_dual, "get_status") else {}
+                    _live_balance = float(_dual_status.get("balance", 0.0) or 0.0)
+                    _live_qty = self._cap_live_qty_to_balance(
+                        requested_qty=qty,
+                        entry_price=entry_price,
+                        balance=_live_balance,
+                        metadata=_meta_in if isinstance(_meta_in, dict) else {},
+                        side=side,
+                    )
+                    if _live_qty <= 0:
+                        logger.info(
+                            "Live leg skipped: balance ₹%.2f cannot fit minimum order | "
+                            "symbol=%s requested_qty=%s entry=%.2f",
+                            _live_balance, symbol, qty, float(entry_price),
+                        )
+                    elif _live_qty < qty:
+                        logger.info(
+                            "Live leg downsized for balance | symbol=%s requested_qty=%s "
+                            "live_qty=%s balance=₹%.2f entry=%.2f",
+                            symbol, qty, _live_qty, _live_balance, float(entry_price),
+                        )
                     # Temporarily switch broker to live mode
                     _broker = self.broker_manager.get_execution_broker()
-                    if _broker and hasattr(_broker, "angel"):
+                    if _live_qty > 0 and _broker and hasattr(_broker, "angel"):
                         _orig_paper = _broker.angel.paper_trade
                         _broker.angel.paper_trade = False
                         try:
                             _live_broker_name, _live_order_id = \
                                 self._place_order_via_broker(
-                                    symbol=symbol, qty=qty,
+                                    symbol=symbol, qty=_live_qty,
                                     buy_sell=side, exchange=exchange
                                 )
                             if _live_order_id:
                                 logger.info(
                                     "DUAL MODE: live order placed | "
-                                    "paper=%s live=%s symbol=%s",
-                                    order_id, _live_order_id, symbol,
+                                    "paper=%s live=%s symbol=%s live_qty=%s",
+                                    order_id, _live_order_id, symbol, _live_qty,
                                 )
                         finally:
                             _broker.angel.paper_trade = _orig_paper
@@ -1284,6 +1468,8 @@ class TradeManager:
                                   "sizing_reason": sizing_reason,
                                   "paper_order_id": str(order_id),
                                   "live_order_id":  str(_live_order_id or ""),
+                                  "live_requested_qty": int(qty),
+                                  "live_qty": int(_live_qty) if "_live_qty" in locals() else 0,
                                   "dual_mode":      bool(_live_order_id)},
         )
 
@@ -1312,7 +1498,7 @@ class TradeManager:
         else:
             # SL placement failed — this is the race condition we are closing
             # For live trades: cancel entry immediately to avoid unprotected position
-            is_live = not str(order_id).startswith(("PAPER","SIM","FAKE"))
+            is_live = bool(_live_order_id) or not str(order_id).startswith(("PAPER","SIM","FAKE"))
             if is_live and stop_loss:
                 logger.critical(
                     "BRACKET FAILURE: SL-M failed after entry fill | "
@@ -1458,15 +1644,27 @@ class TradeManager:
             logger.warning("_close_single_trade_by_id: trade_id=%s not found", trade_id)
             return False
         try:
+            close_exchange = exchange or self._trade_exchange(trade)
+            if close_exchange == "NFO" and not self._is_option_trade(trade):
+                close_exchange = "NSE"
             self._cancel_broker_sl_order(trade)
-            broker_name, order_id = self._place_order_via_broker(
-                symbol   = trade.symbol,
-                qty      = trade.qty,
-                buy_sell = "SELL" if trade.side == "BUY" else "BUY",
-                exchange = exchange,
-            )
+            meta = trade.metadata or {}
+            live_order_id = str(meta.get("live_order_id", "")).strip()
+            if live_order_id:
+                broker_name, order_id = self._place_order_via_broker(
+                    symbol   = trade.symbol,
+                    qty      = trade.qty,
+                    buy_sell = "SELL" if trade.side == "BUY" else "BUY",
+                    exchange = close_exchange,
+                )
+                if isinstance(trade.metadata, dict):
+                    trade.metadata["live_exit_order_id"] = str(order_id or "")
+            else:
+                broker_name, order_id = "PAPER", f"PAPER-EXIT-{int(time.time() * 1000)}"
+                if isinstance(trade.metadata, dict):
+                    trade.metadata["paper_exit_order_id"] = order_id
             real_exit = float(exit_price) if exit_price else float(trade.entry_price)
-            pnl = self._calculate_pnl(trade, real_exit)
+            pnl = self._calculate_pnl(trade, real_exit, is_options=self._is_option_trade(trade))
             trade.status       = "CLOSED"
             trade.exit_price   = real_exit
             trade.exit_time    = time.time()
@@ -1506,6 +1704,21 @@ class TradeManager:
                 _risk  = abs(float(getattr(trade,"entry_price",1) or 1) -
                              float(getattr(trade,"stop_loss",0) or 0)) * float(getattr(trade,"qty",1) or 1)
                 rl_record_outcome(_regime, _vix, _hour, _strat, 1.0, pnl, _risk)
+            except Exception: pass
+            # ── Score calibrator outcome recording ────────────────────────────
+            try:
+                _score = float(getattr(trade, "score", None) or 0.0)
+                _conf  = str((getattr(trade, "metadata", None) or {}).get("confluence", ""))
+                if _score > 0 and _strat:
+                    from score_calibrator import get_calibrator
+                    get_calibrator().record(
+                        score      = _score,
+                        confluence = _conf,
+                        strategy   = _strat,
+                        won        = pnl >= 0,
+                        pnl        = pnl,
+                        regime     = str(getattr(trade, "regime", "") or ""),
+                    )
             except Exception: pass
             logger.info(
                 "Trade closed | trade_id=%s reason=%s exit=%.2f pnl=%.2f",
@@ -1567,12 +1780,25 @@ class TradeManager:
                 except Exception as _e:
                     import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
 
-                broker_name, order_id = self._place_order_via_broker(
-                    symbol   = trade.symbol,
-                    qty      = trade.qty,
-                    buy_sell = "SELL" if trade.side == "BUY" else "BUY",
-                    exchange = exchange or "NFO",
-                )
+                close_exchange = exchange or self._trade_exchange(trade)
+                if close_exchange == "NFO" and not self._is_option_trade(trade):
+                    close_exchange = "NSE"
+
+                meta = trade.metadata or {}
+                live_order_id = str(meta.get("live_order_id", "")).strip()
+                if live_order_id:
+                    broker_name, order_id = self._place_order_via_broker(
+                        symbol   = trade.symbol,
+                        qty      = trade.qty,
+                        buy_sell = "SELL" if trade.side == "BUY" else "BUY",
+                        exchange = close_exchange,
+                    )
+                    if isinstance(trade.metadata, dict):
+                        trade.metadata["live_exit_order_id"] = str(order_id or "")
+                else:
+                    broker_name, order_id = "PAPER", f"PAPER-EXIT-{int(time.time() * 1000)}"
+                    if isinstance(trade.metadata, dict):
+                        trade.metadata["paper_exit_order_id"] = order_id
                 exit_price = float(live_ltp or trade.entry_price)
                 pnl        = self._calculate_pnl(trade, exit_price)
 
@@ -1595,13 +1821,20 @@ class TradeManager:
         return closed
 
 
-    def close_options_at_eod(self, ltp_getter=None) -> int:
+    def close_positions_at_eod(
+        self,
+        ltp_getter=None,
+        *,
+        include_swing: bool = False,
+        only_options: bool = False,
+        reason: str = "eod_squareoff",
+    ) -> int:
         """
-        Force-close all open OPTION positions at current market price.
+        Force-close open EOD positions at current market price.
 
-        Called by main_autonomous at EOD_EXIT time (default 15:15) to ensure
-        no options are held overnight. Options lose time value sharply in the
-        final session minutes and have gap risk over weekends.
+        By default this closes all non-swing positions, including CASH paper
+        trades. This keeps intraday paper trades useful for ML training and
+        prevents stale positions from surviving after market close.
 
         Parameters
         ----------
@@ -1612,72 +1845,75 @@ class TradeManager:
 
         Returns number of trades closed.
         """
-        option_trades = {
-            tid: t for tid, t in list(self.open_trades.items())
-            if "CE" in t.symbol or "PE" in t.symbol
+        candidates = {
+            tid: t
+            for tid, t in list(self.open_trades.items())
+            if (include_swing or not self._is_swing_trade(t))
+            and (not only_options or self._is_option_trade(t))
         }
 
-        if not option_trades:
+        if not candidates:
             return 0
 
         logger.warning(
-            "EOD square-off: force-closing %d option position(s) at 15:15",
-            len(option_trades),
+            "EOD square-off: force-closing %d position(s) | only_options=%s include_swing=%s",
+            len(candidates), only_options, include_swing,
         )
         closed = 0
 
-        for trade_id, trade in option_trades.items():
+        for trade_id, trade in candidates.items():
             try:
+                exchange = self._trade_exchange(trade)
                 # Get live LTP if possible, else use entry price as best effort
                 exit_price = float(trade.entry_price)
                 if ltp_getter is not None:
                     try:
-                        ltp = ltp_getter(trade.symbol, "NFO")
+                        ltp = ltp_getter(trade.symbol, exchange)
                         if ltp and float(ltp) > 0:
-                            exit_price = float(ltp)
+                            candidate_exit = float(ltp)
+                            entry = max(float(trade.entry_price or 0), 0.01)
+                            if (
+                                not self._is_option_trade(trade)
+                                and not (entry * 0.50 <= candidate_exit <= entry * 1.50)
+                            ):
+                                logger.warning(
+                                    "Ignoring implausible EOD LTP | trade_id=%s symbol=%s "
+                                    "entry=%.2f ltp=%.2f exchange=%s",
+                                    trade_id, trade.symbol, entry, candidate_exit, exchange,
+                                )
+                            else:
+                                exit_price = candidate_exit
                     except Exception as _e:
                         import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
 
-                # Place exit order
-                buy_sell = "SELL" if trade.side == "BUY" else "BUY"
-                broker_name, order_id = self._place_order_via_broker(
-                    symbol   = trade.symbol,
-                    qty      = trade.qty,
-                    buy_sell = buy_sell,
-                    exchange = "NFO",
-                )
-
-                pnl = self._calculate_pnl(trade, exit_price, is_options=True)
-
-                trade.status       = "CLOSED"
-                trade.exit_price   = exit_price
-                trade.exit_time    = time.time()
-                trade.exit_reason  = "eod_squareoff"
-                trade.realized_pnl = pnl
-
-                self.closed_trades.append(trade)
-                del self.open_trades[trade_id]
-                self._persist_trade(trade)
-                self.daily_realized_pnl += pnl
-                closed += 1
-
-                logger.info(
-                    "EOD closed | trade_id=%s symbol=%s side=%s qty=%s exit=%.2f pnl=%.2f",
-                    trade_id, trade.symbol, trade.side, trade.qty, exit_price, pnl,
-                )
+                if self._close_trade_internal(trade_id, exit_price, reason, exchange):
+                    closed += 1
 
             except Exception:
                 logger.exception("EOD square-off failed | trade_id=%s", trade_id)
 
         return closed
 
+    def close_options_at_eod(self, ltp_getter=None) -> int:
+        """
+        Compatibility wrapper for callers that explicitly want only options.
+        """
+        return self.close_positions_at_eod(
+            ltp_getter=ltp_getter,
+            only_options=True,
+            reason="eod_squareoff",
+        )
+
     # ------------------------------------------------------------------
     # Summary
     # ------------------------------------------------------------------
     def summary(self) -> Dict[str, Any]:
+        counts = self._today_trade_counts()
         return {
             "open_positions":    len(self.open_trades),
             "closed_positions":  len(self.closed_trades),
+            "opened_today":      counts.get("opened_today", 0),
+            "closed_today":      counts.get("closed_today", 0),
             "daily_realized_pnl": round(self.get_daily_pnl(), 2),
             "trading_locked":    self.trading_locked,
             "lock_reason":       self.lock_reason,
@@ -1703,6 +1939,7 @@ class TradeJournal:
     """
 
     _trade_lock = threading.Lock()
+    MAX_SECTOR_POSITIONS = 2  # max positions in same sector
 
     def __init__(self, db_path: str = "") -> None:
         import config as _cfg

@@ -210,6 +210,9 @@ class MarketContext:
                 "Referer":    "https://www.nseindia.com/",
             }
             session = requests.Session()
+            try:
+                from nse_proxy import apply as _apply_nse_proxy; _apply_nse_proxy(session)
+            except Exception: pass
             session.get("https://www.nseindia.com/", headers=headers, timeout=5)
             resp = session.get(
                 "https://www.nseindia.com/api/fiidiiTradeReact",

@@ -47,6 +47,13 @@ Fixes applied
 """
 from __future__ import annotations
 
+# CRITICAL: Load .env FIRST before any code tries to read credentials
+try:
+    from dotenv import load_dotenv
+    load_dotenv('.env')  # Load from current directory
+except ImportError:
+    pass  # python-dotenv not installed, but os.getenv() still works for env vars
+
 
 # Auto-fix: get DataFetcher with Angel singleton
 def _get_angel_data_fetcher():
@@ -237,6 +244,16 @@ except ImportError:
 # Keep NSE_HOLIDAYS as a reference — used by _is_trading_day below
 NSE_HOLIDAYS = _NSE_HOLIDAYS_FALLBACK
 
+# High-impact day guard (RBI policy, budget, macro events).
+# Populate in config.py: HIGH_IMPACT_DATES = {date(2026,6,6), date(2026,7,3), ...}
+try:
+    _cfg_hid = __import__("config")
+    HIGH_IMPACT_DATES          = set(getattr(_cfg_hid, "HIGH_IMPACT_DATES",          set()))
+    HIGH_IMPACT_CONFIDENCE_MIN = float(getattr(_cfg_hid, "HIGH_IMPACT_CONFIDENCE_MIN", 0.80))
+except Exception:
+    HIGH_IMPACT_DATES          = set()
+    HIGH_IMPACT_CONFIDENCE_MIN = 0.80
+
 
 # =============================================================================
 # HELPERS
@@ -283,20 +300,31 @@ def _is_trading_day(d: Optional[date] = None) -> bool:
 def _minutes_until_market_open() -> int:
     """
     Return the number of minutes until the next market open.
-    Returns 0 if market is currently open or opening window has passed.
-    Negative if we are past today's open.
+    Returns 0 if the market is currently open.
     """
     try:
         session = cfg.get_session_window()
         now = datetime.now()
-        open_dt = now.replace(
-            hour=session.market_start.hour,
-            minute=session.market_start.minute,
-            second=0,
-            microsecond=0,
+        close_dt = now.replace(
+            hour=session.market_end.hour, minute=session.market_end.minute,
+            second=0, microsecond=0,
         )
+        if _is_trading_day(now.date()) and now <= close_dt:
+            open_dt = now.replace(
+                hour=session.market_start.hour,
+                minute=session.market_start.minute,
+                second=0,
+                microsecond=0,
+            )
+            if now >= open_dt:
+                return 0
+        else:
+            next_day = now.date() + timedelta(days=1)
+            while not _is_trading_day(next_day):
+                next_day += timedelta(days=1)
+            open_dt = datetime.combine(next_day, session.market_start)
         delta = (open_dt - now).total_seconds() / 60.0
-        return int(delta)
+        return max(0, int(delta))
     except Exception:
         return 999   # assume far away if we can't compute
 
@@ -462,6 +490,12 @@ class AutonomousTradingSystem:
             if bool(getattr(cfg, "PAPER_TRADE", getattr(cfg, "PAPER_TRADING", True)))
             else "LIVE"
         )
+        (
+            self._persisted_new_day_reset_date,
+            self._persisted_new_day_reset_marker,
+        ) = self._load_last_new_day_reset_marker()
+        if self._persisted_new_day_reset_marker:
+            self.runtime_state.last_new_day_reset_at = self._persisted_new_day_reset_marker
 
         self.learning_controller = SelfLearningController(
             strategy_state_file = getattr(cfg, "STRATEGY_STATE_FILE", "strategy_state.json"),
@@ -601,6 +635,17 @@ class AutonomousTradingSystem:
         self.last_hourly_alert_ts:  Optional[float] = None
         self.last_15min_alert_ts:   Optional[float] = None
         self._scan_summary:         dict             = {}
+        try:
+            state_path = Path(RUN_STATE_FILE)
+            if state_path.exists():
+                saved_state = json.loads(state_path.read_text(encoding="utf-8") or "{}")
+                last_learning = saved_state.get("last_learning_cycle_at")
+                if last_learning:
+                    self.runtime_state.last_learning_cycle_at = str(last_learning)
+                    self.last_learning_run_ts = datetime.fromisoformat(str(last_learning)).timestamp()
+                    logger.info("Restored last learning timestamp: %s", last_learning)
+        except Exception as exc:
+            logger.debug("learning timestamp restore failed: %s", exc)
 
         # AlertManager — reads TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID from config
         # Off-hours engine and download tracker
@@ -621,6 +666,7 @@ class AutonomousTradingSystem:
         self._eod_squared_off:             bool  = False  # true once EOD close fires today
         self._high_impact_overrides_active: bool = False  # true when high-impact limits applied
         self._saved_max_lots:               int  = 3      # stores normal max_lots for restoration
+        self._watchdog_hb_started:          bool = False
 
         # Auto mode selector — decides paper vs live automatically
         self.auto_mode = None
@@ -861,6 +907,8 @@ class AutonomousTradingSystem:
         self.last_learning_run_ts = None
 
         self.runtime_state.last_new_day_reset_at = datetime.now().isoformat()
+        self._persisted_new_day_reset_date = today
+        self._persisted_new_day_reset_marker = self.runtime_state.last_new_day_reset_at
         self.runtime_state.daily_realized_pnl    = 0.0
         self.runtime_state.trading_locked        = False
         self.runtime_state.lock_reason           = ""
@@ -888,6 +936,26 @@ class AutonomousTradingSystem:
         if self._last_trading_date is None or self._last_trading_date < today:
             self._on_new_trading_day()
             self._last_trading_date = today
+
+    def _load_last_new_day_reset_marker(self) -> tuple[Optional[date], Optional[str]]:
+        """
+        Read the last persisted daily reset marker without restoring the full
+        runtime state. This prevents same-day restarts from clearing daily risk
+        guards while still allowing a fresh reset on the next trading date.
+        """
+        try:
+            path = Path(RUN_STATE_FILE)
+            if not path.exists():
+                return None, None
+            raw_state = json.loads(path.read_text(encoding="utf-8") or "{}")
+            raw_marker = raw_state.get("last_new_day_reset_at")
+            if not raw_marker:
+                return None, None
+            marker_date = datetime.fromisoformat(str(raw_marker)).date()
+            return marker_date, str(raw_marker)
+        except Exception as exc:
+            logger.debug("Could not read last daily reset marker: %s", exc)
+            return None, None
 
     # ------------------------------------------------------------------
     # State + health persistence
@@ -930,7 +998,14 @@ class AutonomousTradingSystem:
             kill_switch_state = ks.summary() if ks is not None else {"active": False}
 
             today = date.today()
-            is_high_impact = today in HIGH_IMPACT_DATES
+            is_high_impact = today in globals().get("HIGH_IMPACT_DATES", set())
+
+            telegram_command_state = {}
+            try:
+                if self._tg_cmd and hasattr(self._tg_cmd, "health"):
+                    telegram_command_state = self._tg_cmd.health()
+            except Exception:
+                telegram_command_state = {"error": "health_unavailable"}
 
             payload = {
                 "timestamp":         datetime.now().isoformat(),
@@ -977,6 +1052,7 @@ class AutonomousTradingSystem:
                     "count":   self.runtime_state.heartbeat_count,
                     "last_at": self.runtime_state.last_heartbeat_at,
                 },
+                "telegram_command": telegram_command_state,
                 "mode": self.runtime_state.mode,
             }
 
@@ -1028,14 +1104,50 @@ class AutonomousTradingSystem:
         self._write_live_status()    # real-time monitoring file
         self._save_runtime_state()
 
+    def _start_watchdog_heartbeat(self) -> None:
+        """Keep watchdog live_status fresh even while long jobs block the loop."""
+        if self._watchdog_hb_started:
+            return
+        self._watchdog_hb_started = True
+        try:
+            import threading as _threading
+            import time as _time
+
+            def _writer() -> None:
+                while True:
+                    try:
+                        self.runtime_state.heartbeat_count += 1
+                        self.runtime_state.last_heartbeat_at = datetime.now().isoformat()
+                        self._write_live_status()
+                    except Exception:
+                        logger.debug("watchdog heartbeat writer failed", exc_info=True)
+                    _time.sleep(30)
+
+            _threading.Thread(
+                target=_writer,
+                daemon=True,
+                name="WatchdogLiveStatusHB",
+            ).start()
+            logger.info("Watchdog heartbeat writer started")
+        except Exception:
+            logger.debug("watchdog heartbeat writer init failed", exc_info=True)
+
     # ------------------------------------------------------------------
     # After-hours tasks
     # ------------------------------------------------------------------
     def _after_hours_tasks(self) -> None:
         logger.info("After-hours mode")
+        if _SYSSTATE:
+            try:
+                _ss = _get_sys_state()
+                if _ss.get_state() not in ("AFTER_HOURS", "BACKTEST", "ML_TRAINING"):
+                    _ss.set("AFTER_HOURS", "Market closed")
+            except Exception:
+                pass
         # Write heartbeat FIRST so watchdog knows bot is alive
         self._heartbeat("AFTER_HOURS")
         self._notify_mode_change("LEARNING")
+        self._after_hours_position_safety_check()
         # Auto lot scaling check
         try:
             import config as _cfg_s
@@ -1394,11 +1506,26 @@ class AutonomousTradingSystem:
                                     _nifty_prev = float(_ndf["Close"].iloc[-1])
                             except Exception: pass
                             _res = self._conn_monitor.run_full_check()
-                            _issues = [f"{r.name}: {r.detail}" for r in _res
-                                       if r.status is False]
+                            if isinstance(_res, dict):
+                                _ok = int(_res.get("ok", 0) or 0)
+                                _warn = int(_res.get("warnings", 0) or 0)
+                                _fail = int(_res.get("failures", 0) or 0)
+                                _critical = _res.get("critical", []) or []
+                                _issues = [f"{name}: critical" for name in _critical]
+                                if _warn:
+                                    _issues.append(f"{_warn} warning feed(s)")
+                                if _fail and not _critical:
+                                    _issues.append(f"{_fail} failed feed(s)")
+                                _total = _ok + _warn + _fail
+                            else:
+                                _issues = [f"{r.name}: {r.detail}" for r in _res
+                                           if getattr(r, "status", None) is False]
+                                _ok = sum(1 for r in _res
+                                          if getattr(r, "status", None) is True)
+                                _total = len(_res)
                             self.alerts.pre_market_ready(
-                                checks_ok  =sum(1 for r in _res if r.status is True),
-                                checks_total=len(_res),
+                                checks_ok  =_ok,
+                                checks_total=_total,
                                 vix        =_vix,
                                 nifty_prev =_nifty_prev,
                                 issues     =_issues,
@@ -1648,6 +1775,89 @@ class AutonomousTradingSystem:
     # ------------------------------------------------------------------
     # Startup
     # ------------------------------------------------------------------
+    def _apply_order_block(self, blocked: bool, reason: str = "") -> None:
+        """
+        Keep config and broker order-routing flags aligned. Data connections stay
+        live; this only decides whether real orders are allowed.
+        """
+        changed = False
+        try:
+            import config as _cfg_ob
+            changed = bool(getattr(_cfg_ob, "PAPER_ORDERS_ONLY", False)) != bool(blocked)
+            _cfg_ob.PAPER_ORDERS_ONLY = bool(blocked)
+            if not blocked:
+                _cfg_ob.PAPER_TRADING = False
+                _cfg_ob.PAPER_TRADE = False
+        except Exception:
+            pass
+
+        try:
+            broker_manager = (
+                getattr(self.live_engine, "broker_manager", None)
+                or getattr(self.live_engine, "_broker_manager", None)
+            )
+            brokers = []
+            if broker_manager is not None:
+                try:
+                    broker = broker_manager.get_execution_broker()
+                    if broker is not None:
+                        brokers.append(broker)
+                except Exception:
+                    pass
+                brokers.extend(getattr(broker_manager, "brokers", []) or [])
+
+            seen = set()
+            for broker in brokers:
+                ident = id(broker)
+                if ident in seen:
+                    continue
+                seen.add(ident)
+                try:
+                    changed = changed or bool(getattr(broker, "block_real_orders", False)) != bool(blocked)
+                    broker.block_real_orders = bool(blocked)
+                    if hasattr(broker, "angel") and broker.angel:
+                        changed = changed or bool(getattr(broker.angel, "block_real_orders", False)) != bool(blocked)
+                        broker.angel.block_real_orders = bool(blocked)
+                        broker.angel.paper_trade = False
+                except Exception:
+                    pass
+        except Exception as exc:
+            logger.debug("_apply_order_block failed: %s", exc)
+
+        _log = logger.info if changed else logger.debug
+        _log(
+            "Order routing %s | reason=%s",
+            "blocked to paper-only" if blocked else "enabled for live orders",
+            reason or "unspecified",
+        )
+
+    def _sync_runtime_capital(self, capital: float, reset_allocator_peak: bool = False) -> None:
+        """Sync account capital across live engine, risk, sizing and allocator."""
+        try:
+            cap = max(0.0, float(capital or 0.0))
+        except Exception:
+            cap = 0.0
+        if cap <= 0:
+            return
+        try:
+            self.live_engine.total_capital = cap
+            self.live_engine.trade_manager.capital = cap
+            self.live_engine.risk_manager.capital = cap
+            if reset_allocator_peak:
+                try:
+                    self.live_engine.capital_allocator._peak_capital = cap
+                    self.live_engine.capital_allocator._drawdown_mode = False
+                    self.live_engine.capital_allocator._initialized = True
+                    for bucket in self.live_engine.capital_allocator.buckets.values():
+                        bucket.drawdown_halved = False
+                    logger.info("CapitalAllocator peak reset to real balance: ₹%.0f", cap)
+                except Exception:
+                    pass
+            self.live_engine.capital_allocator.update_total(cap)
+            self.live_engine._peak_equity = cap
+        except Exception as exc:
+            logger.debug("_sync_runtime_capital failed: %s", exc)
+
     def _startup(self) -> None:
         # ── Clear stale dedup entries so restart shows all key alerts ────
         try:
@@ -1700,15 +1910,20 @@ class AutonomousTradingSystem:
                     # Sync mode to config
                     import config as _cfg_am
                     if _mode_result.get("is_live"):
-                        _cfg_am.PAPER_TRADING = False
-                        _cfg_am.PAPER_TRADE   = False
+                        self._apply_order_block(False, "auto_mode_startup_live")
+                        self.runtime_state.mode = "LIVE"
                     else:
                         # _cfg_am.PAPER_TRADING = True  # DISABLED: paper_trade kills data fetch
 
                         _cfg_pm = __import__("config")
 
-                        _cfg_pm.PAPER_ORDERS_ONLY = True  # blocks orders, not data
+                        self._apply_order_block(True, "auto_mode_startup_paper")
                         # _cfg_am.PAPER_TRADE   = True  # DISABLED: use PAPER_ORDERS_ONLY instead
+                        self.runtime_state.mode = "PAPER"
+                        _paper_cap = float(getattr(_cfg_pm, "PAPER_CAPITAL",
+                                           getattr(_cfg_pm, "CAPITAL", 100000)))
+                        if _paper_cap > 0:
+                            _startup_balance = _paper_cap
 
                 logger.info(
                     "Auto mode decision: %s | balance=₹%.0f | min=₹%.0f",
@@ -1733,11 +1948,28 @@ class AutonomousTradingSystem:
         # Fetch real balance at startup and sync to all components
         if _startup_balance <= 0:
             _startup_balance = self._fetch_startup_balance()
-        self.live_engine.total_capital           = _startup_balance
-        self.live_engine.trade_manager.capital    = _startup_balance
-        self.live_engine.risk_manager.capital     = _startup_balance
-        self.live_engine.capital_allocator.update_total(_startup_balance)
-        self.live_engine._peak_equity             = _startup_balance
+        _cfg_start = __import__("config")
+        if getattr(_cfg_start, "PAPER_ORDERS_ONLY", False):
+            _paper_cap = float(getattr(_cfg_start, "PAPER_CAPITAL",
+                               getattr(_cfg_start, "CAPITAL", 100000)))
+            if _paper_cap > 0 and abs(_startup_balance - _paper_cap) > 1:
+                logger.warning(
+                    "Startup in PAPER_ORDERS_ONLY — using PAPER_CAPITAL ₹%.0f "
+                    "for simulated sizing; live balance ₹%.0f remains real-order blocked.",
+                    _paper_cap, _startup_balance,
+                )
+                _startup_balance = _paper_cap
+        if _startup_balance <= 0:
+            _cfg_start = __import__("config")
+            _startup_balance = float(getattr(_cfg_start, "PAPER_CAPITAL",
+                                     getattr(_cfg_start, "CAPITAL", 100000)))
+            self._apply_order_block(True, "startup_balance_unavailable")
+            logger.warning(
+                "Startup balance still ₹0 after all fetch attempts — "
+                "using PAPER_CAPITAL ₹%.0f for simulated sizing. "
+                "Scanning and paper signals unaffected; real orders blocked.",
+                _startup_balance)
+        self._sync_runtime_capital(_startup_balance)
 
         # Connection monitor
         if _CONN_MON:
@@ -1996,6 +2228,16 @@ class AutonomousTradingSystem:
                     alerts         = self.alerts,
                 )
                 _initial = self._dual_engine.run_balance_check(force=True)
+                if _initial.get("live_enabled"):
+                    self._apply_order_block(False, "dual_mode_startup_funded")
+                    self._sync_runtime_capital(
+                        float(_initial.get("balance", 0) or 0),
+                        reset_allocator_peak=True,
+                    )
+                    self.runtime_state.mode = "LIVE"
+                else:
+                    self._apply_order_block(True, "dual_mode_startup_unfunded")
+                    self.runtime_state.mode = "PAPER"
                 logger.info(
                     "Dual mode init: %s | balance=₹%.0f",
                     _initial.get("mode"), _initial.get("balance",0)
@@ -2062,8 +2304,20 @@ class AutonomousTradingSystem:
 
         # Initialise day tracking
         if _is_trading_day():
-            self._last_trading_date = date.today()
-            self._on_new_trading_day()   # reset daily limits on every startup
+            today = date.today()
+            self._last_trading_date = today
+            reset_date = getattr(self, "_persisted_new_day_reset_date", None)
+            reset_marker = getattr(self, "_persisted_new_day_reset_marker", None)
+            if reset_date is None:
+                reset_date, reset_marker = self._load_last_new_day_reset_marker()
+            if reset_date == today:
+                self.runtime_state.last_new_day_reset_at = reset_marker
+                logger.info(
+                    "Daily state already reset for %s — skipping startup reset",
+                    today.isoformat(),
+                )
+            else:
+                self._on_new_trading_day()
 
 
     # ------------------------------------------------------------------
@@ -2079,8 +2333,9 @@ class AutonomousTradingSystem:
         Overrides are applied on every LIVE-phase cycle while the date
         matches. They reset automatically at midnight (new trading day).
         """
+        _HID = globals().get("HIGH_IMPACT_DATES", set())
         today = date.today()
-        if today not in HIGH_IMPACT_DATES:
+        if today not in _HID:
             # Restore normal limits if previously overridden
             if getattr(self, "_high_impact_overrides_active", False):
                 self._restore_normal_day_limits()
@@ -2092,7 +2347,7 @@ class AutonomousTradingSystem:
         logger.warning(
             "HIGH-IMPACT EVENT DAY: %s — applying conservative position limits "
             "(max_lots=1, confidence_min=%.2f)",
-            today.isoformat(), HIGH_IMPACT_CONFIDENCE_MIN,
+            today.isoformat(), globals().get("HIGH_IMPACT_CONFIDENCE_MIN", 0.80),
         )
 
         # Store original values for restoration
@@ -2400,7 +2655,7 @@ class AutonomousTradingSystem:
                 capital              = float(getattr(cfg, "CAPITAL",
                                          getattr(cfg, "PAPER_CAPITAL", 100000))),
                 mode                 = self.runtime_state.mode,
-                is_high_impact       = date.today() in HIGH_IMPACT_DATES,
+                is_high_impact       = date.today() in globals().get("HIGH_IMPACT_DATES", set()),
                 nifty_prev_close     = _idx_closes.get("NIFTY", 0),
                 banknifty_prev_close = _idx_closes.get("BANKNIFTY", 0),
                 sensex_prev_close    = _idx_closes.get("SENSEX", 0),
@@ -2524,6 +2779,8 @@ class AutonomousTradingSystem:
                 total_brokerage = total_brok if total_brok > 0 else None,
                 strategy_pnl    = strategy_pnl if strategy_pnl else None,
                 open_positions  = int(td_summary.get("open_positions", 0)),
+                opened_today    = int(td_summary.get("opened_today", len(today_closed))),
+                closed_today    = int(td_summary.get("closed_today", len(today_closed))),
             )
             self.alerts._mark_dedup_sent(today_key)
         except Exception:
@@ -2663,12 +2920,28 @@ class AutonomousTradingSystem:
             # Open positions with unrealized P&L
             open_pos_raw = self.live_engine.trade_manager.get_open_positions() or []
             open_pos_list = []
+            _angel_ref = getattr(self.live_engine, "_angel", None)
             for p in open_pos_raw:
+                _sym   = p.get("symbol", "?")
+                _entry = float(p.get("entry_price", 0))
+                _qty   = int(p.get("qty", 0))
+                _side  = p.get("side", "BUY")
+                _upnl  = None
+                try:
+                    if _angel_ref and _entry > 0 and _qty > 0:
+                        _ltp = _angel_ref._get_real_ltp(_sym)
+                        if _ltp:
+                            _upnl = round(
+                                (_ltp - _entry if _side == "BUY" else _entry - _ltp) * _qty, 2
+                            )
+                except Exception:
+                    pass
                 open_pos_list.append({
-                    "symbol":          p.get("symbol", "?"),
-                    "side":            p.get("side", "?"),
-                    "entry_price":     float(p.get("entry_price", 0)),
-                    "unrealized_pnl":  None,   # TODO: live MTM when LTP available
+                    "symbol":          _sym,
+                    "side":            _side,
+                    "entry_price":     _entry,
+                    "qty":             _qty,
+                    "unrealized_pnl":  _upnl,
                 })
 
             # Today's closed trades
@@ -2726,7 +2999,7 @@ class AutonomousTradingSystem:
             tier1 = [c for c in candidates if c.get("symbol") in TIER1_SYMBOLS]
             top   = candidates[0] if candidates else {}
             self._scan_summary = {
-                "total_symbols_scanned": getattr(self, "_last_scan_count", 0),
+                "total_symbols_scanned": getattr(getattr(self, "_signal_engine", None), "_last_scan_count", 0) or getattr(self, "_last_scan_count", 0),
                 "tier1_scanned":         6,
                 "total_signals":         len(candidates),
                 "tier1_signals":         len(tier1),
@@ -2989,6 +3262,51 @@ class AutonomousTradingSystem:
 
 
 
+    def _check_learning_loop_health(self) -> None:
+        """
+        Hourly: verify the learning loop is active (signal_log.db is growing).
+        Alerts once per day if signals are not being logged — means the ML
+        training pipeline has no data and is running blind.
+        """
+        try:
+            from pathlib import Path as _P
+            import datetime as _dt
+            db = _P("signal_log.db")
+            if not db.exists() or db.stat().st_size < 1024:
+                self.alerts.send(
+                    "⚠️ <b>Learning Loop Stalled</b>\n"
+                    "signal_log.db is empty or missing.\n"
+                    "Signal labelling and ML training have no data.\n"
+                    "Check: is live_signal_engine running? "
+                    "Is SIG_LOG_AVAIL=True in live_signal_engine?",
+                    dedup_key="learning_loop_stalled",
+                    dedup_cooldown_override=86400,  # once per day
+                )
+                return
+            # Check if new rows were added in the last hour
+            from signal_log import get_signal_logger
+            sl = get_signal_logger()
+            stats = sl.stats()
+            total = int(stats.get("total", 0))
+            # Store last-seen count to detect growth
+            _state_key = "_learning_loop_last_count"
+            last = getattr(self, _state_key, 0)
+            if total == last and total > 0:
+                # No new signals in this check period — possible stall
+                # Only alert if market was open today
+                now = _dt.datetime.now()
+                if 9 <= now.hour <= 16:
+                    self.alerts.send(
+                        f"⚠️ <b>Signal Log Not Growing</b>\n"
+                        f"signal_log.db has {total} rows (unchanged).\n"
+                        f"Live engine may not be logging candidates.",
+                        dedup_key="signal_log_not_growing",
+                        dedup_cooldown_override=7200,  # every 2h max
+                    )
+            setattr(self, _state_key, total)
+        except Exception as _e:
+            import logging; logging.getLogger(__name__).debug("learning_loop_health: %s", _e)
+
     def _run_sl_hunt_cycle(self) -> None:
         """
         Every cycle: check open trades for SL hunt (wick stops).
@@ -3121,8 +3439,9 @@ class AutonomousTradingSystem:
         Fetch real account balance from Angel One at startup.
         
         Paper mode:  returns PAPER_CAPITAL from .env
-        Live mode:   fetches actual balance from Angel One rmsLimit API
-                     Falls back to REAL_CAPITAL from .env if API fails
+        Live mode:   fetches actual balance from Angel One rmsLimit API.
+                     If unavailable, switches to paper-only orders and uses
+                     PAPER_CAPITAL for simulated sizing.
         
         This is called ONCE at startup so position sizing is correct
         from the very first trade.
@@ -3139,32 +3458,62 @@ class AutonomousTradingSystem:
         # Live mode — fetch from Angel One
         try:
             broker = self.live_engine.broker_manager.get_execution_broker()
-            if broker and hasattr(broker, "get_balance"):
-                live_bal = broker.get_balance()
-                if live_bal and float(live_bal) > 1000:
+            if broker:
+                if hasattr(broker, "angel") and broker.angel and hasattr(broker.angel, "get_balance"):
+                    live_bal = broker.angel.get_balance(force_real=True)
+                elif hasattr(broker, "get_balance"):
+                    live_bal = broker.get_balance()
+                else:
+                    live_bal = 0.0
+
+                live_bal = float(live_bal or 0.0)
+                paper_cap = float(getattr(cfg, "PAPER_CAPITAL", getattr(cfg, "CAPITAL", 100000)))
+                configured_cap = float(getattr(cfg, "CAPITAL", paper_cap))
+                looks_like_paper_fallback = (
+                    live_bal in {paper_cap, configured_cap, 100000.0, 1000000.0}
+                    and bool(getattr(cfg, "PAPER_ORDERS_ONLY", False))
+                )
+                if live_bal > 0 and not looks_like_paper_fallback:
+                    self._apply_order_block(False, "startup_real_balance_positive")
+                    self._sync_runtime_capital(live_bal, reset_allocator_peak=True)
+                    self.runtime_state.mode = "LIVE"
                     logger.info(
-                        "✅ Live balance fetched from Angel One: ₹%.0f", float(live_bal)
+                        "✅ Live balance fetched from Angel One: ₹%.0f", live_bal
                     )
                     self.alerts.send(
                         f"💰 <b>Live balance confirmed</b>\n"
-                        f"Angel One balance: <b>₹{float(live_bal):,.0f}</b>\n"
+                        f"Angel One balance: <b>₹{live_bal:,.0f}</b>\n"
                         f"Position sizing set to this amount\n"
                         f"🕐 {__import__('datetime').datetime.now().strftime('%H:%M')}",
                         dedup_key="startup_balance",
                     )
-                    return float(live_bal)
+                    return live_bal
+                if looks_like_paper_fallback:
+                    logger.warning(
+                        "Startup balance fetch returned paper fallback ₹%.0f — "
+                        "not enabling live orders from that value.",
+                        live_bal,
+                    )
         except Exception as exc:
             logger.warning("Startup balance fetch failed: %s", exc)
 
-        # Fallback to config
-        fallback = float(getattr(cfg, "REAL_CAPITAL",
-                                 getattr(cfg, "CAPITAL", 100000)))
+        self._apply_order_block(True, "startup_real_balance_unavailable")
+        self.runtime_state.mode = "PAPER"
+        paper_cap = float(getattr(cfg, "PAPER_CAPITAL", getattr(cfg, "CAPITAL", 100000)))
         logger.warning(
-            "Could not fetch live balance — using REAL_CAPITAL from .env: ₹%.0f\n"
-            "Update REAL_CAPITAL=<your_actual_balance> in .env for accurate sizing",
-            fallback,
+            "Live balance unavailable — switching to PAPER_ORDERS_ONLY "
+            "with PAPER_CAPITAL ₹%.0f. Signals continue as paper trades.",
+            paper_cap,
         )
-        return fallback
+        try:
+            self.alerts.send(
+                "⚠️ <b>Angel Balance Unavailable — Paper Mode</b>\n"
+                "Could not fetch live balance from Angel One.\n"
+                "Signals will continue as paper trades. Real orders are blocked.",
+                dedup_key="balance_fetch_failed"
+            )
+        except Exception: pass
+        return paper_cap
 
     def _check_auto_mode_after_trade(self) -> None:
         """Re-evaluate paper/live mode after a trade closes."""
@@ -3176,15 +3525,21 @@ class AutonomousTradingSystem:
             if _result.get("switched"):
                 import config as _cfg_at
                 if _result.get("is_live"):
-                    _cfg_at.PAPER_TRADING = False
-                    _cfg_at.PAPER_TRADE   = False
+                    self._apply_order_block(False, "auto_mode_after_trade_live")
                     self.runtime_state.mode = "LIVE"
                 else:
+                    if (
+                        getattr(self, "_dual_engine", None)
+                        and self._dual_engine.is_live_enabled()
+                    ):
+                        self._apply_order_block(False, "dual_mode_overrides_auto_after_trade")
+                        self.runtime_state.mode = "LIVE"
+                        return
                     # _cfg_at.PAPER_TRADING = True  # DISABLED: paper_trade kills data fetch
 
                     _cfg_pm = __import__("config")
 
-                    _cfg_pm.PAPER_ORDERS_ONLY = True  # blocks orders, not data
+                    self._apply_order_block(True, "auto_mode_after_trade_paper")
                     # _cfg_at.PAPER_TRADE   = True  # DISABLED: use PAPER_ORDERS_ONLY instead
                     self.runtime_state.mode = "PAPER"
         except Exception as _e:
@@ -3271,7 +3626,7 @@ class AutonomousTradingSystem:
                 SELECT symbol, strategy, side, realized_pnl, exit_reason
                 FROM trades
                 WHERE status='CLOSED'
-                  AND date(entry_time,'unixepoch') = ?
+                  AND date(exit_time,'unixepoch','localtime') = ?
                 ORDER BY realized_pnl DESC
             """, (today,)).fetchall()
             conn.close()
@@ -3403,7 +3758,10 @@ class AutonomousTradingSystem:
                     if df is not None and len(df) >= 5:
                         from indicators import calculate_ema
                         ema5 = calculate_ema(df, 5)
-                        last_close = _safe_close(df)
+                        # _safe_close was undefined here (NameError, masked by the
+                        # surrounding try → prev-day bias silently never recorded).
+                        _cl_col = "close" if "close" in df.columns else "Close"
+                        last_close = float(df[_cl_col].iloc[-1])
                         last_ema5  = float(ema5.iloc[-1])
                         ctx.update_prev_day_bias(sym, last_close, last_ema5)
                 except Exception as _e:
@@ -3455,8 +3813,9 @@ class AutonomousTradingSystem:
                         f"System restarted after 3:15 PM with {open_count} open positions.\n"
                         f"Closing all now."
                     )
-                    self.live_engine.trade_manager.close_all_trades(
-                        reason="startup_eod_emergency"
+                    self.live_engine.trade_manager.close_positions_at_eod(
+                        ltp_getter=self._get_squareoff_ltp,
+                        reason="startup_eod_emergency",
                     )
                     self._eod_squared_off = True
                     logger.info("Startup emergency squareoff completed")
@@ -3478,6 +3837,60 @@ class AutonomousTradingSystem:
                     f"Broker SL orders are still active at Angel One.\n"
                     f"Resuming monitoring."
                 )
+
+    def _get_squareoff_ltp(self, symbol: str, exchange: str) -> Optional[float]:
+        """Best-effort exit LTP for EOD/startup square-off."""
+        try:
+            broker_manager = getattr(self.live_engine, "broker_manager", None)
+            if broker_manager and hasattr(broker_manager, "get_ltp"):
+                ltp = broker_manager.get_ltp(symbol, exchange)
+                if ltp and float(ltp) > 0:
+                    return float(ltp)
+        except Exception:
+            pass
+
+        try:
+            fetcher = getattr(self.live_engine, "data_fetcher", None)
+            if fetcher and hasattr(fetcher, "get_market_data"):
+                df = fetcher.get_market_data(symbol, interval="5m", days=2)
+                if df is not None and len(df) > 0:
+                    close_col = "close" if "close" in df.columns else "Close"
+                    if close_col in df.columns:
+                        ltp = float(df[close_col].iloc[-1])
+                        if ltp > 0:
+                            return ltp
+        except Exception:
+            pass
+        return None
+
+    def _after_hours_position_safety_check(self) -> None:
+        """
+        During after-hours, stale intraday positions should not survive into the
+        next session. This is deliberately idempotent.
+        """
+        try:
+            open_count = len(self.live_engine.trade_manager.open_trades)
+            if open_count <= 0:
+                return
+            logger.critical(
+                "AFTER-HOURS SAFETY: %d open position(s) still active — force-closing",
+                open_count,
+            )
+            closed = self.live_engine.trade_manager.close_positions_at_eod(
+                ltp_getter=self._get_squareoff_ltp,
+                reason="after_hours_stale_position_safety",
+            )
+            if closed:
+                self._eod_squared_off = True
+                try:
+                    self.alerts.warning(
+                        f"After-hours safety closed {closed} stale position(s).",
+                        dedup_key=f"after_hours_stale_close:{datetime.now().date()}",
+                    )
+                except Exception:
+                    pass
+        except Exception:
+            logger.exception("_after_hours_position_safety_check failed")
 
 
     def _check_memory_usage(self) -> None:
@@ -3585,32 +3998,25 @@ class AutonomousTradingSystem:
     # ------------------------------------------------------------------
     def _trigger_eod_squareoff(self) -> None:
         """
-        Force-close all open options positions at end of day.
+        Force-close all open intraday positions at end of day.
 
         Fires once per trading day when the clock enters the EOD exit
         window (default: 15:15, configured via EOD_EXIT_BUFFER_MIN).
         Subsequent cycles in the same day are blocked by _eod_squared_off.
         """
         self._eod_squared_off = True
-        logger.warning("EOD square-off triggered — closing all open options positions")
+        logger.warning("EOD square-off triggered — closing all open intraday positions")
 
         try:
-            # Provide a live LTP getter so exit prices are realistic
-            def ltp_getter(symbol: str, exchange: str) -> Optional[float]:
-                try:
-                    return self.live_engine.broker_manager.get_ltp(symbol, exchange)
-                except Exception:
-                    return None
-
-            closed = self.live_engine.trade_manager.close_options_at_eod(
-                ltp_getter=ltp_getter
+            closed = self.live_engine.trade_manager.close_positions_at_eod(
+                ltp_getter=self._get_squareoff_ltp
             )
 
             if closed > 0:
                 logger.warning("EOD square-off complete | positions_closed=%d", closed)
                 if hasattr(self, "alerts") and self.alerts:
                     self.alerts.kill_switch_triggered(
-                        reason=str(exc)[:200],
+                        reason=f"EOD square-off complete: {closed} position(s) closed",
                         source="health_monitor",
                     )
                 if hasattr(self, "alerts") and self.alerts:
@@ -3907,15 +4313,35 @@ class AutonomousTradingSystem:
                     elif _age<1.0: self._zero_alerted=False
             except Exception: pass
 
-            # Cloud backup after market close
+            # Cloud backup after market close (Google Drive + GitHub)
             from datetime import time as _dt
             _now_t = datetime.now().time()
-            if _dt(15,16) <= _now_t <= _dt(15,20) and _BACKUP_AVAILABLE and self._cloud_backup:
+            if _dt(15,16) <= _now_t <= _dt(15,20):
+                # Google Drive backup
+                if _BACKUP_AVAILABLE and self._cloud_backup:
+                    try:
+                        _br = self._cloud_backup.run_backup()
+                        logger.info("GDrive backup: %s", _br.get("status"))
+                    except Exception as _be:
+                        logger.debug("GDrive backup error: %s", _be)
+                # GitHub backup
                 try:
-                    _br = self._cloud_backup.run_backup()
-                    logger.info("Cloud backup: %s", _br.get("status"))
-                except Exception as _be:
-                    logger.debug("Backup error: %s", _be)
+                    from github_backup import run_github_backup as _ghbk
+                    _ghr = _ghbk()
+                    if _ghr.get("ok"):
+                        logger.info("GitHub backup: %d files pushed", len(_ghr.get("pushed", [])))
+                    else:
+                        logger.debug("GitHub backup skipped: %s", _ghr.get("error", "not configured"))
+                except Exception as _ghe:
+                    logger.debug("GitHub backup error: %s", _ghe)
+            # Hourly GitHub backup during trading hours (every full hour 10:00-15:00)
+            if _dt(10,0) <= _now_t <= _dt(15,0) and datetime.now().minute == 0:
+                try:
+                    from github_backup import run_github_backup as _ghbk_h
+                    _ghr_h = _ghbk_h()
+                    if _ghr_h.get("ok"):
+                        logger.info("GitHub hourly backup: %d files", len(_ghr_h.get("pushed", [])))
+                except Exception: pass
 
             # Final connection gate at 9:13-9:14 AM before first scan
             try:
@@ -4129,6 +4555,13 @@ class AutonomousTradingSystem:
             if _DUAL_MODE_AVAILABLE and self._dual_engine:
                 try:
                     _dual_status = self._dual_engine.run_balance_check()
+                    if _dual_status.get("live_enabled"):
+                        self._apply_order_block(False, "dual_mode_periodic_funded")
+                        self._sync_runtime_capital(float(_dual_status.get("balance", 0) or 0))
+                        self.runtime_state.mode = "LIVE"
+                    else:
+                        self._apply_order_block(True, "dual_mode_periodic_unfunded")
+                        self.runtime_state.mode = "PAPER"
                     # Keep live_signal_engine in sync
                     if hasattr(self.live_engine, "_dual_engine"):
                         self.live_engine._dual_engine = self._dual_engine
@@ -4143,17 +4576,27 @@ class AutonomousTradingSystem:
                         if _result.get("switched"):
                             import config as _cfg_live
                             if _result.get("is_live"):
-                                _cfg_live.PAPER_TRADING = False
-                                _cfg_live.PAPER_TRADE   = False
+                                self._apply_order_block(False, "auto_mode_periodic_live")
                                 self.runtime_state.mode  = "LIVE"
                             else:
-                                # _cfg_live.PAPER_TRADING = True  # DISABLED: paper_trade kills data fetch
+                                if (
+                                    getattr(self, "_dual_engine", None)
+                                    and self._dual_engine.is_live_enabled()
+                                ):
+                                    self._apply_order_block(False, "dual_mode_overrides_auto_periodic")
+                                    self.runtime_state.mode = "LIVE"
+                                else:
+                                    # _cfg_live.PAPER_TRADING = True  # DISABLED: paper_trade kills data fetch
 
-                                _cfg_pm = __import__("config")
+                                    _cfg_pm = __import__("config")
 
-                                _cfg_pm.PAPER_ORDERS_ONLY = True  # blocks orders, not data
-                                # _cfg_live.PAPER_TRADE   = True  # DISABLED: use PAPER_ORDERS_ONLY instead
-                                self.runtime_state.mode  = "PAPER"
+                                    self._apply_order_block(True, "auto_mode_periodic_paper")
+                                    # _cfg_live.PAPER_TRADE   = True  # DISABLED: use PAPER_ORDERS_ONLY instead
+                                    self.runtime_state.mode  = "PAPER"
+                                    _paper_cap = float(getattr(_cfg_pm, "PAPER_CAPITAL",
+                                                       getattr(_cfg_pm, "CAPITAL", 100000)))
+                                    if _paper_cap > 0:
+                                        self._sync_runtime_capital(_paper_cap)
                             logger.info(
                                 "Auto mode switched to %s | balance=₹%.0f",
                                 _result["mode"], _result["balance"],
@@ -4183,6 +4626,7 @@ class AutonomousTradingSystem:
             # Log live data feed status every hour
             if self.runtime_state.heartbeat_count % 120 == 60:  # offset from memory check
                 self._log_live_data_status()
+                self._check_learning_loop_health()   # alert if signal_log.db stalled
 
             # Capital compounding checks
             self._check_capital_milestone()
@@ -4198,8 +4642,57 @@ class AutonomousTradingSystem:
 
             # Only run new signal evaluation if NOT in EOD window
             if not window.get("in_eod_exit_window"):
+                # If live balance is unknown, keep scanning and paper logging.
+                # Capital failure must block real orders, not signal generation.
+                _cap_now = getattr(self.live_engine.trade_manager, "capital", 1)
+                if (not bool(getattr(__import__("config"), "PAPER_TRADING", True)) and
+                        _cap_now <= 0):
+                    _cfg_scan = __import__("config")
+                    _paper_cap = float(getattr(_cfg_scan, "PAPER_CAPITAL",
+                                       getattr(_cfg_scan, "CAPITAL", 100000)))
+                    _cfg_scan.PAPER_ORDERS_ONLY = True
+                    self.runtime_state.mode = "PAPER"
+                    self.live_engine.total_capital = _paper_cap
+                    self.live_engine.trade_manager.capital = _paper_cap
+                    self.live_engine.risk_manager.capital = _paper_cap
+                    self.live_engine.capital_allocator.update_total(_paper_cap)
+                    logger.warning(
+                        "Live balance is ₹0/unknown — continuing scan in "
+                        "PAPER_ORDERS_ONLY with PAPER_CAPITAL ₹%.0f.",
+                        _paper_cap,
+                    )
                 logger.info("Market open — running live engine cycle")
                 self.live_engine._run_cycle()
+
+                # scanned=0 alarm — turn the otherwise silent ERROR log into a
+                # Telegram ping when the scan comes up empty several cycles in a
+                # row (Angel session / data feed down). Alert once per outage,
+                # then confirm recovery. State is lazily initialised via getattr.
+                _scanned = getattr(self.live_engine, "_last_scan_count", 0)
+                if _scanned <= 0:
+                    self._zero_scan_streak = getattr(self, "_zero_scan_streak", 0) + 1
+                    if (self._zero_scan_streak >= 3 and
+                            not getattr(self, "_zero_scan_alerted", False)):
+                        self._zero_scan_alerted = True
+                        try:
+                            self.alerts.critical(
+                                "🚨 SCANNED: 0 for %d cycles — no market data.\n"
+                                "Likely Angel session / data feed down. Auto-recovery "
+                                "is retrying. Run /diagscan or /fixangel."
+                                % self._zero_scan_streak
+                            )
+                        except Exception:
+                            logger.exception("zero-scan alert failed")
+                else:
+                    if getattr(self, "_zero_scan_alerted", False):
+                        try:
+                            self.alerts.send(
+                                "✅ Scan recovered — market data flowing again "
+                                "(%d symbols)." % _scanned)
+                        except Exception:
+                            pass
+                    self._zero_scan_streak = 0
+                    self._zero_scan_alerted = False
 
             time.sleep(max(5, int(getattr(cfg, "MAIN_LOOP_SLEEP_SEC", 30))))
 
@@ -4287,9 +4780,11 @@ class AutonomousTradingSystem:
     # ------------------------------------------------------------------
     def run(self) -> None:
         self._startup()
+        self._startup_position_safety_check()
         self.runtime_state.running = True
         self._save_runtime_state()
         logger.info("Autonomous system started | mode=%s", self.runtime_state.mode)
+        self._start_watchdog_heartbeat()
         # ── Start idle engine ────────────────────────────────────────────
         # Startup heartbeat thread — keeps watchdog calm during long init
         try:
@@ -4356,8 +4851,9 @@ class AutonomousTradingSystem:
         try:
             import config as _sc
             _paper = bool(getattr(_sc, "PAPER_TRADING",      True))
+            _paper_orders_only = bool(getattr(_sc, "PAPER_ORDERS_ONLY", False))
             _live  = bool(getattr(_sc, "ENABLE_REAL_TRADING", False))
-            if not _paper and _live:
+            if not _paper and not _paper_orders_only and _live:
                 # Check actual balance
                 _broker = self.live_engine.broker_manager.get_execution_broker()
                 _real_bal = 0.0
@@ -4365,9 +4861,16 @@ class AutonomousTradingSystem:
                     _orig = _broker.angel.paper_trade
                     _broker.angel.paper_trade = False
                     try:
-                        _real_bal = float(_broker.angel.get_balance() or 0)
+                        _real_bal = float(_broker.angel.get_balance(force_real=True) or 0)
                     finally:
                         _broker.angel.paper_trade = _orig
+                if _real_bal <= 0 and getattr(self, "_dual_engine", None):
+                    try:
+                        _dual_status = self._dual_engine.get_status()
+                        if _dual_status.get("live_enabled") and float(_dual_status.get("balance", 0) or 0) > 0:
+                            _real_bal = float(_dual_status.get("balance", 0) or 0)
+                    except Exception:
+                        pass
                 # Only warn if both Angel returns 0 AND .env REAL_CAPITAL is also 0
                 import os as _ose
                 _env_real = float(_ose.getenv("REAL_CAPITAL","0") or 0)

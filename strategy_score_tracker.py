@@ -140,7 +140,7 @@ def run_eod_ml_analysis() -> str:
             "SELECT strategy, COUNT(*) as cnt, "
             "SUM(CASE WHEN realized_pnl > 0 THEN 1 ELSE 0 END) as wins, "
             "AVG(realized_pnl) as avg_pnl "
-            "FROM trades WHERE date(exit_time) = ? AND status = 'CLOSED' "
+            "FROM trades WHERE date(exit_time, 'unixepoch', 'localtime') = ? AND status = 'CLOSED' "
             "GROUP BY strategy",
             (today,)
         ).fetchall()
@@ -174,7 +174,48 @@ def run_eod_ml_analysis() -> str:
             )
 
         conn.commit()
+
+        # Win-rate degradation guard — log warning for any strategy
+        # with >= 10 trades today and win rate below 45%
+        degraded = [
+            (strategy, int(wr), t.get("cnt", 0))
+            for strategy, cnt, avg_score, regimes in rows
+            for t in [trade_map.get(strategy, {})]
+            for wr in [t.get("wins", 0) / t.get("cnt", 1) * 100 if t.get("cnt", 0) else 0]
+            if t.get("cnt", 0) >= 10 and wr < 45
+        ]
+        if degraded:
+            import logging as _wlog
+            _wlog.getLogger(__name__).warning(
+                "DEGRADED STRATEGIES (win_rate < 45%% with >= 10 trades): %s — "
+                "consider disabling or retraining via /bt or /ml",
+                ", ".join(f"{s}({wr}%%/{n}t)" for s, wr, n in degraded),
+            )
+            lines.append("")
+            lines.append("⚠️ <b>Degraded strategies</b> (WR < 45%%, ≥10 trades):")
+            for s, wr, n in degraded:
+                lines.append(f"  🔴 {s}: {wr}%% win rate over {n} trades")
+
         conn.close()
+        try:
+            from eod_weight_engine import run_eod_weight_update
+            weights = run_eod_weight_update()
+            top_s = weights.get("top_strategies", [])[:3]
+            top_i = weights.get("top_indicators", [])[:3]
+            if top_s or top_i:
+                lines.append("")
+                lines.append("<b>Learned weights for next session</b>")
+                if top_s:
+                    lines.append("  Strategies: " + ", ".join(
+                        f"{r['strategy']} {r['weight']:.2f}x" for r in top_s
+                    ))
+                if top_i:
+                    lines.append("  Indicators: " + ", ".join(
+                        f"{r['indicator']} {r['weight']:.2f}x" for r in top_i
+                    ))
+        except Exception as e:
+            logger.debug("EOD weight update from ML analysis: %s", e)
+
         lines += ["", f"  Total strategies: {len(rows)}", f"  📱 /ml · /calibrate · /bt"]
         return "\n".join(lines)
     except Exception as e:
@@ -198,3 +239,40 @@ def get_fii_dii_history(days: int = 30) -> list:
         )) for r in rows]
     except Exception:
         return []
+
+
+def store_global_snapshot() -> None:
+    """Store daily global market data for correlation analysis."""
+    try:
+        import sqlite3, json
+        from datetime import date
+        from cross_asset import get_cross_asset_data
+        conn = sqlite3.connect("trades.db", check_same_thread=False)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS global_daily (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                sp500 REAL, dxy REAL, gold REAL, brent REAL,
+                us_vix REAL, usdinr REAL, us10y REAL,
+                india_vix REAL, nifty_close REAL,
+                UNIQUE(date)
+            )
+        """)
+        data = get_cross_asset_data(force=True)
+        if data:
+            conn.execute(
+                "INSERT OR REPLACE INTO global_daily "
+                "(date,sp500,dxy,gold,brent,us_vix,usdinr,us10y) VALUES (?,?,?,?,?,?,?,?)",
+                (date.today().isoformat(),
+                 float(data.get("SP500",{}).get("price",0) or 0),
+                 float(data.get("DXY",{}).get("price",0) or 0),
+                 float(data.get("GOLD",{}).get("price",0) or 0),
+                 float(data.get("BRENT",{}).get("price",0) or 0),
+                 float(data.get("USVIX",{}).get("price",0) or 0),
+                 float(data.get("USDINR",{}).get("price",0) or 0),
+                 float(data.get("US10Y",{}).get("price",0) or 0))
+            )
+            conn.commit()
+        conn.close()
+    except Exception as e:
+        import logging; logging.getLogger(__name__).debug("global_snapshot: %s", e)

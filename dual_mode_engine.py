@@ -60,6 +60,51 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# ── Manual live-arming ─────────────────────────────────────────────────────────
+# Live trading must be ARMED deliberately each day — it must never auto-promote
+# to real orders on balance alone, because the algo edge is not yet validated.
+ARM_FILE = "live_armed.json"
+
+
+def _is_armed_today() -> bool:
+    try:
+        import json, os
+        if not os.path.exists(ARM_FILE):
+            return False
+        d = json.load(open(ARM_FILE)).get("armed_date", "")
+        return d == date.today().isoformat()
+    except Exception:
+        return False
+
+
+def is_live_armed_today() -> bool:
+    """Public read-only helper shared by auto-mode and status surfaces."""
+    return _is_armed_today()
+
+
+def arm_live_trading() -> str:
+    """Arm live trading for today (call from a deliberate /arm command)."""
+    import json
+    today = date.today().isoformat()
+    try:
+        json.dump({"armed_date": today, "armed_at": datetime.now().isoformat()},
+                  open(ARM_FILE, "w"))
+        logger.warning("LIVE TRADING ARMED for %s", today)
+    except Exception as e:
+        logger.error("arm_live_trading: %s", e)
+    return today
+
+
+def disarm_live_trading() -> None:
+    """Immediately disarm live trading (back to paper-only)."""
+    import os
+    try:
+        if os.path.exists(ARM_FILE):
+            os.remove(ARM_FILE)
+        logger.warning("LIVE TRADING DISARMED — paper only")
+    except Exception as e:
+        logger.error("disarm_live_trading: %s", e)
+
 
 class DualModeEngine:
     """
@@ -90,17 +135,19 @@ class DualModeEngine:
         # Load config
         try:
             import config as cfg
-            self._min_capital   = float(getattr(cfg, "MIN_LIVE_CAPITAL", 5000))  # ₹5k min — stocks tradeable with small capital
+            self._min_capital   = float(getattr(cfg, "MIN_LIVE_CAPITAL", 25000))
             self._paper_forced  = bool(getattr(cfg, "PAPER_TRADING",      True))
             self._real_allowed  = bool(getattr(cfg, "ENABLE_REAL_TRADING", False))
+            self._require_arm   = bool(getattr(cfg, "REQUIRE_LIVE_ARM", False))
         except Exception:
-            self._min_capital  = 5000   # ₹5k min — works for ₹6,488 balance
+            self._min_capital  = 25000
             self._paper_forced = True
             self._real_allowed = False
+            self._require_arm  = False
 
         logger.info(
-            "DualModeEngine init | min_capital=₹%.0f paper_forced=%s real_allowed=%s",
-            self._min_capital, self._paper_forced, self._real_allowed,
+            "DualModeEngine init | min_capital=₹%.0f paper_forced=%s real_allowed=%s require_arm=%s",
+            self._min_capital, self._paper_forced, self._real_allowed, self._require_arm,
         )
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -111,10 +158,13 @@ class DualModeEngine:
             return False
         if not self._real_allowed:
             return False
+        if self._require_arm and not _is_armed_today():
+            return False
         return self._live_enabled
 
     def should_place_live_order(self) -> bool:
         """Call before every trade. True = place real order too."""
+        self.run_balance_check(force=True)
         return self.is_live_enabled()
 
     def get_mode_label(self) -> str:
@@ -129,9 +179,11 @@ class DualModeEngine:
             "live_enabled":  self.is_live_enabled(),
             "balance":       self._balance,
             "min_capital":   self._min_capital,
-            "balance_ok":    self._balance >= self._min_capital,
+            "balance_ok":    self._balance > 0,
             "paper_forced":  self._paper_forced,
             "real_allowed":  self._real_allowed,
+            "armed":         _is_armed_today(),
+            "require_arm":   self._require_arm,
             "last_check":    datetime.fromtimestamp(self._last_check).strftime("%H:%M:%S")
                              if self._last_check else "never",
             "shortfall":     max(0, self._min_capital - self._balance),
@@ -188,15 +240,17 @@ class DualModeEngine:
                 )
             return self.get_status()
 
-        # RULE 4: Balance check
-        if balance >= self._min_capital:
+        # RULE 4: Any positive balance can attempt live. TradeManager will
+        # downsize/skip the live leg if the specific order cannot fit.
+        if balance > 0:
             self._live_enabled = True
             if not prev_live:
                 # Just became funded — switch to live
                 shortfall = 0
                 logger.info(
-                    "DUAL MODE ACTIVATED: balance ₹%.0f >= ₹%.0f → PAPER+LIVE",
-                    balance, self._min_capital
+                    "DUAL MODE: balance ₹%.0f available — live orders enabled "
+                    "when the specific trade can fit.",
+                    balance
                 )
                 self._send_status_alert(prev_live=False, reason="balance_sufficient")
         else:

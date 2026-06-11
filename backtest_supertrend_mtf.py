@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.WARNING)
 DEFAULT_SYMBOL  = "NIFTY"
 DEFAULT_DAYS    = 30
 DEFAULT_CAPITAL = 100_000.0
-DEFAULT_LOT     = 75
+DEFAULT_LOT     = 65
 DEFAULT_LOTS    = 1
 DEFAULT_BROK    = 40.0
 DEFAULT_STT     = 0.0005
@@ -56,14 +56,47 @@ def fetch_data(symbol: str, days: int) -> Optional[pd.DataFrame]:
         return None, None
 
 
+def _resample_to_15m(df: pd.DataFrame) -> pd.DataFrame:
+    if df is None or not isinstance(df.index, pd.DatetimeIndex):
+        return df
+
+    open_col = "Open" if "Open" in df.columns else "open"
+    high_col = "High" if "High" in df.columns else "high"
+    low_col = "Low" if "Low" in df.columns else "low"
+    close_col = "Close" if "Close" in df.columns else "close"
+    volume_col = "Volume" if "Volume" in df.columns else "volume" if "volume" in df.columns else None
+
+    agg = {
+        open_col: "first",
+        high_col: "max",
+        low_col: "min",
+        close_col: "last",
+    }
+    if volume_col:
+        agg[volume_col] = "sum"
+
+    return df.resample("15min").agg(agg).dropna(subset=[open_col, high_col, low_col, close_col])
+
+
 def backtest_supertrend_mtf(
-    symbol: str, df5: pd.DataFrame, df15: pd.DataFrame,
+    symbol: str,
+    df5: Optional[pd.DataFrame] = None,
+    df15: Optional[pd.DataFrame] = None,
+    data: Optional[pd.DataFrame] = None,
     st_period: int = ST_PERIOD, st_mult: float = ST_MULT,
     initial_capital: float = DEFAULT_CAPITAL,
     lot_size: int = DEFAULT_LOT, lots: int = DEFAULT_LOTS,
     brokerage: float = DEFAULT_BROK, stt_rate: float = DEFAULT_STT,
     verbose: bool = True,
+    interval_minutes: int = 5,
+    close_at_end: bool = True,
+    **_: Any,
 ) -> Dict[str, Any]:
+    if df5 is None:
+        df5 = data
+    if df15 is None and df5 is not None:
+        df15 = _resample_to_15m(df5)
+
     if df5 is None or df15 is None or len(df5) < 30:
         return _empty(symbol, "no_data")
 
@@ -130,6 +163,16 @@ def backtest_supertrend_mtf(
 
         prev_dir5 = d5
         equity.append(capital)
+
+    if close_at_end and position and len(df5):
+        close = float(df5.iloc[-1].get("Close", df5.iloc[-1].get("close", 0)) or 0)
+        if close > 0:
+            side = position["side"]
+            pnl = ((close - position["entry"]) if side=="BUY" else
+                   (position["entry"] - close)) * qty - brokerage - close * qty * stt_rate
+            capital += pnl
+            trades.append({**position, "exit": close, "pnl": pnl})
+            equity.append(capital)
 
     n        = len(trades)
     wins     = sum(1 for t in trades if t["pnl"] > 0)

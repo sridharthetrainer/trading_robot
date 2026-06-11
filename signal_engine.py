@@ -318,12 +318,24 @@ except ImportError:
 
 
 import logging
+import pandas as pd
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from regime import detect_market_regime
 from signal_score import calculate_signal_score
 from mtf import get_htf_bias
 from time_regime import get_strategy_weight, get_time_zone
+
+# ── Indicator cache integration ─────────────────────────────────
+def _get_cached_indicators(df, symbol=""):
+    """Get pre-computed indicators from cache. Falls back to raw compute."""
+    try:
+        from indicator_cache import get_indicators
+        return get_indicators(df, symbol)
+    except Exception:
+        return {}
+
 
 # Strategy-specific modules (lazy-safe imports)
 try:
@@ -652,6 +664,21 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "allow_countertrend_in_range": True,
     "min_volume_ratio_entry":      0.40,    # reject when vol < 40% of avg
     "min_breakout_volume_ratio":   1.20,    # breakout requires 120% of avg volume
+    "enable_entry_quality_filter": True,    # VWAP/ADX/DI/ST/MACD/ATR execution quality
+    "entry_quality_block_live":     True,
+    "entry_quality_max_penalty":    1.25,
+    "enable_indicator_confluence":  True,    # grouped all-indicator trade confluence
+    "indicator_confluence_block_live": False,
+    "indicator_confluence_min_live": 4.8,
+    "indicator_confluence_max_boost": 1.25,
+    "indicator_confluence_max_penalty": 1.25,
+    "enable_mtf_indicator_context": True,
+    "mtf_indicator_block_live": False,
+    "mtf_indicator_min_live": -0.35,
+    "mtf_indicator_max_boost": 1.25,
+    "mtf_indicator_max_penalty": 1.25,
+    "allow_missing_volume_for_indices": True,
+    "allow_missing_volume_entry": False,
 }
 
 
@@ -748,7 +775,7 @@ def _get_qty(price: float, capital: float) -> int:
 
 
 
-def _passes_volume_gate(df, cfg: dict) -> bool:
+def _passes_volume_gate(df, cfg: dict, symbol: str = "") -> bool:
     """
     Reject when volume_ratio < min_volume_ratio_entry.
     Prevents entries during dead-market / zero-participation conditions.
@@ -760,15 +787,103 @@ def _passes_volume_gate(df, cfg: dict) -> bool:
     if min_ratio <= 0:
         return True
     try:
-        vr_col = "volume_ratio" if "volume_ratio" in df.columns else None
+        vr_col = (
+            "volume_ratio" if "volume_ratio" in df.columns
+            else "vol_ratio" if "vol_ratio" in df.columns
+            else None
+        )
+        symbol_u = str(symbol or "").upper()
+        index_like = symbol_u in {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX", "BANKEX"}
         if vr_col is None:
-            return True   # no volume data — don't block
+            return bool(
+                cfg.get("allow_missing_volume_entry", False)
+                or (index_like and cfg.get("allow_missing_volume_for_indices", True))
+                or cfg.get("feed_degraded", False)
+            )
         vr = float(df[vr_col].iloc[-1])
         if vr <= 0:
-            return True   # missing — don't block
+            return bool(
+                cfg.get("allow_missing_volume_entry", False)
+                or (index_like and cfg.get("allow_missing_volume_for_indices", True))
+                or cfg.get("feed_degraded", False)
+            )
         return vr >= min_ratio
     except Exception:
         return True
+
+
+def _ensure_indicator_columns(df, symbol: str = ""):
+    """
+    Ensure the scoring stack has the indicator columns it expects.
+
+    Live data is normalised to Title-Case OHLCV, while some caches used lowercase
+    names and some strategies expect legacy aliases. This adapter fills the
+    common aliases once before scoring.
+    """
+    if df is None or not hasattr(df, "columns") or len(df) < 5:
+        return df
+
+    required_any = (
+        ("ema_fast", "ema20", "ema_20"),
+        ("ema_slow", "ema50", "ema_50"),
+        ("ema_trend", "ema200", "ema_200"),
+        ("rsi", "rsi_14"),
+        ("atr", "atr_14"),
+        ("volume_ratio", "vol_ratio"),
+    )
+    if all(any(col in df.columns for col in group) for group in required_any):
+        return df
+
+    out = df.copy()
+    try:
+        indicators = _get_cached_indicators(out, symbol)
+        for key, value in indicators.items():
+            try:
+                if hasattr(value, "__len__") and len(value) == len(out):
+                    out[key] = value.values if hasattr(value, "values") else value
+            except Exception:
+                continue
+    except Exception:
+        pass
+
+    # Last-resort local compute for direct callers/tests that bypass live precompute.
+    try:
+        missing_core = not all(
+            any(col in out.columns for col in group) for group in required_any[:5]
+        )
+        if missing_core:
+            from indicators import add_all_indicators
+            enriched = add_all_indicators(out, include_cpr=True)
+            for col in enriched.columns:
+                if col not in out.columns:
+                    out[col] = enriched[col]
+    except Exception:
+        pass
+
+    alias_pairs = {
+        "ema20": "ema_20",
+        "ema50": "ema_50",
+        "ema200": "ema_200",
+        "ema_fast": "ema_9",
+        "ema_slow": "ema_50",
+        "ema_trend": "ema_200",
+        "volume_ratio": "vol_ratio",
+        "atr": "atr_14",
+        "rsi": "rsi_14",
+    }
+    for alias, source in alias_pairs.items():
+        if alias not in out.columns and source in out.columns:
+            out[alias] = out[source]
+
+    return out
+
+
+def _strategy_factor(strategy: str) -> str:
+    try:
+        from strategy_clusters import factor_of
+        return str(factor_of(strategy))
+    except Exception:
+        return "OTHER:" + str(strategy).lower()
 
 
 def _passes_htf_filter(
@@ -1601,6 +1716,14 @@ except Exception:
     _CPREMA_AVAIL = False
     def run_cpr_ema_strategy(df, **kw): return {}
 
+# CPR/Camarilla index option scalper
+try:
+    from pivot_scalping_strategy import run_pivot_scalping_strategy
+    _PIVOT_SCALP_AVAIL = True
+except Exception:
+    _PIVOT_SCALP_AVAIL = False
+    def run_pivot_scalping_strategy(df, **kw): return {}
+
 # Elliott Wave
 try:
     from elliott_wave import run_elliott_wave_strategy
@@ -1744,6 +1867,47 @@ except Exception:
     _WEINSTEIN_AVAIL = False
     def run_weinstein_stage_strategy(df, **kw): return {}
 
+# ── NEW STRATEGIES (gap analysis additions v1.2.6) ───────────────────────────
+try:
+    from strategies_new import (
+        run_rsi2_mr_strategy,
+        run_vix_extreme_strategy,
+        run_alligator_ao_strategy,
+        run_cross_momentum_strategy,
+        run_elder_triple_screen_strategy,
+        run_fii_dii_trend_strategy,
+        run_gap_and_go_strategy,
+        run_cci_trend_strategy,
+        run_donchian_breakout_strategy,
+        run_kama_trend_strategy,
+        run_kst_strategy,
+        run_elder_ray_strategy,
+        run_harmonic_gartley_strategy,
+        run_uo_strategy,
+        run_aroon_strategy,
+    )
+    _NEW_STRATEGIES = [
+        run_rsi2_mr_strategy,
+        run_vix_extreme_strategy,
+        run_alligator_ao_strategy,
+        run_cross_momentum_strategy,
+        run_elder_triple_screen_strategy,
+        run_fii_dii_trend_strategy,
+        run_gap_and_go_strategy,
+        run_cci_trend_strategy,
+        run_donchian_breakout_strategy,
+        run_kama_trend_strategy,
+        run_kst_strategy,
+        run_elder_ray_strategy,
+        run_harmonic_gartley_strategy,
+        run_uo_strategy,
+        run_aroon_strategy,
+    ]
+    logger.info("New strategies loaded: %d", len(_NEW_STRATEGIES))
+except Exception as _ns_err:
+    logger.warning("strategies_new import failed: %s", _ns_err)
+    _NEW_STRATEGIES = []
+
 # ── STRATEGIES LIST ──────────────────────────────────────────────────────────
 STRATEGIES = [
     # ── CORE (22 — always loaded) ────────────────────────────────────────────
@@ -1751,6 +1915,7 @@ STRATEGIES = [
     run_mean_reversion_strategy,
     run_breakout_strategy,
     run_scalping_strategy,
+    *([run_pivot_scalping_strategy] if _PIVOT_SCALP_AVAIL else []),
     run_ma_cross_strategy,
     run_orb_strategy,
     run_vwap_reversion_strategy,
@@ -1800,7 +1965,65 @@ STRATEGIES = [
     *([run_williams_r_strategy, run_volatility_breakout_strategy,
        run_oops_strategy]              if _WILLIAMS_AVAIL  else []),
     *([run_weinstein_stage_strategy]   if _WEINSTEIN_AVAIL else []),
+
+    # ── NEW STRATEGIES (gap analysis v1.2.6) ─────────────────────────────────
+    *(_NEW_STRATEGIES),
 ]
+
+
+# ---------------------------------------------------------------------------
+# Strategy call adapter
+# ---------------------------------------------------------------------------
+# Strategies were authored with INCONSISTENT signatures — (df, df_htf,
+# option_data), (df, df_htf, symbol[, option_data]), or (df,) — but the engine
+# historically called them ALL as strategy_fn(df, df_htf, option_data). That made
+# ~16 raise TypeError every call (silently swallowed → never voted) and bound
+# option_data to the wrong param in others. This adapter inspects each function's
+# real signature ONCE (cached) and supplies the right argument for each positional
+# parameter by name, so every strategy is finally called correctly.
+import inspect as _inspect
+
+_STRAT_CALL_NAMES: Dict[Any, Any] = {}
+
+
+def _invoke_strategy(fn, df, df_htf, option_data, symbol):
+    if fn not in _STRAT_CALL_NAMES:
+        try:
+            _sig = _inspect.signature(fn)
+            if any(p.kind == p.VAR_POSITIONAL for p in _sig.parameters.values()):
+                _names = None   # *args present → legacy positional call is safe
+            else:
+                _names = [n for n, p in _sig.parameters.items()
+                          if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+        except (ValueError, TypeError):
+            _names = None
+        _STRAT_CALL_NAMES[fn] = _names
+    names = _STRAT_CALL_NAMES[fn]
+    if not names:
+        return fn(df, df_htf, option_data)
+    _vals = {
+        "df": df, "data": df, "ohlc": df, "candles": df,
+        "df_htf": df_htf, "htf": df_htf, "df_high": df_htf, "higher_tf": df_htf,
+        "symbol": symbol, "sym": symbol,
+        "option_data": option_data, "option": option_data, "opt_data": option_data,
+        "options": option_data, "df_1min": None, "df_1m": None,
+        "config": None, "cfg": None, "capital": None,
+    }
+    args = []
+    for p in names:
+        if p in _vals:
+            args.append(_vals[p])
+        else:
+            break   # unknown param → stop; the rest fall back to their defaults
+    try:
+        return fn(*args)
+    except TypeError:
+        for attempt in ((df, df_htf, option_data), (df, df_htf), (df,)):
+            try:
+                return fn(*attempt)
+            except TypeError:
+                continue
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -2039,6 +2262,47 @@ def get_cost_of_carry_signal(symbol: str) -> dict:
         return {"signal": "NEUTRAL", "score_adj": 0.0, "basis_pct": 0.0}
 
 
+def _entry_quality_adjustment(
+    df,
+    direction: str,
+    strategy: str,
+    cfg: Dict[str, Any],
+    paper_training_mode: bool = False,
+) -> Dict[str, Any]:
+    """
+    Last-bar execution quality layer.
+
+    Keeps the strategy engine from promoting signals that are directionally
+    plausible but technically poor entries: weak ADX, no DI confirmation,
+    counter-VWAP momentum, poor candle body, thin volume, or ATR over-extension.
+    """
+    if not bool(cfg.get("enable_entry_quality_filter", True)):
+        return {"score_modifier": 0.0, "hard_block": False, "reasons": [], "metrics": {}}
+
+    try:
+        from indicators import calculate_entry_quality_score
+        quality = calculate_entry_quality_score(df, direction=direction, strategy=strategy)
+    except Exception as exc:
+        logger.debug("entry quality unavailable: %s", exc)
+        return {
+            "score_modifier": 0.0,
+            "hard_block": False,
+            "reasons": ["quality_unavailable"],
+            "metrics": {},
+        }
+
+    max_penalty = float(cfg.get("entry_quality_max_penalty", 1.25))
+    if paper_training_mode:
+        max_penalty = min(max_penalty, 0.50)
+        quality["hard_block"] = False
+
+    modifier = float(quality.get("score_modifier", 0.0) or 0.0)
+    if modifier < 0:
+        modifier = max(-max_penalty, modifier)
+    quality["score_modifier"] = round(modifier, 3)
+    return quality
+
+
 def generate_signal(
     df,
     df_htf,
@@ -2064,6 +2328,34 @@ def generate_signal(
     cfg = DEFAULT_CONFIG.copy()
     if config:
         cfg.update(config)
+    paper_training_mode = bool(cfg.get("paper_training_mode", False))
+    if paper_training_mode:
+        # Training mode should collect labelled examples.  Live execution is
+        # still controlled downstream by PAPER_ORDERS_ONLY / dual-mode arming.
+        cfg["require_htf_alignment"] = False
+        cfg["vote_threshold"] = min(float(cfg.get("vote_threshold", 1.5)), 0.75)
+        cfg["post_confluence_min_score"] = min(
+            float(cfg.get("post_confluence_min_score", 3.5)), 2.0
+        )
+        cfg["fallback_score_threshold"] = min(
+            float(cfg.get("fallback_score_threshold", 2.5)), 1.5
+        )
+        cfg["min_volume_ratio_entry"] = min(
+            float(cfg.get("min_volume_ratio_entry", 0.40)), 0.20
+        )
+        cfg["min_breakout_volume_ratio"] = min(
+            float(cfg.get("min_breakout_volume_ratio", 1.20)), 0.80
+        )
+
+    df = _ensure_indicator_columns(df, symbol)
+    if df_htf is not None and id(df_htf) != id(df):
+        df_htf = _ensure_indicator_columns(df_htf, f"{symbol}:HTF")
+
+    # instrument_type gates two option-only score tweaks below (event-day boost,
+    # earnings block). It was never defined → those branches NameError'd (masked
+    # by try/except, so they silently never applied). Source it from option_data
+    # when present; "" leaves the option-only tweaks inert, as they were.
+    instrument_type = str((option_data or {}).get("instrument_type", "")).upper()
 
     # Resolve account capital for position-size estimate
     effective_capital: float = (
@@ -2118,6 +2410,7 @@ def generate_signal(
 
     candidates: List[Dict[str, Any]] = []
     rejections: List[str]            = []
+    _sig_meta: dict = {}    # per-signal metadata collected during scoring (for narrative + SHAP)
 
     # ── Compute PDH/PDL/PWH/PWL/PMH/PML S/R levels ─────────────────────
     _sr_levels = {}
@@ -2146,6 +2439,7 @@ def generate_signal(
             _wb = _dfc.tail(6).iloc[:-1]
             if len(_wb) >= 3:
                 from pivot_boss import calc_weekly_pivots, calc_monthly_pivots, get_mtf_pivot_score_mod, calc_floor_pivots
+                from pivot_boss import build_ochao_levels
                 _weekly_lvls = calc_weekly_pivots(
                     float(_wb["high"].max()), float(_wb["low"].min()), float(_wb["close"].iloc[-1])
                 )
@@ -2160,9 +2454,51 @@ def generate_signal(
                 _daily_floor = calc_floor_pivots(
                     float(_pb.get("high",0)), float(_pb.get("low",0)), float(_pb.get("close",0))
                 )
+                _ochao_levels = build_ochao_levels(df, df_htf)
+                if _ochao_levels:
+                    _sig_meta["ochao_levels"] = _ochao_levels
     except Exception as _e:
         import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
 
+
+    _cross_modifier = 0.0   # accumulated cross-sectional score modifier (e.g. momentum rank)
+    _context_keys = (
+        "vix", "india_vix", "vix_source",
+        "iv", "implied_volatility", "atm_iv", "iv_percentile", "ivp",
+        "pcr", "put_call_ratio", "pcr_oi", "pcr_change_oi", "pcr_volume",
+        "option_chain_signal", "option_chain_bias", "option_summary",
+        "volume_data_quality", "data_confidence",
+        "global_bias", "global_change_pct", "global_source", "cross_asset_bias",
+        "news_score", "expiry_dte", "expiry_regime", "whale_mod",
+        "feed_degraded", "feed_degraded_reasons",
+        "mtf_context", "mtf_indicator_context",
+    )
+    for _ctx_key in _context_keys:
+        if option_data and _ctx_key in option_data:
+            _sig_meta[_ctx_key] = option_data.get(_ctx_key)
+        elif _ctx_key in cfg:
+            _sig_meta[_ctx_key] = cfg.get(_ctx_key)
+
+    _mtf_indicator_context = {}
+    if bool(cfg.get("enable_mtf_indicator_context", True)):
+        try:
+            from mtf_context import build_mtf_context
+
+            _mtf_indicator_context = (
+                _sig_meta.get("mtf_indicator_context")
+                or _sig_meta.get("mtf_context")
+                or {}
+            )
+            if not _mtf_indicator_context:
+                _mtf_indicator_context = build_mtf_context({
+                    "primary": df,
+                    "htf": df_htf,
+                })
+            if _mtf_indicator_context:
+                _sig_meta["mtf_indicator_context"] = _mtf_indicator_context
+        except Exception as _mtf_exc:
+            logger.debug("MTF indicator context unavailable: %s", _mtf_exc)
+            _mtf_indicator_context = {}
 
     for strategy_fn in STRATEGIES:
         # ── Regime-aware strategy routing ─────────────────────────────────
@@ -2191,17 +2527,172 @@ def generate_signal(
                     else:
                         # Soft disable: apply penalty but still let it vote
                         pass  # score penalty applied by strategy_matrix weight below
-            result    = strategy_fn(df, df_htf, option_data)
-            direction = result["direction"]
-            raw_score = float(result["score"])
-            strategy  = str(result["strategy"])
+            if _HEROZERO_AVAIL and strategy_fn is run_hero_zero_strategy:
+                # Hero-zero takes (df, df_htf, symbol, option_data, **catalysts).
+                # The generic positional call would bind option_data to its
+                # `symbol` param and the strategy stays inert — so feed it the
+                # real inputs we already have in scope: symbol, VIX, a PDH/PDL
+                # break, and an OI-direction buildup. (EMA200-cross/GIFT-gap have
+                # no clean source here and are left to their safe defaults.)
+                _hz_vix = float((option_data or {}).get("vix", 15) or 15)
+                try:
+                    _cl = df.copy(); _cl.columns = [c.lower() for c in _cl.columns]
+                    _hz_close = float(_cl["close"].iloc[-1])
+                except Exception:
+                    _hz_close = 0.0
+                _hz_pdh = float(_sr_levels.get("pdh", 0) or 0)
+                _hz_pdl = float(_sr_levels.get("pdl", 0) or 0)
+                _hz_break = bool((_hz_pdh and _hz_close > _hz_pdh) or
+                                 (_hz_pdl and _hz_close < _hz_pdl))
+                _hz_oi = False
+                try:
+                    from oi_tracker import get_oi_tracker as _hz_get_oi
+                    _hz_d = _hz_get_oi().get_current_direction(symbol)
+                    _hz_oi = bool(_hz_d and _hz_d.get("direction") not in (None, "NEUTRAL"))
+                except Exception:
+                    pass
+                # GIFT-gap catalyst (NIFTY only — GIFT Nifty is the NIFTY proxy);
+                # prev close comes from the precomputed PDC. Cached 300s upstream.
+                # (ema200_cross has no clean 1-min source here — left at default.)
+                _hz_gap = 0.0
+                if symbol.upper() == "NIFTY":
+                    try:
+                        from data_source_resilience import get_gift_nifty_gap
+                        _hz_pdc = float(_sr_levels.get("pdc", 0) or 0)
+                        if _hz_pdc > 0:
+                            _hz_gap = float(get_gift_nifty_gap(_hz_pdc).get("gap_pct", 0) or 0)
+                    except Exception:
+                        pass
+                # VIX 30-min change (from the live feeds singleton, if running).
+                _hz_vixchg = 0.0
+                try:
+                    from market_data_feeds import get_market_feeds
+                    _hz_vixchg = float(get_market_feeds().vix.get_change() or 0)
+                except Exception:
+                    pass
+                # CPR break: price above TC (bullish) / below BC (bearish), where
+                # the central pivot range is derived from the prev-day H/L/C.
+                _hz_cpr = False
+                try:
+                    _pdh = float(_sr_levels.get("pdh", 0) or 0)
+                    _pdl = float(_sr_levels.get("pdl", 0) or 0)
+                    _pdc = float(_sr_levels.get("pdc", 0) or 0)
+                    if _pdh and _pdl and _pdc and _hz_close:
+                        _piv = (_pdh + _pdl + _pdc) / 3.0
+                        _bc  = (_pdh + _pdl) / 2.0
+                        _tc  = 2.0 * _piv - _bc
+                        _hz_cpr = bool(_hz_close > max(_tc, _bc) or
+                                       _hz_close < min(_tc, _bc))
+                except Exception:
+                    pass
+                result = strategy_fn(
+                    df, df_htf, symbol=symbol, option_data=option_data,
+                    vix=_hz_vix, vix_change=_hz_vixchg, gift_gap=_hz_gap,
+                    cpr_break=_hz_cpr, pdh_pdl_break=_hz_break, oi_buildup=_hz_oi,
+                )
+            else:
+                result    = _invoke_strategy(strategy_fn, df, df_htf, option_data, symbol)
+            # Modifier-only strategies (e.g. cross_momentum) return score_modifier
+            # without a direction — accumulate and skip directional processing
+            if "score_modifier" in result and "direction" not in result:
+                _cross_modifier += float(result.get("score_modifier", 0))
+                continue
+            direction = _normalize_direction(
+                result.get("direction") or result.get("side") or result.get("action")
+            )
+            raw_score = float(result.get("score", 0.0))
+            strategy  = str(result.get("strategy", strategy_fn.__name__))
 
             if not direction:
                 rejections.append(f"{strategy}: no direction")
                 continue
 
-            adjusted_score = _adjust_score_for_regime(strategy, raw_score, regime)
+            adjusted_score = _adjust_score_for_regime(strategy, raw_score, regime) + _cross_modifier
+            _cand_meta: dict = {
+                "raw_strategy": strategy,
+                "base_factor": _strategy_factor(strategy),
+            }
+            _cand_factors = {_cand_meta["base_factor"]}
+            if result.get("pattern"):
+                _cand_meta["pattern"] = result.get("pattern")
+                _cand_factors.add("PATTERN")
+            if result.get("patterns"):
+                _cand_meta["patterns"] = result.get("patterns")
+                _cand_factors.add("PATTERN")
+            if result.get("all_patterns"):
+                _cand_meta["all_patterns"] = result.get("all_patterns")
+                _cand_factors.add("PATTERN")
+            for _pattern_meta_key in (
+                "risk_reward",
+                "breakout_confirmed",
+                "pattern_breakout",
+                "pattern_breakout_confirmed",
+                "level_breakout",
+                "level_breakout_confirmed",
+                "breakout_retest",
+                "retest_confirmed",
+                "breakout_rejection",
+                "level_rejection",
+                "rejection_direction",
+                "failed_breakout",
+                "failed_breakdown",
+                "volume_confirmation",
+                "pattern_engine",
+                "confidence",
+                "iv",
+                "implied_volatility",
+                "atm_iv",
+                "iv_percentile",
+                "ivp",
+                "vix",
+                "india_vix",
+                "pcr",
+                "put_call_ratio",
+                "pcr_oi",
+                "pcr_change_oi",
+                "pcr_volume",
+                "option_chain_signal",
+                "option_chain_bias",
+                "volume_data_quality",
+                "data_confidence",
+                "global_bias",
+                "global_change_pct",
+                "global_source",
+                "cross_asset_bias",
+                "news_score",
+                "expiry_dte",
+                "expiry_regime",
+                "whale_mod",
+                "levels",
+                "ochao_levels",
+                "day_type",
+                "cpr_width",
+                "cpr_bias",
+                "style",
+                "instrument_type",
+                "option_underlying",
+                "cpr_structure",
+                "pivot_scalp_context",
+                "mtf_context",
+                "mtf_indicator_context",
+            ):
+                if _pattern_meta_key in result:
+                    _cand_meta[_pattern_meta_key] = result.get(_pattern_meta_key)
+                elif option_data and _pattern_meta_key in option_data:
+                    _cand_meta[_pattern_meta_key] = option_data.get(_pattern_meta_key)
+                elif _pattern_meta_key in cfg:
+                    _cand_meta[_pattern_meta_key] = cfg.get(_pattern_meta_key)
+            if result.get("levels_ctx"):
+                _cand_meta["levels_ctx"] = result.get("levels_ctx")
+                _cand_factors.add("SUPPORT_RESISTANCE")
+            if "cpr" in strategy.lower() or result.get("cpr_bias"):
+                if result.get("cpr_bias"):
+                    _cand_meta["cpr_bias"] = result.get("cpr_bias")
+                if result.get("cpr_structure"):
+                    _cand_meta["cpr_structure"] = result.get("cpr_structure")
+                _cand_factors.add("CPR_PIVOT")
             # Apply Pivot Boss indicator modifier (Role 2)
+            _pv_mod = 0.0
             if _PB_AVAILABLE:
                 try:
                     _day_type = _pb_cpr_width(
@@ -2213,6 +2704,13 @@ def generate_signal(
                     ).get("day_type","NORMAL")
                     _pv_mod = _get_pivot_score_modifier(df, direction, strategy, _day_type)
                     adjusted_score = adjusted_score + _pv_mod
+                    if abs(_pv_mod) > 0.05:
+                        _cand_meta["pivot_boss_mod"] = _pv_mod
+                        _cand_meta["pivot_day_type"] = _day_type
+                        if _pv_mod > 0:
+                            _cand_factors.add("CPR_PIVOT")
+                        else:
+                            _cand_meta["pivot_headwind"] = _pv_mod
                 except Exception as _e:
                     import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
             # ── GATE: Corporate action check ─────────────────────────────
@@ -2230,6 +2728,16 @@ def generate_signal(
                         logger.debug("Signal blocked: %s in F&O ban list", symbol)
                         return {"strategy": strategy, "score": 0.0, "direction": None,
                                 "reason": "fno_ban_list"}
+                except Exception: pass
+
+            # ── GATE: ASM / GSM Surveillance check ──────────────────────
+            if symbol and symbol not in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}:
+                try:
+                    from asm_gsm_filter import is_under_surveillance as _is_asm
+                    if _is_asm(symbol):
+                        logger.debug("Signal blocked: %s on ASM/GSM surveillance list", symbol)
+                        return {"strategy": strategy, "score": 0.0, "direction": None,
+                                "reason": "asm_gsm_surveillance"}
                 except Exception: pass
 
             # ── NEW INTELLIGENCE MODULES ──────────────────────────────────
@@ -2324,6 +2832,36 @@ def generate_signal(
                     adjusted_score += _news_score(symbol, direction)
                 except Exception: pass
 
+            # 8a-crsi. Connors RSI modifier for mean-reversion and scalping strategies
+            try:
+                _df_lc2 = df.copy(); _df_lc2.columns = [c.lower() for c in _df_lc2.columns]
+                _crsi = float(_df_lc2.get("connors_rsi", pd.Series([50.0])).iloc[-1])
+                if not pd.isna(_crsi):
+                    _stl = strategy.lower()
+                    if any(x in _stl for x in ["mean_rev","vwap_rev","rsi_div","cpr","scalp"]):
+                        if direction == "BUY"  and _crsi < 10:  adjusted_score += 0.8
+                        elif direction == "BUY"  and _crsi > 90:  adjusted_score -= 0.8
+                        elif direction == "SELL" and _crsi > 90:  adjusted_score += 0.8
+                        elif direction == "SELL" and _crsi < 10:  adjusted_score -= 0.8
+                    _sig_meta["connors_rsi"] = round(_crsi, 1)
+            except Exception: pass
+
+            # 8a0. Choppiness Index / Efficiency Ratio gate
+            try:
+                _df_lc = df.copy(); _df_lc.columns = [c.lower() for c in _df_lc.columns]
+                _er   = float(_df_lc.get("efficiency_ratio", pd.Series([0.5])).iloc[-1])
+                _chop = float(_df_lc.get("choppiness_index", pd.Series([50.0])).iloc[-1])
+                _stl  = strategy.lower()
+                _is_trend_strat = any(x in _stl for x in ["trend","break","orb","momentum","supertrend","ma_cross","donchian"])
+                _is_mr_strat    = any(x in _stl for x in ["mean_reversion","vwap_rev","rsi_div","cpr","scalp"])
+                if _is_trend_strat and not pd.isna(_er):
+                    if _er < 0.20:   adjusted_score -= 1.5   # very choppy — penalise trend signals
+                    elif _er < 0.35: adjusted_score -= 0.7
+                if _is_mr_strat and not pd.isna(_chop):
+                    if _chop < 38.2: adjusted_score -= 1.0   # strongly trending — penalise mean-rev
+                    elif _chop > 55: adjusted_score += 0.5   # confirmed ranging — boost mean-rev
+            except Exception: pass
+
             # 8a. Regime-based strategy weight modifier
             if _REGIME_AVAIL:
                 try:
@@ -2331,6 +2869,18 @@ def generate_signal(
                     if _rw != 1.0:
                         adjusted_score = adjusted_score * _rw
                 except Exception: pass
+            # 8b0. NR4/NR7 compression boost for breakout/trend entries
+            try:
+                _df_c = df.copy(); _df_c.columns = [c.lower() for c in _df_c.columns]
+                _nr7 = int(_df_c.get("nr7", pd.Series([0])).iloc[-1])
+                _nr4 = int(_df_c.get("nr4", pd.Series([0])).iloc[-1])
+                _stl = strategy.lower()
+                if any(x in _stl for x in ["break","orb","volatility","momentum","trend"]):
+                    if _nr7: adjusted_score += 1.2   # strongest compression signal
+                    elif _nr4: adjusted_score += 0.7
+                _sig_meta["nr7"] = _nr7; _sig_meta["nr4"] = _nr4
+            except Exception: pass
+
             # 8b. Volume confirmation on breakout/trend signals
             try:
                 _df_c = df.copy()
@@ -2342,14 +2892,23 @@ def generate_signal(
                     _stl = strategy.lower()
                     # Volume spike: breakout/trend needs above-avg volume
                     if any(x in _stl for x in ["break","trend","orb","momentum"]):
-                        if _vol_ratio > 1.5:   adjusted_score += 1.0  # strong volume
-                        elif _vol_ratio > 1.2: adjusted_score += 0.5  # moderate volume
-                        elif _vol_ratio < 0.7: adjusted_score -= 1.0  # weak volume: reject
+                        if _vol_ratio > 1.5:
+                            adjusted_score += 1.0  # strong volume
+                            _cand_factors.add("VOLUME")
+                        elif _vol_ratio > 1.2:
+                            adjusted_score += 0.5  # moderate volume
+                            _cand_factors.add("VOLUME")
+                        elif _vol_ratio < 0.7:
+                            adjusted_score -= 1.0  # weak volume: reject
+                            _cand_meta["volume_headwind"] = round(_vol_ratio, 2)
                     # Volume contraction good for mean reversion
                     elif any(x in _stl for x in ["mean","vwap","cpr","reversion"]):
-                        if _vol_ratio < 0.8: adjusted_score += 0.5   # low volume pullback
+                        if _vol_ratio < 0.8:
+                            adjusted_score += 0.5   # low volume pullback
+                            _cand_factors.add("VOLUME")
                     # Store for signal metadata
                     _sig_meta["volume_ratio"] = round(_vol_ratio, 2)
+                    _cand_meta["volume_ratio"] = round(_vol_ratio, 2)
             except Exception: pass
             # 9a. PDH/PDL/PWH/PWL/PMH/PML score modifier
             if _PS_AVAILABLE and _sr_levels:
@@ -2366,6 +2925,12 @@ def generate_signal(
                     if _sr_mod != 0:
                         _sig_meta["sr_level_mod"] = _sr_mod
                         _sig_meta["sr_level_ctx"] = " | ".join(_sr_ctx[:2])
+                        _cand_meta["sr_level_mod"] = _sr_mod
+                        _cand_meta["sr_level_ctx"] = " | ".join(_sr_ctx[:2])
+                        if _sr_mod > 0:
+                            _cand_factors.add("SUPPORT_RESISTANCE")
+                        else:
+                            _cand_meta["sr_headwind"] = _sr_mod
                 except Exception: pass
             # 10aa. Momentum quality (R-squared) — how clean is the trend?
             try:
@@ -2398,10 +2963,16 @@ def generate_signal(
                         _oi_d  = _oi_dir.get("direction","NEUTRAL")
                         _oi_cv = _oi_dir.get("conviction","")
                         _oi_w  = {"STRONG":1.5,"MODERATE":0.8,"WEAK":0.3}.get(_oi_cv,0)
+                        _cand_meta["oi_direction"] = _oi_d
+                        _cand_meta["oi_conviction"] = _oi_cv
                         if _oi_d == direction and _oi_d != "NEUTRAL":
                             adjusted_score += _oi_w   # OI confirms signal
+                            if _oi_w > 0:
+                                _cand_factors.add("OI")
                         elif _oi_d != "NEUTRAL" and _oi_d != direction:
                             adjusted_score -= _oi_w   # OI contradicts signal
+                            if _oi_w > 0:
+                                _cand_meta["oi_headwind"] = -_oi_w
                 except Exception: pass
             # 9d. Global macro modifier (S&P, crude, USD/INR)
             if _VP_ADV_AVAIL:
@@ -2423,13 +2994,31 @@ def generate_signal(
                 try:
                     _hrm = get_regime_score_modifier(regime, str(strategy))
                     adjusted_score += _hrm
+                    if abs(float(_hrm or 0.0)) > 0.05:
+                        _cand_meta["regime_mod"] = round(float(_hrm), 3)
+                        if _hrm > 0:
+                            _cand_factors.add("REGIME")
                 except Exception: pass
-            # 9b2. Order flow modifier
+            # 9b2. Order flow modifier + VPIN toxicity filter
             if _OF_AVAIL:
                 try:
                     _of = _compute_of(df)
                     adjusted_score += _of.get("score_modifier",0)
                 except Exception: pass
+            try:
+                from order_flow import calculate_vpin as _calc_vpin
+                _vpin = _calc_vpin(df)
+                _stl  = strategy.lower()
+                # High VPIN → informed flow active → only trade WITH the detected direction
+                if _vpin > 0.7:
+                    _of_result = _compute_of(df) if _OF_AVAIL else {}
+                    _of_dir = "BUY" if _of_result.get("score_modifier", 0) > 0 else "SELL"
+                    if direction != _of_dir:
+                        adjusted_score -= 1.2   # penalise trading against informed flow
+                    else:
+                        adjusted_score += 0.6   # reward trading with informed flow
+                _sig_meta["vpin"] = _vpin
+            except Exception: pass
             # 9b3. Dark pool modifier
             if _DP_AVAIL:
                 try:
@@ -2450,6 +3039,15 @@ def generate_signal(
                     if _ep.get("has_event") and instrument_type in ("CE","PE"):
                         adjusted_score += 1.0  # event day = options opportunity
                 except Exception: pass
+            # 9c-gex. GEX score modifier (regime + delta wall + flip point)
+            try:
+                from gex_engine import get_gex_score_modifier as _gex_mod
+                _price_now = float(df["close"].iloc[-1] if "close" in df.columns else df.iloc[-1, 3])
+                _gex_adj   = _gex_mod(symbol, _price_now, direction, strategy)
+                if abs(_gex_adj) > 0.05:
+                    adjusted_score += _gex_adj
+                    _sig_meta["gex_modifier"] = round(_gex_adj, 3)
+            except Exception: pass
             # 9d. Signal refinements
             if _REFINE_AVAIL:
                 try:
@@ -2474,6 +3072,25 @@ def generate_signal(
                     elif abs(_sm) > 0.5:
                         adjusted_score -= abs(_sm) * 0.3
                 except Exception: pass
+            # 9d-extra-gap. Gap strategy bias modifier (fill vs continuation bucketing)
+            try:
+                from day_classifier import get_day_classifier as _get_dc
+                _dc  = _get_dc()
+                _gp  = _dc.profile if _dc and _dc.profile else None
+                if _gp:
+                    _gbias = getattr(_gp, "gap_strategy_bias", "")
+                    _stl   = strategy.lower()
+                    _is_mr = any(x in _stl for x in ["vwap_rev","mean_rev","cpr","rsi_div"])
+                    _is_mo = any(x in _stl for x in ["morning_momentum","gap_fill","gap_and_go"])
+                    if _gbias == "EXPECT_FILL":
+                        if _is_mr:   adjusted_score += 0.8   # confirmed: fade the gap
+                        if _is_mo:   adjusted_score -= 0.5   # warn momentum: gap likely fills
+                    elif _gbias == "EXPECT_CONTINUE":
+                        if _is_mo:   adjusted_score += 0.8   # confirmed: ride the gap
+                        if _is_mr:   adjusted_score -= 0.5   # warn MR: gap likely continues
+                    _sig_meta["gap_strategy_bias"] = _gbias
+            except Exception: pass
+
             # 9d-extra0. BSE announcement score (GAP 7)
             try:
                 from data_source_resilience import get_bse_announcement_score
@@ -2491,6 +3108,15 @@ def generate_signal(
                     if abs(_fii_f) > 0.1:
                         adjusted_score += _fii_f
                         _sig_meta["fii_futures_signal"] = _fii_f
+            except Exception: pass
+
+            # 9d-skew-vel. IV Skew Velocity modifier (Natenberg / Sinclair)
+            try:
+                from institutional_alpha import skew_velocity_signal as _sv_signal
+                _sv_mod = _sv_signal(direction)
+                if abs(_sv_mod) > 0.05:
+                    adjusted_score += _sv_mod
+                    _sig_meta["skew_velocity_mod"] = round(_sv_mod, 2)
             except Exception: pass
 
             # 9d-extra. Promoter buying signal (strongest fundamental)
@@ -2574,13 +3200,152 @@ def generate_signal(
                         monthly_levels = _monthly_lvls or None,
                     )
                     adjusted_score += _mtf_mod
+                    if abs(float(_mtf_mod or 0.0)) > 0.05:
+                        _cand_meta["mtf_pivot_mod"] = round(float(_mtf_mod), 3)
+                        _cand_meta["mtf_pivot_ctx"] = _mtf_ctx
+                        if _mtf_mod > 0:
+                            _cand_factors.add("MTF_PIVOT")
+                        else:
+                            _cand_meta["mtf_pivot_headwind"] = round(float(_mtf_mod), 3)
                 except Exception: pass
+
+            # 10b. Multi-timeframe indicator context. This is applied to every
+            # strategy so pattern, breakout, rejection, and level trades all
+            # respect the same MTF EMA/VWAP/Supertrend backdrop.
+            if bool(cfg.get("enable_mtf_indicator_context", True)) and _mtf_indicator_context:
+                try:
+                    from mtf_context import score_mtf_alignment
+
+                    _mtf_adj = score_mtf_alignment(_mtf_indicator_context, direction, strategy)
+                    _mtf_mod = float(_mtf_adj.get("score_modifier", 0.0) or 0.0)
+                    if _mtf_mod >= 0:
+                        _mtf_mod = min(_mtf_mod, float(cfg.get("mtf_indicator_max_boost", 1.25)))
+                    else:
+                        _mtf_mod = max(_mtf_mod, -float(cfg.get("mtf_indicator_max_penalty", 1.25)))
+                    adjusted_score += _mtf_mod
+                    _cand_meta["mtf_indicator_mod"] = round(_mtf_mod, 3)
+                    _cand_meta["mtf_indicator_bias"] = _mtf_adj.get("bias", "NEUTRAL")
+                    _cand_meta["mtf_indicator_aligned"] = _mtf_adj.get("aligned", 0)
+                    _cand_meta["mtf_indicator_conflicts"] = _mtf_adj.get("conflicts", 0)
+                    _cand_meta["mtf_indicator_frame_biases"] = _mtf_adj.get("frame_biases", {})
+                    _cand_meta["mtf_indicator_context"] = _mtf_indicator_context
+                    if _mtf_mod > 0.05:
+                        _cand_factors.add("MTF_INDICATORS")
+                    elif _mtf_mod < -0.05:
+                        _cand_meta["mtf_indicator_headwind"] = round(_mtf_mod, 3)
+                    if (
+                        bool(cfg.get("mtf_indicator_block_live", False))
+                        and not paper_training_mode
+                        and _mtf_mod < float(cfg.get("mtf_indicator_min_live", -0.35))
+                    ):
+                        rejections.append(
+                            f"{strategy}: mtf_indicator_headwind mod={_mtf_mod:.2f}"
+                        )
+                        continue
+                except Exception as _mtf_exc:
+                    logger.debug("MTF indicator score unavailable: %s", _mtf_exc)
+
+            # 11. Entry-quality indicator layer: VWAP + EMA + Supertrend +
+            # ADX/DI + MACD + volume + candle/ATR extension.
+            _entry_quality = _entry_quality_adjustment(
+                df=df,
+                direction=direction,
+                strategy=strategy,
+                cfg=cfg,
+                paper_training_mode=paper_training_mode,
+            )
+            _eq_mod = float(_entry_quality.get("score_modifier", 0.0) or 0.0)
+            adjusted_score += _eq_mod
+            if _entry_quality.get("reasons"):
+                _sig_meta["entry_quality_reasons"] = _entry_quality.get("reasons", [])
+                _sig_meta["entry_quality_metrics"] = _entry_quality.get("metrics", {})
+                _cand_meta["entry_quality_reasons"] = _entry_quality.get("reasons", [])
+                _cand_meta["entry_quality_metrics"] = _entry_quality.get("metrics", {})
+            if _eq_mod > 0.05:
+                _cand_meta["entry_quality_mod"] = round(_eq_mod, 3)
+                _cand_factors.add("INDICATOR_QUALITY")
+            elif _eq_mod < -0.05:
+                _cand_meta["entry_quality_headwind"] = round(_eq_mod, 3)
+            if (
+                bool(cfg.get("entry_quality_block_live", True))
+                and not paper_training_mode
+                and _entry_quality.get("hard_block")
+            ):
+                rejections.append(
+                    f"{strategy}: entry_quality_block "
+                    f"{','.join(_entry_quality.get('reasons', [])[:3])}"
+                )
+                continue
+
+            # 12. Grouped all-indicator confluence.
+            # Correlated indicators are blended by family first so one family
+            # cannot dominate the trade just by having more columns available.
+            if bool(cfg.get("enable_indicator_confluence", True)):
+                try:
+                    from indicator_confluence import calculate_indicator_confluence
+                    _indicator_confluence = calculate_indicator_confluence(
+                        df,
+                        direction=direction,
+                        strategy=strategy,
+                        signal_meta={**_sig_meta, **_cand_meta},
+                        option_data=option_data,
+                        weights=cfg.get("indicator_confluence_weights"),
+                    )
+                    _ic_mod = float(_indicator_confluence.get("score_modifier", 0.0) or 0.0)
+                    if _ic_mod >= 0:
+                        _ic_mod = min(
+                            _ic_mod,
+                            float(cfg.get("indicator_confluence_max_boost", 1.25)),
+                        )
+                    else:
+                        _ic_mod = max(
+                            _ic_mod,
+                            -float(cfg.get("indicator_confluence_max_penalty", 1.25)),
+                        )
+                    adjusted_score += _ic_mod
+                    _cand_meta["indicator_confluence_score"] = _indicator_confluence.get("score")
+                    _cand_meta["indicator_confluence_mod"] = round(_ic_mod, 3)
+                    _cand_meta["indicator_confluence"] = _indicator_confluence
+                    if _ic_mod > 0.05:
+                        _cand_factors.add("INDICATOR_CONFLUENCE")
+                    elif _ic_mod < -0.05:
+                        _cand_meta["indicator_confluence_headwind"] = round(_ic_mod, 3)
+
+                    _ic_score = float(_indicator_confluence.get("score", 5.0) or 5.0)
+                    if (
+                        bool(cfg.get("indicator_confluence_block_live", False))
+                        and not paper_training_mode
+                        and _ic_score < float(cfg.get("indicator_confluence_min_live", 4.8))
+                    ):
+                        rejections.append(
+                            f"{strategy}: indicator_confluence_below_min "
+                            f"score={_ic_score:.2f}"
+                        )
+                        continue
+                except Exception as _ic_exc:
+                    logger.debug("indicator confluence unavailable: %s", _ic_exc)
 
             # Apply time-of-day zone weight — ADDITIVE only (never kills signal)
             # Converts multiplier to ±1.0 nudge: 2.0→+1.0, 0.3→-0.7, 1.0→0.0
             tz_weight = get_strategy_weight(strategy)
             tz_nudge  = round(max(-1.0, min(1.0, (tz_weight - 1.0))), 2)
             adjusted_score = adjusted_score + tz_nudge  # nudge only, never zero out
+
+            # EOD learner weight: previous P&L + triple-barrier outcomes provide
+            # a bounded strategy/indicator nudge for the next trading day.
+            try:
+                from eod_weight_engine import apply_learned_weight_nudge as _eod_nudge
+                adjusted_score, _eod_weight_ctx = _eod_nudge(
+                    adjusted_score,
+                    strategy,
+                    {**_sig_meta, **_cand_meta},
+                )
+                if abs(float(_eod_weight_ctx.get("nudge", 0) or 0)) >= 0.01:
+                    _sig_meta["eod_learning_weight"] = _eod_weight_ctx
+                    _cand_meta["eod_learning_weight"] = _eod_weight_ctx
+            except Exception:
+                pass
+
             min_score      = _min_score_for_regime(regime, strategy, cfg)
 
             # Two-stage filter:
@@ -2633,7 +3398,7 @@ def generate_signal(
                 except Exception as _e:
                     import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
 
-            if not _passes_volume_gate(df, cfg):
+            if not _passes_volume_gate(df, cfg, symbol=symbol):
                 rejections.append(f"{strategy}: volume_ratio_too_low")
                 continue
 
@@ -2641,7 +3406,11 @@ def generate_signal(
             if strategy == "breakout":
                 try:
                     min_bo_vr = float(cfg.get("min_breakout_volume_ratio", 1.20))
-                    vr_col = "volume_ratio" if "volume_ratio" in df.columns else None
+                    vr_col = (
+                        "volume_ratio" if "volume_ratio" in df.columns
+                        else "vol_ratio" if "vol_ratio" in df.columns
+                        else None
+                    )
                     if vr_col and min_bo_vr > 0:
                         vr = float(df[vr_col].iloc[-1])
                         if 0 < vr < min_bo_vr:
@@ -2656,6 +3425,10 @@ def generate_signal(
                 "side":      direction,
                 "score":     round(adjusted_score, 4),
                 "raw_score": round(raw_score, 4),
+                "entry_quality": _entry_quality,
+                "factor_confirmations": sorted(f for f in _cand_factors if f),
+                "signal_meta": dict(_cand_meta),
+                "volume_ratio": _cand_meta.get("volume_ratio"),
             })
 
         except Exception as exc:
@@ -2698,12 +3471,43 @@ def generate_signal(
             n_agree       = n_sell
             majority_cands = sell_cands
 
-        # Confluence boost table
+        # De-correlated confluence: count distinct market FACTORS that agree,
+        # not raw strategy votes. Five trend indicators all firing bullish is one
+        # factor (trend), not five confirmations — counting raw votes inflates
+        # confidence on correlated signals. Falls back to the raw count if the
+        # cluster map is unavailable.
+        n_agree_eff = n_agree
+        _factor_set = set()
+        try:
+            from strategy_clusters import effective_confluence, factors_present
+            _strats = [c.get("strategy", "") for c in majority_cands]
+            n_agree_eff = effective_confluence(_strats)
+            _factor_set.update(factors_present(_strats))
+        except Exception:
+            pass
+        for _cand in majority_cands:
+            _factor_set.update(_cand.get("factor_confirmations", []) or [])
+        _factor_set.discard("")
+        if _factor_set:
+            n_agree_eff = max(n_agree_eff, len(_factor_set))
+        _factors = ",".join(sorted(_factor_set))
+
+        # Expiry-day flag (used by single-strategy boost below). Recomputed
+        # here at confluence scope — the per-strategy _is_expiry_today above
+        # is loop-local and not in scope at this point.
+        _is_expiry_day = False
+        if _EXPIRY_AVAILABLE:
+            try:
+                _is_expiry_day = bool(_get_expiry().get("is_expiry_day", False))
+            except Exception:
+                _is_expiry_day = False
+
+        # Confluence boost table — keyed on EFFECTIVE (de-correlated) factor count.
         # On expiry day: single strategy is enough (max pain pull is the signal)
-        if   n_agree >= 6: boost = 7.0; conf_label = "VERY_STRONG"
-        elif n_agree >= 4: boost = 5.0; conf_label = "STRONG"
-        elif n_agree >= 3: boost = 3.0; conf_label = "MEDIUM"
-        elif n_agree == 2: boost = 1.5; conf_label = "WEAK"
+        if   n_agree_eff >= 5: boost = 7.0; conf_label = "VERY_STRONG"
+        elif n_agree_eff >= 4: boost = 5.0; conf_label = "STRONG"
+        elif n_agree_eff >= 3: boost = 3.0; conf_label = "MEDIUM"
+        elif n_agree_eff == 2: boost = 1.5; conf_label = "WEAK"
         elif _is_expiry_day: boost = 0.5; conf_label = "EXPIRY_SINGLE"
         else:              boost = 0.0; conf_label = "SINGLE"
 
@@ -2714,6 +3518,8 @@ def generate_signal(
             c["score"]       = round(c["score"] + total_boost, 4)
             c["confluence"]  = conf_label
             c["n_agree"]     = n_agree
+            c["n_agree_eff"] = n_agree_eff
+            c["factors"]     = _factors
             c["n_conflict"]  = min(n_buy, n_sell)
             c["conflict_pen"]= conflict_penalty
 
@@ -2753,8 +3559,53 @@ def generate_signal(
         price      = _get_price(df)
         qty        = _get_qty(price, effective_capital)
         volatility = _calculate_volatility(df)
+        best_meta  = dict(best.get("signal_meta", {}) or {})
+        if best.get("factors"):
+            best_meta["confluence_factors"] = best.get("factors")
+        if best.get("factor_confirmations"):
+            best_meta["factor_confirmations"] = best.get("factor_confirmations")
+        _decision_inputs = {
+            "patterns": best_meta.get("patterns"),
+            "all_patterns": best_meta.get("all_patterns"),
+            "levels": best_meta.get("levels"),
+            "ochao_levels": best_meta.get("ochao_levels") or _sig_meta.get("ochao_levels"),
+            "cpr_width": best_meta.get("cpr_width"),
+            "cpr_bias": best_meta.get("cpr_bias"),
+            "cpr_structure": best_meta.get("cpr_structure"),
+            "pivot_scalp_context": best_meta.get("pivot_scalp_context"),
+            "style": best_meta.get("style"),
+            "instrument_type": best_meta.get("instrument_type"),
+            "mtf_pivot_mod": best_meta.get("mtf_pivot_mod"),
+            "mtf_pivot_ctx": best_meta.get("mtf_pivot_ctx"),
+            "mtf_indicator_mod": best_meta.get("mtf_indicator_mod"),
+            "mtf_indicator_bias": best_meta.get("mtf_indicator_bias") or _sig_meta.get("mtf_indicator_context", {}).get("bias"),
+            "mtf_indicator_context": best_meta.get("mtf_indicator_context") or _sig_meta.get("mtf_indicator_context"),
+            "indicator_confluence_score": best_meta.get("indicator_confluence_score"),
+            "indicator_confluence": best_meta.get("indicator_confluence"),
+            "volume_ratio": best_meta.get("volume_ratio") or _sig_meta.get("volume_ratio"),
+            "volume_data_quality": best_meta.get("volume_data_quality") or _sig_meta.get("volume_data_quality"),
+            "vix": best_meta.get("vix") or _sig_meta.get("vix"),
+            "iv": best_meta.get("iv") or best_meta.get("atm_iv") or _sig_meta.get("iv"),
+            "iv_percentile": best_meta.get("iv_percentile") or _sig_meta.get("iv_percentile"),
+            "pcr": best_meta.get("pcr") or _sig_meta.get("pcr"),
+            "oi_direction": best_meta.get("oi_direction"),
+            "gex_modifier": best_meta.get("gex_modifier") or _sig_meta.get("gex_modifier"),
+            "skew_velocity_mod": best_meta.get("skew_velocity_mod") or _sig_meta.get("skew_velocity_mod"),
+            "global_bias": best_meta.get("global_bias") or _sig_meta.get("global_bias"),
+            "global_change_pct": best_meta.get("global_change_pct") or _sig_meta.get("global_change_pct"),
+            "cross_asset_bias": best_meta.get("cross_asset_bias") or _sig_meta.get("cross_asset_bias"),
+            "news_score": best_meta.get("news_score") or _sig_meta.get("news_score"),
+            "expiry_dte": best_meta.get("expiry_dte") or _sig_meta.get("expiry_dte"),
+            "expiry_regime": best_meta.get("expiry_regime") or _sig_meta.get("expiry_regime"),
+            "data_confidence": best_meta.get("data_confidence") or _sig_meta.get("data_confidence"),
+            "feed_degraded": bool(best_meta.get("feed_degraded") or _sig_meta.get("feed_degraded", False)),
+            "feed_degraded_reasons": best_meta.get("feed_degraded_reasons") or _sig_meta.get("feed_degraded_reasons"),
+            "regime": regime,
+            "htf_bias": htf_bias,
+        }
+        best_meta["decision_inputs"] = _decision_inputs
 
-        return {
+        final_signal = {
             "symbol":     symbol,
             "side":       best["side"],
             "direction":  best["side"],   # alias for side — used by some callers
@@ -2763,6 +3614,8 @@ def generate_signal(
             "raw_score":  best["raw_score"],
             "confluence":  best.get("confluence", "SINGLE"),
             "n_agree":     best.get("n_agree", 1),
+            "n_agree_eff": best.get("n_agree_eff", best.get("n_agree", 1)),
+            "factors":     best.get("factors", ""),
             "n_conflict":  best.get("n_conflict", 0),
             "agreeing":    best.get("agreeing_strategies", [best["strategy"]]),
             "all_candidates": [(c["strategy"],c["score"]) for c in sorted(candidates,key=lambda x:x["score"],reverse=True)[:5]],
@@ -2773,10 +3626,36 @@ def generate_signal(
             "regime":     regime,
             "htf_bias":   htf_bias,
             "reason":     "best_candidate",
+            "paper_training_mode": paper_training_mode,
+            "feed_degraded": bool(cfg.get("feed_degraded", False)),
+            "feed_degraded_reasons": list(cfg.get("feed_degraded_reasons", []) or []),
+            "strategy_live_ready": bool(cfg.get("strategy_live_ready", True)),
+            "strategy_selection_mode": str(cfg.get("strategy_selection_mode", "")),
+            "strategy_live_block_reason": str(cfg.get("strategy_live_block_reason", "")),
             "candidates": candidates,
             "rejections": rejections,
             "capital_used": effective_capital,
+            "signal_meta": best_meta,
         }
+
+        # Generate AI plain-English narrative (async-safe, cached, graceful fallback)
+        try:
+            from narrative_engine import generate_signal_narrative as _narrate
+            final_signal["ai_reason"] = _narrate(final_signal)
+        except Exception:
+            final_signal["ai_reason"] = ""
+
+        # Calibrated logistic regression probability (cross-check on XGBoost)
+        try:
+            from signal_calibrator import calibrate_signal as _calibrate
+            _cal = _calibrate(final_signal)
+            final_signal["calibrated_prob"]  = _cal.get("calibrated_prob", 0.5)
+            final_signal["log_reg_verdict"]  = _cal.get("log_reg_verdict", "NO_MODEL")
+            final_signal["cal_top_positive"] = _cal.get("top_positive", [])
+        except Exception:
+            pass
+
+        return final_signal
 
     # Fallback path
     if cfg.get("enable_fallback", True):
@@ -2785,6 +3664,50 @@ def generate_signal(
         score            = float(score)
 
         if direction and score >= float(cfg["fallback_score_threshold"]):
+            _fallback_quality = _entry_quality_adjustment(
+                df=df,
+                direction=direction,
+                strategy="fallback",
+                cfg=cfg,
+                paper_training_mode=paper_training_mode,
+            )
+            score += float(_fallback_quality.get("score_modifier", 0.0) or 0.0)
+            if (
+                bool(cfg.get("entry_quality_block_live", True))
+                and not paper_training_mode
+                and _fallback_quality.get("hard_block")
+            ):
+                return {
+                    "symbol": symbol,
+                    "side": None,
+                    "reason": "fallback_entry_quality_block",
+                    "quality": _fallback_quality,
+                    "paper_training_mode": paper_training_mode,
+                    "feed_degraded": bool(cfg.get("feed_degraded", False)),
+                    "feed_degraded_reasons": list(cfg.get("feed_degraded_reasons", []) or []),
+                    "strategy_live_ready": bool(cfg.get("strategy_live_ready", True)),
+                    "strategy_selection_mode": str(cfg.get("strategy_selection_mode", "")),
+                    "strategy_live_block_reason": str(cfg.get("strategy_live_block_reason", "")),
+                    "rejections": rejections + ["fallback: entry_quality_block"],
+                    "regime": regime,
+                    "htf_bias": htf_bias,
+                }
+            if score < float(cfg["fallback_score_threshold"]):
+                return {
+                    "symbol": symbol,
+                    "side": None,
+                    "reason": "fallback_entry_quality_below_threshold",
+                    "quality": _fallback_quality,
+                    "paper_training_mode": paper_training_mode,
+                    "feed_degraded": bool(cfg.get("feed_degraded", False)),
+                    "feed_degraded_reasons": list(cfg.get("feed_degraded_reasons", []) or []),
+                    "strategy_live_ready": bool(cfg.get("strategy_live_ready", True)),
+                    "strategy_selection_mode": str(cfg.get("strategy_selection_mode", "")),
+                    "strategy_live_block_reason": str(cfg.get("strategy_live_block_reason", "")),
+                    "rejections": rejections + ["fallback: entry_quality_below_threshold"],
+                    "regime": regime,
+                    "htf_bias": htf_bias,
+                }
             price = _get_price(df)
             qty   = _get_qty(price, effective_capital)
 
@@ -2802,14 +3725,27 @@ def generate_signal(
                 "regime":     regime,
                 "htf_bias":   htf_bias,
                 "reason":     "fallback",
+                "paper_training_mode": paper_training_mode,
+                "feed_degraded": bool(cfg.get("feed_degraded", False)),
+                "feed_degraded_reasons": list(cfg.get("feed_degraded_reasons", []) or []),
+                "strategy_live_ready": bool(cfg.get("strategy_live_ready", True)),
+                "strategy_selection_mode": str(cfg.get("strategy_selection_mode", "")),
+                "strategy_live_block_reason": str(cfg.get("strategy_live_block_reason", "")),
                 "rejections": rejections,
                 "capital_used": effective_capital,
+                "quality": _fallback_quality,
             }
 
     return {
         "symbol":     symbol,
         "side":       None,
         "reason":     "NO_VALID_SIGNAL",
+        "paper_training_mode": paper_training_mode,
+        "feed_degraded": bool(cfg.get("feed_degraded", False)),
+        "feed_degraded_reasons": list(cfg.get("feed_degraded_reasons", []) or []),
+        "strategy_live_ready": bool(cfg.get("strategy_live_ready", True)),
+        "strategy_selection_mode": str(cfg.get("strategy_selection_mode", "")),
+        "strategy_live_block_reason": str(cfg.get("strategy_live_block_reason", "")),
         "rejections": rejections,
         "regime":     regime,
         "htf_bias":   htf_bias,

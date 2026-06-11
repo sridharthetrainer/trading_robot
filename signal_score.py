@@ -73,11 +73,13 @@ def calculate_signal_score(df, df_htf, option_data=None):
 
     # ema20 → add_all_indicators writes "ema_fast" (default period=9)
     # ema200 → add_all_indicators writes "ema_trend" (default period=200)
-    ema20  = _get(latest, "ema20",  "ema_fast")
-    ema200 = _get(latest, "ema200", "ema_trend", "ema_slow")
+    ema20  = _get(latest, "ema20",  "ema_20",  "ema_fast", "ema_9")
+    ema50  = _get(latest, "ema50",  "ema_50",  "ema_slow", "ema_21")
+    ema200 = _get(latest, "ema200", "ema_200", "ema_trend", "ema_slow")
     vwap   = _get(latest, "vwap")
     adx    = _get(latest, "adx",  default=15.0)
     rsi    = _get(latest, "rsi",  default=50.0)
+    atr    = _get(latest, "atr", "ATR", "atr_14", default=0.0)
 
     # =========================================================
     # 1. HTF BIAS
@@ -93,9 +95,22 @@ def calculate_signal_score(df, df_htf, option_data=None):
         score += 2
         reasons.append("htf_bearish")
     else:
-        direction = "BUY" if close > open_ else "SELL"
-        score += 0.5
-        reasons.append("htf_sideways_momentum")
+        body = abs(close - open_)
+        min_body = max(atr * 0.15, close * 0.0005) if atr > 0 else close * 0.0005
+        if ema20 > 0 and ema50 > 0 and close > ema20 >= ema50:
+            direction = "BUY"
+            score += 0.75
+            reasons.append("sideways_bullish_ema_stack")
+        elif ema20 > 0 and ema50 > 0 and close < ema20 <= ema50:
+            direction = "SELL"
+            score += 0.75
+            reasons.append("sideways_bearish_ema_stack")
+        elif body >= min_body:
+            direction = "BUY" if close > open_ else "SELL"
+            score += 0.25
+            reasons.append("sideways_body_momentum")
+        else:
+            return 0.0, None
 
     # =========================================================
     # 2. EMA STRUCTURE
@@ -203,6 +218,12 @@ def calculate_signal_score(df, df_htf, option_data=None):
         if distance > 0.01:
             score -= 1
             reasons.append("overextended_from_vwap")
+
+    if atr > 0 and ema20 > 0:
+        ema_extension_atr = abs(close - ema20) / max(atr, 1e-9)
+        if ema_extension_atr > 2.5:
+            score -= 1.0
+            reasons.append("overextended_from_ema_fast")
 
     # =========================================================
     # FINAL DECISION

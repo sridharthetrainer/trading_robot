@@ -373,7 +373,7 @@ CHECKS_FULL = [
     ("NSE Live NIFTY price",       chk_yfinance_nifty,                 "Data",    False),  # NSE direct is primary
     ("India VIX",                  chk_india_vix,                      "Data",    False),
     ("Cross-asset USD/INR",        chk_cross_asset,                    "Data",    False),
-    ("NSE NIFTY Option Chain",     lambda: chk_nse_oc("NIFTY"),        "NSE",     True),
+    ("NSE NIFTY Option Chain",     lambda: chk_nse_oc("NIFTY"),        "NSE",     False),  # NOT critical — OI strategies skip, rest work fine
     ("NSE BANKNIFTY Option Chain", lambda: chk_nse_oc("BANKNIFTY"),    "NSE",     False),
     ("NSE FINNIFTY Option Chain",  lambda: chk_nse_oc("FINNIFTY"),     "NSE",     False),
     ("NSE FII/DII Data",           chk_nse_fii,                        "NSE",     False),
@@ -386,8 +386,8 @@ CHECKS_FULL = [
 
 CHECKS_QUICK = [
     # Run before every scan cycle — fast checks only
-    ("NSE Live NIFTY price",   chk_yfinance_nifty,              "Data",  True),
-    ("NSE NIFTY Option Chain", lambda: chk_nse_oc("NIFTY"),     "NSE",   True),
+    ("NSE Live NIFTY price",   chk_yfinance_nifty,              "Data",  False),  # Angel provides data independently
+    ("NSE NIFTY Option Chain", lambda: chk_nse_oc("NIFTY"),     "NSE",   False),  # warning only
     ("Telegram Bot",           chk_telegram,                    "Infra", True),
 ]
 
@@ -441,6 +441,21 @@ class ConnectionMonitor:
 
         self._reset_daily()
         ok_list, warn_list, fail_list, critical = [], [], [], []
+        expected_list = []   # known-blocked NSE-direct feeds (no proxy configured)
+
+        # NSE blocks this machine's IP at the edge, so the NSE-direct feeds can
+        # never succeed without an egress proxy. When NSE_PROXY is unset, treat
+        # those failures as EXPECTED (not warnings) so they don't cry wolf. The
+        # moment a proxy is configured they warn normally again, so a genuinely
+        # broken proxy still surfaces. (VIX is covered via Angel at runtime.)
+        try:
+            from nse_proxy import is_enabled as _nse_proxy_on
+            _proxy = _nse_proxy_on()
+        except Exception:
+            _proxy = False
+
+        def _is_nse_direct(nm, ct):
+            return ct == "NSE" or nm == "India VIX"
 
         for name, fn, cat, is_crit in CHECKS_FULL:
             try:
@@ -460,10 +475,18 @@ class ConnectionMonitor:
                 fail_list.append(entry)
                 critical.append(name)
                 self._fails[name] = self._fails.get(name, 0) + 1
+            elif _is_nse_direct(name, cat) and not _proxy:
+                expected_list.append(entry)
             else:
                 warn_list.append(entry)
                 if not was_ok:
                     self._fails[name] = self._fails.get(name, 0) + 1
+
+        if expected_list:
+            logger.info(
+                "ConnectionMonitor: %d NSE-direct feed(s) blocked (expected, no "
+                "NSE_PROXY): %s", len(expected_list),
+                ", ".join(n for n, _, _ in expected_list))
 
         n_ok, n_w, n_f = len(ok_list), len(warn_list), len(fail_list)
         safe = len(critical) == 0
@@ -577,7 +600,7 @@ class ConnectionMonitor:
             for n, d, _ in warn_list[:3]:
                 lines.append(f"  WARN {n}: {d[:40]}")
         lines += ["DIV",
-                  "READY Trading system ready" if safe else "STOP TRADING PAUSED",
+                  "READY Trading system ready" if safe else "WARN Some connections down but scanning continues",
                   f"CLOCK {datetime.now().strftime('%H:%M')}"]
         return (
             "\n".join(lines)

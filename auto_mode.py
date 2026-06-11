@@ -1,18 +1,17 @@
 """
 auto_mode.py
 
-Automatic Paper ↔ Live mode switching.
-No human intervention required.
+Paper ↔ Live mode selection with explicit daily live arming.
 
 How it works
 ─────────────
 1. At startup: connect to Angel One, fetch balance
-   - Balance >= MIN_LIVE_CAPITAL → LIVE mode (real orders)
+   - Balance >= MIN_LIVE_CAPITAL → LIVE mode
    - Balance < MIN_LIVE_CAPITAL  → PAPER mode (simulated orders)
    - Login fails                 → PAPER mode (safety)
 
 2. Every 30 minutes during session: re-check balance
-   - Funds added → automatically upgrade to LIVE
+   - Funds added → eligible for LIVE only if live was armed today
    - Funds withdrawn below threshold → automatically downgrade to PAPER
    - Open positions are NOT affected by mode change (they close normally)
    - Only NEW entries use the new mode
@@ -22,12 +21,12 @@ How it works
 
 Capital thresholds (configurable in .env)
 ──────────────────────────────────────────
-MIN_LIVE_CAPITAL = 5000     # stocks min ₹5,000; options ₹25,000
-                             # Covers 1 NIFTY lot (₹7,500) + buffer
+MIN_LIVE_CAPITAL = 25000    # options safety threshold
 
 Safety rules
 ─────────────
 - Never switch TO live if credentials are invalid
+- Optional: require manual /arm by setting REQUIRE_LIVE_ARM=true
 - Never switch TO live during after-hours (only at market open)
 - Never switch mode while a position is open (wait for it to close)
 - Always send Telegram alert on any mode switch
@@ -36,9 +35,9 @@ Safety rules
 .env settings
 ──────────────
 AUTO_MODE_SWITCH=true        # enable auto switching (default: true)
-MIN_LIVE_CAPITAL=5000        # stock trades enabled with ₹5,000+
-PAPER_TRADING=true           # override: force paper always
-ENABLE_REAL_TRADING=false    # override: must be true for live to activate
+MIN_LIVE_CAPITAL=1
+PAPER_TRADING=false
+ENABLE_REAL_TRADING=true
 """
 
 from __future__ import annotations
@@ -50,26 +49,29 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+try:
+    from dual_mode_engine import is_live_armed_today
+except Exception:
+    def is_live_armed_today() -> bool:
+        return False
+
 # ── Capital thresholds ────────────────────────────────────────────────────────
 # These are PER INSTRUMENT minimums. The system uses whichever is highest
 # based on what it is currently trading.
 CAPITAL_REQUIREMENTS = {
-    "NIFTY":      25_000,   # 75 lots × ₹100 avg premium + buffer
+    "NIFTY":      25_000,   # 65 qty × premium + buffer
     "BANKNIFTY":  20_000,   # 30 lots × ₹200 avg premium + buffer
     "FINNIFTY":   15_000,   # 65 lots × ₹80 avg premium + buffer
     "MIDCPNIFTY": 15_000,
     "SENSEX":     20_000,
     "STOCKS":     5_000,    # stocks need less margin
-    "DEFAULT":    5_000,  # varies widely; conservative minimum
-    "DEFAULT":    5_000,   # safe default
+    "DEFAULT":    25_000,  # fail closed for options-first system
 }
 
 
 class AutoModeSelector:
     """
-    Automatically decides paper vs live trading based on Angel One balance.
-    
-    No configuration needed. Just run — it decides for you.
+    Decides paper vs live trading based on Angel One balance and daily live arm.
     
     States:
       PAPER   — simulated orders, no real money
@@ -77,7 +79,7 @@ class AutoModeSelector:
       CHECKING — evaluating which mode to use
     
     The state machine:
-      PAPER → LIVE:   balance crosses above MIN_LIVE_CAPITAL AND credentials valid
+      PAPER → LIVE:   balance ok, credentials valid, real enabled
       LIVE → PAPER:   balance falls below MIN_LIVE_CAPITAL OR credentials fail
       * → PAPER:      any error → fail safe to paper
     """
@@ -103,21 +105,23 @@ class AutoModeSelector:
         # Load min capital from .env or use parameter
         try:
             import config as cfg
-            self._min_live   = float(getattr(cfg, "MIN_LIVE_CAPITAL", min_live_capital or 5000))
+            self._min_live   = float(getattr(cfg, "MIN_LIVE_CAPITAL", min_live_capital or 25000))
             self._auto_switch = bool(getattr(cfg, "AUTO_MODE_SWITCH", auto_switch))
             # Hard overrides from .env
             self._force_paper = bool(getattr(cfg, "PAPER_TRADING", True))
             self._real_enabled = bool(getattr(cfg, "ENABLE_REAL_TRADING", False))
+            self._require_arm = bool(getattr(cfg, "REQUIRE_LIVE_ARM", False))
         except Exception:
-            self._min_live    = min_live_capital or 5_000
+            self._min_live    = min_live_capital or 25_000
             self._force_paper = True
             self._real_enabled = False
+            self._require_arm = False
 
         logger.info(
             "AutoModeSelector init | min_live=₹%.0f auto_switch=%s "
-            "force_paper=%s real_enabled=%s",
+            "force_paper=%s real_enabled=%s require_arm=%s",
             self._min_live, self._auto_switch,
-            self._force_paper, self._real_enabled,
+            self._force_paper, self._real_enabled, self._require_arm,
         )
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -233,7 +237,14 @@ class AutoModeSelector:
                         open_positions)
             return self._status(switched=False)
 
-        # RULE 8: ALL CONDITIONS MET → LIVE mode
+        # RULE 8: Optional explicit live arm, if configured.
+        if self._require_arm and not is_live_armed_today():
+            self._set_mode("PAPER", "balance_ok_but_live_not_armed_today")
+            if prev_mode != "PAPER":
+                self._alert_switch("PAPER", balance, "Live trading not armed for today")
+            return self._status(switched=(prev_mode != "PAPER"))
+
+        # RULE 9: ALL CONDITIONS MET → LIVE mode
         # balance >= minimum AND login ok AND real trading enabled AND no open positions
         self._set_mode("LIVE",
             f"balance_₹{balance:.0f}_>=_min_₹{self._min_live:.0f}_all_checks_passed")
@@ -285,9 +296,30 @@ class AutoModeSelector:
                     else:
                         return 0.0, False
 
-            # Fetch balance — sanity check: must be > 100 to be real
-            balance = broker.get_balance()
+            # Fetch a verified REAL Angel balance.  Do not use broker-level
+            # fallback/config capital here; that can be PAPER_CAPITAL and must
+            # never promote the system to live mode.
+            if hasattr(broker, "angel") and broker.angel and hasattr(broker.angel, "get_balance"):
+                balance = broker.angel.get_balance(force_real=True)
+            elif hasattr(broker, "get_balance"):
+                balance = broker.get_balance()
+            else:
+                return 0.0, False
+
             if balance and float(balance) >= 100:
+                try:
+                    import config as cfg
+                    paper_cap = float(getattr(cfg, "PAPER_CAPITAL", 100000))
+                    configured_cap = float(getattr(cfg, "CAPITAL", paper_cap))
+                    if float(balance) in {paper_cap, configured_cap} and bool(
+                            getattr(cfg, "PAPER_ORDERS_ONLY", False)):
+                        logger.warning(
+                            "AutoMode: rejecting fallback balance ₹%.0f for live promotion",
+                            float(balance),
+                        )
+                        return 0.0, False
+                except Exception:
+                    pass
                 return float(balance), True
             elif balance and 0 < float(balance) < 100:
                 logger.warning(

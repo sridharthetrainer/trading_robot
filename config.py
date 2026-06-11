@@ -55,11 +55,13 @@ if PAPER_TRADING and _paper_bal_raw < 25000:
     import logging as _lg
     _lg.getLogger(__name__).info("Initialised paper balance to ₹1,00,000")
 PAPER_TRADE = PAPER_TRADING
-ENABLE_REAL_TRADING = _env("ENABLE_REAL_TRADING", "false").lower() == "true"
-
-if ENABLE_REAL_TRADING:
-    PAPER_TRADING = False
-    PAPER_TRADE = False
+_ENABLE_REAL_TRADING_REQUESTED = _env("ENABLE_REAL_TRADING", "false").lower() == "true"
+ENABLE_REAL_TRADING = bool(_ENABLE_REAL_TRADING_REQUESTED and not PAPER_TRADING)
+if _ENABLE_REAL_TRADING_REQUESTED and PAPER_TRADING:
+    import logging as _lg
+    _lg.getLogger(__name__).warning(
+        "ENABLE_REAL_TRADING=true ignored because PAPER_TRADING=true"
+    )
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 DEBUG_MODE = _env("DEBUG_MODE", "true").lower() == "true"
@@ -89,6 +91,7 @@ ENABLE_BROKER_FAILOVER = _env("ENABLE_BROKER_FAILOVER", "true").lower() == "true
 TELEGRAM_ENABLED = _env("TELEGRAM_ENABLED", "true").lower() == "true"
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+TELEGRAM_SCALPING_CHANNEL_ID = os.getenv("TELEGRAM_SCALPING_CHANNEL_ID", "").strip()
 
 ENABLE_STARTUP_ALERT = True
 ENABLE_SHUTDOWN_ALERT = True
@@ -145,6 +148,9 @@ FORCE_MARKET_CLOSE = _env("FORCE_MARKET_CLOSE", "false").lower() == "true"
 # Set to 0 to disable auto-switching (use PAPER_TRADING flag instead).
 AUTO_MODE_SWITCH   = _benv("AUTO_MODE_SWITCH",   True)
 MIN_LIVE_CAPITAL   = _fenv("MIN_LIVE_CAPITAL",   25000.0)
+REQUIRE_LIVE_ARM   = _benv("REQUIRE_LIVE_ARM",   False)
+ALLOW_VALIDATION_BLOCKED_LIVE = _benv("ALLOW_VALIDATION_BLOCKED_LIVE", False)
+LIVE_BALANCE_USE_PCT = _fenv("LIVE_BALANCE_USE_PCT", 0.95)
 # When True and ENABLE_REAL_TRADING=True, system auto-switches to live
 # when Angel One balance >= MIN_LIVE_CAPITAL
 
@@ -266,6 +272,13 @@ RISK_PER_TRADE_PCT: float = float(
 # C03: Max parallel trades — phase-in
 _MAX_PARALLEL_DEFAULT = "5" if _is_phase2() else "3"
 MAX_OPEN_POSITIONS: int = _ienv("MAX_OPEN_POSITIONS", int(_MAX_PARALLEL_DEFAULT))
+DYNAMIC_MAX_OPEN_POSITIONS: bool = _benv("DYNAMIC_MAX_OPEN_POSITIONS", True)
+MIN_DYNAMIC_OPEN_POSITIONS: int = _ienv("MIN_DYNAMIC_OPEN_POSITIONS", 1)
+MAX_DYNAMIC_OPEN_POSITIONS: int = _ienv(
+    "MAX_DYNAMIC_OPEN_POSITIONS",
+    max(MAX_OPEN_POSITIONS, int(_MAX_PARALLEL_DEFAULT), 5),
+)
+CAPITAL_PER_OPEN_POSITION: float = _fenv("CAPITAL_PER_OPEN_POSITION", 1000.0)
 
 MAX_TRADES_PER_DAY = _ienv("MAX_TRADES_PER_DAY", 6)
 MAX_TRADES_PER_SYMBOL_PER_DAY = _ienv("MAX_TRADES_PER_SYMBOL_PER_DAY", 3)
@@ -303,7 +316,7 @@ LOSS_STREAK_SIZE_REDUCTION_FACTOR = float(
 # =============================================================================
 
 TRADE_OPTIONS = _env("TRADE_OPTIONS", "true").lower() == "true"
-OPTION_LOT_SIZE = _ienv("OPTION_LOT_SIZE", 50)
+OPTION_LOT_SIZE = _ienv("OPTION_LOT_SIZE", 65)
 STRIKE_INTERVAL = _ienv("STRIKE_INTERVAL", 50)
 WEEKLY_EXPIRY_DAY = _ienv("WEEKLY_EXPIRY_DAY", 3)  # Thursday = 3 if Monday=0
 
@@ -312,6 +325,19 @@ CLOSE_OPTIONS_BEFORE_MARKET_END = os.getenv(
     "CLOSE_OPTIONS_BEFORE_MARKET_END", "true"
 ).lower() == "true"
 OPTIONS_EXIT_BUFFER_MIN = _ienv("OPTIONS_EXIT_BUFFER_MIN", 20)
+
+# Dedicated CPR/Camarilla pivot option scalper.
+ENABLE_PIVOT_SCALPING_STRATEGY = _benv("ENABLE_PIVOT_SCALPING_STRATEGY", True)
+PIVOT_SCALPING_CAPITAL = _fenv("PIVOT_SCALPING_CAPITAL", 30000.0)
+PIVOT_SCALPING_MAX_LOTS = _ienv("PIVOT_SCALPING_MAX_LOTS", 2)
+PIVOT_SCALPING_UNDERLYINGS = [
+    s.strip().upper()
+    for s in os.getenv("PIVOT_SCALPING_UNDERLYINGS", "NIFTY,BANKNIFTY,SENSEX").split(",")
+    if s.strip()
+]
+PIVOT_SCALPING_FETCH_1M = _benv("PIVOT_SCALPING_FETCH_1M", True)
+PIVOT_SCALPING_OPTION_STOP_0DTE = _fenv("PIVOT_SCALPING_OPTION_STOP_0DTE", 0.08)
+PIVOT_SCALPING_OPTION_TARGET_RR = _fenv("PIVOT_SCALPING_OPTION_TARGET_RR", 1.6)
 
 # =============================================================================
 # TECHNICAL SETTINGS
@@ -764,7 +790,7 @@ def get_runtime_capital() -> float:
 WEEKLY_LOSS_LIMIT           = _fenv("WEEKLY_LOSS_LIMIT",              9000.0)
 MIN_VOLUME_RATIO_ENTRY      = _fenv("MIN_VOLUME_RATIO_ENTRY",         0.40)
 MIN_BREAKOUT_VOLUME_RATIO   = _fenv("MIN_BREAKOUT_VOLUME_RATIO",      1.20)
-MIN_BARS_FOR_SIGNAL         = _ienv("MIN_BARS_FOR_SIGNAL",            20)  # lowered: bhavcopy gives ~39-250 bars
+MIN_BARS_FOR_SIGNAL         = _ienv("MIN_BARS_FOR_SIGNAL", 5)  # lowered: bhavcopy gives ~39-250 bars
 ENABLE_1M_ENTRY_TIMING      = _benv("ENABLE_1M_ENTRY_TIMING",         True)
 OVERNIGHT_UNCERTAINTY_THRESHOLD = _fenv("OVERNIGHT_UNCERTAINTY_THRESHOLD", 0.65)
 OVERNIGHT_GAP_ALERT_PCT     = _fenv("OVERNIGHT_GAP_ALERT_PCT",        0.005)
@@ -880,6 +906,12 @@ def validate() -> None:
 
     if MAX_OPEN_POSITIONS <= 0:
         errors.append("MAX_OPEN_POSITIONS must be > 0")
+    if MIN_DYNAMIC_OPEN_POSITIONS <= 0:
+        errors.append("MIN_DYNAMIC_OPEN_POSITIONS must be > 0")
+    if MAX_DYNAMIC_OPEN_POSITIONS < MIN_DYNAMIC_OPEN_POSITIONS:
+        errors.append("MAX_DYNAMIC_OPEN_POSITIONS must be >= MIN_DYNAMIC_OPEN_POSITIONS")
+    if CAPITAL_PER_OPEN_POSITION <= 0:
+        errors.append("CAPITAL_PER_OPEN_POSITION must be > 0")
 
     if MAX_TRADES_PER_DAY <= 0:
         errors.append("MAX_TRADES_PER_DAY must be > 0")
@@ -1057,6 +1089,9 @@ def summary() -> dict:
         "capital": get_runtime_capital(),
         "max_daily_loss": MAX_DAILY_LOSS,
         "risk_per_trade_pct": RISK_PER_TRADE_PCT,
+        "max_open_positions": MAX_OPEN_POSITIONS,
+        "dynamic_max_open_positions": DYNAMIC_MAX_OPEN_POSITIONS,
+        "capital_per_open_position": CAPITAL_PER_OPEN_POSITION,
         "force_market_open": FORCE_MARKET_OPEN,
         "force_market_close": FORCE_MARKET_CLOSE,
         "primary_broker": PRIMARY_BROKER,
@@ -1072,6 +1107,9 @@ if __name__ == "__main__":
 
 # ── Auto-added missing keys ─────────────────────────────────────────────
 MAX_MONTHLY_LOSS = float(os.getenv("MAX_MONTHLY_LOSS", str(MAX_DAILY_LOSS * 8)))
+# Set DISABLE_YFINANCE=true in .env to skip the yfinance fallback entirely.
+# Angel One + bhavcopy are the preferred data sources; yfinance is Yahoo-dependent.
+DISABLE_YFINANCE = os.getenv("DISABLE_YFINANCE", "false").lower() == "true"
 OI_TRACKER_ENABLED = os.getenv("OI_TRACKER_ENABLED","true").lower()=="true"
 REGIME_ENGINE_ENABLED = os.getenv("REGIME_ENGINE_ENABLED","true").lower()=="true"
 MIN_CONFLUENCE_SCORE = float(os.getenv("MIN_CONFLUENCE_SCORE","3.5"))

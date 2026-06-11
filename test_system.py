@@ -380,8 +380,8 @@ def test_nse_master():
     errors = []
 
     lot_nifty = master.get_lot_size("NIFTY")
-    if lot_nifty != 75:
-        errors.append(f"NIFTY lot size = {lot_nifty}, expected 75")
+    if lot_nifty != 65:
+        errors.append(f"NIFTY lot size = {lot_nifty}, expected 65")
 
     lot_bnf = master.get_lot_size("BANKNIFTY")
     if lot_bnf != 30:
@@ -419,8 +419,9 @@ def test_option_chain_engine():
     engine  = OptionChainEngine()
     errors  = []
 
-    # NIFTY → Thursday (3), BANKNIFTY → Wednesday (2), FINNIFTY → Tuesday (1)
-    expected = {"NIFTY": 3, "BANKNIFTY": 2, "FINNIFTY": 1, "MIDCPNIFTY": 0}
+    # Current local master contracts list Tuesday expiries for these indices.
+    # The engine uses that file as source of truth before weekday fallbacks.
+    expected = {"NIFTY": 1, "BANKNIFTY": 1, "FINNIFTY": 1, "MIDCPNIFTY": 1}
     wd_names = {0:"Mon",1:"Tue",2:"Wed",3:"Thu",4:"Fri",5:"Sat",6:"Sun"}
 
     for sym, exp_wd in expected.items():
@@ -431,8 +432,8 @@ def test_option_chain_engine():
             errors.append(f"{sym} expiry weekday={wd_names.get(actual_wd)} expected {wd_names.get(exp_wd)}")
 
     # Lot sizes
-    if engine.get_lot_size("NIFTY") != 75:
-        errors.append(f"NIFTY lot size {engine.get_lot_size('NIFTY')} != 75")
+    if engine.get_lot_size("NIFTY") != 65:
+        errors.append(f"NIFTY lot size {engine.get_lot_size('NIFTY')} != 65")
     if engine.get_lot_size("BANKNIFTY") != 30:
         errors.append(f"BANKNIFTY lot size {engine.get_lot_size('BANKNIFTY')} != 30")
 
@@ -443,8 +444,8 @@ def test_option_chain_engine():
     else:
         for sym, exp_wd in expected.items():
             expiry = engine._select_expiry(sym, "intraday")
-        print(ok(f"option_chain_engine.py — NIFTY=Thu ✓  BNF=Wed ✓  FIN=Tue ✓  MIDCP=Mon ✓  "
-                 f"Lots: NIFTY=75 BNF=30 ✓"))
+        print(ok(f"option_chain_engine.py — master expiries ✓  "
+                 f"Lots: NIFTY=65 BNF=30 ✓"))
         record("option_chain_engine.py", "PASS", "expiry days + lot sizes correct")
 
 

@@ -165,7 +165,7 @@ class SignalLogger:
         self._init_db()
 
     def _conn(self) -> sqlite3.Connection:
-        _conn = sqlite3.connect(self.db_path, timeout=10)
+        conn = sqlite3.connect(self.db_path, timeout=10)
         conn.row_factory = sqlite3.Row
         return conn
 

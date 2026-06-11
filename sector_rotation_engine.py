@@ -255,7 +255,7 @@ def store_sector_snapshot() -> None:
                 UNIQUE(date, sector)
             )
         """)
-        sectors = get_all_sector_data()
+        sectors = _get_live_sector_data()   # get_all_sector_data() was undefined
         for rank, (name, data) in enumerate(sectors.items(), 1):
             conn.execute(
                 "INSERT OR REPLACE INTO sector_rotation_history "

@@ -42,6 +42,8 @@ from indicators import (
     calculate_macd,
     calculate_volume_ratio,
     calculate_vwap,
+    calculate_stoch_rsi,   # were used but not imported → silently fell back to 0
+    calculate_obv,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,6 +89,7 @@ def _compute_trend_confidence(
     last_close: float, current_rsi: float, action: str,
     macd_hist: float = 0.0,
     volume_ratio: float = 0.0,
+    **_extra,
 ) -> float:
     """
     Trend confidence.
@@ -213,7 +216,8 @@ def _trend_signal(data: pd.DataFrame, config: Dict) -> Dict:
     current_adx = _safe_float(adx.iloc[-1]) if adx is not None else 0.0
     current_atr = _safe_float(atr.iloc[-1])
     current_rsi = _safe_float(rsi.iloc[-1])
-    last_close  = _safe_float(data["Close"].iloc[-1])
+    close_col = "Close" if "Close" in data.columns else "close"
+    last_close  = _safe_float(data[close_col].iloc[-1])
 
     # New indicators
     try:

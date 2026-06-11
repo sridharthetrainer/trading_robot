@@ -737,14 +737,24 @@ class AlertManager:
 
     def trade_exit(
         self,
-        symbol="", side="BUY", qty=0, entry_price=0.0, exit_price=0.0,
-        pnl=0.0, charges=0.0, net_pnl=0.0,
-        exit_reason="", hold_minutes=None,
+        symbol="", side="BUY", qty=0, exit_price=0.0,
+        pnl=0.0, exit_reason="",
+        *, entry_price=0.0, charges=0.0, net_pnl=None,
+        hold_minutes=None,
         wins_today=0, losses_today=0, daily_pnl=0.0,
         daily_limit=3000.0, trade_id=None, paper=True,
         option_strike=None, option_type=None,
         trade=None, reason=None, **kwargs,
     ) -> bool:
+        if "hold_seconds" in kwargs and hold_minutes is None:
+            try:
+                hold_minutes = float(kwargs["hold_seconds"]) / 60.0
+            except Exception:
+                pass
+
+        if net_pnl is None:
+            net_pnl = pnl
+
         # Accept ManagedTrade object directly
         if trade is not None:
             symbol      = getattr(trade, "symbol", symbol)
@@ -761,6 +771,7 @@ class AlertManager:
                 hold_minutes = (t_out - t_in) / 60
         if reason and not exit_reason:
             exit_reason = reason
+        net_pnl = float(net_pnl or 0.0)
         won    = net_pnl >= 0
         icon   = "✅ WIN" if won else "❌ LOSS"
         pct    = abs(exit_price - entry_price) / entry_price * 100 if entry_price else 0
@@ -840,6 +851,13 @@ class AlertManager:
             ]
             if limit_pct:
                 L.append(f"  ⚠️ Limit   {self._bar(abs(daily_realized_pnl), daily_loss_limit)} {limit_pct:.0f}%")
+        opened_today = int(kwargs.get("opened_today", 0) or 0)
+        closed_today = int(kwargs.get("closed_today", total_trades) or 0)
+        open_positions = int(kwargs.get("open_positions", 0) or 0)
+        if opened_today or open_positions:
+            L.append(
+                f"  📒 Flow    opened {opened_today} · closed {closed_today} · open {open_positions}"
+            )
         if best_trade:
             L.append(f"  🏆 Best    ₹{best_trade:+,.0f}")
         if worst_trade:

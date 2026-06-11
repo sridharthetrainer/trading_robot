@@ -62,7 +62,30 @@ class ScoreCalibrator:
         d["pnl"]    += pnl
         d["scores"].append(round(score,2))
         d["scores"]  = d["scores"][-200:]  # keep last 200
+        # Track per-strategy outcome count for the min-sample guard
+        if strategy:
+            counts = self._data.setdefault("_strategy_counts", {})
+            counts[strategy] = counts.get(strategy, 0) + 1
         self._save()
+
+    def strategy_sample_count(self, strategy: str) -> int:
+        """Number of recorded outcomes for this strategy."""
+        return self._data.get("_strategy_counts", {}).get(strategy, 0)
+
+    def has_min_samples(self, strategy: str, min_outcomes: int = 30) -> bool:
+        """
+        Returns True only when a strategy has >= min_outcomes recorded outcomes.
+        Callers MUST check this before adjusting strategy weights to avoid
+        moving weights on statistically insignificant data.
+        """
+        n = self.strategy_sample_count(strategy)
+        if n < min_outcomes:
+            logger.debug(
+                "Score calibrator: %s has %d outcomes (need %d) — weight update blocked",
+                strategy, n, min_outcomes,
+            )
+            return False
+        return True
 
     def _bucket(self, score: float) -> str:
         for lo,hi in self.SCORE_BUCKETS:

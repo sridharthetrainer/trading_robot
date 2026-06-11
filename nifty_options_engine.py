@@ -56,9 +56,33 @@ from config import (
 
 logger = logging.getLogger(__name__)
 
+# Dynamic NSE master (lot sizes + holiday calendar). _get_lot_size_dynamic() and
+# the expiry holiday roll-back referenced _NSE_MASTER_NOE / _get_nse_master_noe /
+# _is_noe_holiday, but they were never defined → _is_noe_holiday() NameError'd in
+# the expiry calc (unguarded). Define them here.
+try:
+    from nse_master import get_nse_master as _get_nse_master_noe
+    _NSE_MASTER_NOE = True
+except Exception:
+    _NSE_MASTER_NOE = False
+
+
+def _is_noe_holiday(d) -> bool:
+    """True if d is an NSE trading holiday/weekend; False when unknown."""
+    try:
+        if _NSE_MASTER_NOE:
+            return bool(_get_nse_master_noe().is_trading_holiday(d))
+    except Exception:
+        pass
+    try:
+        return d.weekday() >= 5   # at least treat weekends as non-trading
+    except Exception:
+        return False
+
+
 def _get_lot_size_dynamic(underlying: str) -> int:
     """Get lot size from NSEMaster (dynamic) or config fallback."""
-    if _NSE_MASTER_NOE if '_NSE_MASTER_NOE' in dir() else False:
+    if _NSE_MASTER_NOE:
         try: return _get_nse_master_noe().get_lot_size(underlying)
         except Exception: pass
     return int(_CONFIG_LOT_SIZE)
@@ -189,7 +213,7 @@ class NiftyOptionsEngine:
             logger.warning("Lots=0 for %s premium=%.2f — insufficient capital", selected_symbol, premium)
             return None
 
-        quantity         = lots * OPTION_LOT_SIZE
+        quantity         = lots * _CONFIG_LOT_SIZE
         capital_required = float(quantity * premium)
 
         selection = OptionSelection(
@@ -389,7 +413,7 @@ class NiftyOptionsEngine:
         capped_fraction = min(adjusted, self.max_capital_fraction_hard_cap)
         capital_budget  = balance * capped_fraction
 
-        per_lot_cost = float(premium) * float(OPTION_LOT_SIZE)
+        per_lot_cost = float(premium) * float(_CONFIG_LOT_SIZE)
         if per_lot_cost <= 0:
             return 0
 

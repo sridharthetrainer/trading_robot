@@ -241,7 +241,7 @@ def run_all_downloads() -> dict:
     """Actually download all required items and record results."""
     import logging
     logger = logging.getLogger(__name__)
-    tracker = DataDownloadTracker()
+    tracker = get_tracker()   # class is DownloadTracker; use its singleton accessor
     results = {"ok": 0, "fail": 0, "items": []}
 
     # 1. Index 5m intraday data

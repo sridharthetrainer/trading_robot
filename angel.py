@@ -19,9 +19,19 @@ Features
 
 from __future__ import annotations
 
+# Load .env early so os.getenv() calls work
+try:
+    from dotenv import load_dotenv
+    load_dotenv('.env')
+except ImportError:
+    pass
+
 import threading
 import time
-from typing import Dict, Optional, Tuple
+import os
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 import pyotp
@@ -33,11 +43,30 @@ from utils import retry
 
 logger = logging.getLogger("angel")
 
+# NSE/BSE F&O prices must be in multiples of the ₹0.05 tick. round(p, 2) leaves
+# values like 28.67 that the exchange rejects ("price in multiples of 5 paise").
+def _round_to_tick(price: float, tick: float = 0.05) -> float:
+    try:
+        p = float(price)
+        if p <= 0:
+            return 0.0
+        return round(round(p / tick) * tick, 2)
+    except Exception:
+        return float(price or 0.0)
+
 PAPER_SPOT_LTP = 22000.0
 PAPER_OPTION_LTP = 120.0
 PAPER_SPREAD_PCT = 0.02
 MAX_CONNECT_RETRIES = 3
 CONNECT_BASE_DELAY = 2
+RECONNECT_MIN_INTERVAL = 60   # min seconds between reconnect attempts (anti-storm)
+RATELIMIT_COOLDOWN     = 60   # after a rate-limit, pause logins this long
+
+
+def _is_rate_limited(err) -> bool:
+    """True if an Angel error is the account-wide 'exceeding access rate' throttle."""
+    s = str(err).lower()
+    return "exceeding access rate" in s or "access denied because of exceeding" in s
 
 INDEX_TOKEN_MAP = {
     ("NSE", "Nifty 50"): "99926000",
@@ -48,6 +77,12 @@ INDEX_TOKEN_MAP = {
     ("NSE", "Nifty Fin Service"): "99926037",
     ("NSE", "FINNIFTY"): "99926037",
     ("NSE", "SENSEX"): "99919000",
+    ("NSE", "India VIX"): "99926017",
+    ("NSE", "INDIA VIX"): "99926017",
+    ("NSE", "INDIAVIX"): "99926017",
+    # BSE indices — spot quotes live on the BSE exchange, not NSE.
+    ("BSE", "SENSEX"): "99919000",
+    ("BSE", "BANKEX"): "99919012",
 }
 
 
@@ -115,6 +150,46 @@ def _load_nse_eq_tokens() -> dict:
     _NSE_EQ_LOADED = True
     return _NSE_EQ_TOKENS
 
+
+# ── F&O Token Cache (NFO + BFO options/futures) ────────────────────────────────
+_FO_TOKENS: dict = {}
+_FO_LOADED: bool = False
+
+
+def _load_fo_tokens() -> dict:
+    """
+    Load F&O option/future tradingsymbol → token for NFO and BFO from the master
+    contract on disk. angel only loads MasterContract_NFO.csv, so BSE F&O (BFO,
+    e.g. SENSEX/BANKEX options) tokens were never resolvable. Authoritative and
+    local; also cuts searchScrip calls (rate-limit relief). Loaded lazily once.
+    """
+    global _FO_TOKENS, _FO_LOADED
+    if _FO_LOADED:
+        return _FO_TOKENS
+    log = logging.getLogger(__name__)
+    import csv as _csv, os as _os
+    for mc in ("OpenAPIScripMaster.csv", "MasterContract_ALL.csv",
+               "MasterContract_NFO.csv"):
+        if not _os.path.exists(mc):
+            continue
+        try:
+            with open(mc, errors="replace") as fh:
+                for row in _csv.DictReader(fh):
+                    if str(row.get("exch_seg", "")).upper() not in ("NFO", "BFO"):
+                        continue
+                    sym = str(row.get("symbol", "")).strip().upper()
+                    tok = str(row.get("token", "")).strip()
+                    if sym and tok and tok.lower() != "nan":
+                        _FO_TOKENS[sym] = tok
+            if _FO_TOKENS:
+                log.info("F&O tokens loaded: %d from %s", len(_FO_TOKENS), mc)
+                break
+        except Exception as e:
+            log.debug("_load_fo_tokens(%s): %s", mc, e)
+    _FO_LOADED = True
+    return _FO_TOKENS
+
+
 class AngelOne:
     _instance_lock: threading.Lock = threading.Lock()
     _instances: Dict[Tuple[str, str], "AngelOne"] = {}
@@ -155,6 +230,14 @@ class AngelOne:
         self._token_cache: Dict[str, str] = {}
         self._lock = threading.Lock()
         self._paper_order_counter = 0
+        self._last_connect_ts: float = 0.0      # anti-storm reconnect throttle
+        self._rate_limited_until: float = 0.0   # circuit-breaker after a throttle
+        self._balance_cache_value: float = 0.0
+        self._balance_cache_ts: float = 0.0
+        self._balance_cache_ttl: float = float(os.getenv("ANGEL_BALANCE_CACHE_TTL_SEC", "20"))
+        self._balance_stale_ok_sec: float = float(os.getenv("ANGEL_BALANCE_STALE_OK_SEC", "900"))
+        self._balance_rate_limited_until: float = 0.0
+        self._balance_last_rate_log_ts: float = 0.0
 
         # ALWAYS connect for DATA — paper mode only blocks order placement
         # This was the root cause of Scanned:0 for 2 months:
@@ -209,6 +292,17 @@ class AngelOne:
         return False
 
     def connect(self) -> bool:
+        # Anti-storm guard: if we already have a session and either reconnected
+        # very recently or are inside a rate-limit cooldown, keep the existing
+        # session instead of hammering generateSession (this was the 11k/day
+        # reconnect storm). If obj is None (truly disconnected) we always try.
+        now = time.time()
+        if self.obj is not None and (
+                now < self._rate_limited_until or
+                (now - self._last_connect_ts) < RECONNECT_MIN_INTERVAL):
+            return True
+        self._last_connect_ts = now
+
         for attempt in range(1, MAX_CONNECT_RETRIES + 1):
             try:
                 totp = pyotp.TOTP(self.totp_secret).now()
@@ -232,6 +326,14 @@ class AngelOne:
                 return True
 
             except Exception as e:
+                if _is_rate_limited(e):
+                    # Account is throttled — retrying now only deepens the limit.
+                    # Cool down and keep whatever session we already have.
+                    self._rate_limited_until = time.time() + RATELIMIT_COOLDOWN
+                    logger.warning(
+                        "Angel login throttled (rate limit) — backing off %ss",
+                        RATELIMIT_COOLDOWN)
+                    return self.obj is not None
                 delay = CONNECT_BASE_DELAY * (2 ** (attempt - 1))
                 logger.warning(
                     f"Connection attempt {attempt}/{MAX_CONNECT_RETRIES} failed: {e}. "
@@ -263,6 +365,12 @@ class AngelOne:
             self.obj.getProfile(self.refresh_token)
             return True
         except Exception as e:
+            if _is_rate_limited(e):
+                # Throttled, NOT disconnected. Reconnecting here amplified the
+                # rate limit into a storm (865 triggers/day). Keep the session;
+                # the actual API call will proceed or fail on its own.
+                logger.debug("Session check throttled — keeping existing session")
+                return True
             logger.warning(f"Session check failed ({e}) — reconnecting...")
             return self.connect()
 
@@ -313,24 +421,30 @@ class AngelOne:
                 "transactiontype": transaction_type,
                 "producttype":     "CARRYFORWARD",
                 "qty":             str(qty),
-                "price":           str(round(limit_price, 2)),
-                "triggerprice":    str(round(trigger_price, 2)),
+                "price":           str(_round_to_tick(limit_price)),
+                "triggerprice":    str(_round_to_tick(trigger_price)),
                 "disclosedqty":    "0",
                 "timeperiod":      "365",
             }
             with self._lock:
                 resp = self.obj.gttCreateRule(gtt_params)
 
-            if resp and resp.get("status"):
-                gtt_id = resp.get("data", {}).get("id", "unknown")
+            # SmartAPI versions differ: some return the rule id directly
+            # (int/str), others a dict {"status":..,"data":{"id":..}}.
+            gtt_id = None
+            if isinstance(resp, dict):
+                if resp.get("status"):
+                    gtt_id = (resp.get("data") or {}).get("id")
+            elif isinstance(resp, (int, str)) and str(resp).strip().isdigit():
+                gtt_id = resp
+            if gtt_id:
                 logger.info(
-                    "GTT SL placed: %s trigger=%.2f qty=%d id=%s",
+                    "GTT placed: %s trigger=%.2f qty=%d id=%s",
                     symbol, trigger_price, qty, gtt_id
                 )
                 return str(gtt_id)
-            else:
-                logger.warning("GTT placement failed: %s", resp)
-                return None
+            logger.warning("GTT placement failed: %s", resp)
+            return None
         except Exception as e:
             logger.error("GTT order error: %s", e)
             return None
@@ -373,7 +487,8 @@ class AngelOne:
             logger.error(f"place_order: invalid price={price}")
             return None
 
-        if self.paper_trade:
+        _paper_orders_only = getattr(__import__("config"), "PAPER_ORDERS_ONLY", False)
+        if self.paper_trade or _paper_orders_only:
             self._paper_order_counter += 1
             fake_id = f"PAPER_{self._paper_order_counter:06d}"
 
@@ -384,8 +499,9 @@ class AngelOne:
             else:
                 fill_price = PAPER_SPOT_LTP
 
+            _mode = "PAPER_ORDERS_ONLY" if _paper_orders_only and not self.paper_trade else "PAPER"
             logger.info(
-                f"📤 PAPER ORDER #{self._paper_order_counter}: "
+                f"📤 {_mode} ORDER #{self._paper_order_counter}: "
                 f"{buy_sell} {qty} {symbol} @ {'MARKET' if price == 0 else price}"
             )
             return fake_id, fill_price
@@ -411,7 +527,7 @@ class AngelOne:
             "ordertype": order_type.upper(),
             "producttype": producttype.upper(),
             "duration": "DAY",
-            "price": str(price) if order_type.upper() == "LIMIT" else "0",
+            "price": str(_round_to_tick(price)) if order_type.upper() == "LIMIT" else "0",
             "squareoff": "0",
             "stoploss": "0",
             "quantity": str(qty),
@@ -430,7 +546,7 @@ class AngelOne:
 
     def _get_fill_price(self, order_id: str) -> Optional[float]:
         try:
-            orders = self.obj.getOrderBook()
+            orders = self.obj.orderBook()
             if isinstance(orders, dict) and "data" in orders:
                 orders = orders["data"]
 
@@ -499,12 +615,94 @@ class AngelOne:
             pass
         return None
 
+    def reconcile_positions(self) -> dict:
+        """Compare local tracked positions vs Angel actual positions.
+        Returns: {matched, missing_local, missing_angel, mismatched_qty}
+        """
+        result = {"matched": [], "missing_local": [], "missing_angel": [], "mismatched": []}
+        if not self._ensure_connected() or not self.obj:
+            return result
+        try:
+            with self._lock:
+                resp = self.obj.position()
+            if not resp or not resp.get("data"):
+                return result
+            angel_positions = {}
+            for p in resp["data"]:
+                sym = p.get("tradingsymbol","")
+                qty = int(p.get("netqty",0) or 0)
+                if qty != 0:
+                    angel_positions[sym] = {"qty": qty, "avg_price": float(p.get("averageprice",0) or 0)}
+            result["angel_positions"] = angel_positions
+        except Exception as e:
+            logger.debug("reconcile: %s", e)
+        return result
+
+    def verify_order_fill(self, order_id: str, max_wait: int = 30) -> dict:
+        """Check if order filled, partially filled, or rejected.
+        Returns: {status, filled_qty, avg_price, rejection_reason}
+        """
+        import time as _vt
+        if not self._ensure_connected() or not self.obj:
+            return {"status": "unknown", "filled_qty": 0, "avg_price": 0.0}
+        
+        for attempt in range(max_wait // 3):
+            try:
+                with self._lock:
+                    book = self.obj.orderBook()
+                if book and book.get("data"):
+                    for order in book["data"]:
+                        if str(order.get("orderid","")) == str(order_id):
+                            status = order.get("orderstatus","").upper()
+                            filled = int(order.get("filledshares",0) or 0)
+                            price  = float(order.get("averageprice",0) or 0)
+                            reject = order.get("text","") or order.get("rejreason","")
+                            
+                            if status in ("COMPLETE","TRADED"):
+                                return {"status":"filled","filled_qty":filled,"avg_price":price,"rejection_reason":""}
+                            elif status == "REJECTED":
+                                return {"status":"rejected","filled_qty":0,"avg_price":0,"rejection_reason":reject}
+                            elif status in ("OPEN","PENDING","TRIGGER PENDING"):
+                                _vt.sleep(3)
+                                continue
+                            elif filled > 0:
+                                return {"status":"partial","filled_qty":filled,"avg_price":price,"rejection_reason":""}
+            except Exception as e:
+                logger.debug("verify_order %s: %s", order_id, e)
+                _vt.sleep(2)
+        return {"status": "timeout", "filled_qty": 0, "avg_price": 0.0}
+
+    def _remember_balance(self, balance: float) -> float:
+        try:
+            bal = float(balance or 0.0)
+        except Exception:
+            bal = 0.0
+        if bal > 0:
+            self._balance_cache_value = bal
+            self._balance_cache_ts = time.time()
+        return bal
+
+    def _cached_balance(self, max_age: Optional[float] = None) -> float:
+        try:
+            if self._balance_cache_value <= 0 or self._balance_cache_ts <= 0:
+                return 0.0
+            age = time.time() - self._balance_cache_ts
+            if age <= float(max_age if max_age is not None else self._balance_cache_ttl):
+                return float(self._balance_cache_value)
+        except Exception:
+            return 0.0
+        return 0.0
+
     def get_balance(self, force_real: bool = False) -> float:
         """Return real Angel One balance.
         In paper mode returns 0.0 so callers know
         no real balance is available.
         Use force_real=True to bypass paper check (used by dual_mode_engine).
         """
+        cached = self._cached_balance()
+        if cached > 0:
+            return cached
+
         # Paper mode: still try real balance for auto-mode switching
         if self.paper_trade and not force_real:
             try:
@@ -514,13 +712,29 @@ class AngelOne:
                         _b_val = float(_b_resp["data"].get("availablecash","0") or
                                        _b_resp["data"].get("net","0") or 0)
                         if _b_val > 0:
-                            return _b_val
-            except Exception: pass
+                            return self._remember_balance(_b_val)
+            except Exception as e:
+                if _is_rate_limited(e):
+                    stale = self._cached_balance(self._balance_stale_ok_sec)
+                    if stale > 0:
+                        logger.debug("Balance rate-limited; using cached balance ₹%.0f", stale)
+                        return stale
             return 0.0
 
         if not self._ensure_connected():
+            stale = self._cached_balance(self._balance_stale_ok_sec)
+            if stale > 0:
+                logger.debug("Balance fetch skipped: no connection; using cached ₹%.0f", stale)
+                return stale
             logger.error("Balance fetch failed: no connection")
             return 0.0
+
+        now = time.time()
+        if self._balance_rate_limited_until > now:
+            stale = self._cached_balance(self._balance_stale_ok_sec)
+            if stale > 0:
+                logger.debug("Balance fetch in rate-limit cooldown; using cached ₹%.0f", stale)
+                return stale
 
         try:
             with self._lock:
@@ -543,7 +757,8 @@ class AngelOne:
                 if _bv is not None:
                     try:
                         _bf = float(_bv)
-                        if _bf > 0: return _bf
+                        if _bf > 0:
+                            return self._remember_balance(_bf)
                     except Exception: continue
             # Try nested
             for _sub in ["equity","commodity","fno","derivatives"]:
@@ -554,14 +769,30 @@ class AngelOne:
                         if _bv:
                             try:
                                 _bf = float(_bv)
-                                if _bf > 0: return _bf
+                                if _bf > 0:
+                                    return self._remember_balance(_bf)
                             except Exception: pass
 
             logger.warning(f"Known balance keys not found in rmsLimit response: {list(payload.keys())}")
             return 0.0
 
         except Exception as e:
-            logger.error(f"Balance fetch failed: {e}")
+            if _is_rate_limited(e):
+                self._balance_rate_limited_until = time.time() + float(
+                    os.getenv("ANGEL_BALANCE_RATELIMIT_COOLDOWN_SEC", "30")
+                )
+                stale = self._cached_balance(self._balance_stale_ok_sec)
+                if stale > 0:
+                    if (time.time() - self._balance_last_rate_log_ts) > 60:
+                        logger.warning(
+                            "Balance fetch rate-limited; using cached balance ₹%.0f",
+                            stale,
+                        )
+                        self._balance_last_rate_log_ts = time.time()
+                    return stale
+                logger.warning("Balance fetch rate-limited and no cached balance available")
+            else:
+                logger.error(f"Balance fetch failed: {e}")
             return 0.0
 
     @retry(max_retries=2, base_delay=1)
@@ -812,7 +1043,7 @@ class AngelOne:
         while (time.time() - start) < timeout_sec:
             try:
                 with self._lock:
-                    orders = self.obj.getOrderBook()
+                    orders = self.obj.orderBook()
 
                 if isinstance(orders, dict):
                     orders = orders.get("data", [])
@@ -865,7 +1096,7 @@ class AngelOne:
         return None
 
     def _get_index_token(self, symbol: str, exchange: str) -> Optional[str]:
-        if exchange != "NSE":
+        if exchange not in ("NSE", "BSE"):
             return None
 
         key = (exchange, symbol)
@@ -922,6 +1153,10 @@ class AngelOne:
             # Try NSE EQ cash market tokens (stocks)
             eq_map = _load_nse_eq_tokens()
             token = eq_map.get(symbol.upper().replace("-EQ",""))
+
+        if not token and exchange in ("NFO", "BFO"):
+            # F&O option/future tokens (incl. BFO — SENSEX/BANKEX)
+            token = _load_fo_tokens().get(symbol.upper())
 
         if not token:
             logger.debug("No token found for %s on %s", symbol, exchange)
@@ -982,8 +1217,11 @@ class AngelOne:
 
     def get_historical_data_yf(self, symbol: str, days: int = 60,
                                interval: str = "5m"):
-        """yfinance fallback when Angel One data unavailable."""
+        """yfinance fallback when Angel One data unavailable. Disabled by DISABLE_YFINANCE=true."""
         try:
+            import os as _os_yf
+            if _os_yf.getenv("DISABLE_YFINANCE", "false").lower() == "true":
+                return None
             import yf_compat as yf  # yfinance removed: Yahoo API broken
             ticker_map = {
                 "NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK",
@@ -1028,44 +1266,81 @@ class AngelOne:
             iv = _iv_map.get(interval, "ONE_DAY")
 
             # Get symbol token
-            token = self._get_token(symbol, exchange)
+            token = self.get_token(symbol, exchange)
             if not token:
                 logger.debug("No token for %s on %s", symbol, exchange)
                 return None
 
-            params = {
-                "exchange":   exchange,
-                "symboltoken":token,
-                "interval":   iv,
-                "fromdate":   from_date,
-                "todate":     to_date,
-            }
-            resp = obj.getCandleData(params)
-            if not resp or resp.get("status") != True:
-                logger.debug("Candle data error for %s: %s", symbol, resp)
-                return None
-
-            candles = resp.get("data", [])
-            if not candles:
-                return None
-
             import pandas as pd
-            rows = []
-            for c in candles:
-                try:
-                    rows.append({
-                        "date":   pd.Timestamp(c[0]),
-                        "open":   float(c[1]),
-                        "high":   float(c[2]),
-                        "low":    float(c[3]),
-                        "close":  float(c[4]),
-                        "volume": float(c[5]) if len(c) > 5 else 0,
-                    })
-                except Exception:
-                    continue
-            if not rows:
+
+            def _fetch_chunk(_from: str, _to: str):
+                """One getCandleData request → DataFrame (or None)."""
+                resp = obj.getCandleData({
+                    "exchange":    exchange,
+                    "symboltoken": token,
+                    "interval":    iv,
+                    "fromdate":    _from,
+                    "todate":      _to,
+                })
+                if not resp or resp.get("status") != True:
+                    logger.debug("Candle data error for %s: %s", symbol, resp)
+                    return None
+                candles = resp.get("data", [])
+                if not candles:
+                    return None
+                rows = []
+                for c in candles:
+                    try:
+                        rows.append({
+                            "date":   pd.Timestamp(c[0]),
+                            "open":   float(c[1]),
+                            "high":   float(c[2]),
+                            "low":    float(c[3]),
+                            "close":  float(c[4]),
+                            "volume": float(c[5]) if len(c) > 5 else 0,
+                        })
+                    except Exception:
+                        continue
+                return pd.DataFrame(rows) if rows else None
+
+            # Angel caps each getCandleData request at a per-interval span. For
+            # longer requests we STITCH successive chunks (the data exists — Angel
+            # serves older ranges fine, it just limits one request's span). Caps
+            # are set conservatively below Angel's documented per-interval limits.
+            _chunk_days = {
+                "ONE_MINUTE": 25, "THREE_MINUTE": 55, "FIVE_MINUTE": 90,
+                "TEN_MINUTE": 90, "FIFTEEN_MINUTE": 180, "THIRTY_MINUTE": 180,
+                "ONE_HOUR": 350, "ONE_DAY": 2000,
+            }.get(iv, 90)
+            _fmt = "%Y-%m-%d %H:%M"
+
+            # Parse the requested span; on any parse issue fall back to a single
+            # request (exactly the old behaviour).
+            try:
+                _start = datetime.strptime(from_date, _fmt)
+                _end   = datetime.strptime(to_date,   _fmt)
+            except Exception:
+                _start = _end = None
+
+            if _start is None or _end is None or (_end - _start).days <= _chunk_days:
+                df = _fetch_chunk(from_date, to_date)
+            else:
+                parts = []
+                cur = _start
+                while cur < _end:
+                    seg_to = min(cur + timedelta(days=_chunk_days), _end)
+                    part = _fetch_chunk(cur.strftime(_fmt), seg_to.strftime(_fmt))
+                    if part is not None and not part.empty:
+                        parts.append(part)
+                    cur = seg_to
+                    if cur < _end:
+                        time.sleep(0.4)  # respect Angel rate limit between chunks
+                df = pd.concat(parts) if parts else None
+
+            if df is None or df.empty:
                 return None
-            df = pd.DataFrame(rows).set_index("date").sort_index()
+            df = (df.drop_duplicates(subset="date")
+                    .set_index("date").sort_index())
             logger.debug("Angel historical: %s %s %d bars", symbol, iv, len(df))
             return df
         except Exception as e:

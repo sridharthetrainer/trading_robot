@@ -70,6 +70,12 @@ class NSEOptionChainFetcher:
                 "Pragma": "no-cache",
             }
         )
+        # Route through NSE_PROXY if configured (NSE blocks this IP directly).
+        try:
+            from nse_proxy import apply as _apply_nse_proxy
+            _apply_nse_proxy(self.session)
+        except Exception:
+            pass
 
     @staticmethod
     def _market_open() -> bool:
@@ -80,17 +86,29 @@ class NSEOptionChainFetcher:
 
     def fetch(self, expiry: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Fetch option chain: NSE → Sensibull → Angel."""
+        if not self._market_open():
+            cached = self._load_cache(warn_missing=False) if self.use_cache_fallback else None
+            if cached:
+                if expiry:
+                    cached = self._filter_by_expiry(cached, expiry)
+                return cached
+            logger.info(
+                "Option-chain live fetch skipped outside market hours | underlying=%s",
+                self.underlying,
+            )
+            return None
+
         # Try resilience module first (NSE with retry)
         try:
             from data_source_resilience import fetch_option_chain
-            _data = fetch_option_chain(self.symbol)
+            _data = fetch_option_chain(self.underlying)
             if _data:
                 return _data
         except Exception: pass
         # Sensibull fallback (when NSE IP is blocked)
         try:
             from sensibull_client import fetch_option_chain as _sb_oc
-            _sb_data = _sb_oc(self.symbol)
+            _sb_data = _sb_oc(self.underlying)
             if _sb_data:
                 return _sb_data
         except Exception: pass
@@ -289,9 +307,10 @@ class NSEOptionChainFetcher:
         except Exception as e:
             logger.warning("Could not save option-chain cache: %s", e)
 
-    def _load_cache(self) -> Optional[Dict[str, Any]]:
+    def _load_cache(self, warn_missing: bool = True) -> Optional[Dict[str, Any]]:
         if not os.path.exists(self.cache_file):
-            logger.warning("Cache file not found: %s", self.cache_file)
+            if warn_missing:
+                logger.warning("Cache file not found: %s", self.cache_file)
             return None
 
         try:

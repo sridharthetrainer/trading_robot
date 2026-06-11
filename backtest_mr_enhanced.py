@@ -59,14 +59,14 @@ slippage_model = SlippageModel(
 )
 
 LOT_SIZES = {
-    "NIFTY":      50,
-    "BANKNIFTY":  50,
-    "FINNIFTY":   40,
-    "MIDCPNIFTY": 75,
-    "SENSEX":     10,
-    "BANKEX":     15,
+    "NIFTY":      65,
+    "BANKNIFTY":  30,
+    "FINNIFTY":   60,
+    "MIDCPNIFTY": 120,
+    "SENSEX":     20,
+    "BANKEX":     30,
 }
-DEFAULT_LOT = 10
+DEFAULT_LOT = 65
 
 
 @dataclass

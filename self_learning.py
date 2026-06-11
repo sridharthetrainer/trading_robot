@@ -228,10 +228,13 @@ class SelfLearningController:
         try:
             from walk_forward_backtest import run_walk_forward_all
             logger.info("Running walk-forward validation...")
-            wf_results = run_walk_forward_all(
-                data_fetcher=self.learning_engine.trade_manager.store
-                    if hasattr(self.learning_engine, "trade_manager") else None
+            from walk_forward_backtest import _get_angel_data_fetcher
+            _wf_fetcher = (
+                self.learning_engine.data_fetcher
+                if getattr(getattr(self.learning_engine, "data_fetcher", None), "angel", None)
+                else _get_angel_data_fetcher()
             )
+            wf_results = run_walk_forward_all(data_fetcher=_wf_fetcher)
             # Inject WF consistency into strategy_state for selector use
             if wf_results:
                 payload = self._load_json(self.strategy_state_file) or {}

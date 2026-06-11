@@ -61,8 +61,10 @@ def calc_cpr(high: float, low: float, close: float) -> Dict[str, float]:
     Pivot, TC (Top Central), BC (Bottom Central).
     """
     pivot = (high + low + close) / 3
-    tc    = (pivot + high) / 2
-    bc    = (pivot + low)  / 2
+    bc_raw = (high + low) / 2
+    tc_raw = (2 * pivot) - bc_raw
+    tc = max(tc_raw, bc_raw)
+    bc = min(tc_raw, bc_raw)
     return {
         "pivot": round(pivot, 2),
         "tc":    round(tc, 2),
@@ -83,14 +85,18 @@ def calc_floor_pivots(high: float, low: float, close: float) -> Dict[str, float]
     s2 = p - (high - low)
     r3 = high + 2 * (p - low)
     s3 = low  - 2 * (high - p)
+    r4 = r3 + r2 - r1
+    s4 = s3 - (s1 - s2)
     return {
         "P":  round(p,  2),
         "R1": round(r1, 2),
         "R2": round(r2, 2),
         "R3": round(r3, 2),
+        "R4": round(r4, 2),
         "S1": round(s1, 2),
         "S2": round(s2, 2),
         "S3": round(s3, 2),
+        "S4": round(s4, 2),
     }
 
 
@@ -149,6 +155,135 @@ def calc_monthly_pivots(
     """
     fp = calc_floor_pivots(monthly_high, monthly_low, monthly_close)
     return {f"M_{k}": v for k, v in fp.items()}
+
+
+def calc_ochao_level_pack(high: float, low: float, close: float, prefix: str = "") -> Dict[str, float]:
+    """
+    Full Ochoa/Pivot-Boss level pack from one completed H/L/C period.
+
+    Includes standard CPR, floor pivots R1-R4/S1-S4, Camarilla H3-H5/L3-L5,
+    and previous period H/L/C. Prefix may be "", "W_", or "M_".
+    """
+    if high <= 0 or low <= 0 or close <= 0:
+        return {}
+    cpr = calc_cpr(high, low, close)
+    floor = calc_floor_pivots(high, low, close)
+    cam = calc_camarilla_pivots(high, low, close)
+    out = {
+        "P": floor["P"],
+        "TC": cpr["tc"],
+        "BC": cpr["bc"],
+        "R1": floor["R1"], "R2": floor["R2"], "R3": floor["R3"], "R4": floor["R4"],
+        "S1": floor["S1"], "S2": floor["S2"], "S3": floor["S3"], "S4": floor["S4"],
+        "H3": cam["H3"], "H4": cam["H4"], "H5": cam["H5"],
+        "L3": cam["L3"], "L4": cam["L4"], "L5": cam["L5"],
+        "H": round(high, 2),
+        "L": round(low, 2),
+        "C": round(close, 2),
+    }
+    if prefix:
+        return {f"{prefix}{k}": v for k, v in out.items()}
+    return out
+
+
+def _completed_period_ohlc(df: pd.DataFrame, period: str) -> Tuple[float, float, float]:
+    """Return H/L/C for the last completed D/W/M period from an intraday/daily frame."""
+    if df is None or len(df) < 2:
+        return 0.0, 0.0, 0.0
+    d = df.copy()
+    d.columns = [str(c).lower() for c in d.columns]
+    if not {"high", "low", "close"}.issubset(d.columns):
+        return 0.0, 0.0, 0.0
+    if not isinstance(d.index, pd.DatetimeIndex):
+        bars = d.iloc[:-1] if len(d) > 1 else d
+        return float(bars["high"].max()), float(bars["low"].min()), float(bars["close"].iloc[-1])
+    freq = "ME" if period == "M" else "YE" if period == "Y" else period
+    grouped = d.groupby(pd.Grouper(freq=freq))
+    rows = []
+    for _, g in grouped:
+        if len(g):
+            rows.append(g)
+    if len(rows) < 2:
+        bars = d.iloc[:-1] if len(d) > 1 else d
+    else:
+        bars = rows[-2]
+    return float(bars["high"].max()), float(bars["low"].min()), float(bars["close"].iloc[-1])
+
+
+def build_ochao_levels(df: pd.DataFrame, df_daily: Optional[pd.DataFrame] = None) -> Dict[str, Dict[str, float]]:
+    """
+    Build daily, weekly and monthly Ochoa levels.
+
+    Daily levels use the last completed trading day from the intraday frame.
+    Weekly/monthly levels prefer df_daily when supplied.
+    """
+    source = df_daily if df_daily is not None and len(df_daily) >= 5 else df
+    dh, dl, dc = _completed_period_ohlc(df, "D")
+    wh, wl, wc = _completed_period_ohlc(source, "W")
+    mh, ml, mc = _completed_period_ohlc(source, "M")
+    yh, yl, yc = _completed_period_ohlc(source, "Y")
+    return {
+        "daily": calc_ochao_level_pack(dh, dl, dc),
+        "weekly": calc_ochao_level_pack(wh, wl, wc, "W_"),
+        "monthly": calc_ochao_level_pack(mh, ml, mc, "M_"),
+        "yearly": calc_ochao_level_pack(yh, yl, yc, "Y_"),
+    }
+
+
+def calculate_mtf_ema_alignment(
+    frames: Dict[str, pd.DataFrame],
+    price: Optional[float] = None,
+) -> Dict[str, object]:
+    """
+    Ochoa overlay equivalent: 1m EMA20/200, 5m/15m/30m/60m EMA200,
+    daily EMA20/200. Returns count and directional bias.
+    """
+    checks = {
+        "1m_ema20": ("1m", 20),
+        "1m_ema200": ("1m", 200),
+        "5m_ema200": ("5m", 200),
+        "15m_ema200": ("15m", 200),
+        "30m_ema200": ("30m", 200),
+        "60m_ema200": ("60m", 200),
+        "D_ema20": ("D", 20),
+        "D_ema200": ("D", 200),
+    }
+    values: Dict[str, float] = {}
+    above = below = 0
+    last_price = float(price or 0)
+    for name, (frame_key, length) in checks.items():
+        f = frames.get(frame_key)
+        if f is None or len(f) < max(5, min(length, 50)):
+            continue
+        d = f.copy()
+        d.columns = [str(c).lower() for c in d.columns]
+        if "close" not in d.columns:
+            continue
+        close = pd.to_numeric(d["close"], errors="coerce").dropna()
+        if close.empty:
+            continue
+        ema = float(close.ewm(span=length, adjust=False).mean().iloc[-1])
+        px = last_price or float(close.iloc[-1])
+        values[name] = round(ema, 2)
+        if px > ema:
+            above += 1
+        elif px < ema:
+            below += 1
+    if above > below:
+        bias = "BUY"
+    elif below > above:
+        bias = "SELL"
+    else:
+        bias = "NEUTRAL"
+    total = above + below
+    return {
+        "bias": bias,
+        "above_count": above,
+        "below_count": below,
+        "total": total,
+        "score_mod": round((above - below) / max(total, 1), 3),
+        "values": values,
+    }
 
 def classify_cpr_width(cpr: Dict[str, float]) -> Dict[str, str]:
     """
@@ -587,6 +722,7 @@ def pivot_boss_signal(
     cpr    = calc_cpr(prev_H, prev_L, prev_C)
     floor  = calc_floor_pivots(prev_H, prev_L, prev_C)
     cam    = calc_camarilla_pivots(prev_H, prev_L, prev_C)
+    ochao_levels = build_ochao_levels(df_c, df_daily)
     pdh_pdl = get_pdh_pdl(df_c)
 
     # ── Weekly levels from df_daily (if available) ─────────────────────
@@ -766,10 +902,13 @@ def pivot_boss_signal(
 
     if not direction:
         return {**empty, "reason": "no_pivot_boss_setup", "levels": {
-            "pivot": pivot, "tc": tc, "bc": bc, "R1": r1, "S1": s1,
-            "H3": h3, "H4": h4, "L3": l3, "L4": l4,
+            "pivot": pivot, "tc": tc, "bc": bc,
+            "R1": r1, "R2": r2, "R3": floor.get("R3", 0), "R4": floor.get("R4", 0),
+            "S1": s1, "S2": s2, "S3": floor.get("S3", 0), "S4": floor.get("S4", 0),
+            "H3": h3, "H4": h4, "H5": cam.get("H5", 0),
+            "L3": l3, "L4": l4, "L5": cam.get("L5", 0),
             "PDH": pdh, "PDL": pdl,
-        }, "day_type": day_type, "bias": day_bias}
+        }, "ochao_levels": ochao_levels, "day_type": day_type, "bias": day_bias}
 
     # Apply day type score adjustment
     if day_type == "TRENDING" and direction in ("BUY","SELL"):
@@ -795,11 +934,13 @@ def pivot_boss_signal(
         "cpr_width":  width_info["classification"],
         "levels": {
             "pivot": pivot, "tc": tc, "bc": bc,
-            "R1": r1, "R2": r2, "R3": floor.get("R3",0),
-            "S1": s1, "S2": s2, "S3": floor.get("S3",0),
-            "H3": h3, "H4": h4, "L3": l3, "L4": l4,
+            "R1": r1, "R2": r2, "R3": floor.get("R3",0), "R4": floor.get("R4",0),
+            "S1": s1, "S2": s2, "S3": floor.get("S3",0), "S4": floor.get("S4",0),
+            "H3": h3, "H4": h4, "H5": cam.get("H5", 0),
+            "L3": l3, "L4": l4, "L5": cam.get("L5", 0),
             "PDH": pdh, "PDL": pdl,
         },
+        "ochao_levels": ochao_levels,
     }
 
 
@@ -819,6 +960,9 @@ def run_pivot_boss_strategy(df, df_htf=None, option_data=None) -> Dict:
             "stop":      result.get("stop", 0.0),
             "is_virgin": result.get("is_virgin", False),
             "levels":    result.get("levels", {}),
+            "ochao_levels": result.get("ochao_levels", {}),
+            "cpr_width": result.get("cpr_width", ""),
+            "cpr_bias": result.get("bias", ""),
         }
     except Exception as e:
         logger.debug("Pivot boss strategy error: %s", e)

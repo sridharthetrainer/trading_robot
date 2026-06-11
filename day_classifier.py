@@ -86,6 +86,7 @@ class DayProfile:
     # Opening gap
     gap_pct:             float = 0.0   # opening gap vs previous close
     gap_direction:       str   = ""    # "UP", "DOWN", "FLAT"
+    gap_strategy_bias:   str   = ""    # "EXPECT_FILL", "EXPECT_CONTINUE", "AMBIGUOUS"
 
     # VWAP analysis
     vwap_slope:          float = 0.0   # positive = bullish, negative = bearish
@@ -111,6 +112,7 @@ class DayProfile:
             "ok_to_buy_options":  self.ok_to_buy_options,
             "gap_pct":            round(self.gap_pct, 4),
             "gap_direction":      self.gap_direction,
+            "gap_strategy_bias":  self.gap_strategy_bias,
             "vwap_crosses":       self.vwap_crosses,
             "divergence":         self.divergence,
             "nifty_vs_banknifty": f"{self.nifty_direction}/{self.banknifty_direction}",
@@ -318,8 +320,19 @@ class DayClassifier:
             # ── Gap analysis ──────────────────────────────────────────────────
             if _prev > 0:
                 gap = (_open - _prev) / _prev
-                profile.gap_pct      = round(gap, 4)
+                profile.gap_pct       = round(gap, 4)
                 profile.gap_direction = "UP" if gap > 0.002 else "DOWN" if gap < -0.002 else "FLAT"
+                # Gap bucketing: classify expected behaviour for morning strategies
+                # < 0.3% → small gap, usually fills within 30 min (~78% fill rate on NSE)
+                # 0.3–0.8% → ambiguous, context-dependent
+                # > 0.8% → large gap, tends to continue in gap direction (~65%)
+                _gap_abs = abs(gap)
+                if _gap_abs < 0.003:
+                    profile.gap_strategy_bias = "AMBIGUOUS"   # too small to classify
+                elif _gap_abs < 0.008:
+                    profile.gap_strategy_bias = "EXPECT_FILL"
+                else:
+                    profile.gap_strategy_bias = "EXPECT_CONTINUE"
 
             # ── Volatile day check (highest priority) ─────────────────────────
             if vix > VIX_VOLATILE_THRESHOLD:

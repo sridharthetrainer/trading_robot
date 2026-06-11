@@ -279,7 +279,10 @@ class OffHoursEngine:
                 ("12:00", "Deep ML training (60d window)",  self._run_deep_ml),
                 ("14:00", "Download historical data",       self._run_historical_download),
                 ("16:00", "Weekly performance analysis",    self._run_weekly_analysis),
+        ("15:20", "Position reconciliation",     self._run_recon),
         ("16:05", "EOD ML strategy analysis",    self._run_eod_ml_analysis),
+        ("16:08", "Global markets snapshot",     lambda: __import__("strategy_score_tracker").store_global_snapshot()),
+        ("20:00", "Auto test suite",             self._run_auto_tests),
         ("16:10", "Sector rotation snapshot",    lambda: __import__("sector_rotation_engine").store_sector_snapshot()),
             ]
         else:
@@ -442,7 +445,8 @@ class OffHoursEngine:
             logger.debug("daily_accuracy: %s", e)
 
     def _run_fno_ban_check(self) -> None:
-        """9:05 AM daily: Fetch and log F&O ban list."""
+        """9:05 AM daily: Fetch F&O ban list AND SEBI ASM/GSM surveillance list."""
+        # F&O ban list
         try:
             from omnisource_news_engine import fetch_fno_ban_list
             banned = fetch_fno_ban_list()
@@ -454,6 +458,21 @@ class OffHoursEngine:
                 )
         except Exception as e:
             logger.debug("fno_ban: %s", e)
+
+        # ASM / GSM surveillance list (force-refresh daily at open)
+        try:
+            from asm_gsm_filter import get_asm_gsm_list, get_surveillance_status_message
+            watch = get_asm_gsm_list(force=True)   # force=True bypasses cache for daily refresh
+            msg   = get_surveillance_status_message()
+            logger.info("ASM/GSM refresh: %d symbols", len(watch))
+            if watch:
+                self.alerts.send(
+                    f"⚠️ <b>Surveillance Watch</b>\n{msg}\n"
+                    f"These symbols will be blocked from new signals.",
+                    dedup_key="asm_gsm_daily", dedup_cooldown_override=43200
+                )
+        except Exception as e:
+            logger.debug("asm_gsm_refresh: %s", e)
 
     def _run_heartbeat(self) -> None:
         """Market-hours heartbeat — bot alive + RAM/CPU/disk check."""
@@ -911,6 +930,55 @@ class OffHoursEngine:
 
 
 
+
+    def _run_auto_tests(self) -> None:
+        """Run full test suite during idle time (after hours/weekends)."""
+        try:
+            import subprocess
+            r = subprocess.run(
+                ["python3", "test_core.py"],
+                capture_output=True, text=True, timeout=60,
+                cwd="/home/sridhar/Desktop/trading_robot"
+            )
+            result = r.stdout[-300:] if r.stdout else "no output"
+            passed = "ALL TESTS PASSED" in result
+            if self.alerts:
+                icon = "✅" if passed else "❌"
+                self.alerts.send(
+                    f"{icon} <b>AUTO TEST RESULTS</b>\n<pre>{result}</pre>",
+                    dedup_key=f"auto_test_{__import__('datetime').date.today()}"
+                )
+        except Exception as e:
+            import logging; logging.getLogger(__name__).debug("auto_test: %s", e)
+
+    def _run_recon(self):
+        """Check positions match Angel. Auto-close orphaned local positions."""
+        try:
+            from angel import AngelOne
+            import os
+            ang = AngelOne(api_key=os.getenv("API_KEY",""),client_id=os.getenv("CLIENT_ID",""),
+                password=os.getenv("PASSWORD",""),totp_secret=os.getenv("TOTP_SECRET",""))
+            r = ang.reconcile_positions()
+            ap = r.get("angel_positions",{})
+            if ap and self.alerts:
+                ls = ["<b>POSITION CHECK</b>",""]
+                for s,d in ap.items(): ls.append(f"  {s}: qty={d['qty']}")
+                if not ap: ls.append("  No open positions")
+                # Auto-fix: close local positions not on Angel
+                try:
+                    import sqlite3
+                    conn = sqlite3.connect("trades.db", check_same_thread=False)
+                    local = conn.execute("SELECT symbol FROM trades WHERE status='OPEN'").fetchall()
+                    orphaned = [s for (s,) in local if s not in ap]
+                    if orphaned:
+                        for s in orphaned:
+                            conn.execute("UPDATE trades SET status='CLOSED',exit_time=datetime('now') WHERE symbol=? AND status='OPEN'",(s,))
+                            ls.append(f"  ⚠️ Auto-closed orphan: {s}")
+                        conn.commit()
+                    conn.close()
+                except Exception: pass
+                self.alerts.send("\n".join(ls),dedup_key="recon")
+        except Exception: pass
 
     def _run_eod_ml_analysis(self) -> None:
         """16:00: Run EOD ML analysis on all strategy scores from today."""

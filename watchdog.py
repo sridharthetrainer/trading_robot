@@ -62,11 +62,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger("watchdog")
 
+
+def _disarm_live_on_kill() -> None:
+    """
+    Disarm live trading whenever the watchdog has to force-kill the bot.
+
+    Angel has no broker-side max-loss kill (rmsLimit is read-only), so the
+    independent safety is: a hung/restarted bot must NOT silently resume real
+    orders. Deleting the daily arm file forces paper-only until the trader
+    deliberately re-/arms.
+    """
+    try:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "live_armed.json")
+        if os.path.exists(path):
+            os.remove(path)
+            logger.warning("Live DISARMED — bot force-killed; re-/arm to resume "
+                           "real orders")
+    except Exception:
+        pass
+
 # ── Config ────────────────────────────────────────────────────────────────────
 LIVE_STATUS_FILE = os.getenv("LIVE_STATUS_FILE", "live_status.json")
 TRADES_DB        = os.getenv("TRADES_DB",        "trades.db")
 BOT_SERVICE      = "trading-bot"
 CHECK_INTERVAL   = 30       # seconds between watchdog checks
+BOT_DIR          = Path(__file__).resolve().parent
+BOT_SCRIPT       = (BOT_DIR / "main_autonomous.py").resolve()
 
 # ── Phase thresholds (seconds before considering action) ───────────────────────
 THRESHOLDS = {
@@ -102,6 +124,7 @@ COOLDOWN = {
     "premarket":   7200,    # 2 hr between pre-market alerts
     "burst":       3600,    # 1 hr between burst-limit alerts
     "memory":       600,    # 10 min between memory alerts
+    "duplicate":    300,    # 5 min between duplicate-instance alerts
 }
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -159,16 +182,94 @@ def get_threshold(phase: str) -> int:
     return THRESHOLDS.get(phase, THRESHOLDS["UNKNOWN"])
 
 
-def bot_pid() -> int:
+def _pid_cmd_args(pid: int) -> list[str]:
     try:
-        r = subprocess.run(
-            ["pgrep", "-f", "main_autonomous.py"],
-            capture_output=True, text=True, timeout=5,
-        )
-        pids = [int(p) for p in r.stdout.split() if p.isdigit()]
-        return pids[0] if pids else 0
+        raw = Path(f"/proc/{pid}/cmdline").read_bytes()
     except Exception:
+        return []
+    return [part.decode(errors="ignore") for part in raw.split(b"\0") if part]
+
+
+def _pid_cwd(pid: int) -> Path:
+    try:
+        return Path(f"/proc/{pid}/cwd").resolve()
+    except Exception:
+        return BOT_DIR
+
+
+def _pid_cgroup(pid: int) -> str:
+    try:
+        return Path(f"/proc/{pid}/cgroup").read_text(errors="ignore")
+    except Exception:
+        return ""
+
+
+def _pid_is_service_managed(pid: int) -> bool:
+    return f"{BOT_SERVICE}.service" in _pid_cgroup(pid)
+
+
+def _is_python_exe(exe: str) -> bool:
+    return "python" in Path(exe).name.lower()
+
+
+def _matches_script(pid: int, script: Path) -> bool:
+    args = _pid_cmd_args(pid)
+    if not args or not _is_python_exe(args[0]):
+        return False
+
+    cwd = _pid_cwd(pid)
+    for arg in args[1:]:
+        if not arg.endswith(".py"):
+            continue
+        candidate = Path(arg)
+        if not candidate.is_absolute():
+            candidate = cwd / candidate
+        try:
+            if candidate.resolve() == script:
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def bot_pids() -> list[int]:
+    """Return exact main_autonomous.py Python processes, excluding this watchdog."""
+    hits: list[int] = []
+    self_pid = os.getpid()
+    for pid_s in os.listdir("/proc"):
+        if not pid_s.isdigit():
+            continue
+        pid = int(pid_s)
+        if pid == self_pid:
+            continue
+        if _matches_script(pid, BOT_SCRIPT):
+            hits.append(pid)
+    return sorted(set(hits))
+
+
+def bot_pid() -> int:
+    pids = bot_pids()
+    if not pids:
         return 0
+    service_pids = [pid for pid in pids if _pid_is_service_managed(pid)]
+    candidates = service_pids or pids
+    return sorted(candidates, key=lambda p: (-proc_age_sec(p), p))[0]
+
+
+def cleanup_duplicate_bots(keep_pid: int) -> list[int]:
+    extras = [pid for pid in bot_pids() if pid != keep_pid]
+    for pid in extras:
+        try:
+            os.kill(pid, signal.SIGTERM)
+            logger.error(
+                "Duplicate bot process terminated | keep_pid=%d extra_pid=%d",
+                keep_pid, pid,
+            )
+        except ProcessLookupError:
+            pass
+        except Exception as exc:
+            logger.error("Failed to terminate duplicate bot pid=%d: %s", pid, exc)
+    return extras
 
 
 def proc_age_sec(pid: int) -> int:
@@ -257,14 +358,83 @@ def svc_failed() -> bool:
 
 
 def restart_svc() -> None:
+    """
+    Restart the bot. Tries multiple methods so it works whether or not
+    sudo NOPASSWD is configured.
+      1. sudo systemctl reset-failed + restart (best — keeps systemd in sync)
+      2. SIGKILL existing bot → systemd's Restart=on-failure takes over
+      3. nohup direct launch (last resort — bot won't be systemd-tracked)
+    """
+    import os, signal
+    bot_dir = "/home/sridhar/Desktop/trading_robot"
+    venv_py = f"{bot_dir}/venv/bin/python3"
+
+    # Method 1: sudo systemctl (needs NOPASSWD)
     try:
-        subprocess.run(
-            ["sudo", "systemctl", "restart", BOT_SERVICE],
-            timeout=15, check=True,
+        r = subprocess.run(
+            ["sudo", "-n", "systemctl", "reset-failed", BOT_SERVICE],
+            timeout=10, capture_output=True,
         )
-        logger.info("systemd restart triggered")
+        r2 = subprocess.run(
+            ["sudo", "-n", "systemctl", "restart", BOT_SERVICE],
+            timeout=15, capture_output=True,
+        )
+        if r2.returncode == 0:
+            logger.info("Restarted via sudo systemctl")
+            return
     except Exception as e:
-        logger.error("Restart failed: %s", e)
+        logger.debug("sudo systemctl restart failed: %s", e)
+
+    # Method 2: SIGKILL → let systemd auto-restart
+    try:
+        old_pid = bot_pid()
+        if old_pid:
+            os.kill(old_pid, signal.SIGKILL)
+            logger.info("SIGKILL pid %d — waiting for systemd auto-restart", old_pid)
+            time.sleep(15)
+            new_pid = bot_pid()
+            if new_pid and new_pid != old_pid:
+                logger.info("systemd auto-restarted bot (new pid %d)", new_pid)
+                return
+    except Exception as e:
+        logger.debug("SIGKILL+systemd method failed: %s", e)
+
+    # Method 3: nohup direct launch (NOT systemd-tracked but bot will run)
+    try:
+        # Kill any stragglers
+        for pid in bot_pids():
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        time.sleep(2)
+        # Launch via nohup, redirect to log
+        logf = open(f"{bot_dir}/trading_bot.log", "ab")
+        proc = subprocess.Popen(
+            [venv_py, f"{bot_dir}/main_autonomous.py"],
+            cwd=bot_dir,
+            stdout=logf, stderr=subprocess.STDOUT,
+            start_new_session=True,
+            close_fds=True,
+        )
+        logger.warning("nohup launched bot pid=%d (NOT systemd-tracked)", proc.pid)
+        time.sleep(10)
+        if bot_pid():
+            _tg(
+                "🐕 <b>WATCHDOG: Bot revived via nohup</b>\n"
+                f"PID: {bot_pid()}\n"
+                "⚠️ Not systemd-tracked. SSH to fix: <code>sudo systemctl start trading-bot</code>"
+            )
+            return
+    except Exception as e:
+        logger.error("nohup launch failed: %s", e)
+
+    logger.error("ALL restart methods failed")
+    _tg(
+        "🚨 <b>WATCHDOG: ALL restart methods failed</b>\n"
+        "Bot is dead. SSH required:\n"
+        "<code>cd ~/Desktop/trading_robot && bash recover_bot.sh</code>"
+    )
 
 
 def emergency_close() -> None:
@@ -329,6 +499,17 @@ def run() -> None:
             threshold    = get_threshold(phase)
             pid          = bot_pid()
             proc_age     = proc_age_sec(pid) if pid > 0 else 0
+
+            if pid > 0:
+                duplicate_pids = cleanup_duplicate_bots(pid)
+                if duplicate_pids and (t - ts["duplicate"]) > COOLDOWN["duplicate"]:
+                    ts["duplicate"] = t
+                    _tg(
+                        "⚠️ <b>WATCHDOG: Duplicate bot instance stopped</b>\n"
+                        f"Kept PID: {pid}\n"
+                        f"Stopped: {', '.join(str(p) for p in duplicate_pids)}\n"
+                        "Reason: Telegram polling and live execution require one main bot."
+                    )
 
             heartbeat_ok = age <= threshold
 
@@ -442,6 +623,7 @@ def run() -> None:
                                     logger.info("SIGKILL sent to PID=%d", pid)
                                 except ProcessLookupError:
                                     pass
+                                _disarm_live_on_kill()
                                 stale_count = 0
                                 ts["restart"] = t
 
@@ -480,6 +662,7 @@ def run() -> None:
                                 os.kill(pid, signal.SIGKILL)
                             except Exception:
                                 pass
+                            _disarm_live_on_kill()
                         else:
                             _tg(
                                 f"⚠️ <b>WATCHDOG: High memory</b>\n"
@@ -514,14 +697,33 @@ def run() -> None:
             if (dtime(8,29) <= nt <= dtime(9,10)) and not svc_active():
                 if (t - ts["premarket"]) > COOLDOWN["premarket"]:
                     ts["premarket"] = t
-                    logger.warning("Bot NOT running at pre-market check")
+                    logger.warning("Bot NOT running at pre-market check — auto-restarting")
                     _tg(
                         f"⚠️ <b>WATCHDOG: Bot NOT running</b>\n"
-                        f"Time: {now.strftime('%H:%M')} (market opens 9:15 AM)\n\n"
-                        f"<b>To start:</b>\n"
-                        f"cd ~/Desktop/trading_robot\n"
-                        f"./bot.sh start"
+                        f"Time: {now.strftime('%H:%M')} (market opens 9:15 AM)\n"
+                        f"Attempting auto-restart..."
                     )
+                    # ACTUALLY try to restart — don't just alert
+                    restart_svc()
+                    time.sleep(15)
+                    if bot_pid():
+                        _tg(f"✅ <b>WATCHDOG: Bot revived</b>\nPID: {bot_pid()}")
+                    else:
+                        _tg(
+                            "🚨 <b>WATCHDOG: Auto-restart FAILED</b>\n"
+                            "SSH required:\n"
+                            "<code>cd ~/Desktop/trading_robot && bash recover_bot.sh</code>"
+                        )
+
+            # ── 6. ANY-TIME: bot dead and no process at all ─────────────────
+            # Fires once per 5 min — outside pre-market window
+            if not bot_pid() and (t - ts.get("anytime_dead", 0)) > 300:
+                ts["anytime_dead"] = t
+                logger.warning("No bot process found — attempting restart")
+                restart_svc()
+                time.sleep(15)
+                if bot_pid():
+                    _tg(f"🐕 <b>WATCHDOG: Bot auto-revived</b>\nPID: {bot_pid()}\nTime: {now.strftime('%H:%M')}")
 
         except Exception as e:
             logger.exception("Watchdog loop error: %s", e)

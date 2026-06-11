@@ -425,9 +425,9 @@ def generate_signal_card_image(signal: dict) -> Optional[str]:
                 f"⚠️ Educational only | Risk 1% of YOUR capital | {datetime.now().strftime('%d-%b %H:%M')}",
                 ha='center', color='#444444', fontsize=7)
 
+        import time   # was imported AFTER this use → UnboundLocalError
         today = date.today().strftime("%Y%m%d")
         out_path = str(_OUTPUT_DIR / f"signal_{symbol}_{today}_{int(time.time())}.png")
-        import time
         plt.savefig(out_path, dpi=120, bbox_inches='tight',
                     facecolor='#0D1117', edgecolor='none')
         plt.close()

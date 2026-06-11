@@ -1,17 +1,16 @@
 """
 backtest_iron_condor.py
 
-Backtest for Iron Condor and Bull Put Spread options selling strategies.
+DEPRECATED synthetic backtest for Iron Condor and Bull Put Spread strategies.
 
-Since we can't run actual options backtest without historical options chain
-data (Angel One doesn't provide this cheaply), this backtest uses a
-synthetic approach: model option premium decay using Black-Scholes
-approximation from underlying price data.
+This file is intentionally blocked because it invents option credit and loss
+severity from underlying prices. Use condor_backtest_real.py instead; it uses
+the backfilled real NIFTY option premia in options_nifty.db.
 
 Key insight: Iron Condors profit when the underlying stays within
 a range. We model: was NIFTY within ±200pts of entry level at expiry?
 
-Usage:  python backtest_iron_condor.py [--symbol NIFTY] [--days 120]
+Usage:  python condor_backtest_real.py --grid
 """
 from __future__ import annotations
 
@@ -27,7 +26,7 @@ logging.basicConfig(level=logging.WARNING)
 DEFAULT_SYMBOL   = "NIFTY"
 DEFAULT_DAYS     = 120    # need more data for weekly condors
 DEFAULT_CAPITAL  = 500_000.0
-DEFAULT_LOT      = 75
+DEFAULT_LOT      = 65
 DEFAULT_LOTS     = 1
 DEFAULT_BROK     = 80.0   # 4 legs × ₹20
 DEFAULT_STT      = 0.0005
@@ -36,6 +35,13 @@ IC_CREDIT_PCT    = 0.004  # ~0.4% of spot as credit (approx ₹90 for NIFTY@2200
 IC_ADJUST_BREACH = 0.5    # if short strike breached, assume 50% loss
 ENTRY_DAY        = 0      # Monday (weekday 0)
 EXIT_DTE         = 1      # exit when 1 day to expiry (Thursday)
+
+
+def _blocked() -> None:
+    raise RuntimeError(
+        "backtest_iron_condor.py is deprecated because it uses synthetic "
+        "credits/losses. Run condor_backtest_real.py for real-premia results."
+    )
 
 
 def fetch_daily(symbol: str, days: int) -> Optional[pd.DataFrame]:
@@ -59,6 +65,7 @@ def backtest_iron_condor(
     initial_capital: float = DEFAULT_CAPITAL,
     verbose: bool = True,
 ) -> Dict[str, Any]:
+    _blocked()
     if data is None or len(data) < 20:
         return _empty(symbol, "no_data")
 
@@ -155,6 +162,7 @@ def backtest_bull_put_spread(
     Bull Put Spread backtest. Same synthetic approach as Iron Condor.
     Only the put side — profits when price stays above put_short.
     """
+    _blocked()
     if data is None or len(data) < 10:
         return _empty(symbol, "no_data")
 
@@ -212,6 +220,12 @@ def _empty(symbol, reason):
 
 
 if __name__ == "__main__":
+    print(
+        "backtest_iron_condor.py is deprecated and blocked. "
+        "Run: python condor_backtest_real.py --grid"
+    )
+    raise SystemExit(2)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--symbol", default=DEFAULT_SYMBOL)
     parser.add_argument("--days",   type=int, default=DEFAULT_DAYS)

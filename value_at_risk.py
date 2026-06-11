@@ -144,10 +144,10 @@ def _load_daily_pnl(
         # Try to get per-day realised P&L
         rows = conn.execute(
             """
-            SELECT DATE(entry_time) as trade_date,
-                   SUM(COALESCE(realized_pnl, pnl, 0)) as day_pnl
+            SELECT DATE(COALESCE(exit_time, entry_time), 'unixepoch', 'localtime') as trade_date,
+                   SUM(COALESCE(realized_pnl, paper_pnl, live_pnl, 0)) as day_pnl
             FROM   trades
-            WHERE  DATE(entry_time) >= ?
+            WHERE  DATE(COALESCE(exit_time, entry_time), 'unixepoch', 'localtime') >= ?
               AND  status IN ('CLOSED','SQUARED_OFF','EXPIRED')
             GROUP  BY trade_date
             ORDER  BY trade_date
@@ -351,9 +351,14 @@ class ValueAtRisk:
         """
         try:
             import config as cfg
-            max_loss = float(getattr(cfg, "MAX_DAILY_LOSS", 3000))
+            configured_loss = float(getattr(cfg, "MAX_DAILY_LOSS", 3000))
         except Exception:
-            max_loss = self.capital * 0.03    # 3% default
+            configured_loss = self.capital * 0.03    # 3% default
+        var_limit = self.capital * self.var_limit_pct
+        # With thin history, do not let a fixed rupee MAX_DAILY_LOSS consume
+        # all VaR headroom on small accounts. Start conservatively at half the
+        # VaR budget, then let realised history take over once enough data exists.
+        max_loss = max(1.0, min(configured_loss, var_limit * 0.50))
         return VaRReport(
             capital       = self.capital,
             confidence    = self.confidence,
@@ -499,7 +504,7 @@ def get_var_engine(capital: float = 100_000) -> ValueAtRisk:
     if _var_engine is None or abs(_var_engine.capital - capital) > 1000:
         try:
             import config as cfg
-            _cap = float(getattr(cfg, 'CAPITAL', capital))
+            _cap = float(capital or getattr(cfg, 'CAPITAL', 100_000))
             _lim = float(getattr(cfg, 'VAR_LIMIT_PCT', 0.05))
         except Exception:
             _cap, _lim = capital, 0.05

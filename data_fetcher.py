@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+# Load .env so credentials are available
+try:
+    from dotenv import load_dotenv
+    load_dotenv('.env')
+except ImportError:
+    pass
+
 def _retry_with_backoff(fn, max_retries=3, base_delay=2.0):
     """Retry function with exponential backoff for network failures."""
     import time
@@ -340,37 +347,67 @@ class DataFetcher:
                     logger.info("Angel session refreshed before first scan")
             except Exception: pass
 
-        for symbol in symbols:
+        # ── Parallel data fetch (10 threads, ~8x faster) ────────────
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import datetime as _dt_par
+
+        def _fetch_one_symbol(_sym):
             try:
-                df = self.get_market_data(symbol)
-                # Use longer max_age at open (EOD seed data is hours old but still valid)
-                import datetime as _dt2
-                _now_h = _dt2.datetime.now().hour
-                _now_m = _dt2.datetime.now().minute
-                _at_open = (_now_h == 9 and _now_m <= 30)
-                max_age = 1440 if _at_open else int(getattr(self, '_max_data_age_minutes', 480))
-                if df is not None and not df.empty:
-                    if self._check_data_freshness(df, symbol, max_age):
-                        all_data[symbol] = df
-                        if _DL_TRACK:
-                            try: _dl_record("AngelOne/yfinance",f"{symbol} 5m","OK","OHLCV",rows=len(df))
-                            except Exception: pass
-                    # stale data: skip symbol, already logged
-                else:
-                    if _DL_TRACK:
-                        try: _dl_record("AngelOne/yfinance",f"{symbol} 5m","STALE","OHLCV",error="data stale")
-                        except Exception: pass
-                    # stale data: skip symbol, already logged
+                _d = self.get_market_data(_sym)
+                if _d is not None and not _d.empty:
+                    # ── Post-market aware freshness gate ──
+                    # During 9:15 AM - 3:30 PM (market hours): accept 5m bars up to 30 min old
+                    # Outside market hours: accept bars up to 24 hours old (yesterday's close data)
+                    now = _dt_par.datetime.now()
+                    hour = now.hour
+                    minute = now.minute
+                    
+                    # Check if currently in market hours (9:15 AM to 3:30 PM)
+                    in_market_hours = (
+                        (hour > 9 and hour < 15) or  # 10 AM to 2:59 PM
+                        (hour == 9 and minute >= 15) or  # 9:15 AM onwards
+                        (hour == 15 and minute <= 30)  # up to 3:30 PM
+                    )
+                    
+                    # During market: stricter (30 min), outside market: lenient (24 hr)
+                    _ma = 30 if in_market_hours else 1440
+                    
+                    if self._check_data_freshness(_d, _sym, _ma):
+                        return _sym, _d
+                return _sym, None
             except Exception:
-                logger.warning("Failed fetching %s", symbol)
+                return _sym, None
+
+        with ThreadPoolExecutor(max_workers=10) as _tpe:
+            _futs = [_tpe.submit(_fetch_one_symbol, s) for s in symbols]
+            for _f in as_completed(_futs, timeout=120):
+                try:
+                    _s, _d = _f.result(timeout=15)
+                    if _d is not None:
+                        all_data[_s] = _d
+                except Exception:
+                    pass
 
         if not all_data:
+            # Replicate the same in_market_hours logic used in _fetch_one_symbol above
+            _now_diag = _dt_par.datetime.now()
+            _dh, _dm = _now_diag.hour, _now_diag.minute
+            _in_mh = (_dh > 9 and _dh < 15) or (_dh == 9 and _dm >= 15) or (_dh == 15 and _dm <= 30)
+            _eff_max_age = 30 if _in_mh else 1440
+            # Diagnose: is angel set? did the patch fire? what's obj state?
+            _ang_state = "None"
+            if self.angel is not None:
+                _has_ghd = hasattr(self.angel, "get_historical_data")
+                _obj_set = getattr(self.angel, "obj", None) is not None
+                _paper = getattr(self.angel, "paper_trade", "?")
+                _ang_state = f"set(ghd={_has_ghd},obj={_obj_set},paper={_paper})"
             logger.error(
                 "SCANNED: 0 — No data fetched for ANY of %d symbols. "
+                "angel=%s freshness_gate=%d min. "
                 "Possible causes: Angel session expired, NSE rate limit, "
-                "or data freshness gate too strict (max_age=%d min). "
-                "Run /session to refresh Angel token.",
-                len(symbols), max_age
+                "or data freshness gate too strict. "
+                "Run /diagscan to confirm, /fixangel to reconnect.",
+                len(symbols), _ang_state, _eff_max_age,
             )
             # Try force session refresh for next cycle
             try:
@@ -554,8 +591,11 @@ class DataFetcher:
             # EOD/daily data always looks "stale" — last bar is yesterday's close
             # Accept it if we have enough bars for indicators (100+)
             if age_min > max_age_minutes:
-                if len(df) >= 5:  # accept if we have enough bars for basic indicators
-                    logger.debug("EOD data %s: age=%.0fm bars=%d (accepted)", symbol, age_min, len(df))
+                # Only bypass the freshness gate when the caller already passed a lenient
+                # threshold (outside market hours: 1440 min). During market hours (30 min)
+                # stale intraday data must be rejected — signals from old prices are harmful.
+                if max_age_minutes >= 1440:
+                    logger.debug("EOD/post-market data %s: age=%.0fm (accepted, lenient gate)", symbol, age_min)
                     return True
                 logger.warning(
                     "STALE DATA: %s last candle is %.0f min old (max=%d) — skipping",
@@ -608,25 +648,28 @@ class DataFetcher:
                 except Exception: pass
 
         # ── Quick yfinance fallback when Angel returns nothing ────────────────
-        try:
-            import yf_compat as yf  # yfinance removed: Yahoo API broken
-            _ysym = symbol.upper()
-            if _ysym in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY","SENSEX"}:
-                _ymap = {"NIFTY":"^NSEI","BANKNIFTY":"^NSEBANK","SENSEX":"^BSESN",
-                         "FINNIFTY":"NIFTY_FIN_SERVICE.NS","MIDCPNIFTY":"NIFTY_MIDCAP_SELECT.NS"}
-                _yt = _ymap.get(_ysym, f"{_ysym}.NS")
-            else:
-                _yt = f"{_ysym}.NS"
-            _ydf = _yf.download(_yt, period="5d", interval=f"{interval}",
-                                progress=False, auto_adjust=True)
-            if _ydf is not None and len(_ydf) >= 10:
-                _ydf.columns = [c.lower() if isinstance(c,str) else c[0].lower()
-                                for c in _ydf.columns]
-                self.cache[cache_key] = {"data": _ydf, "time": datetime.now()}
-                logger.info("yfinance fallback OK for %s (%d bars)", symbol, len(_ydf))
-                return _ydf
-        except Exception as _yfe:
-            logger.debug("yfinance fallback failed %s: %s", symbol, _yfe)
+        # Gate: set DISABLE_YFINANCE=true in .env to skip (default: enabled)
+        _yf_disabled = getattr(__import__("config"), "DISABLE_YFINANCE", False)
+        if not _yf_disabled:
+            try:
+                import yf_compat as yf  # yfinance removed: Yahoo API broken
+                _ysym = symbol.upper()
+                if _ysym in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY","SENSEX"}:
+                    _ymap = {"NIFTY":"^NSEI","BANKNIFTY":"^NSEBANK","SENSEX":"^BSESN",
+                             "FINNIFTY":"NIFTY_FIN_SERVICE.NS","MIDCPNIFTY":"NIFTY_MIDCAP_SELECT.NS"}
+                    _yt = _ymap.get(_ysym, f"{_ysym}.NS")
+                else:
+                    _yt = f"{_ysym}.NS"
+                _ydf = yf.download(_yt, period="5d", interval=f"{interval}",
+                                    progress=False, auto_adjust=True)
+                if _ydf is not None and len(_ydf) >= 10:
+                    _ydf.columns = [c.lower() if isinstance(c,str) else c[0].lower()
+                                    for c in _ydf.columns]
+                    self.cache[cache_key] = {"data": _ydf, "time": datetime.now()}
+                    logger.info("yfinance fallback OK for %s (%d bars)", symbol, len(_ydf))
+                    return _ydf
+            except Exception as _yfe:
+                logger.debug("yfinance fallback failed %s: %s", symbol, _yfe)
 
         # Fallback chain: SmartConnect direct → Angel wrapper → Fyers → TwelveData
         try:
@@ -730,6 +773,32 @@ class DataFetcher:
         except Exception as _ze:
             logger.debug("Zerodha fallback %s: %s", symbol, _ze)
 
+        # ── Local candle cache (instant, no API call) ────────────────────
+        try:
+            from candle_cache import get_cached_candles
+            _cached = get_cached_candles(symbol, interval, days=max(days, 5))
+            if _cached is not None and len(_cached) >= 5:
+                return _cached
+        except Exception as _ce:
+            logger.debug("Cache miss %s: %s", symbol, _ce)
+
+        # ── Upstox Historical V2 (FREE, no auth, no daily login) ─────────
+        try:
+            from upstox_data import get_candles as _upstox_get
+            _upstox_df = _upstox_get(symbol, interval=interval, days=max(days, 5))
+            if _upstox_df is not None and len(_upstox_df) >= 5:
+                _upstox_df.columns = [c.lower() for c in _upstox_df.columns]
+                self.cache[cache_key] = {"data": _upstox_df, "time": datetime.now()}
+                logger.info("Upstox ✅ %s %s: %d bars", symbol, interval, len(_upstox_df))
+                # Save to local cache
+                try:
+                    from candle_cache import save_candles
+                    save_candles(symbol, interval, _upstox_df)
+                except Exception: pass
+                return _upstox_df
+        except Exception as _ue:
+            logger.debug("Upstox %s: %s", symbol, _ue)
+
         # ── Bhavcopy cache fallback (always available offline) ───────────────
         try:
             from bhavcopy_cache import get_ohlcv as _bhav_ohlcv
@@ -741,6 +810,52 @@ class DataFetcher:
                 return _bhav_df
         except Exception as _bhe:
             logger.debug("Bhavcopy fallback %s: %s", symbol, _bhe)
+
+
+        # ── NSE Index Historical API (for NIFTY, BANKNIFTY etc) ──────────
+        _IDX_SET = {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY","SENSEX","NIFTYNEXT50","NIFTYIT","NIFTYBANK"}
+        if symbol.upper().replace(" ","") in _IDX_SET or "NIFTY" in symbol.upper():
+            try:
+                import requests
+                _idx_name_map = {
+                    "NIFTY": "NIFTY 50", "BANKNIFTY": "NIFTY BANK",
+                    "FINNIFTY": "NIFTY FIN SERVICE", "MIDCPNIFTY": "NIFTY MIDCAP SELECT",
+                    "SENSEX": "S&P BSE SENSEX", "NIFTYNEXT50": "NIFTY NEXT 50",
+                    "NIFTYIT": "NIFTY IT", "NIFTYBANK": "NIFTY BANK",
+                }
+                _idx = _idx_name_map.get(symbol.upper(), symbol)
+                _s = requests.Session()
+                _s.headers.update({"User-Agent": "Mozilla/5.0", "Referer": "https://www.nseindia.com"})
+                _s.get("https://www.nseindia.com/", timeout=5)
+                _end = datetime.now().strftime("%d-%m-%Y")
+                _start = (datetime.now() - timedelta(days=365)).strftime("%d-%m-%Y")
+                _r = _s.get(
+                    f"https://www.nseindia.com/api/historical/indicesHistory"
+                    f"?indexType={_idx}&from={_start}&to={_end}",
+                    timeout=10,
+                )
+                if _r.status_code == 200:
+                    _recs = _r.json().get("data", {}).get("indexCloseOnlineRecords", [])
+                    if _recs and len(_recs) >= 5:
+                        import pandas as _pd_idx
+                        _rows = []
+                        for _d in _recs:
+                            _rows.append({
+                                "date": _pd_idx.Timestamp(_d.get("EOD_TIMESTAMP",""), dayfirst=True),
+                                "open": float(_d.get("EOD_OPEN_INDEX_VAL", 0) or 0),
+                                "high": float(_d.get("EOD_HIGH_INDEX_VAL", 0) or 0),
+                                "low": float(_d.get("EOD_LOW_INDEX_VAL", 0) or 0),
+                                "close": float(_d.get("EOD_CLOSE_INDEX_VAL", 0) or 0),
+                                "volume": int(_d.get("TRADED_QTY", 0) or 0),
+                            })
+                        _idx_df = _pd_idx.DataFrame(_rows).set_index("date").sort_index()
+                        _idx_df = _idx_df[_idx_df["close"] > 0]
+                        if len(_idx_df) >= 5:
+                            self.cache[cache_key] = {"data": _idx_df, "time": datetime.now()}
+                            logger.info("NSE index API ✅ %s (%d bars)", symbol, len(_idx_df))
+                            return _idx_df
+            except Exception as _nse_e:
+                logger.debug("NSE index %s: %s", symbol, _nse_e)
 
         # ── yf_compat fallback (Stooq → Yahoo → cached) ─────────────────────
         try:

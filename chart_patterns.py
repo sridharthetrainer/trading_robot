@@ -41,6 +41,76 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+_PATTERN_ENGINE = None
+
+
+def _scan_pattern_engine(df: pd.DataFrame, symbol: str = "") -> dict:
+    """
+    Prefer the newer mathematical pattern engine for live use.
+
+    It returns confirmed, recent, risk-aware patterns. The legacy detectors below
+    remain as a fallback because they are looser and useful for early formation
+    context, but the engine result is cleaner for actual signal voting.
+    """
+    global _PATTERN_ENGINE
+    try:
+        if _PATTERN_ENGINE is None:
+            from pattern_engine import PatternEngine
+            _PATTERN_ENGINE = PatternEngine()
+        all_results = _PATTERN_ENGINE.detect(df, symbol=symbol or "")
+        best = _PATTERN_ENGINE.detect_best(
+            df,
+            symbol=symbol or "",
+            min_confidence=55.0,
+            min_risk_reward=1.2,
+            max_age_bars=8,
+            require_confirmed=True,
+        )
+        all_patterns = {
+            r.pattern: {
+                "pattern": r.pattern.upper(),
+                "direction": "BUY" if str(r.direction).endswith("LONG") else "SELL",
+                "confidence": round(float(r.confidence), 1),
+                "risk_reward": float(r.risk_reward),
+                "breakout_confirmed": bool(r.breakout_confirmed),
+                "volume_confirmation": bool(r.volume_confirmation),
+                "end_index": int(r.end_index),
+            }
+            for r in all_results
+        }
+        if best is None:
+            return {
+                "pattern": None,
+                "score": 0.0,
+                "direction": None,
+                "all_patterns": all_patterns,
+                "patterns": list(all_patterns.keys()),
+                "engine": "pattern_engine",
+            }
+        direction = "BUY" if str(best.direction).endswith("LONG") else "SELL"
+        score = max(0.0, min(10.0, float(best.confidence) / 10.0))
+        return {
+            "pattern": best.pattern.upper(),
+            "type": "CONFIRMED",
+            "direction": direction,
+            "score": round(score, 2),
+            "confidence": round(float(best.confidence), 1),
+            "entry": float(best.entry),
+            "target": float(best.target),
+            "stop": float(best.stop_loss),
+            "risk_reward": float(best.risk_reward),
+            "breakout_level": float(best.breakout_level),
+            "breakout_confirmed": bool(best.breakout_confirmed),
+            "volume_confirmation": bool(best.volume_confirmation),
+            "market_structure": best.market_structure,
+            "engine": "pattern_engine",
+            "all_patterns": all_patterns,
+            "patterns": list(all_patterns.keys()),
+        }
+    except Exception as exc:
+        logger.debug("pattern_engine scan failed: %s", exc)
+        return {"pattern": None, "score": 0.0, "direction": None}
+
 
 def _highs_lows(df: pd.DataFrame, window: int = 3) -> Tuple[list, list]:
     """Find swing highs and lows using local extrema."""
@@ -605,8 +675,12 @@ def dwm_confluence_score(price: float, direction: str, levels: dict) -> Tuple[fl
 # MASTER PATTERN SCANNER
 # ─────────────────────────────────────────────────────────────────────────────
 
-def scan_all_patterns(df: pd.DataFrame) -> dict:
+def scan_all_patterns(df: pd.DataFrame, symbol: str = "") -> dict:
     """Scan all patterns and return the strongest signal."""
+    engine_result = _scan_pattern_engine(df, symbol=symbol)
+    if engine_result.get("pattern"):
+        return engine_result
+
     results = {}
     for fn, name in [
         (detect_triangle,             "triangle"),
@@ -627,7 +701,19 @@ def scan_all_patterns(df: pd.DataFrame) -> dict:
 
     # Return highest-scoring pattern
     best = max(results.values(), key=lambda x: x.get("score", 0))
-    best["all_patterns"] = {k: v.get("pattern") for k,v in results.items() if v.get("pattern")}
+    best["all_patterns"] = {
+        k: {
+            "pattern": v.get("pattern"),
+            "direction": v.get("direction") or v.get("side"),
+            "confidence": float(v.get("confidence", v.get("score", 0) * 10) or 0),
+            "risk_reward": float(v.get("risk_reward", 0) or 0),
+            "breakout_confirmed": bool(v.get("breakout_confirmed", False)),
+            "volume_confirmation": bool(v.get("volume_confirmation", False)),
+        }
+        for k, v in results.items()
+        if v.get("pattern")
+    }
+    best["patterns"] = list(best["all_patterns"].keys())
     return best
 
 
@@ -635,13 +721,13 @@ def scan_all_patterns(df: pd.DataFrame) -> dict:
 # STRATEGY WRAPPER — for STRATEGIES list
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_chart_pattern_strategy(df, df_htf=None, option_data=None) -> dict:
+def run_chart_pattern_strategy(df, df_htf=None, symbol: str = "", option_data=None) -> dict:
     """
     Drop-in strategy: scans all chart patterns on current df.
     Returns best pattern signal with score.
     """
     try:
-        result = scan_all_patterns(df)
+        result = scan_all_patterns(df, symbol=symbol)
         if not result.get("pattern"):
             return {"strategy": "chart_pattern", "score": 0.0, "direction": None, "side": None}
         direction = result.get("direction") or result.get("side")
@@ -651,9 +737,15 @@ def run_chart_pattern_strategy(df, df_htf=None, option_data=None) -> dict:
             "direction":  direction,
             "side":       direction,
             "pattern":    result.get("pattern",""),
+            "patterns":   result.get("patterns", []),
+            "all_patterns": result.get("all_patterns", {}),
             "target":     result.get("target", 0),
             "stop":       result.get("stop", 0),
             "confidence": result.get("confidence", 0),
+            "risk_reward": result.get("risk_reward", 0),
+            "breakout_confirmed": result.get("breakout_confirmed", False),
+            "volume_confirmation": result.get("volume_confirmation", False),
+            "pattern_engine": result.get("engine", "legacy"),
         }
     except Exception as e:
         logger.debug("run_chart_pattern_strategy: %s", e)

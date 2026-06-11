@@ -45,17 +45,17 @@ from indicators import calculate_ema, calculate_atr, calculate_adx
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-slippage_model = SlippageModel(percent_slippage=0.05, min_slippage_amount=20.0)
+slippage_model = SlippageModel(percent_slippage=0.05, min_slippage_amount=0.5)
 
 LOT_SIZES = {
-    "NIFTY": 50,
-    "BANKNIFTY": 50,
-    "FINNIFTY": 40,
-    "MIDCPNIFTY": 75,
-    "SENSEX": 10,
-    "BANKEX": 15,
+    "NIFTY": 65,
+    "BANKNIFTY": 30,
+    "FINNIFTY": 60,
+    "MIDCPNIFTY": 120,
+    "SENSEX": 20,
+    "BANKEX": 30,
 }
-DEFAULT_LOT = 10
+DEFAULT_LOT = 65
 
 
 @dataclass
@@ -201,6 +201,8 @@ def backtest_5min_ema(
     adx_threshold: Optional[float] = None,
     min_atr_ratio: float = 0.0,
     max_atr_ratio: float = 1.0,
+    min_body_atr: float = 0.10,
+    max_entry_atr_extension: float = 2.5,
     stop_atr_mult: float = 1.8,
     trail_atr_mult: float = 1.2,
     trail_activate: float = 0.0,
@@ -210,7 +212,8 @@ def backtest_5min_ema(
     lot_multiplier: int = 1,
     initial_capital: float = 100000.0,
     brokerage_per_order: float = 20.0,
-    stt_rate: float = 0.0005,          # 0.05% NSE sell-side options STT
+    # Index-point/futures proxy. Real option-buying must be tested on option premia.
+    stt_rate: float = 0.0002,          # 0.02% NSE futures sell-side STT
     interval_minutes: int = 5,
     verbose: bool = True,
 ) -> Dict:
@@ -232,6 +235,8 @@ def backtest_5min_ema(
         raise ValueError("initial_capital must be > 0")
     if min_atr_ratio < 0 or max_atr_ratio <= 0 or min_atr_ratio > max_atr_ratio:
         raise ValueError("Invalid ATR ratio bounds")
+    if min_body_atr < 0 or max_entry_atr_extension <= 0:
+        raise ValueError("Invalid entry quality filter bounds")
 
     min_required = max(fast_ema, slow_ema, 14) + 10
     if len(data) < min_required:
@@ -273,8 +278,8 @@ def backtest_5min_ema(
             actual_exit = slippage_model.apply_slippage(raw_exit_price, is_buy=True)
             gross_pnl = (position.entry - actual_exit) * qty
 
-        # STT: 0.05% of exit premium on the sell side (options)
-        stt = actual_exit * quantity * stt_rate
+        # STT: futures/index-proxy sell-side notional. This is not option-premium P&L.
+        stt = actual_exit * qty * stt_rate
         pnl = gross_pnl - brokerage_per_order - stt
         capital += pnl
         equity_curve.append(capital)
@@ -400,6 +405,12 @@ def backtest_5min_ema(
             continue
 
         if not (pass_adx_filter and pass_vol_filter):
+            skipped_due_to_filters += 1
+            continue
+
+        candle_body = abs(float(close_series.iloc[i]) - float(open_series.iloc[i]))
+        ema_extension = abs(price - fast_now) / max(current_atr, 1e-9)
+        if candle_body < min_body_atr * current_atr or ema_extension > max_entry_atr_extension:
             skipped_due_to_filters += 1
             continue
 

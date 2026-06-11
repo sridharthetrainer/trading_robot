@@ -117,6 +117,7 @@ class WalkForwardResult:
 
     # Raw window data
     windows: List[Dict]
+    equity_curve: List[float]   # OOS capital: [initial] + [final_capital per window]
 
     def to_dict(self) -> Dict:
         d = asdict(self)
@@ -126,10 +127,15 @@ class WalkForwardResult:
 # ── Slicing helpers ──────────────────────────────────────────────────────────
 
 def _slice_by_index(df: pd.DataFrame, n_bars: int, offset: int = 0) -> pd.DataFrame:
-    """Return df[offset : offset + n_bars] safely."""
+    """Return df[offset : offset + n_bars] safely, preserving DatetimeIndex for date labels."""
     start = max(0, offset)
     end   = min(len(df), offset + n_bars)
-    return df.iloc[start:end].copy().reset_index(drop=True)
+    sliced = df.iloc[start:end].copy()
+    # Only reset index when it is NOT a DatetimeIndex — preserving dates is essential
+    # for walk-forward window labelling and regime-stratified analysis.
+    if not isinstance(sliced.index, pd.DatetimeIndex):
+        sliced = sliced.reset_index(drop=True)
+    return sliced
 
 
 def _bars_per_day(df: pd.DataFrame, interval_minutes: int = 5) -> int:
@@ -253,18 +259,32 @@ def run_walk_forward(
                 close_at_end = True,
             )
 
+            # Apply NSE-accurate cost model to gross P&L
+            # avg_trade_value estimated from capital and number of trades
+            gross_pnl    = float(result.get("total_pnl", 0.0))
+            num_trades   = int(result.get("num_trades", 0))
+            cost_pnl     = 0.0
+            try:
+                from nse_cost_model import get_cost_model as _gcm
+                _cm = _gcm()
+                _avg_turnover = initial_capital * 0.8  # typical 80% capital per trade
+                _cost_per_rt  = _cm.round_trip_cost(_avg_turnover, instrument="FUT", symbol="NIFTY")
+                cost_pnl      = _cost_per_rt * max(num_trades, 0)
+            except Exception: pass
+            net_pnl_after_costs = gross_pnl - cost_pnl
+
             wr = WindowResult(
                 window_idx    = idx,
                 train_start   = meta["train_start"],
                 train_end     = meta["train_end"],
                 test_start    = meta["test_start"],
                 test_end      = meta["test_end"],
-                total_pnl     = float(result.get("total_pnl",    0.0)),
-                num_trades    = int(  result.get("num_trades",    0)),
+                total_pnl     = round(net_pnl_after_costs, 2),
+                num_trades    = num_trades,
                 win_rate      = float(result.get("win_rate",      0.0)),
                 sharpe        = float(result.get("sharpe",        0.0)),
                 max_drawdown  = float(result.get("max_drawdown",  0.0)),
-                final_capital = float(result.get("final_capital", initial_capital)),
+                final_capital = float(result.get("final_capital", initial_capital)) - cost_pnl,
             )
             window_results.append(wr)
 
@@ -304,6 +324,8 @@ def run_walk_forward(
         if avg_sharpe > 0 else 0.0
     )
 
+    oos_equity = [initial_capital] + [w.final_capital for w in window_results]
+
     result = WalkForwardResult(
         strategy           = strategy_name,
         windows_run        = len(window_results),
@@ -317,6 +339,7 @@ def run_walk_forward(
         sharpe_std         = round(sharpe_std, 4),
         consistency_score  = round(consistency, 4),
         windows            = [asdict(w) for w in window_results],
+        equity_curve       = oos_equity,
     )
 
     logger.info(
@@ -473,7 +496,92 @@ def run_walk_forward_all(
         except Exception as exc:
             logger.warning("Failed to save walk-forward results: %s", exc)
 
+        # Add regime-stratified breakdown immediately after saving
+        try:
+            stratify_results_by_regime(results_file=results_file)
+        except Exception as exc:
+            logger.debug("Regime stratification: %s", exc)
+
     return results
+
+
+# ── Regime-stratified analysis of saved results ──────────────────────────────
+
+def stratify_results_by_regime(
+    signal_log_file: str = "signal_log.csv",
+    results_file:    str = WF_RESULTS_FILE,
+) -> Dict[str, Any]:
+    """
+    Post-processes saved walk-forward results by matching each OOS window's
+    signals with the recorded regime at signal time.
+
+    Reads signal_log.csv (columns: strategy, regime, pnl, timestamp, ...) and
+    computes per-regime Sharpe/win-rate for each strategy.
+
+    Output added to walk_forward_results.json under the "by_regime" key.
+    Strategy edge is only real if it works across multiple regimes, not just
+    one — this surface is the key guard against regime-specific overfitting.
+    Reference: Ernie Chan "Algorithmic Trading" Ch.3, Andreas Clenow "Trading Evolved".
+    """
+    try:
+        import pandas as pd
+        from pathlib import Path
+
+        slp = Path(signal_log_file)
+        if not slp.exists():
+            logger.info("signal_log not found — regime stratification skipped")
+            return {}
+
+        sig_df = pd.read_csv(str(slp))
+        required_cols = {"strategy", "regime", "pnl"}
+        if not required_cols.issubset(set(sig_df.columns)):
+            logger.warning("signal_log missing columns %s — skipping stratification",
+                           required_cols - set(sig_df.columns))
+            return {}
+
+        sig_df["pnl"] = pd.to_numeric(sig_df["pnl"], errors="coerce").fillna(0)
+
+        by_regime: Dict[str, Any] = {}
+
+        for strategy in sig_df["strategy"].unique():
+            strat_df = sig_df[sig_df["strategy"] == strategy]
+            if len(strat_df) < 5:
+                continue
+            regime_stats: Dict[str, Any] = {}
+            for regime in strat_df["regime"].unique():
+                r_df = strat_df[strat_df["regime"] == regime]
+                if len(r_df) < 3:
+                    continue
+                returns = r_df["pnl"].values
+                mean_r  = float(np.mean(returns))
+                std_r   = float(np.std(returns, ddof=1)) if len(returns) > 1 else 1.0
+                sharpe  = round(mean_r / max(std_r, 1e-9) * np.sqrt(252), 3)
+                win_rate = round(float((returns > 0).mean()), 3)
+                regime_stats[str(regime)] = {
+                    "n_trades":  len(r_df),
+                    "sharpe":    sharpe,
+                    "win_rate":  win_rate,
+                    "avg_pnl":   round(mean_r, 2),
+                }
+            if regime_stats:
+                by_regime[str(strategy)] = regime_stats
+
+        # Merge into saved walk-forward results file
+        if by_regime:
+            wf_path = Path(results_file)
+            if wf_path.exists():
+                existing = json.loads(wf_path.read_text(encoding="utf-8"))
+            else:
+                existing = {"timestamp": str(date.today()), "results": {}}
+            existing["by_regime"]  = by_regime
+            existing["regime_ts"]  = str(date.today())
+            wf_path.write_text(json.dumps(existing, indent=2, default=str), encoding="utf-8")
+            logger.info("Regime-stratified results added: %d strategies", len(by_regime))
+
+        return by_regime
+    except Exception as exc:
+        logger.warning("stratify_results_by_regime failed: %s", exc)
+        return {}
 
 
 # ── CLI entry point ──────────────────────────────────────────────────────────

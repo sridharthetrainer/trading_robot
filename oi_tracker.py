@@ -270,12 +270,12 @@ class OITracker:
                 logger.debug("OITracker loop: %s", e)
             time.sleep(20)   # check every 20s to catch 5-min boundary
 
-    def _refresh(self, symbol: str) -> None:
+    def _refresh(self, symbol: str) -> bool:
         """Fetch, compute direction, detect changes."""
         try:
             raw = _fetch_chain(symbol)
             if not raw:
-                return
+                return False
             spot, strikes_now = _parse_chain(raw)
             ts = datetime.now().strftime("%H:%M")
 
@@ -316,9 +316,11 @@ class OITracker:
             # 2. Surge in single strike
             if direction["surge"]:
                 self._alert_surge(symbol, direction["surge"], spot, ts)
+            return True
 
         except Exception as e:
             logger.debug("OI refresh %s: %s", symbol, e)
+            return False
 
     def _alert_direction_flip(
         self, sym: str, prev: str, d: dict, spot: float, ts: str,
@@ -392,8 +394,15 @@ class OITracker:
             dirs   = list(self._directions.get(symbol, []))[-bars:]
 
         if len(snaps) < 2:
+            refreshed = self._refresh(symbol)
+            with self._lock:
+                snaps  = list(self._snaps.get(symbol, []))[-bars:]
+                dirs   = list(self._directions.get(symbol, []))[-bars:]
+            if len(snaps) >= 2:
+                return self.format_trend(symbol=symbol, bars=bars)
             return (f"⏳ <b>{symbol} OI TREND</b>\n"
                     f"  Building data... ({len(snaps)}/2 snapshots)\n"
+                    f"  Fresh fetch: {'ok' if refreshed else 'failed'}\n"
                     f"  Refreshes every 5 min from 9:15 AM")
 
         first_ts, first_strikes, first_spot = snaps[0]

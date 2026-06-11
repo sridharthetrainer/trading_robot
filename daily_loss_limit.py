@@ -120,6 +120,17 @@ class DailyLossLimitManager:
         self.locked:            bool          = False
         self.lock_reason:       Optional[str] = None
 
+        # Consecutive-loss / trade-count state (Mechanism B). These were used by
+        # record_trade_result()/can_trade_by_count() but NEVER initialized →
+        # record_trade_result AttributeError'd (the consecutive-loss stop never
+        # worked). Limits from config; counters reset each day in reset_day().
+        import config as _cfg_dl
+        self._consecutive_loss_limit = int(getattr(_cfg_dl, "MAX_CONSECUTIVE_LOSSES", 3))
+        self._max_trades_today       = int(getattr(_cfg_dl, "MAX_TRADES_PER_DAY", 6))
+        self._trades_today           = 0
+        self._consecutive_losses     = 0
+        self._last_trade_was_loss    = False
+
         # Alert de-dupe flags — reset each day
         self.soft_alert_sent:   bool          = False
         self.hard_alert_sent:   bool          = False
@@ -178,8 +189,10 @@ class DailyLossLimitManager:
             self._consecutive_losses += 1
             self._last_trade_was_loss = True
             if self._consecutive_losses >= self._consecutive_loss_limit:
-                self._locked       = True
-                self._lock_reason  = (
+                # Use self.lock() so self.locked (what can_trade() checks) is set
+                # AND the trade manager is locked — previously it set self._locked,
+                # which can_trade() never reads, so trading wasn't actually stopped.
+                self.lock(
                     f"consecutive_losses_{self._consecutive_losses}_"
                     f"limit_{self._consecutive_loss_limit}"
                 )
@@ -210,8 +223,8 @@ class DailyLossLimitManager:
             "max_trades":          self._max_trades_today,
             "consecutive_losses":  self._consecutive_losses,
             "consecutive_limit":   self._consecutive_loss_limit,
-            "locked":              self._locked,
-            "lock_reason":         getattr(self, "_lock_reason", ""),
+            "locked":              self.locked,
+            "lock_reason":         self.lock_reason or "",
         }
 
 
@@ -244,8 +257,7 @@ class DailyLossLimitManager:
         if amount < 0:
             self._weekly_loss += abs(amount)
         if self._weekly_loss >= self._weekly_limit:
-            self._locked      = True
-            self._lock_reason = (
+            self.lock(
                 f"weekly_loss_₹{self._weekly_loss:.0f}_>_limit_₹{self._weekly_limit:.0f}"
             )
             logger.warning(
@@ -281,6 +293,10 @@ class DailyLossLimitManager:
         self.soft_alert_sent       = False
         self.hard_alert_sent       = False
         self.last_reset_date       = date.today()
+        # Reset Mechanism B daily counters (limits are config, kept).
+        self._trades_today         = 0
+        self._consecutive_losses   = 0
+        self._last_trade_was_loss  = False
         logger.info(
             "Daily loss state reset | date=%s", self.last_reset_date.isoformat()
         )

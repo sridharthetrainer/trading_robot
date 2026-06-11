@@ -93,11 +93,13 @@ try:
 except Exception as e:
     print(f"  ❌ Balance failed: {e}")
 
-# Test 4: DataFetcher
+# Test 4: DataFetcher (same way LiveSignalEngine creates it)
 print("\n[5] Testing DataFetcher with Angel...")
 try:
     from data_fetcher import DataFetcher
     df_obj = DataFetcher(angel=ang, paper_trade=False)
+    print(f"  DataFetcher.angel = {df_obj.angel}")
+    print(f"  angel has get_historical: {hasattr(df_obj.angel, 'get_historical_data') if df_obj.angel else 'angel is None'}")
     data = df_obj.get_market_data("NIFTY", interval="5m", days=5)
     if data is not None:
         print(f"  ✅ DataFetcher returned {len(data)} bars for NIFTY")
@@ -111,3 +113,34 @@ except Exception as e:
 print("\n" + "=" * 55)
 print("Run: python3 diag_scan.py")
 print("Share the output and I can fix the exact issue")
+
+
+# Test 5: LiveSignalEngine DataFetcher
+print("\n[6] Testing LiveSignalEngine DataFetcher (the REAL scan path)...")
+try:
+    from live_signal_engine import LiveSignalEngine
+    lse = LiveSignalEngine()
+    df_angel = lse.data_fetcher.angel
+    method = getattr(lse, "_angel_source_method", "unknown")
+    print(f"  LSE DataFetcher.angel = {type(df_angel).__name__ if df_angel else 'None'}")
+    print(f"  LSE angel.obj         = {'EXISTS' if df_angel and df_angel.obj else 'None'}")
+    print(f"  LSE angel.paper_trade = {df_angel.paper_trade if df_angel else 'N/A'}")
+    print(f"  LSE angel source      = {method}")
+    if df_angel and df_angel.obj:
+        data = lse.data_fetcher.get_market_data("NIFTY", interval="5m", days=5)
+        bars = len(data) if data is not None else 0
+        if bars >= 50:
+            print(f"  ✅ LSE NIFTY: {bars} bars — SCAN WILL WORK")
+        elif bars > 0:
+            print(f"  ⚠️  LSE NIFTY: {bars} bars — low count, check market hours")
+        else:
+            print(f"  ❌ LSE NIFTY: 0 bars — angel set but fetch failed")
+    else:
+        print("  ❌ LSE DataFetcher has NO Angel — THIS is why Scanned: 0")
+        print("     Causes: (a) deploy didn't replace live_signal_engine.py")
+        print("             (b) all 3 Angel fallback methods failed")
+        print("             (c) Angel login failure (check .env credentials)")
+except Exception as e:
+    import traceback
+    print(f"  LSE test: {e}")
+    print(f"  Traceback: {traceback.format_exc()[-400:]}")

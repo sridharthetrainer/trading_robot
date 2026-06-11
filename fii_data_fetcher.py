@@ -35,6 +35,9 @@ def fetch_nse_fii_dii_today() -> Dict:
     try:
         import requests
         s = requests.Session()
+        try:
+            from nse_proxy import apply as _apply_nse_proxy; _apply_nse_proxy(s)
+        except Exception: pass
         s.headers.update({
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64)",
             "Referer":    "https://www.nseindia.com",
@@ -68,6 +71,9 @@ def fetch_nse_fii_dii_today() -> Dict:
     try:
         import requests
         s = requests.Session()
+        try:
+            from nse_proxy import apply as _apply_nse_proxy; _apply_nse_proxy(s)
+        except Exception: pass
         s.headers.update({"User-Agent":"Mozilla/5.0","Referer":"https://www.nseindia.com"})
         s.get("https://www.nseindia.com/", timeout=5)
         r2 = s.get(
@@ -105,6 +111,9 @@ def fetch_nse_fii_dii_today() -> Dict:
     try:
         import requests
         s = requests.Session()
+        try:
+            from nse_proxy import apply as _apply_nse_proxy; _apply_nse_proxy(s)
+        except Exception: pass
         s.headers.update({"User-Agent":"Mozilla/5.0","Referer":"https://www.nseindia.com"})
         s.get("https://www.nseindia.com/", timeout=5)
         today_str = date.today().strftime("%d-%m-%Y")

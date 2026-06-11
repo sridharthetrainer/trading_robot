@@ -13,7 +13,7 @@ CONCEPT (NSE-specific):
   - VIX spikes (geopolitical event, RBI surprise)
   - Key level breaks (PDH/PDL, CPR breakout)
 
-MATH EXAMPLE (NIFTY, 1 lot = 50):
+MATH EXAMPLE (NIFTY, 1 lot = 65):
   Buy NIFTY 22700 CE at ₹5 when NIFTY = 22500
   Cost = ₹5 × 50 = ₹250 (your max loss)
   If NIFTY moves to 22850:
@@ -39,31 +39,39 @@ SELECTION:
   Stop:    100% (options expire worthless if wrong — that's the deal)
 
 INSTRUMENTS:  NIFTY, BANKNIFTY, FINNIFTY, SENSEX, MIDCPNIFTY
-EXPIRY DAYS:  NIFTY=Thu, BANKNIFTY=Wed, FINNIFTY=Tue, SENSEX=Fri
+EXPIRY DAYS:  NIFTY=Tue (weekly, NSE), SENSEX=Thu (weekly, BSE).
+              BANKNIFTY/FINNIFTY/MIDCPNIFTY weeklies discontinued (SEBI Nov-2024)
+              — monthly only (last Tue). Verified Jun 2026. Holiday shifts to the
+              prior working day are NOT yet handled (caveat).
 """
 from __future__ import annotations
 
 import logging
-from datetime import datetime, date, time as dtime
+import os
+from datetime import datetime, date, time as dtime, timedelta
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# ── Expiry schedule ───────────────────────────────────────────────────────────
+# ── Expiry schedule (post SEBI Nov-2024 single-weekly rule + Sept-2025 shift) ──
+# Only NIFTY (NSE) and SENSEX (BSE) still have WEEKLY expiries. The rest lost
+# their weeklies and now expire only on the MONTHLY (last expiry-weekday).
 _EXPIRY_DAY = {
-    "NIFTY":      3,   # Thursday (weekday 3)
-    "BANKNIFTY":  2,   # Wednesday
-    "FINNIFTY":   1,   # Tuesday
-    "SENSEX":     4,   # Friday
-    "MIDCPNIFTY": 0,   # Monday
+    "NIFTY":      1,   # Tuesday — weekly (NSE)
+    "SENSEX":     3,   # Thursday — weekly (BSE)
+    "BANKNIFTY":  1,   # Tuesday — MONTHLY only (last Tue)
+    "FINNIFTY":   1,   # Tuesday — MONTHLY only (last Tue)
+    "MIDCPNIFTY": 1,   # Tuesday — MONTHLY only (last Tue)
 }
+# Indices whose weekly expiry was discontinued — 0DTE only on the monthly expiry.
+_MONTHLY_ONLY = {"BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"}
 
 # ── Strike grid (approx lot sizes) ───────────────────────────────────────────
 _LOT_SIZES = {
-    "NIFTY": 50, "BANKNIFTY": 30, "FINNIFTY": 65,
-    "SENSEX": 20, "MIDCPNIFTY": 120,
+    "NIFTY": 65, "BANKNIFTY": 30, "FINNIFTY": 60,
+    "SENSEX": 20, "MIDCPNIFTY": 120, "BANKEX": 30,
 }
 _STRIKE_GAP = {
     "NIFTY": 50, "BANKNIFTY": 100, "FINNIFTY": 50,
@@ -71,12 +79,92 @@ _STRIKE_GAP = {
 }
 
 
+def _is_market_holiday(d: date) -> bool:
+    """NSE trading holiday or weekend. Defensive: if the holiday master can't
+    load, treat only weekends as closed so we never wrongly suppress an expiry.
+    (NSE's list is also a good proxy for BSE/SENSEX.)"""
+    if d.weekday() >= 5:
+        return True
+    try:
+        from nse_master import get_nse_master
+        return bool(get_nse_master().is_trading_holiday(d))
+    except Exception:
+        return False
+
+
+def _prev_working_day(d: date) -> date:
+    """Roll back to the previous working day if d is a weekend/holiday."""
+    guard = 0
+    while _is_market_holiday(d) and guard < 14:
+        d -= timedelta(days=1); guard += 1
+    return d
+
+
+def _nominal_expiry_date(today: date, weekday: int, monthly: bool) -> date:
+    """The scheduled (pre-holiday) expiry date relevant to `today`.
+
+    Weekly → that weekday in today's Mon–Sun week.
+    Monthly → the last occurrence of that weekday in today's month.
+    """
+    if monthly:
+        import calendar
+        last = date(today.year, today.month,
+                    calendar.monthrange(today.year, today.month)[1])
+        while last.weekday() != weekday:
+            last -= timedelta(days=1)
+        return last
+    return today + timedelta(days=(weekday - today.weekday()))
+
+
 def is_expiry_today(symbol: str = "NIFTY") -> bool:
-    """True if today is expiry day for the given index."""
+    """True if today is the effective 0DTE expiry for the given index.
+
+    Honours the SEBI single-weekly rule (NIFTY/SENSEX weekly; the rest
+    monthly-only) AND holiday roll-back: if the scheduled expiry weekday is a
+    holiday, the effective expiry moves to the previous working day.
+    """
     idx = symbol.upper()
-    today_wd = date.today().weekday()
-    expiry_wd = _EXPIRY_DAY.get(idx, 3)
-    return today_wd == expiry_wd
+    today = date.today()
+    expiry_wd = _EXPIRY_DAY.get(idx, 1)
+    nominal   = _nominal_expiry_date(today, expiry_wd, idx in _MONTHLY_ONLY)
+    return today == _prev_working_day(nominal)
+
+
+# Hero-zero premium band: cheap enough to be a true lottery ticket, not so cheap
+# it's already worthless. Outside this band the "hero or zero" math breaks down.
+_HZ_MIN_PREMIUM = 2.0
+_HZ_MAX_PREMIUM = 100.0
+_HZ_MIN_OI      = 0.0   # require some open interest for liquidity when known
+
+
+def _chain_rows(option_data: Optional[dict]) -> List[Dict]:
+    """Best-effort extraction of NSE-style option-chain rows (each with
+    'strikePrice' + 'CE'/'PE' dicts) from whatever shape option_data carries."""
+    if not isinstance(option_data, dict):
+        return []
+    for k in ("chain", "option_chain", "rows", "data", "strikes_data"):
+        v = option_data.get(k)
+        if isinstance(v, list) and v and isinstance(v[0], dict) and "strikePrice" in v[0]:
+            return v
+    for k in ("records", "filtered"):
+        v = option_data.get(k)
+        if isinstance(v, dict) and isinstance(v.get("data"), list):
+            return v["data"]
+    return []
+
+
+def _leg_quote(rows: List[Dict], strike: float, opt_type: str):
+    """(ltp, oi, volume) for a strike/leg, or (0,0,0) if not in the chain."""
+    for row in rows:
+        try:
+            if abs(float(row.get("strikePrice", -1) or -1) - strike) < 1e-6:
+                leg = row.get(opt_type, {}) or {}
+                return (float(leg.get("lastPrice", 0) or 0),
+                        float(leg.get("openInterest", 0) or 0),
+                        float(leg.get("totalTradedVolume", 0) or 0))
+        except Exception:
+            continue
+    return 0.0, 0.0, 0.0
 
 
 def get_hero_zero_strikes(
@@ -85,6 +173,7 @@ def get_hero_zero_strikes(
     direction:  str   = "BUY",  # BUY=CE, SELL=PE
     otm_pct:    float = 1.5,    # % OTM from spot
     n_strikes:  int   = 3,      # how many strikes to return
+    option_data: Optional[dict] = None,  # NSE option chain for real premiums
 ) -> List[Dict]:
     """
     Get 2-4 hero-zero candidate strikes OTM from spot.
@@ -94,10 +183,14 @@ def get_hero_zero_strikes(
       ₹10-30 → moderate OTM (better probability, still hero-zero)
       ₹30-80 → near OTM (highest probability, smaller multiple)
 
-    Strategy: Buy 1 of each OR concentrate on 1 strike based on setup.
+    When `option_data` carries a live chain, each strike is enriched with the
+    REAL premium/OI/volume and a `tradeable` flag (premium within the hero-zero
+    band and some OI). Without a chain it degrades to OTM-by-percentage only and
+    `premium` is None (the caller must not assume a phantom cheap premium).
     """
     gap = _STRIKE_GAP.get(symbol.upper(), 50)
     lot = _LOT_SIZES.get(symbol.upper(), 50)
+    rows = _chain_rows(option_data)
 
     # Calculate OTM strikes
     strikes = []
@@ -112,7 +205,7 @@ def get_hero_zero_strikes(
             strike      = round(raw_strike / gap) * gap
             option_type = "PE"
 
-        strikes.append({
+        rec = {
             "strike":      strike,
             "option_type": option_type,
             "otm_pct":     round(i * otm_pct, 1),
@@ -120,7 +213,22 @@ def get_hero_zero_strikes(
             "symbol":      symbol,
             "expiry_type": "0DTE",
             "tier":        f"T{i}",  # T1=deepest OTM, T3=nearest OTM
-        })
+            "premium":     None,     # real LTP when a chain is available
+            "oi":          None,
+            "volume":      None,
+            "tradeable":   None,     # None=unknown, True/False when chain known
+        }
+        if rows:
+            ltp, oi, vol = _leg_quote(rows, strike, option_type)
+            if ltp > 0:
+                rec["premium"]   = round(ltp, 2)
+                rec["oi"]        = oi
+                rec["volume"]    = vol
+                rec["tradeable"] = bool(_HZ_MIN_PREMIUM <= ltp <= _HZ_MAX_PREMIUM
+                                        and oi >= _HZ_MIN_OI)
+            else:
+                rec["tradeable"] = False  # not found / no quote
+        strikes.append(rec)
 
     return strikes
 
@@ -250,10 +358,19 @@ def run_hero_zero_strategy(
         closes = df_c["close"].values if hasattr(df_c, '__len__') else [0]
         if len(closes) < 5: return empty
 
+        # Direction from a multi-bar trend (less noisy than one bar). Use the
+        # 5-bar move as the primary read; the last bar only breaks ties when the
+        # short trend is essentially flat.
         spot      = float(closes[-1])
-        prev      = float(closes[-2])
-        momentum  = (spot - prev) / prev * 100
-        direction = "BUY" if momentum > 0 else "SELL"
+        lookback  = min(5, len(closes) - 1)
+        ref       = float(closes[-1 - lookback]) or spot
+        mom_n     = (spot - ref) / ref * 100 if ref else 0.0
+        prev      = float(closes[-2]) or spot
+        mom_1     = (spot - prev) / prev * 100 if prev else 0.0
+        if abs(mom_n) >= 0.05:
+            direction = "BUY" if mom_n > 0 else "SELL"
+        else:
+            direction = "BUY" if mom_1 >= 0 else "SELL"
 
         # Get VIX
         vix = float(kw.get("vix", 15) or 15)
@@ -264,7 +381,8 @@ def run_hero_zero_strategy(
         # Score the setup
         setup = score_hero_zero_entry(
             spot=spot, symbol=symbol, direction=direction,
-            vix=vix, vix_change=0, gift_gap=gift_gap,
+            vix=vix, vix_change=float(kw.get("vix_change", 0) or 0),
+            gift_gap=gift_gap,
             cpr_break=kw.get("cpr_break", False),
             ema200_cross=kw.get("ema200_cross", False),
             pdh_pdl_break=kw.get("pdh_pdl_break", False),
@@ -275,11 +393,42 @@ def run_hero_zero_strategy(
         if not setup["enter"]:
             return empty
 
-        # Get candidate strikes
-        strikes = get_hero_zero_strikes(spot, symbol, direction, otm_pct=1.5, n_strikes=3)
+        # Get candidate strikes (enriched with real premiums when a chain is given)
+        strikes = get_hero_zero_strikes(spot, symbol, direction, otm_pct=1.5,
+                                        n_strikes=3, option_data=option_data)
+
+        # Pick the primary strike. Prefer a tradeable strike (real premium within
+        # the hero-zero band) when the chain is known; else fall back to the
+        # balanced T2 tier.
+        tradeable = [s for s in strikes if s.get("tradeable")]
+        if tradeable:
+            # cheapest liquid lottery ticket in-band
+            primary = min(tradeable, key=lambda s: s.get("premium") or 1e9)
+        else:
+            primary = strikes[1] if len(strikes) > 1 else strikes[0]
+        prem = primary.get("premium")
+
+        # If the chain is known and NO strike is actually tradeable (premiums all
+        # out of band / illiquid), this isn't a real hero-zero — stand down.
+        chain_known = any(s.get("tradeable") is not None for s in strikes)
+        if chain_known and not tradeable:
+            return empty
 
         # Score is the hero-zero setup score (capped at 6 — it's always high risk)
         final_score = min(setup["score"] * 0.7, 6.0)
+
+        # CAPITAL-PRESERVATION GATE. The saved backtest (hero_zero_backtest.json)
+        # shows 0DTE deep-OTM BUYING is a structural loser (~89-96% expire
+        # worthless, profit factor 0.2-0.37, negative ROC) — even with the model
+        # understating premiums. So by DEFAULT hero_zero is ALERT-ONLY: it still
+        # reports the setup/strikes for information but contributes ZERO confluence
+        # score, so the bot never sizes real capital into it. Opt in explicitly
+        # with HERO_ZERO_LIVE_VOTE=true only if you accept the measured negative edge.
+        live_vote = os.getenv("HERO_ZERO_LIVE_VOTE", "false").lower() == "true"
+        if not live_vote:
+            final_score = 0.0
+
+        prem_txt = (f"@ ₹{prem:.1f} premium" if prem else "@ ₹5-₹30 premium (est.)")
 
         return {
             "strategy":      "hero_zero",
@@ -290,7 +439,8 @@ def run_hero_zero_strategy(
             "verdict":       setup["verdict"],
             "setup_score":   setup["score"],
             "strikes":       strikes,
-            "primary_strike":strikes[1] if len(strikes) > 1 else strikes[0],  # T2 = balanced
+            "primary_strike":primary,
+            "premium":       prem,
             "notes":         setup["notes"],
             "max_loss":      "100% of premium (small amount)",
             "target":        "5x–20x on premium",
@@ -298,8 +448,8 @@ def run_hero_zero_strategy(
             "alert":         (
                 f"🎰 HERO-ZERO: Buy {symbol} "
                 f"{'CE' if direction=='BUY' else 'PE'} "
-                f"{strikes[1]['strike'] if len(strikes)>1 else strikes[0]['strike']} "
-                f"@ ₹5-₹30 premium | Target 5x-20x | Max loss = premium paid"
+                f"{primary['strike']} "
+                f"{prem_txt} | Target 5x-20x | Max loss = premium paid"
             ),
         }
     except Exception as e:
@@ -331,9 +481,14 @@ def format_hero_zero_alert(result: Dict) -> str:
     tiers = ["T1 (Lottery 🎲)", "T2 (Balanced ⚖️)", "T3 (Safer 🛡️)"]
     for i, s in enumerate(strikes[:3]):
         tier = tiers[i] if i < len(tiers) else f"T{i+1}"
+        prem = s.get("premium")
+        prem_txt = (f" | ₹{prem:.1f}" if prem else "")
+        liq = ""
+        if s.get("tradeable") is False:
+            liq = " ⚠️ illiquid/out-of-band"
         lines.append(
             f"  {tier}: {sym} {s['strike']:.0f} {opt} "
-            f"| OTM: {s['otm_pct']:.1f}%"
+            f"| OTM: {s['otm_pct']:.1f}%{prem_txt}{liq}"
         )
 
     lines += [
@@ -356,11 +511,14 @@ def get_hero_zero_schedule() -> str:
     today = date.today()
     lines = ["📅 <b>HERO-ZERO EXPIRY SCHEDULE</b>", ""]
     days  = ["Mon","Tue","Wed","Thu","Fri"]
-    for symbol, wd in sorted(_EXPIRY_DAY.items(), key=lambda x: x[1]):
-        is_today = wd == today.weekday()
+    for symbol, wd in sorted(_EXPIRY_DAY.items(), key=lambda x: (x[1], x[0])):
+        kind     = "monthly only" if symbol in _MONTHLY_ONLY else "weekly"
+        is_today = is_expiry_today(symbol)
         marker   = " ← TODAY 🎰" if is_today else ""
-        lines.append(f"  {days[wd]}: {symbol}{marker}")
-    lines += ["", "Strategy: Buy deep OTM options on expiry day",
+        lines.append(f"  {days[wd]}: {symbol} ({kind}){marker}")
+    lines += ["", "Only NIFTY (Tue) & SENSEX (Thu) have weekly 0DTE since",
+              "SEBI's Nov-2024 single-weekly rule; the rest are monthly only.",
+              "", "Strategy: Buy deep OTM options on expiry day",
               "Window: 9:15–10:00 AM (best) | 10–11 AM (good) | Avoid after 1:30 PM",
               "Risk: 100% of small premium | Target: 5x–20x"]
     return "\n".join(lines)

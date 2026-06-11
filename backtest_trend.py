@@ -84,14 +84,14 @@ logger = logging.getLogger(__name__)
 # Instrument lot sizes
 # ---------------------------------------------------------------------------
 LOT_SIZES: Dict[str, int] = {
-    "NIFTY":      50,
-    "BANKNIFTY":  50,
-    "FINNIFTY":   40,
-    "MIDCPNIFTY": 75,
-    "SENSEX":     10,
-    "BANKEX":     15,
+    "NIFTY":      65,
+    "BANKNIFTY":  30,
+    "FINNIFTY":   60,
+    "MIDCPNIFTY": 120,
+    "SENSEX":     20,
+    "BANKEX":     30,
 }
-DEFAULT_LOT = 10
+DEFAULT_LOT = 65
 
 # NSE intraday session length in minutes
 _NSE_SESSION_MINUTES = 375
@@ -253,6 +253,8 @@ def backtest_trend(
     adx_threshold: Optional[float]    = None,
     min_atr_ratio: float               = 0.0,
     max_atr_ratio: float               = 1.0,
+    min_body_atr: float                = 0.10,
+    max_entry_atr_extension: float     = 2.5,
     # Exits
     stop_atr_mult: float               = 2.0,
     trail_atr_mult: float              = 1.5,
@@ -265,7 +267,12 @@ def backtest_trend(
     initial_capital: float             = 100_000.0,
     brokerage_per_order: float         = 20.0,
     slippage_percent: float            = 0.05,   # was hardcoded module-level
-    stt_rate: float                    = 0.0005,  # 0.05% NSE sell-side STT
+    # NOTE: P&L here is (exit-entry)*lot in INDEX POINTS — a FUTURES/directional
+    # proxy, not a true option-premium P&L. STT is therefore futures sell-side
+    # 0.02% on notional (was 0.0005 = option rate applied to index notional, i.e.
+    # ~Rs900/trade — a bug that crushed every result). For actual option-buying
+    # this proxy is an OPTIMISTIC upper bound (real options also pay theta/IV).
+    stt_rate: float                    = 0.0002,  # 0.02% NSE futures sell-side STT
     # Metrics
     interval_minutes: int              = 5,       # for Sharpe annualization
     verbose: bool                      = True,
@@ -305,6 +312,8 @@ def backtest_trend(
         raise ValueError("stt_rate must be between 0 and 0.01")
     if min_atr_ratio < 0 or max_atr_ratio <= 0 or min_atr_ratio > max_atr_ratio:
         raise ValueError("Invalid ATR ratio filter bounds")
+    if min_body_atr < 0 or max_entry_atr_extension <= 0:
+        raise ValueError("Invalid entry quality filter bounds")
 
     min_required = max(fast_ema, slow_ema, 14) + 10
     if len(data) < min_required:
@@ -313,7 +322,7 @@ def backtest_trend(
         )
 
     # SlippageModel is now local — not module-level
-    slippage_model = SlippageModel(slippage_percent, brokerage_per_order)
+    slippage_model = SlippageModel(slippage_percent, 0.5)
 
     capital: float            = float(initial_capital)
     equity_curve: List[float] = [capital]
@@ -487,6 +496,12 @@ def backtest_trend(
             skipped_due_to_filters += 1
             continue
 
+        candle_body = abs(float(close_series.iloc[i]) - float(open_series.iloc[i]))
+        ema_extension = abs(price - fast_now) / max(current_atr, 1e-9)
+        if candle_body < min_body_atr * current_atr or ema_extension > max_entry_atr_extension:
+            skipped_due_to_filters += 1
+            continue
+
         entry_idx = i + 1
         if entry_idx > last_bar_idx:
             continue
@@ -623,7 +638,7 @@ if __name__ == "__main__":
             initial_capital         = 100_000.0,
             brokerage_per_order     = 20.0,
             slippage_percent        = 0.05,
-            stt_rate                = 0.0005,
+            stt_rate                = 0.0002,
             interval_minutes        = 5,
             verbose                 = True,
         )

@@ -213,6 +213,9 @@ class AngelOptionChainEngine:
         return None
 
     def _get_spot_from_yfinance(self):
+        import os as _os_yfc
+        if _os_yfc.getenv("DISABLE_YFINANCE", "false").lower() == "true":
+            return None
         try:
             import yf_compat as yf  # yfinance replaced: Yahoo API broken
         except ImportError:

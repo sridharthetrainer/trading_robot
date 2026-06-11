@@ -127,8 +127,12 @@ class ParamBridge:
 
         # Cache: {strategy: config_dict}
         self._global_cache: Dict[str, Dict[str, Any]] = {}
+        # Cache: {strategy: config_dict}; failed validation but allowed for paper training
+        self._paper_cache: Dict[str, Dict[str, Any]] = {}
         # Cache: {symbol_strategy_key: config_dict}
         self._symbol_cache: Dict[str, Dict[str, Any]] = {}
+        # Cache: {symbol_strategy_key: config_dict}; paper-training only
+        self._symbol_paper_cache: Dict[str, Dict[str, Any]] = {}
         # Strategy affinity: {symbol: {strategy: score}}
         self._affinity: Dict[str, Dict[str, float]] = {}
 
@@ -146,6 +150,8 @@ class ParamBridge:
 
     def _load_global_params(self) -> None:
         """Load per-strategy global params from best_params_*.json files."""
+        self._global_cache.clear()
+        self._paper_cache.clear()
         for strategy, filename in STRATEGY_PARAM_FILES.items():
             path = self._params_dir / filename
             if not path.exists():
@@ -159,6 +165,12 @@ class ParamBridge:
                     logger.debug(
                         "ParamBridge loaded %s params: %s", strategy, params
                     )
+                elif self._paper_params_allowed(params, metrics):
+                    self._paper_cache[strategy] = params
+                    logger.info(
+                        "ParamBridge loaded %s params for PAPER training only",
+                        strategy,
+                    )
                 else:
                     logger.warning(
                         "ParamBridge: %s params FAILED validation (metrics=%s) — using defaults",
@@ -169,6 +181,8 @@ class ParamBridge:
 
     def _load_symbol_params(self) -> None:
         """Load per-symbol params from symbol_params/ directory."""
+        self._symbol_cache.clear()
+        self._symbol_paper_cache.clear()
         if not self._symbol_dir.exists():
             return
         for path in self._symbol_dir.glob("*_*.json"):
@@ -183,6 +197,9 @@ class ParamBridge:
                 if self._validate_params(params, metrics, strategy):
                     key = f"{symbol}_{strategy}"
                     self._symbol_cache[key] = params
+                elif self._paper_params_allowed(params, metrics):
+                    key = f"{symbol}_{strategy}"
+                    self._symbol_paper_cache[key] = params
             except Exception:
                 pass
 
@@ -232,6 +249,26 @@ class ParamBridge:
             return False
         return True
 
+    def _paper_params_allowed(self, params: Dict, metrics: Dict) -> bool:
+        """Allow explicitly marked failed params only for paper-training mode."""
+        if not params:
+            return False
+        return bool(metrics.get("paper_training_only")) or str(
+            metrics.get("validation_verdict", "")
+        ).upper() == "FAIL"
+
+    def _paper_training_enabled(self) -> bool:
+        """Read current runtime mode without importing config at module import time."""
+        try:
+            import config as cfg  # local import keeps tests/lightweight use simple
+            return bool(
+                getattr(cfg, "PAPER_ORDERS_ONLY", False)
+                or getattr(cfg, "PAPER_TRADING", False)
+                or getattr(cfg, "PAPER_TRADE", False)
+            )
+        except Exception:
+            return False
+
     # ── Main API ──────────────────────────────────────────────────────────────
 
     def get_config(self, symbol: str, strategy: str) -> Dict[str, Any]:
@@ -239,9 +276,10 @@ class ParamBridge:
         Return the best validated config dict for a symbol + strategy pair.
 
         Priority:
-        1. Per-symbol per-strategy params (NIFTY/BANKNIFTY tier-1 only)
-        2. Global per-strategy params (from grid search on NIFTY)
-        3. Safe hardcoded defaults
+        1. Per-symbol validated params (NIFTY/BANKNIFTY tier-1 only)
+        2. Global validated params
+        3. Paper-training params, only while runtime is in paper mode
+        4. Safe hardcoded defaults
 
         Always returns a non-empty dict — never raises.
         """
@@ -258,7 +296,16 @@ class ParamBridge:
         if strategy in self._global_cache:
             return self._global_cache[strategy].copy()
 
-        # 3. Safe defaults
+        # 3. Paper-training params are never used for live mode.
+        if self._paper_training_enabled():
+            if symbol in TIER1_SYMBOLS_FOR_PEROPT:
+                key = f"{symbol}_{strategy}"
+                if key in self._symbol_paper_cache:
+                    return self._symbol_paper_cache[key].copy()
+            if strategy in self._paper_cache:
+                return self._paper_cache[strategy].copy()
+
+        # 4. Safe defaults
         return SAFE_DEFAULTS.get(strategy, {}).copy()
 
     def get_best_strategy(self, symbol: str) -> Optional[str]:

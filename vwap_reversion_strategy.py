@@ -24,7 +24,11 @@ from typing import Any, Dict
 import pandas as pd
 
 from indicators import (
-    calculate_atr, calculate_rsi, calculate_vwap, calculate_volume_ratio
+    calculate_atr,
+    calculate_choppiness_index,
+    calculate_rsi,
+    calculate_volume_ratio,
+    calculate_vwap_bands,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,25 +67,34 @@ def vwap_reversion_signal(df: pd.DataFrame) -> Dict[str, Any]:
         if last_close <= 0:
             return {**_hold, "reason": "invalid_close"}
 
-        vwap_s    = calculate_vwap(df)
+        vwap_lower_s, vwap_s, vwap_upper_s = calculate_vwap_bands(df, period=20, std_mult=1.5)
         rsi_s     = calculate_rsi(df, 14)
         atr_s     = calculate_atr(df, 14)
         vol_ratio = _safe(calculate_volume_ratio(df, 20))
+        chop_s    = calculate_choppiness_index(df, 14)
 
         current_vwap = _safe(vwap_s)
+        vwap_lower   = _safe(vwap_lower_s, current_vwap * (1.0 - VWAP_DEV_MIN))
+        vwap_upper   = _safe(vwap_upper_s, current_vwap * (1.0 + VWAP_DEV_MIN))
         current_rsi  = _safe(rsi_s)
         current_atr  = _safe(atr_s)
+        current_chop = _safe(chop_s, 50.0)
 
         if current_vwap <= 0:
             return {**_hold, "reason": "vwap_unavailable"}
 
         # Deviation from VWAP
         dev_pct = (last_close - current_vwap) / current_vwap
+        band_half_width = max(current_vwap - vwap_lower, vwap_upper - current_vwap, current_vwap * VWAP_DEV_MIN)
+        dev_z = (last_close - current_vwap) / band_half_width
 
         action = "HOLD"
-        if dev_pct <= -VWAP_DEV_MIN and current_rsi <= RSI_OVERSOLD and vol_ratio >= VOL_MIN:
+        below_band = last_close <= vwap_lower or dev_pct <= -VWAP_DEV_MIN
+        above_band = last_close >= vwap_upper or dev_pct >= VWAP_DEV_MIN
+
+        if below_band and current_rsi <= RSI_OVERSOLD and vol_ratio >= VOL_MIN:
             action = "BUY"
-        elif dev_pct >= VWAP_DEV_MIN and current_rsi >= RSI_OVERBOUGHT and vol_ratio >= VOL_MIN:
+        elif above_band and current_rsi >= RSI_OVERBOUGHT and vol_ratio >= VOL_MIN:
             action = "SELL"
 
         if action == "HOLD":
@@ -90,7 +103,7 @@ def vwap_reversion_signal(df: pd.DataFrame) -> Dict[str, Any]:
         # Confidence
         conf = CONF_BASE
         abs_dev = abs(dev_pct)
-        conf += 0.15 * min(1.0, (abs_dev - VWAP_DEV_MIN) / 0.005)  # +15% per 0.5% extra dev
+        conf += 0.15 * min(1.0, max(0.0, abs(dev_z)) / 2.0)
 
         if action == "BUY":
             rsi_extreme = max(0, RSI_OVERSOLD - current_rsi)
@@ -98,6 +111,11 @@ def vwap_reversion_signal(df: pd.DataFrame) -> Dict[str, Any]:
         else:
             rsi_extreme = max(0, current_rsi - RSI_OVERBOUGHT)
             conf += 0.10 * min(1.0, rsi_extreme / 15.0)
+
+        if current_chop >= 50:
+            conf += 0.06
+        elif current_chop < 38:
+            conf -= 0.08
 
         if vol_ratio >= 1.5:
             conf += 0.08
@@ -114,10 +132,14 @@ def vwap_reversion_signal(df: pd.DataFrame) -> Dict[str, Any]:
             "reason":     f"vwap_dev={dev_pct:.3f}_rsi={current_rsi:.1f}",
             "indicators": {
                 "vwap":      round(current_vwap, 2),
+                "vwap_lower": round(vwap_lower, 2),
+                "vwap_upper": round(vwap_upper, 2),
                 "dev_pct":   round(dev_pct,   4),
+                "dev_z":     round(dev_z,     3),
                 "rsi":       round(current_rsi, 2),
                 "atr":       round(current_atr, 2),
                 "vol_ratio": round(vol_ratio,   2),
+                "chop":      round(current_chop, 2),
                 "stop":      round(stop,    2),
                 "target":    round(target,  2),
             },

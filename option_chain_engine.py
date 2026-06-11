@@ -21,11 +21,11 @@ Replaces and extends nifty_options_engine.py with:
    Swing:     Needs DTE ≥ 5 → automatically selects next week
               if this week has DTE < 5
 
-4. Correct lot sizes (NSE current as of 2025)
-   NIFTY:      75 shares per lot
+4. Correct lot sizes (current contracts, refreshed via NSEMaster)
+   NIFTY:      65 shares per lot
    BANKNIFTY:  30 shares per lot
-   FINNIFTY:   65 shares per lot
-   MIDCPNIFTY: 75 shares per lot
+   FINNIFTY:   60 shares per lot
+   MIDCPNIFTY: 120 shares per lot
    All updatable via config without code change
 
 5. Momentum override for fast markets
@@ -53,11 +53,12 @@ logger = logging.getLogger(__name__)
 # ── NSE lot sizes: dynamically loaded from NSEMaster, fallback to defaults ───
 # These defaults are used only if NSEMaster is unavailable
 NSE_LOT_SIZES: Dict[str, int] = {
-    "NIFTY":      75,
+    "NIFTY":      65,
     "BANKNIFTY":  30,
-    "FINNIFTY":   65,
-    "MIDCPNIFTY": 75,
-    "SENSEX":     10,
+    "FINNIFTY":   60,
+    "MIDCPNIFTY": 120,
+    "SENSEX":     20,
+    "BANKEX":     30,
 }
 
 try:
@@ -97,6 +98,57 @@ def _is_expiry_holiday(d: date) -> bool:
         except Exception:
             pass
     return d in _FALLBACK_HOLIDAYS or d.weekday() >= 5
+
+
+# ── Authoritative expiry dates from the broker master contract ─────────────────
+# NSE changes expiry weekdays often (NIFTY moved Thu→Tue; most weeklies removed),
+# so a hardcoded weekday rule produces non-existent contracts. The master file on
+# disk lists the REAL tradeable expiries — use it as the source of truth.
+_MASTER_EXPIRY_CACHE: Dict[str, Any] = {"date": None, "data": {}}
+
+
+def _parse_expiry_str(e: str):
+    import datetime as _dt
+    e = (e or "").strip().upper()
+    for fmt in ("%d%b%Y", "%d%b%y", "%Y-%m-%d", "%d-%b-%Y"):
+        try:
+            return _dt.datetime.strptime(e, fmt).date()
+        except Exception:
+            pass
+    return None
+
+
+def _load_master_expiries() -> Dict[str, list]:
+    """{UNDERLYING: [sorted upcoming expiry dates]} from the local master file."""
+    import csv as _csv, os as _os
+    today = date.today()
+    if _MASTER_EXPIRY_CACHE["date"] == today and _MASTER_EXPIRY_CACHE["data"]:
+        return _MASTER_EXPIRY_CACHE["data"]
+    targets = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX", "BANKEX"}
+    data: Dict[str, set] = {}
+    for fname in ("OpenAPIScripMaster.csv", "MasterContract_ALL.csv",
+                  "MasterContract_NFO.csv"):
+        if not _os.path.exists(fname):
+            continue
+        try:
+            with open(fname, errors="replace") as fh:
+                for row in _csv.DictReader(fh):
+                    if str(row.get("instrumenttype", "")).upper() != "OPTIDX":
+                        continue
+                    nm = str(row.get("name", "")).upper().strip()
+                    if nm not in targets:
+                        continue
+                    d = _parse_expiry_str(row.get("expiry", ""))
+                    if d and d >= today:
+                        data.setdefault(nm, set()).add(d)
+            if data:
+                break
+        except Exception:
+            continue
+    out = {k: sorted(v) for k, v in data.items()}
+    _MASTER_EXPIRY_CACHE["date"] = today
+    _MASTER_EXPIRY_CACHE["data"] = out
+    return out
 
 
 # ── Minimum DTE per trade style ────────────────────────────────────────────────
@@ -400,12 +452,15 @@ class OptionChainEngine:
     def _get_live_spot(self, underlying: str) -> float:
         """Fetch live spot price from broker. Falls back to last known."""
         if self._broker:
-            for sym, exch in [
+            # BSE indices (SENSEX/BANKEX) quote on the BSE exchange, not NSE.
+            _bse = underlying.upper() in ("SENSEX", "BANKEX")
+            _attempts = ([(underlying, "BSE")] if _bse else []) + [
                 (underlying,            "NSE"),
                 (f"{underlying}-INDEX", "NSE"),
                 (f"{underlying} 50",    "NSE"),
                 (underlying,            "NFO"),
-            ]:
+            ]
+            for sym, exch in _attempts:
                 try:
                     ltp = self._broker.get_ltp(sym, exchange=exch)
                     if isinstance(ltp, tuple): ltp = ltp[-1]
@@ -471,8 +526,9 @@ class OptionChainEngine:
     # ─────────────────────────────────────────────────────────────────────────
 
     # ── Per-index expiry weekday ─────────────────────────────────────────────────
-    # NSE weekly expiry schedule (as of 2025):
-    #   NIFTY 50      → Thursday (weekday=3)
+    # Fallback expiry weekday schedule. The master contract path above is the
+    # source of truth; these are used only when local contracts are unavailable.
+    #   NIFTY 50      → Tuesday  (weekday=1), Sep 2025+
     #   BANKNIFTY     → Wednesday (weekday=2)
     #   FINNIFTY      → Tuesday  (weekday=1)
     #   MIDCPNIFTY    → Monday   (weekday=0)
@@ -480,7 +536,7 @@ class OptionChainEngine:
     #   SENSEX (BSE)  → Friday   (weekday=4) — BSE, different exchange
     # Individual stocks → Monthly last Thursday
     EXPIRY_WEEKDAY = {
-        "NIFTY":       3,   # Thursday
+        "NIFTY":       1,   # Tuesday
         "BANKNIFTY":   2,   # Wednesday
         "FINNIFTY":    1,   # Tuesday
         "MIDCPNIFTY":  0,   # Monday
@@ -507,6 +563,19 @@ class OptionChainEngine:
         today    = date.today()
         min_dte  = MIN_DTE_BY_STYLE.get(style, 0)
         sym_up   = underlying.upper()
+
+        # Primary: real expiries from the broker master contract (authoritative,
+        # immune to NSE's frequent expiry-weekday changes). Falls through to the
+        # weekday heuristic only if the master file is unavailable.
+        try:
+            _exps = _load_master_expiries().get(sym_up, [])
+            _valid = [d for d in _exps if (d - today).days >= min_dte] or _exps
+            if _valid:
+                if skip_current and len(_valid) > 1:
+                    return _valid[1]
+                return _valid[0]
+        except Exception:
+            pass
 
         # Determine which weekday this underlying expires
         expiry_wd = self.EXPIRY_WEEKDAY.get(sym_up, 3)  # default Thursday
@@ -580,6 +649,19 @@ class OptionChainEngine:
         yyyy    = expiry.strftime("%Y")
         mon_num = expiry.strftime("%m")
 
+        # BSE (SENSEX/BANKEX) use a different format than NSE, and weekly vs
+        # monthly differ. Try both BSE forms first for those underlyings.
+        if underlying.upper() in ("SENSEX", "BANKEX"):
+            mdigit = "123456789OND"[expiry.month - 1]  # Oct/Nov/Dec → O/N/D
+            # Weekly format encodes the exact day, so try it FIRST — the monthly
+            # format omits the day and would otherwise wrongly match the monthly
+            # contract when a weekly expiry was intended.
+            return [
+                f"{underlying}{yy}{mdigit}{dd}{strike}{option_type}",   # weekly:  SENSEX2661174200CE
+                f"{underlying}{yy}{mmm}{strike}{option_type}",          # monthly: BANKEX26JUN65000PE
+                f"{underlying}{dd}{mmm}{yy}{strike}{option_type}",      # NSE-style fallback
+            ]
+
         return [
             f"{underlying}{dd}{mmm}{yy}{strike}{option_type}",    # NIFTY27MAR25 22000CE
             f"{underlying}{dd}{mmm}{yyyy}{strike}{option_type}",  # NIFTY27MAR2025 22000CE
@@ -603,7 +685,7 @@ class OptionChainEngine:
         for sym in candidates:
             try:
                 # Detect exchange from symbol prefix
-                _exch = "BSE" if any(sym.upper().startswith(b) for b in ("SENSEX","BANKEX")) else "NFO"
+                _exch = "BFO" if any(sym.upper().startswith(b) for b in ("SENSEX","BANKEX")) else "NFO"
                 ltp = self._broker.get_ltp(sym, exchange=_exch)
                 if isinstance(ltp, tuple): ltp = ltp[-1]
                 if ltp and float(ltp) > 5:

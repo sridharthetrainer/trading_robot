@@ -56,6 +56,28 @@ from time_regime import (
 
 logger = logging.getLogger(__name__)
 
+# ── Watchdog heartbeat (progress-coupled) ─────────────────────────────────────
+# The full scan can take many minutes when Angel/NSE are rate-limiting. The main
+# heartbeat is only written at cycle start, so a slow-but-working scan looked
+# "dead" to the watchdog and was repeatedly SIGKILL'd (see 2026-06-05). Touch the
+# heartbeat each time a symbol finishes — rate-limited. A genuine hang (no symbol
+# completes for the watchdog limit) still goes stale, so this does not mask hangs.
+_HB_MIN_GAP = 20.0
+_last_hb_ts = 0.0
+
+def _touch_heartbeat() -> None:
+    global _last_hb_ts
+    now = time.time()
+    if now - _last_hb_ts < _HB_MIN_GAP:
+        return
+    _last_hb_ts = now
+    try:
+        import json as _j
+        with open("heartbeat.json", "w") as _f:
+            _f.write(_j.dumps({"ts": now}))
+    except Exception:
+        pass
+
 # ── Priority universe ─────────────────────────────────────────────────────────
 # These are scanned first, every cycle, with extra score boost
 TIER1_SYMBOLS = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNEXT50", "SENSEX"]
@@ -372,6 +394,7 @@ class StrategyScanner:
                         results.append(r)
                 except Exception:
                     pass
+                _touch_heartbeat()   # keep watchdog informed during slow scans
             return results
 
         # Evaluate tier-1 first (blocking)

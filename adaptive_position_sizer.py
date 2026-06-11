@@ -64,7 +64,7 @@ class AdaptivePositionSizer:
         default_risk_pct: float = 0.01,
         min_lots: int = 1,
         max_lots: int = 20,
-        option_lot_size: int = 50,
+        option_lot_size: int = 65,
     ) -> None:
         self.min_risk_pct = float(min_risk_pct)
         self.max_risk_pct = float(max_risk_pct)
@@ -505,4 +505,3 @@ def auto_lots_from_capital(
     cost_per_lot = option_price * lot_size
     lots         = max(1, min(max_lots, int(risk_amount / cost_per_lot)))
     return lots
-

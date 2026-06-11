@@ -109,6 +109,58 @@ def compute_order_flow(df: pd.DataFrame, lookback: int = 20) -> Dict:
         return {"pressure":"NEUTRAL","score_modifier":0.0}
 
 
+def calculate_vpin(df: pd.DataFrame, n_buckets: int = 50) -> float:
+    """
+    Volume-Synchronized Probability of Informed Trading (VPIN).
+    Easley, López de Prado, O'Hara — "The Exchange of Flow Toxicity" (2012).
+
+    Method:
+      1. Estimate buy/sell volume per bar (tick-rule approximation).
+      2. Divide total period volume into equal-size buckets of size V/n_buckets.
+      3. For each bucket: compute |buy_vol - sell_vol| / (buy_vol + sell_vol).
+      4. VPIN = rolling mean of last n_buckets imbalance ratios.
+
+    Interpretation:
+      VPIN > 0.7 → high informed trading activity → avoid counter-directional trades
+      VPIN 0.3–0.7 → normal
+      VPIN < 0.3 → mostly uninformed flow → safer for mean-reversion
+
+    Returns float in [0, 1]. Returns 0.5 (neutral) on insufficient data.
+    """
+    try:
+        _df = _estimate_buy_sell_volume(df)
+        total_vol = _df["volume"].sum()
+        if total_vol <= 0 or len(_df) < 10:
+            return 0.5
+
+        bucket_size = max(total_vol / n_buckets, 1.0)
+        imbalances: list = []
+        cumvol  = 0.0
+        cum_buy = 0.0
+        cum_sel = 0.0
+
+        for _, row in _df.iterrows():
+            cumvol  += row["volume"]
+            cum_buy += row["buy_vol"]
+            cum_sel += row["sell_vol"]
+            while cumvol >= bucket_size:
+                bv = cum_buy * (bucket_size / cumvol)
+                sv = cum_sel * (bucket_size / cumvol)
+                total = bv + sv
+                imbalances.append(abs(bv - sv) / total if total > 0 else 0.0)
+                cumvol  -= bucket_size
+                cum_buy -= bv
+                cum_sel -= sv
+
+        if not imbalances:
+            return 0.5
+        vpin = float(np.mean(imbalances[-n_buckets:]))
+        return round(min(max(vpin, 0.0), 1.0), 4)
+    except Exception as e:
+        logger.debug("calculate_vpin: %s", e)
+        return 0.5
+
+
 def run_order_flow_strategy(df, df_htf=None, symbol="", **kw) -> Dict:
     """Strategy wrapper for signal_engine."""
     empty = {"strategy":"order_flow","score":0.0,"direction":None,"side":None}

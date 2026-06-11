@@ -63,7 +63,7 @@ USAGE
     master = get_nse_master()
 
     # Lot sizes
-    lot = master.get_lot_size("NIFTY")         # → 75
+    lot = master.get_lot_size("NIFTY")         # → 65
     lot = master.get_lot_size("BANKNIFTY")     # → 30
     sizes = master.get_all_lot_sizes()         # → {"NIFTY":  65,  # Updated Apr 2026 "BANKNIFTY":30, ...}
 
@@ -102,12 +102,12 @@ HOLIDAY_REFRESH_DAYS   = 90    # refresh holidays every 90 days (NSE updates rar
 
 # ── Hardcoded fallbacks (always correct unless NSE changes them) ───────────────
 DEFAULT_LOT_SIZES: Dict[str, int] = {
-    "NIFTY":  65,  # Updated Apr 2026    # changed from 50 → 75 in Nov 2023
+    "NIFTY":  65,  # Revised for Jan 2026+ contracts
     "BANKNIFTY":  30,    # SEBI Nov 2024: 15 → 30 (₹15L minimum)
-    "FINNIFTY":   65,    # NSE Oct 2025: 40 → 65
+    "FINNIFTY":   60,    # per Angel master contract Jun 2026 (was 65)
     "MIDCPNIFTY":  120,  # Updated Apr 2026    # unchanged since 2023
     "SENSEX":  20,  # Updated Apr 2026
-    "BANKEX":  15,  # Updated Apr 2026
+    "BANKEX":  30,  # per Angel master contract Jun 2026 (was 15)
 }
 
 # ── Hardcoded holiday fallback 2025-2026 ─────────────────────────────────────
@@ -288,6 +288,12 @@ class NSEMaster:
         """
         logger.info("Refreshing lot sizes from live data...")
 
+        # Method 0: local master-contract file (authoritative, on disk, no network)
+        result = self._fetch_lots_local_master()
+        if result:
+            self._update_lot_sizes(result, "local_master")
+            return True
+
         # Method 1: Angel One SmartAPI
         if angel_obj:
             result = self._fetch_lots_angel_smartapi(angel_obj)
@@ -382,6 +388,49 @@ class NSEMaster:
                 return result
         except Exception as e:
             logger.debug("_fetch_lots_angel_smartapi: %s", e)
+        return None
+
+    def _fetch_lots_local_master(self) -> Optional[Dict[str, int]]:
+        """
+        Read lot sizes from the master-contract file already on disk.
+
+        The bot downloads OpenAPIScripMaster.{csv,json} (and MasterContract_*.csv)
+        daily for symbol resolution — it is the authoritative record of what the
+        broker accepts, needs no network, and is immune to the NSE IP block. This
+        is the most reliable lot-size source, so it runs first.
+        """
+        import csv as _csv
+        targets = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX", "BANKEX"}
+        for fname in ("OpenAPIScripMaster.csv", "MasterContract_ALL.csv",
+                      "MasterContract_NFO.csv"):
+            path = self._cache_dir / fname
+            if not path.exists():
+                continue
+            try:
+                result: Dict[str, int] = {}
+                with open(path, errors="replace") as fh:
+                    reader = _csv.DictReader(fh)
+                    for row in reader:
+                        itype = str(row.get("instrumenttype", "")).upper()
+                        if itype not in ("OPTIDX", "FUTIDX"):
+                            continue
+                        name = str(row.get("name", "")).upper().strip()
+                        if name not in targets or name in result:
+                            continue
+                        try:
+                            lot = int(float(row.get("lotsize", 0) or 0))
+                        except (TypeError, ValueError):
+                            lot = 0
+                        if lot > 0:
+                            result[name] = lot
+                        if len(result) >= len(targets):
+                            break
+                if result:
+                    logger.info("Local master-contract lot sizes (%s): %s",
+                                fname, result)
+                    return result
+            except Exception as e:
+                logger.debug("_fetch_lots_local_master(%s): %s", fname, e)
         return None
 
     def _fetch_lots_angel_scrip_master(self) -> Optional[Dict[str, int]]:

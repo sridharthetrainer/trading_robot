@@ -67,6 +67,11 @@ class TelegramCommandHandler:
         self._running   = False
         self._thread:   Optional[threading.Thread] = None
         self._handlers: Dict[str, Callable] = {}
+        self._poll_failures = 0
+        self._last_poll_ok_at = 0.0
+        self._last_poll_error = ""
+        self._last_update_at = 0.0
+        self._last_api_error = ""
         self._register_defaults()
 
     # ── Telegram API ──────────────────────────────────────────────────────────
@@ -79,14 +84,39 @@ class TelegramCommandHandler:
                 self.bot_token = fresh
                 logger.info("Token refreshed from env: %s...", fresh[:20])
         try:
+            request_timeout = 25
+            if method == "getUpdates":
+                try:
+                    request_timeout = int(params.get("timeout", _POLL_TIMEOUT)) + 10
+                except Exception:
+                    request_timeout = _POLL_TIMEOUT + 10
+                request_timeout = max(10, min(60, request_timeout))
             r = requests.post(
                 f"https://api.telegram.org/bot{self.bot_token}/{method}",
-                json=params, timeout=25
+                json=params, timeout=request_timeout
             )
-            return r.json()
+            try:
+                data = r.json()
+            except Exception:
+                body = (r.text or "")[:200].replace("\n", " ")
+                self._last_api_error = f"non-json status={r.status_code}"
+                logger.warning("TG API %s returned non-json status=%s body=%s",
+                               method, r.status_code, body)
+                return {"ok": False, "error_code": r.status_code,
+                        "description": self._last_api_error}
+
+            if not data.get("ok", False):
+                desc = str(data.get("description", "unknown error"))[:240]
+                self._last_api_error = desc
+                logger.warning("TG API %s failed status=%s code=%s desc=%s",
+                               method, r.status_code, data.get("error_code"), desc)
+            else:
+                self._last_api_error = ""
+            return data
         except Exception as e:
-            logger.debug("TG API %s: %s", method, e)
-            return {}
+            self._last_api_error = str(e)[:240]
+            logger.warning("TG API %s request failed: %s", method, self._last_api_error)
+            return {"ok": False, "description": self._last_api_error}
 
     def _now(self) -> str:
         from datetime import datetime
@@ -96,7 +126,21 @@ class TelegramCommandHandler:
         target = str(chat_id) if chat_id else self.chat_id
         r = self._api("sendMessage", chat_id=target,
                       text=text[:4096], parse_mode="HTML")
-        return r.get("ok", False)
+        if r.get("ok", False):
+            return True
+
+        desc = str(r.get("description", "")).lower()
+        if "parse" in desc or "entity" in desc or "can't parse" in desc:
+            import re
+            plain = re.sub(r"</?[^>]+>", "", text)[:4096]
+            retry = self._api("sendMessage", chat_id=target, text=plain)
+            if retry.get("ok", False):
+                logger.info("Telegram reply sent with plain-text fallback")
+                return True
+
+        logger.warning("Telegram sendMessage failed for chat=%s: %s",
+                       target, r.get("description", "unknown error"))
+        return False
 
     # ── Polling ───────────────────────────────────────────────────────────────
     def start(self) -> None:
@@ -158,13 +202,55 @@ class TelegramCommandHandler:
 
     def stop(self) -> None:
         self._running = False
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=3)
+
+    def health(self) -> dict:
+        now = time.time()
+        return {
+            "running": self._running,
+            "thread_alive": bool(self._thread and self._thread.is_alive()),
+            "offset": self._offset,
+            "poll_failures": self._poll_failures,
+            "last_poll_ok_age_sec": round(now - self._last_poll_ok_at, 1)
+            if self._last_poll_ok_at else None,
+            "last_update_age_sec": round(now - self._last_update_at, 1)
+            if self._last_update_at else None,
+            "last_error": self._last_poll_error or self._last_api_error,
+        }
 
     def _poll_loop(self) -> None:
         while self._running:
             try:
                 resp = self._api("getUpdates", offset=self._offset,
                                  timeout=_POLL_TIMEOUT, allowed_updates=["message"])
-                for update in resp.get("result", []):
+                if not resp.get("ok", False):
+                    self._poll_failures += 1
+                    desc = str(resp.get("description") or
+                               self._last_api_error or "empty response")
+                    self._last_poll_error = desc[:240]
+                    code = resp.get("error_code")
+                    desc_l = desc.lower()
+                    if code == 409 or "conflict" in desc_l or "other getupdates" in desc_l:
+                        logger.error(
+                            "Telegram polling conflict: another getUpdates consumer "
+                            "is using this bot token; commands may be consumed elsewhere."
+                        )
+                        time.sleep(15)
+                        continue
+                    if self._poll_failures in (1, 3, 10) or self._poll_failures % 30 == 0:
+                        logger.warning("Telegram polling unhealthy: failures=%d desc=%s",
+                                       self._poll_failures, self._last_poll_error)
+                    time.sleep(min(30, 2 + self._poll_failures))
+                    continue
+
+                self._poll_failures = 0
+                self._last_poll_ok_at = time.time()
+                self._last_poll_error = ""
+                updates = resp.get("result", [])
+                if updates:
+                    logger.info("Telegram poll received %d update(s)", len(updates))
+                for update in updates:
                     self._offset = update["update_id"] + 1
                     self._handle_update(update)
             except Exception as e:
@@ -177,6 +263,7 @@ class TelegramCommandHandler:
             time.sleep(_POLL_INTERVAL)
 
     def _handle_update(self, update: dict) -> None:
+        self._last_update_at = time.time()
         msg  = update.get("message", {})
         text = str(msg.get("text", "")).strip()
         from_id = str(msg.get("from", {}).get("id", ""))
@@ -233,312 +320,297 @@ class TelegramCommandHandler:
         self._handlers[command.lstrip("/")] = handler
 
     def _register_defaults(self) -> None:
-        self.register("help",       self._cmd_help)
-        self.register("status",     self._cmd_status)
-        self.register("pnl",        self._cmd_pnl)
-        self.register("positions",  self._cmd_positions)
-        self.register("signals",    self._cmd_signals)
-        self.register("pause",      self._cmd_pause)
-        self.register("resume",     self._cmd_resume)
-        self.register("kill",       self._cmd_kill)
-        self.register("backtest",   self._cmd_backtest)
-        self.register("train",      self._cmd_train)
-        self.register("health",     self._cmd_health)
-        self.register("downloads",  self._cmd_downloads)
-        self.register("weekly",     self._cmd_weekly)
-        self.register("vix",        self._cmd_vix)
-        self.register("symbols",    self._cmd_symbols)
-        self.register("mode",       self._cmd_mode)
-        self.register("next",       self._cmd_next)
-        self.register("schedule",   self._cmd_schedule)
-        self.register("state",      self._cmd_state)
-        self.register("restart",    self._cmd_restart)
-        self.register("log",        self._cmd_log)
-        self.register("pnl",        self._cmd_pnl)
-        self.register("morning",    self._cmd_morning)
-        self.register("ml",         self._cmd_ml)
-        self.register("bt",         self._cmd_backtest)
-        self.register("risk",       self._cmd_risk)
-        self.register("var",        self._cmd_risk)
-        self.register("regime",     self._cmd_regime)
-        self.register("calibrate",  self._cmd_calibrate)
-        self.register("accuracy",   self._cmd_calibrate)
-        self.register("stt",        self._cmd_stt)
-        self.register("datasources",self._cmd_datasources)
-        self.register("data",       self._cmd_datasources)
-        self.register("sync",       self._cmd_sync)
-        self.register("deploy",     self._cmd_deploy)
-        self.register("drivesync",  self._cmd_sync)
-        self.register("drivestatus",self._cmd_drive_status)
-        self.register("cloud",      self._cmd_drive_status)
-        self.register("breakeven",  self._cmd_stt)
-        self.register("charges",    self._cmd_stt)
-        self.register("heat",       self._cmd_heat)
-        self.register("oi",         self._cmd_oi)
-        self.register("oib",        self._cmd_oi)
-        self.register("strikes",    self._cmd_oi)
-        self.register("oitrend",    self._cmd_oitrend)
-        self.register("oitt",       self._cmd_oitrend)
-        self.register("oit",        self._cmd_oitrend)
-        self.register("connections", self._cmd_connections)
-        self.register("conn",        self._cmd_connections)
-        # ── WOW Factors ──────────────────────────────────────────
-        self.register("meta",        self._cmd_metalearner)
-        self.register("weights",     self._cmd_metalearner)
-        self.register("hmm",         self._cmd_hmm)
-        self.register("waves",       self._cmd_elliott)
-        self.register("elliott",     self._cmd_elliott)
+        # ── Core ─────────────────────────────────────────────────────────────
+        self.register("help",        self._cmd_help)
+        self.register("start",       self._cmd_start)
+        self.register("status",      self._cmd_status)
+        self.register("health",      self._cmd_health)
+        self.register("state",       self._cmd_state)
+        self.register("mode",        self._cmd_mode)
+        self.register("version",     self._cmd_version)
+        self.register("debug",       self._cmd_debug)
+        self.register("log",         self._cmd_log)
+        self.register("update",      self._cmd_update)
+        self.register("restart",     self._cmd_restart)
+        # ── Monitor ──────────────────────────────────────────────────────────
+        self.register("pnl",         self._cmd_pnl)
+        self.register("live",        self._cmd_live_positions)
+        self.register("live_pos",    self._cmd_live_positions)
+        self.register("positions",   self._cmd_positions)
+        self.register("signals",     self._cmd_signals)
+        self.register("today",       self._cmd_today)
+        self.register("missed",      self._cmd_missed)
+        self.register("heat",        self._cmd_heat)
+        self.register("symbols",     self._cmd_symbols)
+        # ── Morning / Market Context ──────────────────────────────────────────
+        self.register("morning",     self._cmd_morning)
+        self.register("brief",       self._cmd_brief)
+        self.register("premarket",   self._cmd_brief)
+        self.register("vix",         self._cmd_vix)
+        self.register("regime",      self._cmd_regime)
+        self.register("sentiment",   self._cmd_sentiment)
+        self.register("sectors",     self._cmd_sectors)
+        self.register("sector_live", self._cmd_sectors)
+        self.register("rotation",    self._cmd_sectors)
+        self.register("fii",         self._cmd_fii)
+        self.register("fii_dii",     self._cmd_fii)
+        self.register("dii",         self._cmd_fii)
+        self.register("gift",        self._cmd_gift_nifty)
+        self.register("giftnifty",   self._cmd_gift_nifty)
+        self.register("macro",       self._cmd_macro)
+        self.register("macro_data",  self._cmd_macro)
+        self.register("earnings",    self._cmd_earnings_calendar)
+        self.register("results",     self._cmd_earnings_calendar)
+        # ── OI / Options ─────────────────────────────────────────────────────
+        self.register("oi",          self._cmd_oi)
+        self.register("oib",         self._cmd_oi)
+        self.register("strikes",     self._cmd_oi)
+        self.register("oitrend",     self._cmd_oitrend)
+        self.register("oit",         self._cmd_oitrend)
+        self.register("oitt",        self._cmd_oitrend)
+        self.register("pcr",         self._cmd_pcr)
+        self.register("putcallratio",self._cmd_pcr)
+        self.register("fnoban",      self._cmd_fnoban)
+        self.register("ban",         self._cmd_fnoban)
+        # ── Deep Intelligence ────────────────────────────────────────────────
+        self.register("intel",       self._cmd_intelligence)
+        self.register("intelligence",self._cmd_intelligence)
+        self.register("omni",        self._cmd_intelligence)
         self.register("orderflow",   self._cmd_orderflow)
         self.register("of",          self._cmd_orderflow)
         self.register("darkpool",    self._cmd_darkpool)
         self.register("dp",          self._cmd_darkpool)
+        self.register("hmm",         self._cmd_hmm)
+        self.register("waves",       self._cmd_elliott)
+        self.register("elliott",     self._cmd_elliott)
+        self.register("meta",        self._cmd_metalearner)
+        self.register("weights",     self._cmd_metalearner)
         self.register("fiipos",      self._cmd_fiipos)
-        # ── Data & FII ───────────────────────────────────────────
-        self.register("fii",         self._cmd_fii)
-        self.register("fii_dii",     self._cmd_fii)
-        self.register("dii",         self._cmd_fii)
-        # ── Backup & Cloud ───────────────────────────────────────
-        self.register("backup",      self._cmd_backup)
-        self.register("github",      self._cmd_github)
-        self.register("gitpush",     self._cmd_github)
-        self.register("push",        self._cmd_github)
-        # ── Trading ──────────────────────────────────────────────
-        self.register("buy",         self._cmd_manual_buy)
-        self.register("sell",        self._cmd_manual_sell)
-        self.register("exit",        self._cmd_exit_all)
-        self.register("close",       self._cmd_exit_all)
-        # ── System ───────────────────────────────────────────────
-        self.register("update",      self._cmd_update)
-        self.register("version",     self._cmd_version)
-        self.register("debug",       self._cmd_debug)
-        self.register("config",       self._cmd_config)
-        self.register("settings",     self._cmd_config)
-        self.register("setcapital",   self._cmd_setcapital)
-        self.register("capital",      self._cmd_setcapital)
-        self.register("setthreshold", self._cmd_setthreshold)
-        self.register("threshold",    self._cmd_setthreshold)
-        self.register("trial",        self._cmd_trial)
-        self.register("freetrial",    self._cmd_trial)
-        self.register("addsub",           self._cmd_add_subscriber)
-        self.register("re_entry_status",  self._cmd_re_entry_status)
-        self.register("reentry",          self._cmd_re_entry_status)
-        self.register("cooldown",         self._cmd_re_entry_status)
-        self.register("conn",             self._cmd_conn)
-        self.register("addpaid",      self._cmd_add_subscriber)
-        self.register("reentry",      self._cmd_re_entry_status)
-        self.register("cooldown",     self._cmd_re_entry_status)
-        self.register("config",       self._cmd_config)
-        self.register("settings",     self._cmd_config)
-        self.register("setcap",       self._cmd_setcapital)
-        self.register("onboard",      self._cmd_subscribe_flow)
-        self.register("myplan",       self._cmd_my_plan)
-        self.register("plan",         self._cmd_my_plan)
-        self.register("score",        self._cmd_sentiment_score)
-        self.register("mkt_score",    self._cmd_sentiment_score)
-        self.register("analytics",    self._cmd_analytics)
-        self.register("hourly",       self._cmd_analytics)
-        self.register("rollover",     self._cmd_rollover)
-        self.register("diagnose",     self._cmd_diagnose)
-        self.register("why",          self._cmd_diagnose)
-        self.register("nosignals",    self._cmd_diagnose)
-        self.register("carry",        self._cmd_rollover)
-        self.register("blacklist",   self._cmd_blacklist)
-        self.register("pause_sym",   self._cmd_pause_symbol)
-        self.register("resume_sym",  self._cmd_pause_symbol)
-        self.register("shadow",      self._cmd_shadow_mode)
-        self.register("shadow_mode", self._cmd_shadow_mode)
-        self.register("churn",       self._cmd_churn)
-        self.register("session",         self._cmd_session)
-        self.register("deploy",          self._cmd_remote_deploy)
-        self.register("pull",            self._cmd_remote_deploy)
-        self.register("diagscan",        self._cmd_diag_scan)
-        self.register("fixangel",        self._cmd_fix_angel)
-        self.register("angelcheck",      self._cmd_fix_angel)
-        self.register("broker",          self._cmd_broker)
-        self.register("brokers",         self._cmd_broker)
-        self.register("dhan_setup",      self._cmd_dhan_setup)
-        self.register("dhan",            self._cmd_dhan_setup)
-        self.register("export_tax",      self._cmd_export_tax)
-        self.register("tax",             self._cmd_export_tax)
-        self.register("itr",             self._cmd_export_tax)
-        self.register("zerodha",         self._cmd_zerodha_status)
-        self.register("kite",            self._cmd_zerodha_status)
-        self.register("dhan",            self._cmd_dhan_status)
-        self.register("refresh_token",   self._cmd_session)
-        self.register("datasources",     self._cmd_datasource_health)
-        self.register("source_health",   self._cmd_datasource_health)
-        self.register("gift",            self._cmd_gift_nifty)
-        self.register("giftnifty",       self._cmd_gift_nifty)
-        self.register("macro",           self._cmd_macro)
-        self.register("macro_data",      self._cmd_macro)
-        self.register("sector_live",     self._cmd_sectors)
-        self.register("earnings",        self._cmd_earnings_calendar)
-        self.register("results",         self._cmd_earnings_calendar)
-        self.register("pcr",             self._cmd_pcr)
-        self.register("putcallratio",    self._cmd_pcr)
+        self.register("insider",     self._cmd_insider)
+        self.register("promoter",    self._cmd_insider)
+        self.register("social",      self._cmd_social)
+        self.register("reddit",      self._cmd_social)
+        self.register("news",        self._cmd_news)
+        self.register("commodities", self._cmd_commodities)
+        self.register("commodity",   self._cmd_commodities)
+        self.register("corpactions", self._cmd_corpactions)
+        self.register("ca",          self._cmd_corpactions)
+        self.register("wow",         self._cmd_wow2)
+        self.register("wow2",        self._cmd_wow2)
+        self.register("wowv2",       self._cmd_wow2)
         self.register("score",       self._cmd_market_score)
         self.register("market_score",self._cmd_market_score)
         self.register("health_score",self._cmd_market_score)
         self.register("mkt",         self._cmd_market_score)
-        self.register("banned",      self._cmd_blacklist)
-        # ── UX Commands ──────────────────────────────────────────────────
-        self.register("start",       self._cmd_start)
-        self.register("today",       self._cmd_today)
-        self.register("missed",      self._cmd_missed)
-        self.register("calculate",   self._cmd_calculate)
-        self.register("calc",        self._cmd_calculate)
-        self.register("size",        self._cmd_calculate)
-        self.register("watch",       self._cmd_watchlist)
-        self.register("watchlist",   self._cmd_watchlist)
-        self.register("alert",       self._cmd_price_alert)
-        self.register("export",      self._cmd_export_trades)
-        self.register("download",    self._cmd_export_trades)
-        self.register("paper",       self._cmd_paper)
-        self.register("voice",       self._cmd_voice)
-        self.register("audio",       self._cmd_voice)
-        self.register("live",        self._cmd_live_positions)
-        self.register("live_pos",    self._cmd_live_positions)
-        self.register("why",         self._cmd_why)
-        self.register("reason",      self._cmd_why)
-        self.register("compare",     self._cmd_compare_benchmark)
-        self.register("benchmark",   self._cmd_compare_benchmark)
-        self.register("alpha",       self._cmd_compare_benchmark)
-        # ── UX Engine commands ────────────────────────────────────────────
-        self.register("start",       self._cmd_start)
-        self.register("today",       self._cmd_today)
-        self.register("missed",      self._cmd_missed)
+        self.register("mkt_score",   self._cmd_sentiment_score)
+        # ── Performance & Analytics ───────────────────────────────────────────
         self.register("weekly",      self._cmd_weekly_perf)
         self.register("week",        self._cmd_weekly_perf)
+        self.register("analytics",   self._cmd_analytics)
+        self.register("hourly",      self._cmd_analytics)
+        self.register("perf",        self._cmd_analytics)
+        self.register("compare",     self._cmd_compare)
+        self.register("benchmark",   self._cmd_compare_benchmark)
+        self.register("alpha",       self._cmd_compare_benchmark)
+        self.register("sharpe",      self._cmd_sharpe)
+        self.register("metrics",     self._cmd_sharpe)
+        self.register("streak",      self._cmd_streak)
+        self.register("attribution", self._cmd_attribution)
+        self.register("attr",        self._cmd_attribution)
+        self.register("eod",         self._cmd_eod_summary)
+        self.register("downloads",   self._cmd_downloads)
         self.register("export",      self._cmd_export)
+        self.register("download",    self._cmd_export_trades)
+        self.register("schedule",    self._cmd_schedule)
+        self.register("next",        self._cmd_next)
+        # ── ML / Backtest ─────────────────────────────────────────────────────
+        self.register("backtest",    self._cmd_backtest)
+        self.register("bt",          self._cmd_backtest)
+        self.register("train",       self._cmd_train)
+        self.register("ml",          self._cmd_ml)
+        self.register("calibrate",   self._cmd_calibrate)
+        self.register("accuracy",    self._cmd_calibrate)
+        self.register("risk",        self._cmd_risk)
+        self.register("var",         self._cmd_risk)
+        self.register("stt",         self._cmd_stt)
+        self.register("breakeven",   self._cmd_stt)
+        self.register("charges",     self._cmd_stt)
+        self.register("rollover",    self._cmd_rollover)
+        self.register("carry",       self._cmd_rollover)
+        self.register("gaps",        self._cmd_gap_warning)
+        self.register("gapcheck",    self._cmd_gap_warning)
+        self.register("diagscan",    self._cmd_diag_scan)
+        # ── Control ───────────────────────────────────────────────────────────
+        self.register("pause",       self._cmd_pause)
+        self.register("resume",      self._cmd_resume)
+        self.register("arm",         self._cmd_arm)
+        self.register("disarm",      self._cmd_disarm)
+        self.register("kill",        self._cmd_kill)
         self.register("paper",       self._cmd_paper)
+        self.register("shadow",      self._cmd_shadow_mode)
+        self.register("shadow_mode", self._cmd_shadow_mode)
+        self.register("pause_sym",   self._cmd_pause_symbol)
+        self.register("resume_sym",  self._cmd_pause_symbol)
+        self.register("blacklist",   self._cmd_blacklist)
+        self.register("banned",      self._cmd_blacklist)
+        self.register("buy",         self._cmd_manual_buy)
+        self.register("sell",        self._cmd_manual_sell)
+        self.register("exit",        self._cmd_exit_all)
+        self.register("close",       self._cmd_exit_all)
+        # ── Tools ─────────────────────────────────────────────────────────────
         self.register("calculate",   self._cmd_calculate)
         self.register("calc",        self._cmd_calculate)
         self.register("size",        self._cmd_calculate)
-        self.register("watch",       self._cmd_watch)
-        self.register("watchlist",   self._cmd_watch)
         self.register("alert",       self._cmd_alert)
         self.register("alerts",      self._cmd_alerts)
+        self.register("watch",       self._cmd_watch)
+        self.register("watchlist",   self._cmd_watch)
         self.register("voice",       self._cmd_voice)
-        self.register("risk",        self._cmd_risk)
-        self.register("compare",     self._cmd_compare)
-        self.register("streak",      self._cmd_streak)
-        self.register("next",        self._cmd_next)
-        self.register("gaps",        self._cmd_gap_warning)
-        self.register("gapcheck",    self._cmd_gap_warning)
-        # ── New intelligence commands ────────────────────────────────────
-        self.register("fnoban",      self._cmd_fnoban)
-        self.register("ban",         self._cmd_fnoban)
-        self.register("insider",     self._cmd_insider)
-        self.register("promoter",    self._cmd_insider)
+        self.register("audio",       self._cmd_voice)
         self.register("video",       self._cmd_video)
         self.register("brief_video", self._cmd_video)
-        self.register("sentiment",   self._cmd_sentiment)
-        self.register("news",        self._cmd_news)
-        self.register("commodities", self._cmd_commodities)
-        self.register("commodity",   self._cmd_commodities)
-        self.register("wow",         self._cmd_wow2)
-        self.register("wow2",        self._cmd_wow2)
-        self.register("wowv2",       self._cmd_wow2)
-        self.register("corpactions", self._cmd_corpactions)
-        self.register("ca",          self._cmd_corpactions)
+        self.register("why",         self._cmd_why)
+        self.register("reason",      self._cmd_why)
+        self.register("diagnose",    self._cmd_diagnose)
+        self.register("nosignals",   self._cmd_diagnose)
+        # ── Cloud / Backup ────────────────────────────────────────────────────
+        self.register("backup",      self._cmd_backup)
+        self.register("github",      self._cmd_github)
+        self.register("gitpush",     self._cmd_github)
+        self.register("push",        self._cmd_github)
+        self.register("sync",        self._cmd_sync)
+        self.register("drivesync",   self._cmd_sync)
+        self.register("cloud",       self._cmd_drive_status)
+        self.register("drivestatus", self._cmd_drive_status)
+        self.register("deploy",      self._cmd_remote_deploy)
+        self.register("pull",        self._cmd_remote_deploy)
+        self.register("datasources", self._cmd_datasource_health)
+        self.register("source_health",self._cmd_datasource_health)
+        self.register("connections", self._cmd_connections)
+        self.register("conn",        self._cmd_conn)
+        # ── Config / Subscription ─────────────────────────────────────────────
+        self.register("config",      self._cmd_config)
+        self.register("settings",    self._cmd_config)
+        self.register("setcapital",  self._cmd_setcapital)
+        self.register("capital",     self._cmd_setcapital)
+        self.register("setcap",      self._cmd_setcapital)
+        self.register("setthreshold",self._cmd_setthreshold)
+        self.register("threshold",   self._cmd_setthreshold)
+        self.register("trial",       self._cmd_trial)
+        self.register("freetrial",   self._cmd_trial)
+        self.register("addsub",      self._cmd_add_subscriber)
+        self.register("addpaid",     self._cmd_add_subscriber)
+        self.register("re_entry_status", self._cmd_re_entry_status)
+        self.register("reentry",     self._cmd_re_entry_status)
+        self.register("cooldown",    self._cmd_re_entry_status)
+        self.register("onboard",     self._cmd_subscribe_flow)
+        self.register("myplan",      self._cmd_my_plan)
+        self.register("plan",        self._cmd_my_plan)
         self.register("subscribers", self._cmd_subscribers)
         self.register("subs",        self._cmd_subscribers)
-        self.register("eod",         self._cmd_eod_summary)
-        self.register("intelligence",self._cmd_intelligence)
-        self.register("intel",       self._cmd_intelligence)
-        self.register("omni",        self._cmd_intelligence)
-        self.register("social",      self._cmd_social)
-        self.register("reddit",      self._cmd_social)
-        self.register("sectors",     self._cmd_sectors)
-        self.register("rotation",    self._cmd_sectors)
-        self.register("analytics",   self._cmd_analytics)
-        self.register("perf",        self._cmd_analytics)
-        self.register("brief",       self._cmd_brief)
-        self.register("premarket",   self._cmd_brief)
-        self.register("sharpe",      self._cmd_sharpe)
-        self.register("metrics",     self._cmd_sharpe)
-        self.register("attribution", self._cmd_attribution)
-        self.register("attr",        self._cmd_attribution)
+        self.register("churn",       self._cmd_churn)
+        # ── Broker ────────────────────────────────────────────────────────────
+        self.register("broker",      self._cmd_broker)
+        self.register("brokers",     self._cmd_broker)
+        self.register("dhan",        self._cmd_dhan_status)
+        self.register("dhan_setup",  self._cmd_dhan_setup)
+        self.register("zerodha",     self._cmd_zerodha_status)
+        self.register("kite",        self._cmd_zerodha_status)
+        self.register("fixangel",    self._cmd_fix_angel)
+        self.register("angelcheck",  self._cmd_fix_angel)
+        self.register("session",     self._cmd_session)
+        self.register("refresh_token",self._cmd_session)
+        # ── Tax / Export ──────────────────────────────────────────────────────
+        self.register("export_tax",  self._cmd_export_tax)
+        self.register("tax",         self._cmd_export_tax)
+        self.register("itr",         self._cmd_export_tax)
 
     # ── Command implementations ───────────────────────────────────────────────
     def _cmd_help(self, _="") -> str:
         return (
-            "📱 <b>ALL COMMANDS</b>\n\n"
-            "  📊 <b>Monitor</b>\n"
-            "   /status   /pnl   /positions\n"
-            "   /signals  /risk  /heat\n\n"
-            "  🌅 <b>Morning</b>\n"
-            "   /morning  /vix   /regime\n"
-            "   /schedule /oi    /oitrend\n\n"
-            "  🧠 <b>Analytics</b>\n"
-            "   /meta     /hmm   /waves\n"
-            "   /orderflow /darkpool /fiipos\n"
-            "   /fii      /bt    /train /ml\n"
-            "   /weekly   /calibrate /stt\n\n"
-            "  🔧 <b>Control</b>\n"
-            "   /pause    /resume /restart\n"
-            "   /kill     /mode   /kill\n\n"
-            "  ☁️ <b>Cloud</b>\n"
-            "   /backup   /github /sync\n"
-            "   /cloud    /deploy /datasources\n\n"
-            "  🔌 <b>System</b>\n"
-            "   /health   /connections /log\n"
-            "   /state    /version  /debug\n"
-        )
-
-    def _cmd_help_OLD(self, _="") -> str:
-        return (
-            "🤖 <b>TRADING BOT COMMANDS</b>\n"
-            "━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "/status   — System status + P&L\n"
-            "/state    — Current state (TRADING/BACKTEST/ML)\n"
-            "/schedule — Full task schedule with countdown\n"
-            "/pnl      — Full P&L breakdown today\n"
-            "/morning  — Morning readiness check\n"
-            "/ml       — ML model status + signal log stats\n"
-            "/positions — Open positions\n"
-            "/signals  — Last 5 signals fired\n"
-            "/vix      — VIX + market context\n"
-            "/mode     — Current mode (paper/live/backtest)\n"
-            "━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "/pause    — Pause new entries\n"
-            "/resume   — Resume entries\n"
-            "/kill     — EMERGENCY: close all positions\n"
-            "━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "/backtest — Trigger backtest now  (alias: /bt)\n"
-            "/train    — Trigger ML training now\n"
-            "/restart  — Restart the bot\n"
-            "/log      — Last 20 lines of bot log\n"
-            "/health      — CPU/memory/disk\n"
-            "/risk        — Value at Risk (VaR/CVaR)\n"
-            "/connections — Check all data feeds & connections\n"
-            "/downloads — Today's download report\n"
-            "/weekly   — Weekly performance\n"
-            "/symbols  — Symbol scan status\n"
-            "/next     — What happens next (schedule)\n"
+            "📱 <b>TRADING BOT — ALL COMMANDS</b>\n\n"
+            "📊 <b>Monitor</b>\n"
+            "  /status  /pnl  /live  /positions\n"
+            "  /signals  /today  /missed  /heat\n\n"
+            "🌅 <b>Morning / Market</b>\n"
+            "  /morning  /brief  /vix  /regime\n"
+            "  /sentiment  /sectors  /fii  /gift\n"
+            "  /macro  /earnings  /score\n\n"
+            "📈 <b>OI / Options</b>\n"
+            "  /oi  /oitrend  /pcr  /fnoban\n\n"
+            "🧠 <b>Intelligence</b>\n"
+            "  /intel  /orderflow  /darkpool\n"
+            "  /hmm  /waves  /meta  /fiipos\n"
+            "  /insider  /social  /news\n"
+            "  /commodities  /corpactions  /wow\n\n"
+            "💹 <b>Performance</b>\n"
+            "  /weekly  /analytics  /compare\n"
+            "  /sharpe  /streak  /attribution\n"
+            "  /eod  /downloads  /export\n\n"
+            "🤖 <b>ML / Backtest</b>\n"
+            "  /bt  /train  /ml  /calibrate\n"
+            "  /risk  /stt  /rollover\n"
+            "  /gaps  /diagscan  /why\n\n"
+            "🔧 <b>Control</b>\n"
+            "  /pause  /resume  /kill  /mode\n"
+            "  /paper  /shadow  /pause_sym\n"
+            "  /buy  /sell  /exit\n\n"
+            "🛠️ <b>Tools</b>\n"
+            "  /calculate  /alert  /alerts\n"
+            "  /watch  /voice  /video\n"
+            "  /schedule  /next  /symbols\n\n"
+            "☁️ <b>Cloud</b>\n"
+            "  /backup  /github  /sync  /deploy\n"
+            "  /cloud  /datasources  /connections\n\n"
+            "⚙️ <b>Config</b>\n"
+            "  /config  /capital  /threshold\n"
+            "  /broker  /dhan  /zerodha\n"
+            "  /session  /tax  /reentry\n"
+            "  /health  /log  /restart  /version\n\n"
+            "💡 Most commands accept a symbol: <code>/signals RELIANCE</code>"
         )
 
     def _cmd_status(self, _="") -> str:
+        """Status command - uses timeout to avoid deadlocking on shared objects"""
         try:
-            bot = self.bot_ref
-            if not bot: return "⚠️ Bot reference not set"
-            tm  = bot.live_engine.trade_manager
-            pnl = tm.daily_realized_pnl if hasattr(tm,'daily_realized_pnl') else 0
-            n_open = len(tm.open_trades) if hasattr(tm,'open_trades') else 0
-            today_closed = tm.get_today_closed_trades() if hasattr(tm,'get_today_closed_trades') else []
-            wins  = sum(1 for t in today_closed if float(t.get('pnl',0))>0)
-            total = len(today_closed)
-            mode  = str(getattr(bot.runtime_state,'mode','PAPER'))
-            e     = "🟢" if pnl >= 0 else "🔴"
-            return (
-                f"📊 <b>SYSTEM STATUS</b>  {datetime.now().strftime('%H:%M')}\n"
-                f"Mode: <b>{mode}</b>\n"
-                f"{e} Day P&L: <b>₹{pnl:+,.0f}</b>\n"
-                f"🔓 Open: {n_open}  📈 Trades: {total} ({wins}W)\n"
-                f"🕐 {datetime.now().strftime('%d-%b %H:%M:%S')}"
-            )
+            import threading
+            result = ["⏳ Fetching status..."]
+            
+            def _get_live_status():
+                try:
+                    bot = self.bot_ref
+                    if not bot:
+                        result.clear()
+                        result.append("⚠️ Bot reference not set")
+                        return
+                    
+                    # Use timeout to prevent deadlock
+                    tm  = bot.live_engine.trade_manager
+                    pnl = tm.daily_realized_pnl if hasattr(tm,'daily_realized_pnl') else 0
+                    n_open = len(tm.open_trades) if hasattr(tm,'open_trades') else 0
+                    mode  = str(getattr(bot.runtime_state,'mode','PAPER'))
+                    e     = "🟢" if pnl >= 0 else "🔴"
+                    
+                    result.clear()
+                    result.append(
+                        f"📊 <b>SYSTEM STATUS</b>  {datetime.now().strftime('%H:%M')}\n"
+                        f"Mode: <b>{mode}</b>\n"
+                        f"{e} Day P&L: <b>₹{pnl:+,.0f}</b>\n"
+                        f"🔓 Open: {n_open}\n"
+                        f"🕐 {datetime.now().strftime('%d-%b %H:%M:%S')}"
+                    )
+                except Exception as e:
+                    result.clear()
+                    result.append(f"⚠️ Status fetch: {str(e)[:60]}")
+            
+            # Fetch with 3 second timeout - if it takes longer, just return "Fetching..."
+            thread = threading.Thread(target=_get_live_status, daemon=True)
+            thread.start()
+            thread.join(timeout=3)  # CRITICAL: timeout prevents deadlock
+            
+            return result[0] if result else "⏳ Status (timeout - try again)"
         except Exception as e:
-            return f"⚠️ Status error: {e}"
+            return f"⚠️ Status error: {str(e)[:80]}"
 
     def _cmd_pnl(self, args="") -> str:
         """Institutional P&L report."""
@@ -568,23 +640,43 @@ class TelegramCommandHandler:
             return f"⚠️ {e}"
 
     def _cmd_positions(self, _="") -> str:
+        """Show live positions with real-time P&L from websocket."""
         try:
-            bot = self.bot_ref
-            if not bot: return "⚠️ No bot ref"
-            tm = bot.live_engine.trade_manager
-            trades = list(getattr(tm,'open_trades',{}).values())
-            if not trades:
-                return "🔓 No open positions"
-            lines = [f"🔓 <b>OPEN POSITIONS ({len(trades)})</b>"]
-            for t in trades:
-                sym  = getattr(t,'symbol','?')
-                side = getattr(t,'side','?')
-                ep   = getattr(t,'entry_price',0)
-                unr  = getattr(t,'unrealized_pnl',0)
-                lines.append(f"  {side[:1]} {sym} @{ep:.0f}  {'🟢' if unr>=0 else '🔴'}₹{unr:+,.0f}")
+            # Try websocket tracker first (real-time)
+            try:
+                from websocket_tracker import WebSocketTracker
+                if hasattr(self, "bot_ref") and self.bot_ref:
+                    ws = getattr(self.bot_ref, "_ws_tracker", None)
+                    if ws:
+                        pnl = ws.get_live_pnl()
+                        if pnl:
+                            lines = ["<b>LIVE POSITIONS</b> (real-time)", ""]
+                            total_pnl = 0
+                            for sym, data in pnl.items():
+                                icon = "\U0001f7e2" if data["pnl"] >= 0 else "\U0001f534"
+                                be = " BE" if data["breakeven"] else ""
+                                t1 = " T1\u2713" if data["t1_hit"] else ""
+                                lines.append(
+                                    f"  {icon} {sym}\n"
+                                    f"     {data["side"]} {data["qty"]} @ \u20b9{data["entry"]:,.2f}\n"
+                                    f"     Now: \u20b9{data["current"]:,.2f}  P&L: \u20b9{data["pnl"]:+,.0f} ({data["pnl_pct"]:+.1f}%){be}{t1}\n"
+                                    f"     SL: \u20b9{data["sl"]:,.2f}  T: \u20b9{data["target"]:,.2f}"
+                                )
+                                total_pnl += data["pnl"]
+                            lines += ["", f"  Total P&L: \u20b9{total_pnl:+,.0f}"]
+                            return "\n".join(lines)
+            except Exception: pass
+            # Fallback: trade manager
+            from trade_manager import get_open_positions
+            positions = get_open_positions()
+            if not positions:
+                return "No open positions\n/signals to see recent signals"
+            lines = ["<b>OPEN POSITIONS</b>", ""]
+            for p in positions:
+                lines.append(f"  {p.get("symbol")} {p.get("side")} {p.get("qty")} @ \u20b9{p.get("entry_price",0):,.2f}")
             return "\n".join(lines)
         except Exception as e:
-            return f"⚠️ {e}"
+            return f"Positions: {e}"
 
     def _cmd_signals(self, _="") -> str:
         """Show recent signals from strategy_scores or trades."""
@@ -637,6 +729,24 @@ class TelegramCommandHandler:
             return "▶️ <b>ENTRIES RESUMED</b>\nBot will take new signals."
         except Exception as e:
             return f"⚠️ {e}"
+
+    def _cmd_arm(self, _="") -> str:
+        try:
+            from dual_mode_engine import arm_live_trading
+            today = arm_live_trading()
+            return ("🔴 <b>LIVE TRADING ARMED</b> for today (%s)\n"
+                    "Real orders will fire alongside paper while funded.\n"
+                    "Auto-disarms tomorrow. Send /disarm to stop now." % today)
+        except Exception as e:
+            return f"⚠️ arm failed: {e}"
+
+    def _cmd_disarm(self, _="") -> str:
+        try:
+            from dual_mode_engine import disarm_live_trading
+            disarm_live_trading()
+            return "🟢 <b>LIVE DISARMED</b> — paper only. No real orders."
+        except Exception as e:
+            return f"⚠️ disarm failed: {e}"
 
     def _cmd_kill(self, _="") -> str:
         try:
@@ -767,6 +877,20 @@ class TelegramCommandHandler:
         except Exception as _e:
             import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
 
+        try:
+            tg = self.health()
+            poll_age = tg.get("last_poll_ok_age_sec")
+            poll_text = f"{poll_age:.0f}s ago" if isinstance(poll_age, (int, float)) else "never"
+            tg_ok = tg.get("running") and tg.get("thread_alive") and int(tg.get("poll_failures") or 0) == 0
+            lines += [
+                f"  {'✅' if tg_ok else '⚠️'} TG listener: {'OK' if tg_ok else 'CHECK'}",
+                f"  📥 TG last poll: {poll_text}",
+            ]
+            if tg.get("last_error"):
+                lines.append(f"  ⚠️ TG error: {str(tg.get('last_error'))[:50]}")
+        except Exception:
+            pass
+
         lines.append(f"🕐 {_dt.now().strftime('%H:%M:%S')}")
         return "\n".join(lines) if lines else "Health data unavailable"
 
@@ -789,38 +913,62 @@ class TelegramCommandHandler:
             return f"⚠️ {e}"
 
     def _cmd_vix(self, _="") -> str:
-        def _safe_close(df):
-            if df is None or len(df) == 0: return 0.0
-            try:
-                c = df["Close"]
-                if hasattr(c, "columns"): c = c.iloc[:, 0]
-                v = c.iloc[-1]
-                if hasattr(v, "iloc"): v = v.iloc[0]
-                return float(v)
-            except Exception: return 0.0
         try:
-            import yf_compat as yf  # yfinance replaced: Yahoo API broken
             from datetime import datetime as _dt
-            vix    = _safe_close(yf.download("^INDIAVIX", period="5d", interval="1d",
-                                              progress=False, auto_adjust=True))
-            us_vix = _safe_close(yf.download("^VIX",      period="5d", interval="1d",
-                                              progress=False, auto_adjust=True))
+            import requests as _rq
+
+            # India VIX — use live engine cache first (updated every scan cycle)
+            vix = float(getattr(getattr(
+                getattr(self, "bot_ref", None), "live_engine", None),
+                "_vix_cache_val", 0) or 0)
+            if vix <= 0:
+                try:
+                    _s = _rq.Session()
+                    _s.headers.update({"User-Agent": "Mozilla/5.0",
+                                       "Referer": "https://www.nseindia.com"})
+                    _s.get("https://www.nseindia.com/", timeout=4)
+                    _r = _s.get("https://www.nseindia.com/api/allIndices", timeout=6)
+                    if _r.status_code == 200:
+                        for _ix in _r.json().get("data", []):
+                            if "INDIA VIX" in str(_ix.get("index", "")).upper():
+                                vix = float(_ix.get("last", 0) or 0)
+                                break
+                except Exception:
+                    pass
+
+            # US VIX — CBOE free daily CSV (no auth required)
+            us_vix = 0.0
+            try:
+                _cr = _rq.get(
+                    "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+                    timeout=5)
+                if _cr.status_code == 200:
+                    _lines = [l for l in _cr.text.strip().split("\n") if l.strip()]
+                    _last  = _lines[-1].split(",")
+                    us_vix = float(_last[-1])
+            except Exception:
+                pass
+
             v_icon = "🔴" if vix > 22 else "🟡" if vix > 16 else "🟢"
             block  = vix > 22
-            lines  = [
+            vix_str    = f"{vix:.1f}"    if vix > 0 else "unavailable"
+            us_vix_str = f"{us_vix:.1f}" if us_vix > 0 else "unavailable"
+            lines = [
                 f"🌡️ <b>VIX STATUS</b>",
-                f"  {v_icon} India VIX:  {vix:.1f}",
-                f"  {'🔴' if us_vix>25 else '🟢'} US VIX:    {us_vix:.1f}",
-                f"  Option buying: {'⛔ BLOCKED (VIX>{22})' if block else '✅ ALLOWED'}",
+                f"  {v_icon} India VIX:  {vix_str}",
+                f"  {'🔴' if us_vix > 25 else '🟢'} US VIX:    {us_vix_str}",
+                f"  Option buying: {'⛔ BLOCKED (VIX>22)' if block else '✅ ALLOWED'}",
             ]
-            if vix < 13:
-                lines.append(f"  💡 Very low VIX — good conditions for option buying")
+            if vix <= 0:
+                lines.append("  ⚠️ India VIX unavailable — NSE API unreachable")
+            elif vix < 13:
+                lines.append("  💡 Very low VIX — good conditions for option buying")
             elif vix < 18:
-                lines.append(f"  💡 Normal VIX — all strategies running")
+                lines.append("  💡 Normal VIX — all strategies running")
             elif vix < 22:
-                lines.append(f"  💡 Elevated — reduced lot sizes auto-applied")
+                lines.append("  💡 Elevated — reduced lot sizes auto-applied")
             else:
-                lines.append(f"  💡 HIGH — system blocks option buying, futures only")
+                lines.append("  💡 HIGH — system blocks option buying, futures only")
             lines.append(f"🕐 {_dt.now().strftime('%H:%M')}")
             return "\n".join(lines)
         except Exception as e:
@@ -997,26 +1145,38 @@ class TelegramCommandHandler:
         except Exception as e:
             lines.append(f"  ❌ yfinance: {str(e)[:40]}")
 
-        # 3. India VIX — from NSE allIndices (yfinance dead)
+        # 3. India VIX — Angel index LTP primary (NSE blocks this IP), then NSE
+        #    allIndices. Mirrors the live engine's source so the check reports
+        #    the same VIX the bot actually trades on. (Skips the engine's 15.0
+        #    floor on purpose so a genuine outage still shows ⚠️, not a fake ✅.)
         total += 1
         vix_val = 0.0
+        le = getattr(self.bot_ref, "live_engine", None) if hasattr(self, "bot_ref") else None
         try:
-            import requests as _rvix
-            _sv = _rvix.Session()
-            _sv.headers.update({"User-Agent":"Mozilla/5.0","Referer":"https://www.nseindia.com"})
-            _sv.get("https://www.nseindia.com/", timeout=4)
-            _rv = _sv.get("https://www.nseindia.com/api/allIndices", timeout=7)
-            if _rv.status_code == 200:
-                for _ix in _rv.json().get("data", []):
-                    if "INDIA VIX" in str(_ix.get("index","")).upper():
-                        vix_val = float(_ix.get("last", 0) or 0)
-                        break
-            # Also cache in live engine
+            _ang = (getattr(le, "_angel", None)
+                    or getattr(getattr(le, "data_fetcher", None), "angel", None)) if le else None
+            if _ang is not None:
+                _va = _ang.get_ltp("INDIA VIX", "NSE")
+                if _va and float(_va) > 0:
+                    vix_val = float(_va)
+        except Exception: pass
+        if vix_val <= 0:
             try:
-                if vix_val > 0 and hasattr(self, "bot_ref"):
-                    le = getattr(self.bot_ref, "live_engine", None)
-                    if le: le._vix_cache_val = vix_val; le._vix_cache_ts = __import__("time").time()
+                import requests as _rvix
+                _sv = _rvix.Session()
+                _sv.headers.update({"User-Agent":"Mozilla/5.0","Referer":"https://www.nseindia.com"})
+                _sv.get("https://www.nseindia.com/", timeout=4)
+                _rv = _sv.get("https://www.nseindia.com/api/allIndices", timeout=7)
+                if _rv.status_code == 200:
+                    for _ix in _rv.json().get("data", []):
+                        if "INDIA VIX" in str(_ix.get("index","")).upper():
+                            vix_val = float(_ix.get("last", 0) or 0)
+                            break
             except Exception: pass
+        # Cache in live engine if we got a real value
+        try:
+            if vix_val > 0 and le:
+                le._vix_cache_val = vix_val; le._vix_cache_ts = __import__("time").time()
         except Exception: pass
         icon     = "✅" if vix_val > 0 else "⚠️"
         vix_warn = " ⚠️ HIGH — option buying restricted" if vix_val >= 22 else ""
@@ -1357,10 +1517,78 @@ class TelegramCommandHandler:
             return f"❌ Events: {e}"
 
     def _cmd_herozero(self, args: str = "") -> str:
-        """Hero-Zero 0DTE strategy — expiry day option play guide."""
+        """Hero-Zero 0DTE strategy — schedule + live setup score for today."""
         try:
-            from hero_zero_strategy import get_hero_zero_schedule
-            return get_hero_zero_schedule()
+            from hero_zero_strategy import (
+                get_hero_zero_schedule, is_expiry_today,
+                score_hero_zero_entry, get_hero_zero_strikes,
+            )
+            out = [get_hero_zero_schedule()]
+
+            # Live setup score for each weekly index expiring today.
+            #   NIFTY  → spot + momentum direction from the cached 5-min df.
+            #   SENSEX → spot from BSE (no df, so direction-agnostic: show both
+            #            CE and PE candidate strikes).
+            from datetime import datetime as _dt
+            bot = getattr(self, "bot_ref", None)
+            le  = getattr(bot, "live_engine", None) if bot else None
+
+            def _spot_dir(sym):
+                """Return (spot, direction|None) for a weekly index."""
+                if sym == "NIFTY":
+                    df = getattr(le, "_nifty_df_cache", None) if le else None
+                    try:
+                        if df is not None and len(df) >= 2:
+                            _c = df.copy(); _c.columns = [c.lower() for c in _c.columns]
+                            cl = _c["close"].values
+                            return float(cl[-1]), ("BUY" if cl[-1] >= cl[-2] else "SELL")
+                    except Exception:
+                        pass
+                    return 0.0, None
+                if sym == "SENSEX":
+                    try:
+                        from bse_option_chain import _fetch_bse_index_level
+                        return float(_fetch_bse_index_level("SENSEX") or 0.0), None
+                    except Exception:
+                        return 0.0, None
+                return 0.0, None
+
+            vix = float(getattr(le, "_vix_cache_val", 0) or 0) or 15.0
+            tiers = ["T1 🎲", "T2 ⚖️", "T3 🛡️"]
+            for sym in ("NIFTY", "SENSEX"):
+                if not is_expiry_today(sym):
+                    continue
+                spot, direction = _spot_dir(sym)
+                if not spot:
+                    out.append(f"\n⚠️ {sym}: expiry today — live spot unavailable "
+                               f"(score appears once data is cached).")
+                    continue
+                setup = score_hero_zero_entry(
+                    spot=spot, symbol=sym, direction=direction or "BUY",
+                    vix=vix, time_now=_dt.now())
+                blk = [
+                    "", f"🎰 <b>{sym} LIVE SETUP</b> — {setup['verdict']}",
+                    f"  Spot ₹{spot:,.0f} | VIX {vix:.1f}"
+                    + (f" | Bias {direction}" if direction
+                       else " | Bias: pick by intraday trend"),
+                    f"  Setup score: {setup['score']:.1f}/10 "
+                    f"({'ENTER' if setup['enter'] else 'wait — needs ≥5'})",
+                ]
+                for sd in ([direction] if direction else ["BUY", "SELL"]):
+                    opt = "CE" if sd == "BUY" else "PE"
+                    blk.append(f"  {opt} strikes:")
+                    for i, s in enumerate(
+                            get_hero_zero_strikes(spot, sym, sd,
+                                                  otm_pct=1.5, n_strikes=3)[:3]):
+                        blk.append(f"   {tiers[i] if i < 3 else f'T{i+1}'}: "
+                                   f"{sym} {s['strike']:.0f} {opt} "
+                                   f"(OTM {s['otm_pct']:.1f}%)")
+                blk += ["  Risk: 100% of premium | Target: 5x–20x",
+                        "  ⚠️ Option-buying is negative-edge — lottery flyer only."]
+                for n in setup["notes"][:3]:
+                    blk.append(f"  {n}")
+                out.append("\n".join(blk))
+            return "\n".join(out)
         except Exception as e:
             return f"❌ Hero-Zero: {e}"
 
@@ -2218,48 +2446,6 @@ class TelegramCommandHandler:
         except Exception as e:
             return f"❌ Compare: {e}"
 
-    def _cmd_help_new(self, _="") -> str:
-        """UX-3: Categorised help — replaces wall of text."""
-        return (
-            "📱 <b>COMMAND GUIDE</b>\n\n"
-            "  🌅 <b>MORNING PREP</b>\n"
-            "  /morning  — Full pre-market brief\n"
-            "  /brief    — Market brief on demand\n"
-            "  /sectors  — Sector rotation\n"
-            "  /fii      — FII/DII flows\n"
-            "  /vix      — India VIX\n"
-            "  /sentiment — News sentiment\n\n"
-            "  📡 <b>SIGNALS & POSITIONS</b>\n"
-            "  /signals  — Latest signals\n"
-            "  /today    — All signals today\n"
-            "  /live     — Live position P&L\n"
-            "  /positions — Open trades\n\n"
-            "  📊 <b>PERFORMANCE</b>\n"
-            "  /pnl      — P&L report\n"
-            "  /weekly   — Weekly performance\n"
-            "  /compare  — vs NIFTY benchmark\n"
-            "  /sharpe   — Risk metrics\n"
-            "  /export   — Download trade CSV\n\n"
-            "  🧠 <b>INTELLIGENCE</b>\n"
-            "  /intel    — Omnisource (40+ sources)\n"
-            "  /insider  — Promoter trades\n"
-            "  /fnoban   — F&O ban list\n"
-            "  /news     — Latest headlines\n\n"
-            "  ⚙️ <b>TOOLS</b>\n"
-            "  /calculate NIFTY 100000\n"
-            "  /alert NIFTY above 24000\n"
-            "  /watch HDFCBANK TCS INFY\n"
-            "  /paper    — Paper trade results\n"
-            "  /voice    — Audio status\n\n"
-            "  🔧 <b>CONTROL</b>\n"
-            "  /status   /health   /pause\n"
-            "  /resume   /restart  /kill\n"
-            "  /backup   /github\n\n"
-            "  💡 All commands work 24/7"
-        )
-
-
-
     def _cmd_pause_symbol(self, args="") -> str:
         """IMPROVEMENT 7: Pause/resume a specific symbol. Usage: /pause_sym RELIANCE"""
         try:
@@ -2897,42 +3083,102 @@ class TelegramCommandHandler:
 
 
     def _cmd_remote_deploy(self, _="") -> str:
-        """Pull latest zip from Google Drive, deploy, restart."""
+        """Smart deploy: version check, test, restart."""
+        import subprocess, os as _osd
         try:
-            import subprocess, threading
-            def _do_deploy():
-                try:
-                    self.send("🚀 Deploying from Google Drive...")
-                    r = subprocess.run(
-                        ["bash", "remote_deploy.sh"],
-                        capture_output=True, text=True, timeout=300,
-                        cwd="/home/sridhar/Desktop/trading_robot"
-                    )
-                    output = r.stdout[-300:] if r.stdout else "no output"
-                    if r.returncode == 0:
-                        self.send(f"✅ <b>DEPLOY COMPLETE</b>\n<pre>{output}</pre>")
-                    else:
-                        self.send(f"❌ <b>DEPLOY FAILED</b>\n<pre>{r.stderr[-200:]}</pre>")
-                except Exception as e:
-                    self.send(f"❌ Deploy error: {e}")
-            threading.Thread(target=_do_deploy, daemon=True).start()
-            return "🚀 Deploy started — results in ~30 seconds"
+            _env = dict(os.environ)
+            try:
+                for _el in open("/home/sridhar/Desktop/trading_robot/.env"):
+                    _el = _el.strip()
+                    if "=" in _el and not _el.startswith("#"):
+                        _ek,_,_ev = _el.partition("=")
+                        _env[_ek] = _ev
+            except Exception: pass
+            subprocess.Popen(
+                ["bash", "/home/sridhar/Desktop/trading_robot/do_deploy.sh"],
+                env=_env, start_new_session=True,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                close_fds=True
+            )
+            return ("🚀 <b>SMART DEPLOY</b>\n\n"
+                    "  ⏳ Checking version on Drive...\n"
+                    "  ⏳ If newer → extract + test + restart\n"
+                    "  ⏳ If same → skip\n"
+                    "  ✅ Result sent after restart")
         except Exception as e:
             return f"❌ Deploy: {e}"
 
     def _cmd_diag_scan(self, _="") -> str:
-        """Run scan diagnostic and show results."""
+        """Run inline diagnostic without subprocess risk."""
         try:
-            import subprocess
-            r = subprocess.run(
-                ["python3", "diag_scan.py"],
-                capture_output=True, text=True, timeout=60,
-                cwd="/home/sridhar/Desktop/trading_robot"
-            )
-            output = r.stdout[-800:] if r.stdout else "no output"
-            return f"🔧 <b>SCAN DIAGNOSTIC</b>\n<pre>{output}</pre>"
+            out = "🔧 <b>SCAN DIAGNOSTIC</b>\n\n"
+            
+            # Step 1: Check Angel connection
+            out += "[1] Angel Connection\n"
+            try:
+                from angel_broker import AngelBroker
+                ab = AngelBroker(
+                    os.getenv("API_KEY", ""),
+                    os.getenv("CLIENT_ID", ""),
+                    os.getenv("PASSWORD", ""),
+                    os.getenv("TOTP_SECRET", ""),
+                    paper_trade=False
+                )
+                out += f"  ✓ Angel instance created\n"
+                out += f"  obj: {type(ab.angel.obj).__name__ if ab.angel.obj else 'None'}\n"
+                out += f"  paper_trade: {ab.angel.paper_trade}\n"
+            except Exception as e:
+                out += f"  ✗ Angel init failed: {str(e)[:100]}\n"
+                return out
+            
+            # Step 2: Try to fetch NIFTY data
+            out += "\n[2] DataFetcher test\n"
+            try:
+                from data_fetcher import DataFetcher
+                df = DataFetcher(symbols_csv="nifty.csv", paper_trade=False)
+                df.angel = ab.angel
+                nifty_data = df.get_market_data("NIFTY", interval="5m", days=5)
+                bars = len(nifty_data) if nifty_data is not None else 0
+                out += f"  ✓ DataFetcher created, angel assigned\n"
+                out += f"  NIFTY bars: {bars}\n"
+                if bars < 10:
+                    out += f"  ⚠️ Low bar count (expected 50+)\n"
+            except Exception as e:
+                out += f"  ✗ DataFetcher failed: {str(e)[:100]}\n"
+            
+            # Step 3: LiveSignalEngine test
+            out += "\n[3] LiveSignalEngine test\n"
+            try:
+                from live_signal_engine import LiveSignalEngine
+                lse = LiveSignalEngine()
+                angel_set = lse.data_fetcher.angel is not None
+                method = getattr(lse, "_angel_source_method", None)
+                out += f"  LSE created\n"
+                out += f"  DataFetcher.angel: {type(lse.data_fetcher.angel).__name__ if angel_set else 'None'}\n"
+                out += f"  Method: {method}\n"
+                
+                if angel_set:
+                    md = lse.data_fetcher.get_market_data("NIFTY", interval="5m", days=5)
+                    bars = len(md) if md is not None else 0
+                    out += f"  NIFTY bars via LSE: {bars}\n"
+                    if bars >= 50:
+                        out += f"  ✅ SCANNED WILL WORK\n"
+                    elif bars >= 5:
+                        out += f"  ⚠️ Low bars but above MIN (5)\n"
+                    else:
+                        out += f"  ❌ SCANNED: 0 — fetch returned 0 bars\n"
+                else:
+                    out += f"  ❌ Angel not set — THIS is why Scanned: 0\n"
+            except Exception as e:
+                out += f"  ✗ LSE test: {str(e)[:100]}\n"
+            
+            out += f"\n🕐 {datetime.now().strftime('%H:%M:%S')}"
+            return out
+            
         except Exception as e:
-            return f"❌ Diagnostic: {e}"
+            import traceback
+            err = traceback.format_exc()[-500:]
+            return f"❌ Diagnostic crashed:\n<pre>{err}</pre>"
 
     def _cmd_fix_angel(self, _="") -> str:
         """Check and fix Angel connection."""
@@ -3334,26 +3580,30 @@ class TelegramCommandHandler:
 
     def _cmd_backup(self, _="") -> str:
         try:
-            import subprocess, datetime as _dt
+            import datetime as _dt
             results = []
-            # GitHub push
+            # GitHub data backup
             try:
-                from github_sync import push_to_github
-                r = push_to_github()
-                results.append(f"{'✅' if r else '⚠️'} GitHub: {'pushed' if r else 'no changes'}")
+                from github_backup import run_github_backup
+                r = run_github_backup(force=True)
+                if r.get("ok"):
+                    results.append(f"✅ GitHub: {len(r.get('pushed',[]))} files → {r.get('repo','')}")
+                elif "not set" in r.get("error",""):
+                    results.append("⚠️ GitHub: not configured (add GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO to .env)")
+                else:
+                    results.append(f"⚠️ GitHub: {str(r.get('error','failed'))[:50]}")
             except Exception as e:
-                results.append(f"⚠️ GitHub: {str(e)[:30]}")
-            # Drive sync
+                results.append(f"⚠️ GitHub: {str(e)[:40]}")
+            # Google Drive backup
             try:
-                from gdrive_sync import DriveSyncWatcher
-                gs = DriveSyncWatcher()
-                r2 = gs.smart_sync() if hasattr(gs,"smart_sync") else {"pushed":0}
-                pushed = r2.get("pushed",0)
-                results.append(f"✅ Drive: {pushed} files pushed")
+                from cloud_backup import get_backup
+                br = get_backup().run_backup(force=True)
+                status = br.get("status", "unknown")
+                results.append(f"{'✅' if status == 'ok' else '⚠️'} GDrive: {status}")
             except Exception as e:
-                results.append(f"⚠️ Drive: {str(e)[:30]}")
+                results.append(f"⚠️ GDrive: {str(e)[:40]}")
             ts = _dt.datetime.now().strftime("%d-%b %H:%M")
-            return f"☁️ <b>BACKUP COMPLETE</b> | {ts}\n" + "\n".join(f"   {r}" for r in results)
+            return f"☁️ <b>BACKUP</b> | {ts}\n" + "\n".join(f"   {r}" for r in results)
         except Exception as e:
             return f"❌ Backup: {e}"
 
@@ -3361,10 +3611,16 @@ class TelegramCommandHandler:
         try:
             from github_sync import push_to_github
             result = push_to_github()
-            if result:
-                return "✅ <b>GitHub push successful</b>\n   Code backed up to sridharthetrainer/trading_robot"
-            else:
+            if result and result.get("ok"):
+                return (
+                    "✅ <b>GitHub push successful</b>\n"
+                    f"   Files: {len(result.get('files', []) or [])}\n"
+                    "   Code backed up to sridharthetrainer/trading_robot"
+                )
+            msg = str((result or {}).get("message") or (result or {}).get("error") or "")
+            if "Nothing to commit" in msg:
                 return "⚠️ GitHub: No changes to push (already up to date)"
+            return f"❌ GitHub: {msg[:120] or 'push failed'}"
         except Exception as e:
             return f"❌ GitHub: {e}"
 
@@ -3403,10 +3659,17 @@ class TelegramCommandHandler:
             proc = psutil.Process(os.getpid())
             cpu  = proc.cpu_percent(interval=1)
             mem  = proc.memory_info().rss / 1024**2
+            tg = self.health()
+            poll_age = tg.get("last_poll_ok_age_sec")
+            poll_text = f"{poll_age:.0f}s" if isinstance(poll_age, (int, float)) else "never"
             return (f"🔧 <b>DEBUG INFO</b>\n"
                     f"   CPU:    {cpu:.1f}%\n"
                     f"   Memory: {mem:.0f} MB\n"
-                    f"   PID:    {os.getpid()}")
+                    f"   PID:    {os.getpid()}\n"
+                    f"   TG:     running={tg.get('running')} "
+                    f"alive={tg.get('thread_alive')} "
+                    f"failures={tg.get('poll_failures')} "
+                    f"last_ok={poll_text}")
         except Exception as e:
             return f"❌ Debug: {e}"
 

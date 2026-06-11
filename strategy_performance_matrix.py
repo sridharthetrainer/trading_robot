@@ -79,6 +79,15 @@ class StrategyPerformanceMatrix:
         if n < MIN_TRADES_FOR_FILTER:
             return 1.0   # not enough data — neutral
 
+        # Global minimum-sample guard: don't move weights until a strategy
+        # has >= 30 total recorded outcomes across all conditions.
+        try:
+            from score_calibrator import get_calibrator
+            if not get_calibrator().has_min_samples(strategy, min_outcomes=30):
+                return 1.0
+        except Exception:
+            pass
+
         wins    = sum(t["won"] for t in trades)
         win_rate = wins / n
         avg_pnl  = sum(t["pnl"] for t in trades) / n

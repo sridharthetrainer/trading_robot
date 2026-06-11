@@ -54,7 +54,7 @@ DEFAULT_SYMBOL          = "NIFTY"
 DEFAULT_DAYS            = 30
 DEFAULT_INTERVAL        = "5m"
 DEFAULT_CAPITAL         = 100_000.0
-DEFAULT_LOT_SIZE        = 75
+DEFAULT_LOT_SIZE        = 65
 DEFAULT_LOTS            = 1
 DEFAULT_BROKERAGE       = 40.0        # round-trip
 DEFAULT_SLIPPAGE_PCT    = 0.05
@@ -130,7 +130,10 @@ def backtest_orb(
     brokerage:      float = DEFAULT_BROKERAGE,
     stt_rate:       float = DEFAULT_STT_RATE,
     slippage_pct:   float = DEFAULT_SLIPPAGE_PCT,
+    interval_minutes:int   = 5,
+    close_at_end:   bool  = True,
     verbose:        bool  = True,
+    **_: Any,
 ) -> Dict[str, Any]:
     """
     Walk forward through data bar by bar. On each new day, compute the ORB.
@@ -157,9 +160,11 @@ def backtest_orb(
     if not isinstance(data.index, pd.DatetimeIndex):
         return _empty_result(symbol, "no_datetime_index")
 
+    work = data.copy()
+
     # Group by date
-    data["_date"] = data.index.date
-    for day, day_df in data.groupby("_date"):
+    work["_date"] = work.index.date
+    for day, day_df in work.groupby("_date"):
         orb = _get_orb(day_df)
         if orb is None:
             continue
@@ -226,6 +231,23 @@ def backtest_orb(
                 }
                 capital -= brokerage
 
+            equity.append(capital)
+
+    if close_at_end and position and len(work):
+        last_ts = work.index[-1]
+        last = work.iloc[-1]
+        close = float(last.get("Close", last.get("close", 0)) or 0)
+        if close > 0:
+            if position["side"] == "BUY":
+                exit_p = close * (1 - slippage_pct / 100)
+                gross = (exit_p - position["entry"]) * qty
+            else:
+                exit_p = close * (1 + slippage_pct / 100)
+                gross = (position["entry"] - exit_p) * qty
+            costs = brokerage + exit_p * qty * stt_rate
+            pnl = gross - costs
+            capital += pnl
+            trades.append({**position, "exit": exit_p, "pnl": pnl, "exit_ts": last_ts})
             equity.append(capital)
 
     return _compute_metrics(symbol, trades, equity, initial_capital, verbose)

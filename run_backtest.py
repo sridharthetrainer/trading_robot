@@ -53,18 +53,38 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 os.chdir(HERE)
 
-# ── NSE Transaction costs (same as live trade_manager) ───────────────────────
+# ── NSE transaction costs for the index-point/futures proxy ──────────────────
 BROKERAGE     = 20.0          # ₹20 per leg
-STT_RATE      = 0.0005        # 0.05% sell side
+STT_RATE      = 0.0002        # 0.02% futures sell side
 EXCHANGE_RATE = 0.00053       # 0.053% turnover
 SEBI_RATE     = 0.000001      # 0.0001% turnover
 GST_RATE      = 0.18          # 18% on brokerage+exchange+sebi
 STAMP_RATE    = 0.00003       # 0.003% buy side
-LOT_SIZE      = 75            # NIFTY lot size
+LOT_SIZES = {
+    "NIFTY": 65,
+    "BANKNIFTY": 30,
+    "FINNIFTY": 60,
+    "MIDCPNIFTY": 120,
+    "SENSEX": 20,
+    "BANKEX": 30,
+}
+DEFAULT_LOT_SIZE = 65
+
+
+def get_lot_size(symbol: str) -> int:
+    sym = (symbol or "NIFTY").upper()
+    try:
+        from nse_master import get_nse_master
+        lot_size = int(get_nse_master().get_lot_size(sym))
+        if lot_size > 0:
+            return lot_size
+    except Exception:
+        pass
+    return LOT_SIZES.get(sym, DEFAULT_LOT_SIZE)
 
 
 def calc_charges(entry: float, exit_: float, qty: int, side: str = "BUY") -> dict:
-    """Full NSE charges for a round-trip options trade."""
+    """Round-trip costs for the index-point/futures proxy, not option premia."""
     entry_tv   = entry  * qty
     exit_tv    = exit_  * qty
     brokerage  = 2 * BROKERAGE
@@ -124,7 +144,9 @@ def fetch_data(symbol: str, days: int = 90, interval: str = "5m") -> Optional[pd
 def get_signals_for_bar(
     df_slice: pd.DataFrame,
     df_htf:   Optional[pd.DataFrame],
+    symbol: str,
     strategy_filter: Optional[str] = None,
+    signal_config: Optional[Dict[str, Any]] = None,
 ) -> List[dict]:
     """Run signal_engine on a data slice. Returns list of signals."""
     try:
@@ -132,9 +154,9 @@ def get_signals_for_bar(
         result = generate_signal(
             df              = df_slice,
             df_htf          = df_htf,
-            symbol          = "NIFTY",
+            symbol          = symbol,
             capital         = 100000,
-            cfg             = None,
+            config          = signal_config,
         )
         if result and result.get("direction") and result.get("score", 0) >= 3.5:
             if strategy_filter and strategy_filter not in result.get("strategy","").lower():
@@ -159,14 +181,16 @@ class BacktestEngine:
         stop_atr:   float = 1.5,    # stop = entry ± 1.5 × ATR
         target_atr: float = 2.5,    # target = entry ± 2.5 × ATR
         max_hold:   int   = 12,     # max bars to hold (12 × 5min = 1 hour)
+        score_threshold: float = 3.5,
         strategy_filter: Optional[str] = None,
     ) -> None:
         self.capital    = capital
         self.lots       = lots
-        self.qty        = lots * LOT_SIZE
+        self.qty        = lots * DEFAULT_LOT_SIZE
         self.stop_atr   = stop_atr
         self.target_atr = target_atr
         self.max_hold   = max_hold
+        self.score_threshold = score_threshold
         self.strategy_filter = strategy_filter
 
         self.trades:    List[dict] = []
@@ -181,6 +205,7 @@ class BacktestEngine:
         symbol: str = "NIFTY",
     ) -> "BacktestResult":
         """Run backtest bar by bar."""
+        self.qty = self.lots * get_lot_size(symbol)
         df = df.copy()
         df.columns = [c.lower() for c in df.columns]
 
@@ -232,7 +257,10 @@ class BacktestEngine:
             if self._open_trade is None:
                 df_slice = df.iloc[:bar_idx+1]
                 htf_slice = df_htf.iloc[:bar_idx//3+1] if df_htf is not None else None
-                signals = get_signals_for_bar(df_slice, htf_slice, self.strategy_filter)
+                signal_config = {"post_confluence_min_score": self.score_threshold}
+                signals = get_signals_for_bar(
+                    df_slice, htf_slice, symbol, self.strategy_filter, signal_config
+                )
 
                 for sig in signals:
                     direction = sig.get("direction")
@@ -456,6 +484,10 @@ def main():
     parser.add_argument("--strategy", default=None,      help="Filter to one strategy name")
     parser.add_argument("--lots",     type=int, default=1,  help="Number of lots")
     parser.add_argument("--capital",  type=float, default=100000, help="Starting capital")
+    parser.add_argument("--stop-atr", type=float, default=1.5, help="Stop distance in ATR")
+    parser.add_argument("--target-atr", type=float, default=2.5, help="Target distance in ATR")
+    parser.add_argument("--max-hold", type=int, default=12, help="Max bars to hold a trade")
+    parser.add_argument("--min-score", type=float, default=3.5, help="Minimum confluence score")
     parser.add_argument("--save",     default=None,       help="Save trades to CSV file")
     parser.add_argument("--json",     default="backtest_results.json", help="Save summary to JSON")
     args = parser.parse_args()
@@ -481,6 +513,10 @@ def main():
     engine = BacktestEngine(
         capital         = args.capital,
         lots            = args.lots,
+        stop_atr        = args.stop_atr,
+        target_atr      = args.target_atr,
+        max_hold        = args.max_hold,
+        score_threshold = args.min_score,
         strategy_filter = args.strategy,
     )
     result = engine.run(df, df_htf, symbol=args.symbol)
@@ -492,6 +528,8 @@ def main():
     summary["params"] = {
         "symbol": args.symbol, "days": args.days,
         "lots": args.lots, "capital": args.capital,
+        "stop_atr": args.stop_atr, "target_atr": args.target_atr,
+        "max_hold": args.max_hold, "min_score": args.min_score,
     }
     Path(args.json).write_text(json.dumps(summary, indent=2, default=str))
     print(f"\n  Results saved to: {args.json}")

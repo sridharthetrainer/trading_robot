@@ -2,21 +2,22 @@
 Description=NIFTY Algo Trading Bot
 After=network-online.target
 Wants=network-online.target
-StartLimitIntervalSec=120
-StartLimitBurst=3
 
 [Service]
 Type=simple
 User=sridhar
 WorkingDirectory=/home/sridhar/Desktop/trading_robot
 Environment=PATH=/home/sridhar/Desktop/trading_robot/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
 ExecStart=/home/sridhar/Desktop/trading_robot/venv/bin/python3 /home/sridhar/Desktop/trading_robot/main_autonomous.py
-Restart=on-failure
+# CRITICAL: Restart=always so SIGTERM (clean exit) also triggers restart
+# Without this, every /deploy permanently kills the bot
+Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
 TimeoutStartSec=60
-WatchdogUSec=300000000
+# NO StartLimitBurst — allow unlimited restarts (prevents permanent FAILED state)
 
 [Install]
 WantedBy=multi-user.target
