@@ -1,0 +1,779 @@
+{
+  "orb": {
+    "strategy": "orb",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "holy_grail": {
+    "strategy": "holy_grail",
+    "status": "INSUFFICIENT_DATA",
+    "n": 19
+  },
+  "chart_pattern_head_and_shoulders": {
+    "strategy": "chart_pattern_head_and_shoulders",
+    "status": "INSUFFICIENT_DATA",
+    "n": 29
+  },
+  "chart_pattern_double_top": {
+    "strategy": "chart_pattern_double_top",
+    "status": "INSUFFICIENT_DATA",
+    "n": 28
+  },
+  "fallback": {
+    "strategy": "fallback",
+    "status": "DEGRADED",
+    "trend_tau": -0.2,
+    "mk_pvalue": 0.2371,
+    "recent_wr": 0.3425,
+    "baseline_wr": 0.4247,
+    "decay_pct": 0.1935,
+    "n": 730,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "10:00\u201310:19",
+        "wr": 0.4658,
+        "n": 73
+      },
+      {
+        "label": "10:19\u201310:19",
+        "wr": 0.3288,
+        "n": 73
+      },
+      {
+        "label": "10:19\u201310:40",
+        "wr": 0.4795,
+        "n": 73
+      },
+      {
+        "label": "10:59\u201312:06",
+        "wr": 0.3973,
+        "n": 73
+      },
+      {
+        "label": "12:06\u201312:47",
+        "wr": 0.5616,
+        "n": 73
+      },
+      {
+        "label": "12:47\u201313:08",
+        "wr": 0.6164,
+        "n": 73
+      },
+      {
+        "label": "13:08\u201313:49",
+        "wr": 0.3151,
+        "n": 73
+      },
+      {
+        "label": "13:49\u201314:35",
+        "wr": 0.3425,
+        "n": 73
+      },
+      {
+        "label": "14:35\u201314:56",
+        "wr": 0.3151,
+        "n": 73
+      },
+      {
+        "label": "14:56\u201315:25",
+        "wr": 0.3425,
+        "n": 73
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.253827"
+  },
+  "trend": {
+    "strategy": "trend",
+    "status": "INSUFFICIENT_DATA",
+    "n": 27
+  },
+  "mean_reversion": {
+    "strategy": "mean_reversion",
+    "status": "STABLE",
+    "trend_tau": 0.6,
+    "mk_pvalue": 0.99,
+    "recent_wr": 0.8333,
+    "baseline_wr": 0.3333,
+    "decay_pct": -1.4999,
+    "n": 39,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "10:00\u201310:40",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "10:40\u201310:59",
+        "wr": 0.3333,
+        "n": 3
+      },
+      {
+        "label": "10:59\u201312:06",
+        "wr": 0.6667,
+        "n": 3
+      },
+      {
+        "label": "12:06\u201312:06",
+        "wr": 0.6667,
+        "n": 3
+      },
+      {
+        "label": "12:06\u201312:26",
+        "wr": 0.3333,
+        "n": 3
+      },
+      {
+        "label": "12:26\u201312:26",
+        "wr": 0.6667,
+        "n": 3
+      },
+      {
+        "label": "12:26\u201312:26",
+        "wr": 1.0,
+        "n": 3
+      },
+      {
+        "label": "12:26\u201312:47",
+        "wr": 0.6667,
+        "n": 3
+      },
+      {
+        "label": "12:47\u201312:47",
+        "wr": 1.0,
+        "n": 3
+      },
+      {
+        "label": "12:47\u201314:35",
+        "wr": 0.8333,
+        "n": 12
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.253877"
+  },
+  "price_structure": {
+    "strategy": "price_structure",
+    "status": "STABLE",
+    "trend_tau": -0.2444,
+    "mk_pvalue": 0.1855,
+    "recent_wr": 0.5,
+    "baseline_wr": 0.6349,
+    "decay_pct": 0.2125,
+    "n": 213,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "10:00\u201310:19",
+        "wr": 0.4762,
+        "n": 21
+      },
+      {
+        "label": "10:19\u201310:40",
+        "wr": 0.5714,
+        "n": 21
+      },
+      {
+        "label": "10:40\u201310:59",
+        "wr": 0.8571,
+        "n": 21
+      },
+      {
+        "label": "10:59\u201312:26",
+        "wr": 0.6667,
+        "n": 21
+      },
+      {
+        "label": "12:26\u201312:47",
+        "wr": 0.4762,
+        "n": 21
+      },
+      {
+        "label": "12:47\u201313:08",
+        "wr": 0.5238,
+        "n": 21
+      },
+      {
+        "label": "13:08\u201313:49",
+        "wr": 0.381,
+        "n": 21
+      },
+      {
+        "label": "13:49\u201314:12",
+        "wr": 0.5714,
+        "n": 21
+      },
+      {
+        "label": "14:12\u201314:35",
+        "wr": 0.4286,
+        "n": 21
+      },
+      {
+        "label": "14:35\u201315:25",
+        "wr": 0.5,
+        "n": 24
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.253908"
+  },
+  "order_flow": {
+    "strategy": "order_flow",
+    "status": "INSUFFICIENT_DATA",
+    "n": 7
+  },
+  "vwap_bands": {
+    "strategy": "vwap_bands",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
+  },
+  "heikin_ashi": {
+    "strategy": "heikin_ashi",
+    "status": "INSUFFICIENT_DATA",
+    "n": 8
+  },
+  "scalping": {
+    "strategy": "scalping",
+    "status": "DEGRADED",
+    "trend_tau": -0.7333,
+    "mk_pvalue": 0.0021,
+    "recent_wr": 0.1304,
+    "baseline_wr": 0.5167,
+    "decay_pct": 0.7476,
+    "n": 203,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "10:00\u201312:26",
+        "wr": 0.6,
+        "n": 20
+      },
+      {
+        "label": "12:26\u201312:47",
+        "wr": 0.5,
+        "n": 20
+      },
+      {
+        "label": "12:47\u201313:28",
+        "wr": 0.45,
+        "n": 20
+      },
+      {
+        "label": "13:28\u201314:12",
+        "wr": 0.55,
+        "n": 20
+      },
+      {
+        "label": "14:12\u201314:35",
+        "wr": 0.2,
+        "n": 20
+      },
+      {
+        "label": "14:35\u201314:56",
+        "wr": 0.3,
+        "n": 20
+      },
+      {
+        "label": "14:56\u201314:56",
+        "wr": 0.25,
+        "n": 20
+      },
+      {
+        "label": "14:56\u201315:25",
+        "wr": 0.1,
+        "n": 20
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.05,
+        "n": 20
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.1304,
+        "n": 23
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.253942"
+  },
+  "chart_pattern_cup_and_handle": {
+    "strategy": "chart_pattern_cup_and_handle",
+    "status": "INSUFFICIENT_DATA",
+    "n": 9
+  },
+  "chart_pattern_rising_wedge": {
+    "strategy": "chart_pattern_rising_wedge",
+    "status": "INSUFFICIENT_DATA",
+    "n": 4
+  },
+  "chart_pattern_inverse_head_shoulders": {
+    "strategy": "chart_pattern_inverse_head_shoulders",
+    "status": "INSUFFICIENT_DATA",
+    "n": 10
+  },
+  "vrvp_zone": {
+    "strategy": "vrvp_zone",
+    "status": "INSUFFICIENT_DATA",
+    "n": 15
+  },
+  "chart_pattern_double_bottom": {
+    "strategy": "chart_pattern_double_bottom",
+    "status": "INSUFFICIENT_DATA",
+    "n": 12
+  },
+  "rsi_divergence": {
+    "strategy": "rsi_divergence",
+    "status": "DECAYING",
+    "trend_tau": -0.3556,
+    "mk_pvalue": 0.0899,
+    "recent_wr": 0.3846,
+    "baseline_wr": 0.6667,
+    "decay_pct": 0.4231,
+    "n": 49,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "10:00\u201310:40",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "10:40\u201312:06",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "12:06\u201312:26",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "12:26\u201312:47",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "12:47\u201313:08",
+        "wr": 1.0,
+        "n": 4
+      },
+      {
+        "label": "13:08\u201313:28",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "13:28\u201314:35",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "14:35\u201314:56",
+        "wr": 0.0,
+        "n": 4
+      },
+      {
+        "label": "14:56\u201314:56",
+        "wr": 0.0,
+        "n": 4
+      },
+      {
+        "label": "14:56\u201315:25",
+        "wr": 0.3846,
+        "n": 13
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.253981"
+  },
+  "delta_neutral_theta": {
+    "strategy": "delta_neutral_theta",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "chart_pattern_descending_triangle": {
+    "strategy": "chart_pattern_descending_triangle",
+    "status": "STABLE",
+    "trend_tau": 0.0222,
+    "mk_pvalue": 0.5,
+    "recent_wr": 0.3846,
+    "baseline_wr": 0.4167,
+    "decay_pct": 0.077,
+    "n": 49,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "10:19\u201310:59",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "12:06\u201312:47",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "12:47\u201313:08",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "13:28\u201313:28",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "13:49\u201313:49",
+        "wr": 0.0,
+        "n": 4
+      },
+      {
+        "label": "13:49\u201314:12",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "14:12\u201314:35",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "14:35\u201314:35",
+        "wr": 0.0,
+        "n": 4
+      },
+      {
+        "label": "14:35\u201314:56",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "14:56\u201315:25",
+        "wr": 0.3846,
+        "n": 13
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.254007"
+  },
+  "cpr": {
+    "strategy": "cpr",
+    "status": "INSUFFICIENT_DATA",
+    "n": 12
+  },
+  "ttm_squeeze": {
+    "strategy": "ttm_squeeze",
+    "status": "INSUFFICIENT_DATA",
+    "n": 12
+  },
+  "chart_pattern_falling_wedge": {
+    "strategy": "chart_pattern_falling_wedge",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
+  "volume_profile_full": {
+    "strategy": "volume_profile_full",
+    "status": "INSUFFICIENT_DATA",
+    "n": 10
+  },
+  "ichimoku": {
+    "strategy": "ichimoku",
+    "status": "INSUFFICIENT_DATA",
+    "n": 4
+  },
+  "candlestick_doji": {
+    "strategy": "candlestick_doji",
+    "status": "INSUFFICIENT_DATA",
+    "n": 6
+  },
+  "elliott_wave": {
+    "strategy": "elliott_wave",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
+  "anchored_vwap": {
+    "strategy": "anchored_vwap",
+    "status": "INSUFFICIENT_DATA",
+    "n": 7
+  },
+  "candlestick_shooting_star": {
+    "strategy": "candlestick_shooting_star",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
+  },
+  "candlestick_bearish_engulfing": {
+    "strategy": "candlestick_bearish_engulfing",
+    "status": "INSUFFICIENT_DATA",
+    "n": 6
+  },
+  "candlestick_morning_star": {
+    "strategy": "candlestick_morning_star",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "candlestick_evening_star": {
+    "strategy": "candlestick_evening_star",
+    "status": "INSUFFICIENT_DATA",
+    "n": 5
+  },
+  "candlestick_bullish_marubozu": {
+    "strategy": "candlestick_bullish_marubozu",
+    "status": "INSUFFICIENT_DATA",
+    "n": 4
+  },
+  "parabolic_sar": {
+    "strategy": "parabolic_sar",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
+  },
+  "candlestick_bullish_engulfing": {
+    "strategy": "candlestick_bullish_engulfing",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
+  "chart_pattern_ascending_triangle": {
+    "strategy": "chart_pattern_ascending_triangle",
+    "status": "INSUFFICIENT_DATA",
+    "n": 27
+  },
+  "td_sequential": {
+    "strategy": "td_sequential",
+    "status": "INSUFFICIENT_DATA",
+    "n": 6
+  },
+  "candlestick_bearish_marubozu": {
+    "strategy": "candlestick_bearish_marubozu",
+    "status": "INSUFFICIENT_DATA",
+    "n": 4
+  },
+  "ehlers_fisher": {
+    "strategy": "ehlers_fisher",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "chart_pattern_bear_flag": {
+    "strategy": "chart_pattern_bear_flag",
+    "status": "INSUFFICIENT_DATA",
+    "n": 6
+  },
+  "alligator_ao": {
+    "strategy": "alligator_ao",
+    "status": "DEGRADED",
+    "trend_tau": -0.2,
+    "mk_pvalue": 0.2371,
+    "recent_wr": 0.3,
+    "baseline_wr": 0.75,
+    "decay_pct": 0.6,
+    "n": 46,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "12:06\u201312:06",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "12:26\u201312:47",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "12:47\u201312:47",
+        "wr": 1.0,
+        "n": 4
+      },
+      {
+        "label": "12:47\u201313:08",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "13:08\u201313:28",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "13:28\u201313:28",
+        "wr": 1.0,
+        "n": 4
+      },
+      {
+        "label": "13:49\u201313:49",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "13:49\u201314:35",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "14:35\u201314:56",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "14:56\u201315:25",
+        "wr": 0.3,
+        "n": 10
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.254034"
+  },
+  "elder_triple_screen": {
+    "strategy": "elder_triple_screen",
+    "status": "INSUFFICIENT_DATA",
+    "n": 19
+  },
+  "chart_pattern_cup_handle": {
+    "strategy": "chart_pattern_cup_handle",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
+  "smc": {
+    "strategy": "smc",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "elder_ray": {
+    "strategy": "elder_ray",
+    "status": "INSUFFICIENT_DATA",
+    "n": 8
+  },
+  "rsi2_mr": {
+    "strategy": "rsi2_mr",
+    "status": "INSUFFICIENT_DATA",
+    "n": 16
+  },
+  "chart_pattern_breakout_retest": {
+    "strategy": "chart_pattern_breakout_retest",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "vwap_reversion": {
+    "strategy": "vwap_reversion",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
+  },
+  "chart_pattern_diamond_top": {
+    "strategy": "chart_pattern_diamond_top",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "chart_pattern_bear_pennant": {
+    "strategy": "chart_pattern_bear_pennant",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "chart_pattern_bull_flag": {
+    "strategy": "chart_pattern_bull_flag",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "uo_divergence": {
+    "strategy": "uo_divergence",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
+  "cci_zero_cross": {
+    "strategy": "cci_zero_cross",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
+  },
+  "weinstein_stage": {
+    "strategy": "weinstein_stage",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
+  "expiry_scalp": {
+    "strategy": "expiry_scalp",
+    "status": "STABLE",
+    "trend_tau": -0.1111,
+    "mk_pvalue": 0.3603,
+    "recent_wr": 0.6667,
+    "baseline_wr": 0.2222,
+    "decay_pct": -2.0005,
+    "n": 33,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "14:35\u201314:56",
+        "wr": 0.3333,
+        "n": 3
+      },
+      {
+        "label": "14:56\u201314:56",
+        "wr": 0.3333,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.0,
+        "n": 3
+      },
+      {
+        "label": "15:25\u201315:25",
+        "wr": 0.6667,
+        "n": 6
+      }
+    ],
+    "generated_at": "2026-06-13T15:40:38.254059"
+  },
+  "williams_r": {
+    "strategy": "williams_r",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "chart_pattern_diamond_bottom": {
+    "strategy": "chart_pattern_diamond_bottom",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "breakout": {
+    "strategy": "breakout",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
+  },
+  "candlestick_hammer": {
+    "strategy": "candlestick_hammer",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "chart_pattern_symmetrical_triangle": {
+    "strategy": "chart_pattern_symmetrical_triangle",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "chart_pattern_range_expansion": {
+    "strategy": "chart_pattern_range_expansion",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  }
+}

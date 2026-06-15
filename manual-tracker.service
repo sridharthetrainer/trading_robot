@@ -1,0 +1,20 @@
+[Unit]
+Description=Manual Trade Tracker — AI Analysis for your trades
+After=network-online.target trading-bot.service
+# Wants= so systemd actually waits for network-online.target before start.
+# Without it, After= alone does not pull the target into the boot transaction,
+# so the tracker could start before the network was up (2026-06-05 04:27 reboot)
+# and its Angel login failed. Pairs with the in-process reconnect fallback.
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+ExecStart=/home/sridhar/Desktop/trading_robot/venv/bin/python3 /home/sridhar/Desktop/trading_robot/manual_trade_tracker.py
+Restart=always
+RestartSec=30
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

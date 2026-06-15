@@ -1,0 +1,168 @@
+{
+  "n_signals": 1600,
+  "corrupt_dropped": 14,
+  "cost_pct": 0.12,
+  "n_tests": 19,
+  "alpha_corrected": 0.002632,
+  "by_modifier": {
+    "bhav_delivery": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "cross_asset_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "participant_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "expiry_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "sip_boost": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "bulk_deal_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "theta_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "rebal_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "news_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "mtf_pivot_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "ai_score": {
+      "coverage": 1.0,
+      "n_endorsed": 1600,
+      "n_headwind": 0,
+      "n_silent": 0,
+      "verdict": "INSUFFICIENT"
+    },
+    "rl_bias": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "weinstein_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "gex_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "skew_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "whale_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "sr_level_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "pivot_boss_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    },
+    "oi_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 1600,
+      "verdict": "DEAD"
+    }
+  },
+  "summary": {
+    "helps": [],
+    "hurts": [],
+    "dead": [
+      "bhav_delivery",
+      "cross_asset_mod",
+      "participant_mod",
+      "expiry_mod",
+      "sip_boost",
+      "bulk_deal_mod",
+      "theta_mod",
+      "rebal_mod",
+      "news_mod",
+      "mtf_pivot_mod",
+      "rl_bias",
+      "weinstein_mod",
+      "gex_mod",
+      "skew_mod",
+      "whale_mod",
+      "sr_level_mod",
+      "pivot_boss_mod",
+      "oi_mod"
+    ],
+    "noise": []
+  },
+  "conclusion": "HELPS=\u2014 | HURTS=\u2014 | DEAD=['bhav_delivery', 'cross_asset_mod', 'participant_mod', 'expiry_mod', 'sip_boost', 'bulk_deal_mod', 'theta_mod', 'rebal_mod', 'news_mod', 'mtf_pivot_mod', 'rl_bias', 'weinstein_mod', 'gex_mod', 'skew_mod', 'whale_mod', 'sr_level_mod', 'pivot_boss_mod', 'oi_mod'] | NOISE=\u2014. Prune/flip is a human call after a locked-holdout pass \u2014 report only."
+}

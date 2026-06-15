@@ -1,0 +1,91 @@
+{
+  "n_signals": 1600,
+  "corrupt_dropped": 14,
+  "cost_pct": 0.12,
+  "n_tests": 6,
+  "alpha_corrected": 0.00833,
+  "outcomes": {
+    "target": 505,
+    "sl": 610,
+    "timeout": 485
+  },
+  "overall": {
+    "n": 1600,
+    "mean": 0.0021,
+    "std": 1.0782,
+    "win_rate": 0.495,
+    "t_stat": 0.078,
+    "p_value": 0.93812,
+    "significant": false,
+    "as_is_net": -0.1179,
+    "fade_net": -0.1221,
+    "verdict": "NO_EDGE"
+  },
+  "per_strategy": {
+    "fallback": {
+      "n": 817,
+      "mean": -0.0835,
+      "std": 0.8829,
+      "win_rate": 0.4945,
+      "t_stat": -2.703,
+      "p_value": 0.007,
+      "significant": true,
+      "as_is_net": -0.2035,
+      "fade_net": -0.0365,
+      "verdict": "EDGE_BELOW_COST"
+    },
+    "price_structure": {
+      "n": 200,
+      "mean": 0.2715,
+      "std": 1.2616,
+      "win_rate": 0.51,
+      "t_stat": 3.043,
+      "p_value": 0.00266,
+      "significant": true,
+      "as_is_net": 0.1515,
+      "fade_net": -0.3915,
+      "verdict": "UNSTABLE_OOS",
+      "note": "edge not stable across time halves"
+    },
+    "scalping": {
+      "n": 168,
+      "mean": -0.2413,
+      "std": 1.1391,
+      "win_rate": 0.4107,
+      "t_stat": -2.746,
+      "p_value": 0.00669,
+      "significant": true,
+      "as_is_net": -0.3613,
+      "fade_net": 0.1213,
+      "verdict": "UNSTABLE_OOS",
+      "note": "edge not stable across time halves"
+    },
+    "rsi_divergence": {
+      "n": 45,
+      "mean": -0.172,
+      "std": 0.7029,
+      "win_rate": 0.4444,
+      "t_stat": -1.641,
+      "p_value": 0.1079,
+      "significant": false,
+      "as_is_net": -0.292,
+      "fade_net": 0.052,
+      "verdict": "NO_EDGE"
+    },
+    "chart_pattern_descending_triangle": {
+      "n": 35,
+      "mean": -0.1544,
+      "std": 0.5512,
+      "win_rate": 0.4286,
+      "t_stat": -1.657,
+      "p_value": 0.10664,
+      "significant": false,
+      "as_is_net": -0.2744,
+      "fade_net": 0.0344,
+      "verdict": "NO_EDGE"
+    }
+  },
+  "candidates": {},
+  "conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
+  "timestamp": "2026-06-14T18:14:03.657396"
+}

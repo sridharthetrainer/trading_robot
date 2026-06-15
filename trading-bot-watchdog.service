@@ -1,0 +1,15 @@
+[Unit]
+Description=NIFTY Algo Bot Watchdog
+After=trading-bot.service
+Requires=trading-bot.service
+
+[Service]
+Type=simple
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+ExecStart=/home/sridhar/Desktop/trading_robot/venv/bin/python3 /home/sridhar/Desktop/trading_robot/watchdog.py
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
