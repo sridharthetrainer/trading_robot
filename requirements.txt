@@ -1,0 +1,70 @@
+# ═══════════════════════════════════════════════════════════════
+# TRADING ROBOT — Complete Requirements
+# Install: pip install -r requirements.txt
+# Extra:   pip install hmmlearn cvxpy matplotlib pillow gtts moviepy APScheduler pytrends yfinance
+# ═══════════════════════════════════════════════════════════════
+
+# ── Broker / Exchange APIs ─────────────────────────────────────
+smartapi-python>=1.3.8
+kiteconnect>=4.2.0
+pyotp>=2.9.0
+
+# ── Core Data ──────────────────────────────────────────────────
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+requests>=2.28.0
+python-dotenv>=1.0.0
+pytz>=2023.3
+
+# ── Technical Analysis ─────────────────────────────────────────
+pandas-ta>=0.3.14b
+ta>=0.10.2
+
+# ── Machine Learning ───────────────────────────────────────────
+scikit-learn>=1.3.0
+hmmlearn>=0.3.0
+cvxpy>=1.4.0
+
+# ── Deep Learning ──────────────────────────────────────────────
+tensorflow>=2.13.0
+
+# ── Telegram ───────────────────────────────────────────────────
+python-telegram-bot>=20.0
+pyTelegramBotAPI>=4.12.0
+
+# ── Scheduling ─────────────────────────────────────────────────
+APScheduler>=3.10.0
+schedule>=1.2.0
+
+# ── System / Monitoring ────────────────────────────────────────
+psutil>=5.9.0
+watchdog>=3.0.0
+pytest>=9.0.0
+
+# ── Media / Voice Generation ───────────────────────────────────
+matplotlib>=3.7.0
+Pillow>=10.0.0
+gtts>=2.3.2
+moviepy>=1.0.3
+
+# ── Data & News Sources ────────────────────────────────────────
+feedparser>=6.0.10
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+tweepy>=4.14.0
+pytrends>=4.9.2
+yfinance>=0.2.28
+
+# ── Storage & Utilities ────────────────────────────────────────
+SQLAlchemy>=2.0.0
+aiohttp>=3.8.0
+websocket-client>=1.6.0
+websockets>=11.0
+
+# ── Browser Automation (Zerodha token refresh — optional) ──────
+# playwright>=1.40.0
+
+# ── Optional Extras ────────────────────────────────────────────
+# upstox-python-sdk>=2.0.0
+# dhanhq>=1.3.0

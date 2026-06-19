@@ -1,0 +1,286 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# trade_guardian.yaml  —  Master Config for Trade Guardian
+#
+# This file controls EVERYTHING the Trade Guardian does:
+#   - Telegram bot credentials (separate channel from main bot)
+#   - SL / Target / Trailing SL rules per instrument type
+#   - Options spike capture thresholds
+#   - Signal engine integration thresholds
+#   - Psychology guards (FOMO / Fear / Greed)
+#   - Regime-based adjustments
+#   - News / VIX integration
+#   - Partial booking rules
+#
+# Reload: changes take effect on next guardian cycle (no restart needed).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Telegram (SEPARATE bot from main system bot) ─────────────────────────────
+telegram:
+  # Get a NEW bot token from @BotFather for this dedicated channel
+  bot_token: ""                     # GUARDIAN_BOT_TOKEN env var overrides this
+  chat_id: ""                       # GUARDIAN_CHAT_ID env var overrides this
+  # Alert verbosity
+  alert_every_trail_update: false   # true = message on every SL trail move
+  alert_on_regime_change: true
+  alert_on_news_event: true
+  alert_on_spike: true
+  silent_hours: []                  # e.g. ["22:00-09:00"] to suppress overnight
+
+
+# ── Price polling ─────────────────────────────────────────────────────────────
+monitoring:
+  price_poll_seconds: 5            # how often to fetch LTP (options need fast polling)
+  signal_refresh_seconds: 60       # how often to re-run signal engine on the underlying
+  spike_window_seconds: 300        # window to measure spike (5 min)
+  max_trades: 10                   # max concurrent tracked trades
+
+
+# ── OPTIONS rules (NIFTY CE/PE, BANKNIFTY CE/PE, stock options) ──────────────
+options:
+  # Initial SL: percentage of premium paid
+  initial_sl_pct: 30               # e.g. buy at 150 → SL at 105 (30% loss on premium)
+
+  # Initial targets (% gain on premium)
+  target_1_pct: 50                 # T1: 50% gain  → buy 150 → T1 at 225
+  target_2_pct: 100                # T2: 100% gain → buy 150 → T2 at 300
+  target_3_pct: 150                # T3: 150% gain (only if signals very strong)
+
+  # Break-even: move SL to entry when this % gain is reached
+  breakeven_at_pct: 20             # move SL to entry cost at +20%
+
+  # Trailing SL (activates after breakeven)
+  trail_step_pct: 10               # trail SL to (peak − 10% of peak)
+  # Example: premium peaked at 200 → trail SL = 200 × (1 - 0.10) = 180
+
+  # Spike capture: if premium rises this % within spike_window_seconds, alert
+  spike_alert_pct: 35              # alert if +35% in 5 min
+  spike_partial_exit_pct: 50       # auto-suggest partial exit if +50% spike
+
+  # Partial booking at T1
+  partial_at_t1_pct: 50            # book 50% quantity at T1, hold 50% for T2
+
+  # Time rules
+  max_hold_minutes: 90             # warn after 90 min without hitting T1
+  force_exit_minutes: 360          # force-exit alert 60 min before market close
+
+  # Options decay guard: theta accelerates in last 30 min before expiry
+  expiry_exit_minutes_before: 30   # warn to exit 30 min before expiry settlement
+
+
+# ── FUTURES rules (NIFTY FUT, BANKNIFTY FUT, stock futures) ─────────────────
+futures:
+  # ATR-based SL and targets
+  initial_sl_atr_mult: 1.5         # SL = entry ± 1.5 × ATR
+  target_1_rr: 1.5                 # T1 = entry + 1.5R (R = risk in points)
+  target_2_rr: 3.0                 # T2 = entry + 3R
+  target_3_rr: 5.0                 # T3 = entry + 5R (extended if signals strong)
+
+  # Break-even
+  breakeven_at_r: 1.0              # move SL to entry when 1R in profit
+
+  # Trailing SL (activates after breakeven)
+  trail_atr_mult: 1.0              # trail by 1× ATR from highest high
+
+  # Partial booking
+  partial_at_t1_pct: 50            # book 50% at T1
+
+  # Time rules
+  max_hold_minutes: 240
+  square_off_minutes_before_close: 15
+
+
+# ── STOCKS rules (equity intraday or positional) ──────────────────────────────
+stocks:
+  initial_sl_atr_mult: 1.5
+  target_1_rr: 2.0
+  target_2_rr: 4.0
+
+  breakeven_at_r: 1.0
+  trail_atr_mult: 1.0
+  partial_at_t1_pct: 30
+
+  # Positional override (when is_positional=true in /in command)
+  positional_sl_atr_mult: 3.0
+  positional_target_1_rr: 3.0
+  positional_max_hold_days: 5
+
+
+# ── Signal engine integration ─────────────────────────────────────────────────
+signal_engine:
+  enabled: true                    # false = pure mechanical SL/target only
+
+  # Exit suggestions
+  suggest_exit_score_below: 3.0    # "Signal engine turned bearish — consider exit"
+  force_exit_score_below: 1.5      # "STRONG EXIT SIGNAL — stop-out recommended"
+
+  # Target extension
+  extend_target_score_above: 7.5   # "Strong signals — raise T2 to T3"
+  confluence_to_extend: 3          # minimum agreeing strategies to extend target
+
+  # Fear override: system talks you OUT of early exit
+  hold_if_score_above: 5.0         # "System still bullish — don't exit from fear"
+  hold_message: "Signal engine still supports your position. Indicators remain bullish. Wait for SL."
+
+  # Tighten SL proactively when signals weaken
+  tighten_sl_score_below: 4.5      # tighten SL to 50% of distance when score < this
+  tighten_factor: 0.5              # tighten SL by 50%
+
+
+# ── Regime-based adjustments ─────────────────────────────────────────────────
+regime_adjustments:
+  TRENDING:
+    sl_multiplier: 1.0             # use standard SL
+    target_multiplier: 1.5         # extend targets in trending regime
+    trail_faster: false            # give room to run
+    partial_at_t1: false           # don't book partial — let it ride
+
+  BREAKOUT:
+    sl_multiplier: 0.8             # tight SL (breakout fail = quick reversal)
+    target_multiplier: 2.0         # big targets on genuine breakouts
+    trail_faster: false
+    partial_at_t1: false
+
+  MEAN_REVERTING:
+    sl_multiplier: 0.8             # tight SL on mean-rev plays
+    target_multiplier: 0.8         # smaller targets
+    trail_faster: true             # lock in profits fast
+    partial_at_t1: true
+
+  HIGH_VOL:
+    sl_multiplier: 1.5             # wider SL for volatile moves
+    target_multiplier: 1.0         # normal target
+    trail_faster: true             # trail faster to protect in chaos
+    partial_at_t1: true            # definitely book at T1
+
+  LOW_VOL_CHOP:
+    sl_multiplier: 0.7             # very tight SL in chop
+    target_multiplier: 0.6         # small target
+    trail_faster: true
+    partial_at_t1: true
+
+  NO_TRADE:
+    sl_multiplier: 0.5             # protect everything
+    target_multiplier: 0.5
+    trail_faster: true
+    partial_at_t1: true
+
+
+# ── VIX-based adjustments ─────────────────────────────────────────────────────
+vix_adjustments:
+  # When India VIX exceeds these levels, multiply SL by factor
+  levels:
+    - vix_above: 20
+      sl_multiplier: 1.3
+      target_multiplier: 1.2
+      note: "Elevated volatility — wider SL needed"
+    - vix_above: 25
+      sl_multiplier: 1.7
+      target_multiplier: 0.9
+      note: "High volatility — protect capital"
+    - vix_above: 30
+      sl_multiplier: 2.0
+      target_multiplier: 0.7
+      note: "Crisis volatility — survival mode"
+
+
+# ── News / Sentiment ─────────────────────────────────────────────────────────
+news:
+  enabled: true
+  tighten_sl_on_bad_news: true
+  bad_news_threshold: -0.5         # sentiment score < -0.5 = bad
+  tighten_factor_on_bad_news: 0.6  # tighten SL to 60% of current distance
+  alert_on_major_news: true
+
+
+# ── FOMO guard ───────────────────────────────────────────────────────────────
+fomo_guard:
+  enabled: true
+  # When user registers a new trade via /in, system checks signal quality
+  warn_if_score_below: 4.0         # "Low signal score — enter with caution"
+  block_if_score_below: 2.0        # "Very weak setup — system advises against entry"
+  # Block if in bad regime
+  warn_in_regimes: ["HIGH_NOISE", "LOW_VOL_CHOP", "NO_TRADE"]
+  block_in_regimes: ["NO_TRADE"]
+  # Choppiness guard
+  warn_if_chop_above: 60           # "Market is choppy — reduce size"
+
+
+# ── Greed guard ──────────────────────────────────────────────────────────────
+greed_guard:
+  enabled: true
+  # Auto-suggest partial booking
+  suggest_partial_at_2r: true      # "You're at 2R — consider booking 50%"
+  suggest_partial_at_3r: true      # "You're at 3R — book 70%, trail 30%"
+  # Prevent target chasing
+  max_target_extensions: 2         # max times target can be extended by signal engine
+  # End-of-day guard
+  suggest_exit_before_close_minutes: 20  # "20 min to close — consider exiting"
+
+
+# ── GEX-based spike protection ───────────────────────────────────────────────
+gex:
+  enabled: true
+  # If price is approaching Delta Wall against your position, tighten SL
+  tighten_at_delta_wall: true
+  delta_wall_proximity_pct: 0.3    # within 0.3% of Delta Wall
+  # GEX flip point = volatility expansion zone
+  alert_at_gex_flip: true
+
+
+# ── IV Skew velocity ─────────────────────────────────────────────────────────
+iv_skew:
+  enabled: true
+  # Steepening skew = fear rising = consider exiting longs / entering puts
+  steepen_threshold: 0.1           # velocity > 0.1 vol-pts/min = alert
+  flatten_threshold: -0.1          # velocity < -0.1 = complacency = good for calls
+
+
+# ── WOW Factors integration ──────────────────────────────────────────────────
+# All 22 WOW factors (wow_factors_engine.py + wow_factors_v2.py) are evaluated
+# at trade registration and every signal_refresh_seconds during monitoring.
+wow_factors:
+  enabled: true
+  refresh_seconds: 120          # re-run WOW every 2 min (heavier than signal engine)
+
+  # Score thresholds for trade decisions
+  extend_target_above: 1.5      # total wow_score > 1.5 → suggest extending to T3
+  tighten_sl_below: -1.0        # total wow_score < -1.0 → tighten SL by 30%
+  suggest_exit_below: -1.8      # total wow_score < -1.8 → suggest exiting
+  force_alert_below: -2.5       # total wow_score < -2.5 → strong exit alert
+
+  # FOMO guard: block entry if WOW score is very negative
+  block_entry_below: -2.0       # block new entries if wow < -2.0
+  warn_entry_below: -1.0        # warn on new entries if wow < -1.0
+
+  # Individual factor overrides (any single factor can trigger an alert)
+  alert_on_pcr_extreme: true    # PCR < 0.5 or > 2.0 → alert
+  alert_on_promoter_pledging: true
+  alert_on_unusual_options: true
+  alert_on_intermarket_divergence: true
+  alert_on_smart_dumb_money: true
+
+
+# ── Lot sizes (units per lot) ─────────────────────────────────────────────────
+# Override the built-in NSE lot sizes here if SEBI changes them.
+# P&L = (exit_price - entry_price) × qty × lot_size
+# qty=1 for options/futures means 1 lot; lot_size converts to actual units.
+# For stocks without F&O lot, set lot_size=1 and enter qty as raw shares.
+lot_sizes:
+  NIFTY:        25
+  BANKNIFTY:    15
+  FINNIFTY:     40
+  MIDCPNIFTY:   75
+  SENSEX:       10
+  # Add stock lot sizes here if needed, e.g.:
+  # RELIANCE:   250
+  # TCS:        150
+
+
+# ── Notifications format ─────────────────────────────────────────────────────
+notifications:
+  use_html: true                   # Telegram HTML formatting
+  show_pnl_in_inr: true
+  show_pct_change: true
+  show_signal_score: true
+  show_regime: true
+  show_narrative: true             # include AI/rule-based narrative in alerts

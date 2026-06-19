@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-06-18T21:34:05+0530",
+  "journal_file": "option_decision_journal.jsonl",
+  "min_samples": 30,
+  "labelled_selected": 1,
+  "labelled_shadow": 0,
+  "shadow_sample_weight": 0.5,
+  "feature_weights": {
+    "premium:>=35": 1.0,
+    "side:BUY": 1.0
+  },
+  "feature_stats": {
+    "premium:>=35": {
+      "samples": 1.0,
+      "wins": 1.0,
+      "losses": 0.0,
+      "pnl_sum": 23933.85,
+      "abs_pnl_sum": 23933.85,
+      "real_samples": 1,
+      "shadow_samples": 0,
+      "win_rate": 1.0,
+      "avg_pnl": 23933.85
+    },
+    "side:BUY": {
+      "samples": 1.0,
+      "wins": 1.0,
+      "losses": 0.0,
+      "pnl_sum": 23933.85,
+      "abs_pnl_sum": 23933.85,
+      "real_samples": 1,
+      "shadow_samples": 0,
+      "win_rate": 1.0,
+      "avg_pnl": 23933.85
+    }
+  }
+}

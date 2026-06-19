@@ -1,0 +1,171 @@
+{
+  "generated_at": "2026-06-19T02:02:05",
+  "option_chain_snapshots": {
+    "exists": true,
+    "rows": 9,
+    "ok_rows": 0,
+    "latest": "2026-06-18T21:34:05+0530",
+    "recent_failures": [
+      {
+        "underlying": "BANKNIFTY",
+        "reason": "no_option_chain",
+        "count": 2
+      },
+      {
+        "underlying": "NIFTY",
+        "reason": "no_option_chain",
+        "count": 2
+      },
+      {
+        "underlying": "SENSEX",
+        "reason": "no_option_chain",
+        "count": 2
+      },
+      {
+        "underlying": "BANKNIFTY",
+        "reason": "No module named 'pandas'",
+        "count": 1
+      },
+      {
+        "underlying": "NIFTY",
+        "reason": "No module named 'pandas'",
+        "count": 1
+      }
+    ]
+  },
+  "decision_journal": {
+    "exists": true,
+    "rows": 1,
+    "decisions": {
+      "selected": 1
+    },
+    "selected_with_shadow": 0
+  },
+  "strike_autotune": {
+    "exists": true,
+    "labelled_selected": 1,
+    "labelled_shadow": 0,
+    "weights": 2
+  },
+  "signal_log": {
+    "exists": true,
+    "today_option_rows": 0,
+    "today_executed_option_rows": 0
+  },
+  "historical_options": {
+    "exists": true,
+    "rows": 3122237,
+    "first_date": "2020-01-01",
+    "last_date": "2026-06-08"
+  },
+  "telegram_oi_tools": {
+    "telegram_commands": true,
+    "oi_chart": true,
+    "strikeflow": true,
+    "multi_strike_chart": true,
+    "send_photo": true
+  },
+  "automation": {
+    "live_engine_snapshot_hook": true,
+    "recorder_loop": true,
+    "eod_shadow_labeller": true
+  },
+  "source_modules": {
+    "option_chain_fetcher": true,
+    "option_chain_engine": true,
+    "option_chain_intelligence": true,
+    "option_chain_recorder": true,
+    "option_strike_activity": true,
+    "option_oi_chart": true,
+    "option_shadow_labeller": true,
+    "option_strike_autotune": true
+  },
+  "scheduled_audits": {
+    "idle_engine": true,
+    "option_bot_audit_task": true,
+    "data_pipeline_audit_task": true,
+    "autonomous_learning_task": true
+  },
+  "score": {
+    "total": 46.2,
+    "max": 100,
+    "grade": "F",
+    "readiness": "FIX_BEFORE_LIVE",
+    "autonomous_score": {
+      "total": 100.0,
+      "max": 100,
+      "grade": "A",
+      "parts": {
+        "automation": {
+          "score": 25.0,
+          "max": 25,
+          "detail": "3/3 autonomous option loops wired"
+        },
+        "telegram_oi_tools": {
+          "score": 20.0,
+          "max": 20,
+          "detail": "5/5 command/chart tools wired"
+        },
+        "historical_options": {
+          "score": 20,
+          "max": 20,
+          "detail": "3122237 historical option rows"
+        },
+        "source_modules": {
+          "score": 20.0,
+          "max": 20,
+          "detail": "8/8 option source modules present"
+        },
+        "scheduled_audits": {
+          "score": 15.0,
+          "max": 15,
+          "detail": "4/4 audit/report schedules wired"
+        }
+      }
+    },
+    "parts": {
+      "snapshot_capture": {
+        "score": 0.0,
+        "max": 25,
+        "detail": "ok_rows=0, rows=9"
+      },
+      "decision_journal": {
+        "score": 7.5,
+        "max": 15,
+        "detail": "rows=1, selected=1, selected_with_shadow=0"
+      },
+      "strike_autotune": {
+        "score": 4.7,
+        "max": 20,
+        "detail": "selected=1, shadow=0, weights=2"
+      },
+      "historical_options": {
+        "score": 15,
+        "max": 15,
+        "detail": "rows=3122237, range=2020-01-01..2026-06-08"
+      },
+      "signal_activity": {
+        "score": 4.0,
+        "max": 10,
+        "detail": "today_option_rows=0, executed=0"
+      },
+      "telegram_oi_tools": {
+        "score": 10.0,
+        "max": 10,
+        "detail": "telegram_commands, oi_chart, strikeflow, multi_strike_chart, send_photo"
+      },
+      "automation": {
+        "score": 5.0,
+        "max": 5,
+        "detail": "live_engine_snapshot_hook, recorder_loop, eod_shadow_labeller"
+      }
+    },
+    "top_improvements": [
+      "Capture successful option-chain snapshots during market hours; current ok_rows is too low.",
+      "Generate selected option decisions with shadow strike candidates for comparison learning.",
+      "Collect at least 30 labelled selected option trades for stable strike autotune.",
+      "Collect at least 30 labelled shadow strike outcomes.",
+      "No option signal rows today yet; confirm market-hour scan and option-chain availability."
+    ]
+  }
+}

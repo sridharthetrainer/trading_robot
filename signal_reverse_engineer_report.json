@@ -1,0 +1,260 @@
+{
+  "generated_at": "2026-06-17T21:45:20+0530",
+  "db_path": "signal_log.db",
+  "days": 90,
+  "min_samples": 10,
+  "totals": {
+    "rows": 1679,
+    "labelled_rows": 0,
+    "pending_rows": 1679,
+    "labelled_pct": 0.0
+  },
+  "labelled_summary": {
+    "n": 0,
+    "wins": 0,
+    "losses": 0,
+    "timeouts": 0,
+    "win_rate": 0,
+    "target_rate": 0,
+    "avg_return_pct": 0,
+    "usable": false
+  },
+  "pending_profile": {
+    "pending_rows": 1679,
+    "top_rejection_reasons": [
+      {
+        "key": "ai_prob_below_live_min,filter_score_below_live_min",
+        "count": 1629
+      },
+      {
+        "key": "paper_only_strategy_chart_pattern_inverse_head_shoulders,ai_prob_below_live_min,filter_score_below_live_min",
+        "count": 36
+      },
+      {
+        "key": "score_below_live_min,ai_prob_below_live_min,filter_score_below_live_min",
+        "count": 13
+      },
+      {
+        "key": "blank",
+        "count": 1
+      }
+    ],
+    "top_pending_strategies": [
+      {
+        "key": "price_structure",
+        "count": 298
+      },
+      {
+        "key": "rsi_divergence",
+        "count": 205
+      },
+      {
+        "key": "trend",
+        "count": 168
+      },
+      {
+        "key": "chart_pattern_descending_triangle",
+        "count": 140
+      },
+      {
+        "key": "chart_pattern_ascending_triangle",
+        "count": 122
+      },
+      {
+        "key": "alligator_ao",
+        "count": 73
+      },
+      {
+        "key": "chart_pattern_head_and_shoulders",
+        "count": 58
+      },
+      {
+        "key": "ma_cross",
+        "count": 54
+      },
+      {
+        "key": "vrvp_zone",
+        "count": 53
+      },
+      {
+        "key": "chart_pattern_inverse_head_shoulders",
+        "count": 36
+      },
+      {
+        "key": "mean_reversion",
+        "count": 34
+      },
+      {
+        "key": "chart_pattern_double_bottom",
+        "count": 29
+      },
+      {
+        "key": "breakout",
+        "count": 25
+      },
+      {
+        "key": "candlestick_three_black_soldiers",
+        "count": 23
+      },
+      {
+        "key": "elder_triple_screen",
+        "count": 22
+      },
+      {
+        "key": "candlestick_bearish_engulfing",
+        "count": 20
+      },
+      {
+        "key": "failed_bull_breakout",
+        "count": 19
+      },
+      {
+        "key": "chart_pattern_double_top",
+        "count": 17
+      },
+      {
+        "key": "candlestick_spinning_top_black",
+        "count": 17
+      },
+      {
+        "key": "ttm_squeeze",
+        "count": 16
+      }
+    ],
+    "top_pending_symbols": [
+      {
+        "key": "NIFTY",
+        "count": 15
+      },
+      {
+        "key": "BANKNIFTY",
+        "count": 15
+      },
+      {
+        "key": "LT",
+        "count": 14
+      },
+      {
+        "key": "FORTIS",
+        "count": 14
+      },
+      {
+        "key": "BAJAJFINSV",
+        "count": 13
+      },
+      {
+        "key": "TATAPOWER",
+        "count": 13
+      },
+      {
+        "key": "UNITDSPR",
+        "count": 13
+      },
+      {
+        "key": "CUMMINSIND",
+        "count": 13
+      },
+      {
+        "key": "AUBANK",
+        "count": 13
+      },
+      {
+        "key": "HDFCLIFE",
+        "count": 13
+      },
+      {
+        "key": "MIDCPNIFTY",
+        "count": 13
+      },
+      {
+        "key": "RELIANCE",
+        "count": 12
+      },
+      {
+        "key": "INFY",
+        "count": 12
+      },
+      {
+        "key": "HINDALCO",
+        "count": 12
+      },
+      {
+        "key": "ABB",
+        "count": 12
+      },
+      {
+        "key": "HAVELLS",
+        "count": 12
+      },
+      {
+        "key": "INDHOTEL",
+        "count": 12
+      },
+      {
+        "key": "UNIONBANK",
+        "count": 12
+      },
+      {
+        "key": "PNB",
+        "count": 12
+      },
+      {
+        "key": "MOTHERSON",
+        "count": 12
+      }
+    ]
+  },
+  "top_context_edges": [],
+  "feature_edges": [],
+  "context": {
+    "strategy": [],
+    "side": [],
+    "regime": [],
+    "htf_bias": [],
+    "confluence": [],
+    "structure_label": [],
+    "structure_direction": [],
+    "cross_asset_bias": [],
+    "expiry_regime": [],
+    "symbol_type": [],
+    "hour_of_day": [],
+    "day_of_week": [],
+    "option_type": [],
+    "option_style": []
+  },
+  "features": {
+    "bhav_delivery": [],
+    "cross_asset_mod": [],
+    "participant_mod": [],
+    "expiry_mod": [],
+    "sip_boost": [],
+    "bulk_deal_mod": [],
+    "theta_mod": [],
+    "rebal_mod": [],
+    "news_mod": [],
+    "mtf_pivot_mod": [],
+    "gex_mod": [],
+    "skew_mod": [],
+    "whale_mod": [],
+    "sr_level_mod": [],
+    "pivot_boss_mod": [],
+    "oi_mod": [],
+    "structure_mod": [],
+    "market_quality_mod": [],
+    "candidate_quality_mod": [],
+    "ai_score": [],
+    "rl_bias": [],
+    "weinstein_mod": [],
+    "volume_ratio": [],
+    "indicator_coverage": [],
+    "candidate_confirmations": []
+  },
+  "composites": {
+    "score_bucket": [],
+    "vix_bucket": [],
+    "strategy_side": [],
+    "strategy_regime": []
+  },
+  "ready": false,
+  "next_action": "Run post-market triple-barrier labelling after market close so pending signals become labelled training rows."
+}

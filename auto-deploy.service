@@ -1,0 +1,18 @@
+[Unit]
+Description=Trading Bot Auto-Deploy Watcher
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+ExecStart=/home/sridhar/Desktop/trading_robot/venv/bin/python3 /home/sridhar/Desktop/trading_robot/auto_deploy_watcher.py
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

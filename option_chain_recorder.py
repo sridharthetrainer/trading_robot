@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+"""
+option_chain_recorder.py
+
+Persist option-chain snapshots for EOD option-bot learning.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sqlite3
+import time
+from datetime import datetime, time as dtime
+from pathlib import Path
+from typing import Any, Dict, Iterable, List
+
+
+DB_PATH = "option_chain_snapshots.db"
+
+
+def _conn(db_path: str = DB_PATH):
+    conn = sqlite3.connect(db_path)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS option_chain_snapshots (
+            ts REAL NOT NULL,
+            snapshot_time TEXT NOT NULL,
+            underlying TEXT NOT NULL,
+            spot REAL DEFAULT 0,
+            expiry TEXT DEFAULT '',
+            atm_strike REAL DEFAULT 0,
+            pcr_oi REAL DEFAULT 0,
+            pcr_change_oi REAL DEFAULT 0,
+            max_pain REAL DEFAULT 0,
+            ok INTEGER DEFAULT 1,
+            reason TEXT DEFAULT '',
+            rows_json TEXT DEFAULT '[]',
+            summary_json TEXT DEFAULT '{}'
+        )
+    """)
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(option_chain_snapshots)").fetchall()}
+    if "ok" not in cols:
+        conn.execute("ALTER TABLE option_chain_snapshots ADD COLUMN ok INTEGER DEFAULT 1")
+    if "reason" not in cols:
+        conn.execute("ALTER TABLE option_chain_snapshots ADD COLUMN reason TEXT DEFAULT ''")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_oc_snap_u_ts ON option_chain_snapshots(underlying, ts)")
+    conn.commit()
+    return conn
+
+
+def _chain_rows(df) -> List[Dict[str, Any]]:
+    if df is None or getattr(df, "empty", True):
+        return []
+    cols = list(getattr(df, "columns", []))
+    keep = [
+        c for c in cols
+        if str(c) in {
+            "strikePrice", "expiryDate", "CE_OI", "PE_OI", "CE_CHG_OI", "PE_CHG_OI",
+            "CE_LTP", "PE_LTP", "CE_IV", "PE_IV", "CE_VOLUME", "PE_VOLUME",
+            "CE_openInterest", "PE_openInterest",
+            "CE_changeinOpenInterest", "PE_changeinOpenInterest",
+            "CE_totalTradedVolume", "PE_totalTradedVolume",
+            "CE_lastPrice", "PE_lastPrice",
+            "CE_impliedVolatility", "PE_impliedVolatility",
+            "distance_from_atm", "gamma_approx",
+        }
+    ]
+    try:
+        return df[keep].head(80).to_dict("records")
+    except Exception:
+        return []
+
+
+def record_option_chain_snapshot(
+    underlying: str,
+    *,
+    db_path: str = DB_PATH,
+) -> Dict[str, Any]:
+    underlying = str(underlying or "").upper()
+    try:
+        from option_chain_fetcher import NSEOptionChainFetcher
+        result = NSEOptionChainFetcher(underlying=underlying).fetch_and_analyze()
+    except Exception as exc:
+        result = None
+        fetch_error = str(exc)
+    else:
+        fetch_error = ""
+    if not result:
+        reason = fetch_error or "no_option_chain"
+        conn = _conn(db_path)
+        conn.execute(
+            """
+            INSERT INTO option_chain_snapshots
+            (ts, snapshot_time, underlying, spot, expiry, atm_strike,
+             pcr_oi, pcr_change_oi, max_pain, ok, reason, rows_json, summary_json)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                time.time(),
+                time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                underlying,
+                0.0,
+                "",
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0,
+                reason,
+                "[]",
+                "{}",
+            ),
+        )
+        conn.commit()
+        conn.close()
+        return {"underlying": underlying, "ok": False, "reason": reason}
+
+    summary = result.summary or {}
+    rows = _chain_rows(result.dataframe)
+    ok = bool(rows)
+    reason = "" if ok else "empty_chain_rows"
+    payload = {
+        "underlying": underlying,
+        "ok": ok,
+        "reason": reason,
+        "spot": float(result.spot or 0),
+        "expiry": str(result.expiry or ""),
+        "atm_strike": float(result.atm_strike or 0),
+        "rows": len(rows),
+        "summary": summary,
+    }
+    conn = _conn(db_path)
+    conn.execute(
+        """
+        INSERT INTO option_chain_snapshots
+        (ts, snapshot_time, underlying, spot, expiry, atm_strike,
+         pcr_oi, pcr_change_oi, max_pain, ok, reason, rows_json, summary_json)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            time.time(),
+            time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            underlying,
+            payload["spot"],
+            payload["expiry"],
+            payload["atm_strike"],
+            float(summary.get("pcr_oi", 0) or 0),
+            float(summary.get("pcr_change_oi", 0) or 0),
+            float(summary.get("max_pain", 0) or 0),
+            1 if ok else 0,
+            reason,
+            json.dumps(rows, default=str),
+            json.dumps(summary, default=str),
+        ),
+    )
+    conn.commit()
+    conn.close()
+    return payload
+
+
+def record_option_chains(
+    underlyings: List[str] | None = None,
+    *,
+    db_path: str = DB_PATH,
+) -> Dict[str, Any]:
+    conn = _conn(db_path)
+    conn.close()
+    if underlyings is None:
+        try:
+            from live_signal_engine import SUPPORTED_OPTION_UNDERLYINGS
+            underlyings = sorted(SUPPORTED_OPTION_UNDERLYINGS)
+        except Exception:
+            underlyings = ["NIFTY", "BANKNIFTY", "SENSEX"]
+    results = [record_option_chain_snapshot(u, db_path=db_path) for u in underlyings]
+    return {
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "requested": len(results),
+        "ok_count": sum(1 for r in results if r.get("ok")),
+        "results": results,
+    }
+
+
+def _in_market_hours(now: datetime | None = None) -> bool:
+    now = now or datetime.now()
+    return now.weekday() < 5 and dtime(9, 15) <= now.time() <= dtime(15, 35)
+
+
+def run_snapshot_loop(
+    underlyings: List[str],
+    *,
+    interval_sec: int = 300,
+    once: bool = False,
+    market_hours_only: bool = True,
+    db_path: str = DB_PATH,
+) -> Dict[str, Any]:
+    interval_sec = max(60, int(interval_sec or 300))
+    rounds = 0
+    ok_total = 0
+    last: Dict[str, Any] = {}
+    while True:
+        if market_hours_only and not _in_market_hours():
+            last = {
+                "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                "ok": False,
+                "reason": "outside_market_hours",
+                "rounds": rounds,
+                "ok_total": ok_total,
+            }
+            if once:
+                return last
+            time.sleep(min(interval_sec, 300))
+            continue
+
+        last = record_option_chains(underlyings, db_path=db_path)
+        rounds += 1
+        ok_total += int(last.get("ok_count", 0) or 0)
+        last.update({"rounds": rounds, "ok_total": ok_total})
+        print(json.dumps(last, default=str), flush=True)
+        if once:
+            return last
+        time.sleep(interval_sec)
+
+
+def main(argv: Iterable[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--underlyings", default="NIFTY,BANKNIFTY,FINNIFTY,SENSEX")
+    parser.add_argument("--loop", action="store_true", help="Keep recording snapshots every interval")
+    parser.add_argument("--interval-sec", type=int, default=300)
+    parser.add_argument("--allow-after-hours", action="store_true")
+    args = parser.parse_args(list(argv) if argv is not None else None)
+    underlyings = [u.strip().upper() for u in args.underlyings.split(",") if u.strip()]
+    if args.loop:
+        run_snapshot_loop(
+            underlyings,
+            interval_sec=args.interval_sec,
+            once=False,
+            market_hours_only=not args.allow_after_hours,
+        )
+        return 0
+    result = run_snapshot_loop(
+        underlyings,
+        interval_sec=args.interval_sec,
+        once=True,
+        market_hours_only=not args.allow_after_hours,
+    )
+    print(json.dumps(result, indent=2, default=str))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

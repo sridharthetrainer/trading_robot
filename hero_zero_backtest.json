@@ -1,0 +1,46 @@
+{
+  "run_date": "2026-06-07",
+  "symbol": "NIFTY",
+  "days": 420,
+  "otm_pct": 1.0,
+  "hours_to_expiry": 5.5,
+  "results": {
+    "both": {
+      "strategy": "hero_zero_0dte",
+      "mode": "both",
+      "otm_pct": 1.0,
+      "n_expiries": 54,
+      "wins": 6,
+      "win_rate_pct": 11.1,
+      "total_pnl": -54726.0,
+      "avg_pnl": -1013.0,
+      "median_pnl": -990.0,
+      "max_win": 13079.0,
+      "max_loss": -5788.0,
+      "profit_factor": 0.37,
+      "pct_worthless": 88.9,
+      "pseudo_sharpe": -2.39,
+      "return_on_capital_pct": -10.9,
+      "verdict": "NEGATIVE \u2014 bleeds (option-buying edge confirmed negative)"
+    },
+    "directional": {
+      "strategy": "hero_zero_0dte",
+      "mode": "directional",
+      "otm_pct": 1.0,
+      "n_expiries": 54,
+      "wins": 2,
+      "win_rate_pct": 3.7,
+      "total_pnl": -39117.0,
+      "avg_pnl": -724.0,
+      "median_pnl": -622.0,
+      "max_win": 6827.0,
+      "max_loss": -3443.0,
+      "profit_factor": 0.2,
+      "pct_worthless": 96.3,
+      "pseudo_sharpe": -3.75,
+      "return_on_capital_pct": -7.8,
+      "verdict": "NEGATIVE \u2014 bleeds (option-buying edge confirmed negative)"
+    }
+  },
+  "caveats": "BS understates deep-OTM 0DTE premiums (no skew/intraday surface); daily resolution; entry at daily open. All bias TOWARD buying, so a loss is a strong negative result."
+}

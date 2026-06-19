@@ -1,0 +1,568 @@
+{
+  "generated_at": "2026-06-19T06:21:10+0530",
+  "fetch_sample": 0,
+  "internet_probe": false,
+  "ok": true,
+  "score": {
+    "total": 89.5,
+    "max": 100,
+    "grade": "B",
+    "readiness": "PAPER_OR_SHADOW",
+    "parts": {
+      "source_coverage": {
+        "score": 20.0,
+        "max": 20,
+        "detail": "11/11 source domains covered"
+      },
+      "broker_runtime": {
+        "score": 15,
+        "max": 15,
+        "detail": "brokers=AngelOne"
+      },
+      "fetcher_universe": {
+        "score": 15,
+        "max": 15,
+        "detail": "ordered=194, full=194, learning=78"
+      },
+      "storage_capture": {
+        "score": 14.5,
+        "max": 15,
+        "detail": "candles=126703, signals=3563, option_snaps=9, historical_options=3122237, confluence=3562"
+      },
+      "learning_readiness": {
+        "score": 2.0,
+        "max": 10,
+        "detail": "live_ready=0/64, selected=1, shadow=0"
+      },
+      "sample_fetch": {
+        "score": 15,
+        "max": 15,
+        "detail": "skipped; run with --fetch-sample N for live pull validation"
+      },
+      "freshness_reachability": {
+        "score": 8.0,
+        "max": 10,
+        "detail": "market-hours freshness plus official-source reachability"
+      }
+    },
+    "top_improvements": [
+      "Optional: Dhan option-chain API can add Greeks, bid/ask and richer all-strike data.",
+      "Increase successful intraday option-chain snapshots; this is the biggest gap for strike-flow learning.",
+      "Build live-ready strategy labels through shadow/live journaling before increasing size.",
+      "Collect shadow option strike outcomes so autotune can compare selected vs missed strikes."
+    ]
+  },
+  "checks": [
+    {
+      "name": "import:config",
+      "ok": true
+    },
+    {
+      "name": "import:universe_manager",
+      "ok": true
+    },
+    {
+      "name": "import:data_fetcher",
+      "ok": true
+    },
+    {
+      "name": "import:live_signal_engine",
+      "ok": true
+    },
+    {
+      "name": "import:option_chain_fetcher",
+      "ok": true
+    },
+    {
+      "name": "source_config",
+      "ok": true,
+      "angel_primary_configured": true,
+      "backup_credentials": {
+        "dhan": false,
+        "upstox": false,
+        "fyers": false,
+        "zerodha": false,
+        "twelve_data": false,
+        "alpha_vantage": false,
+        "tiingo_env": false,
+        "nse_proxy": false
+      },
+      "free_fallbacks": {
+        "nse_direct": true,
+        "nse_equity": true,
+        "stooq": true,
+        "upstox_public": true,
+        "bhavcopy_cache": true,
+        "local_candle_cache": true
+      },
+      "disable_yfinance": true
+    },
+    {
+      "name": "internet_source_catalog",
+      "ok": true,
+      "sources": [
+        {
+          "domain": "intraday_price_bars",
+          "need": "1m/5m OHLCV for symbols and indices",
+          "preferred": "Angel SmartAPI historical candle data",
+          "covered": true,
+          "critical": true,
+          "optional": false,
+          "local_present": [
+            "angel.py",
+            "data_fetcher.py",
+            "candle_cache.db"
+          ],
+          "local_missing": [],
+          "env_configured": [
+            "API_KEY"
+          ],
+          "env_expected_any": [
+            "API_KEY"
+          ],
+          "fallbacks": [
+            "NSE direct probes",
+            "local candle cache",
+            "yf_compat informational fallback"
+          ],
+          "internet_refs": [
+            "https://smartapi.angelbroking.com/docs/Orders"
+          ]
+        },
+        {
+          "domain": "nse_option_chain",
+          "need": "NIFTY/BANKNIFTY/FINNIFTY strike OI, volume, IV and LTP",
+          "preferred": "NSE option-chain endpoint with Angel/Sensibull fallback",
+          "covered": true,
+          "critical": true,
+          "optional": false,
+          "local_present": [
+            "option_chain_fetcher.py",
+            "option_chain_intelligence.py",
+            "option_chain_recorder.py"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [],
+          "fallbacks": [
+            "option_chain_cache.json",
+            "option_chain_snapshots.db"
+          ],
+          "internet_refs": [
+            "https://www.nseindia.com/option-chain"
+          ]
+        },
+        {
+          "domain": "bse_sensex_bfo",
+          "need": "SENSEX/BANKEX/BFO index and option context",
+          "preferred": "BSE public APIs and Angel BSE/BFO historical access",
+          "covered": true,
+          "critical": true,
+          "optional": false,
+          "local_present": [
+            "bse_option_chain.py",
+            "bse_option_chain_cache.json",
+            "angel_broker.py"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [],
+          "fallbacks": [
+            "BSE SENSEX API",
+            "local BSE option cache"
+          ],
+          "internet_refs": [
+            "https://www.bseindia.com/",
+            "https://api.bseindia.com/"
+          ]
+        },
+        {
+          "domain": "participant_oi",
+          "need": "F&O participant positioning and trading volume",
+          "preferred": "NSE derivative reports",
+          "covered": true,
+          "critical": true,
+          "optional": false,
+          "local_present": [
+            "participant_oi.py",
+            "participant_oi_cache.json",
+            "participant_oi_history.json"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [],
+          "fallbacks": [
+            "participant OI cache/history"
+          ],
+          "internet_refs": [
+            "https://www.nseindia.com/all-reports-derivatives"
+          ]
+        },
+        {
+          "domain": "fii_dii_flows",
+          "need": "Cash market FII/DII net buy/sell context",
+          "preferred": "NSE FII/FPI & DII reports",
+          "covered": true,
+          "critical": true,
+          "optional": false,
+          "local_present": [
+            "fii_data_fetcher.py",
+            "fii_tracker.py",
+            "omnisource_cache.json"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [],
+          "fallbacks": [
+            "cached FII/DII flow file"
+          ],
+          "internet_refs": [
+            "https://www.nseindia.com/reports/fii-dii"
+          ]
+        },
+        {
+          "domain": "bulk_block_deals",
+          "need": "Large deal / block deal context",
+          "preferred": "NSE bulk/block archives",
+          "covered": true,
+          "critical": false,
+          "optional": false,
+          "local_present": [
+            "bulk_deals.py",
+            "bulk_deals_cache.json"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [],
+          "fallbacks": [
+            "cached NSE bulk/block data"
+          ],
+          "internet_refs": [
+            "https://www.nseindia.com/report-detail/display-bulk-and-block-deals"
+          ]
+        },
+        {
+          "domain": "nse_full_market_reports",
+          "need": "Delivery, F&O bhavcopy, most active contracts, change OI, filings, surveillance",
+          "preferred": "Unified NSE data hub backed by official NSE reports/endpoints",
+          "covered": true,
+          "critical": false,
+          "optional": false,
+          "local_present": [
+            "nse_data_hub.py",
+            "nse_data_hub_cache.json"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [],
+          "fallbacks": [
+            "bhav_copy.py",
+            "fno_bhavcopy_oi.py",
+            "corporate_actions.py",
+            "asm_gsm_filter.py",
+            "bulk_deals.py"
+          ],
+          "internet_refs": [
+            "https://www.nseindia.com/all-reports",
+            "https://www.nseindia.com/all-reports-derivatives"
+          ]
+        },
+        {
+          "domain": "corporate_actions",
+          "need": "Corporate actions and announcements",
+          "preferred": "BSE/NSE corporate announcement feeds",
+          "covered": true,
+          "critical": false,
+          "optional": false,
+          "local_present": [
+            "corporate_actions.py",
+            "corporate_actions_cache.json"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [],
+          "fallbacks": [
+            "corporate action cache"
+          ],
+          "internet_refs": [
+            "https://www.bseindia.com/corporates/ann.html",
+            "https://www.nseindia.com/companies-listing/corporate-filings-announcements"
+          ]
+        },
+        {
+          "domain": "news_sentiment",
+          "need": "Market and symbol news sentiment",
+          "preferred": "NewsAPI key with cached/free fallback",
+          "covered": true,
+          "critical": false,
+          "optional": false,
+          "local_present": [
+            "news_nlp.py",
+            "news_sentiment_cache.json"
+          ],
+          "local_missing": [
+            "news_nlp_cache.json"
+          ],
+          "env_configured": [
+            "NEWS_API_KEY"
+          ],
+          "env_expected_any": [
+            "NEWS_API_KEY"
+          ],
+          "fallbacks": [
+            "cached news sentiment"
+          ],
+          "internet_refs": [
+            "https://newsapi.org/"
+          ]
+        },
+        {
+          "domain": "option_chain_addon_candidate",
+          "need": "Richer all-strike chain with Greeks, bid/ask, IV, volume",
+          "preferred": "DhanHQ option-chain API if credentials are intentionally enabled",
+          "covered": true,
+          "critical": false,
+          "optional": true,
+          "local_present": [
+            "dhan_client.py"
+          ],
+          "local_missing": [],
+          "env_configured": [],
+          "env_expected_any": [
+            "DHAN_CLIENT_CODE",
+            "DHAN_TOKEN_ID"
+          ],
+          "fallbacks": [
+            "current NSE/Angel option-chain stack"
+          ],
+          "internet_refs": [
+            "https://dhanhq.co/docs/v2/option-chain/"
+          ]
+        },
+        {
+          "domain": "alerts_and_backup",
+          "need": "Telegram command/alert delivery and Google Drive backup",
+          "preferred": "Telegram Bot API and rclone Google Drive remote",
+          "covered": true,
+          "critical": false,
+          "optional": false,
+          "local_present": [
+            "telegram_commands.py",
+            "alerts.py",
+            "gdrive_sync.py"
+          ],
+          "local_missing": [],
+          "env_configured": [
+            "TELEGRAM_BOT_TOKEN"
+          ],
+          "env_expected_any": [
+            "TELEGRAM_BOT_TOKEN"
+          ],
+          "fallbacks": [
+            "alert spool",
+            "local files"
+          ],
+          "internet_refs": [
+            "https://api.telegram.org/",
+            "https://rclone.org/drive/"
+          ]
+        }
+      ],
+      "source_count": 11,
+      "covered_count": 11,
+      "critical_gaps": [],
+      "optional_gaps": [],
+      "recommendations": [
+        "Optional: Dhan option-chain API can add Greeks, bid/ask and richer all-strike data."
+      ]
+    },
+    {
+      "name": "fetcher_fallback_wiring",
+      "ok": true,
+      "methods": {
+        "_fetch_from_angel": true,
+        "_fetch_via_smartconnect": true,
+        "_fetch_from_twelvedata": true,
+        "_fetch_from_tiingo": true,
+        "_fetch_from_nse_direct": true,
+        "_fetch_nse_live_single": true
+      },
+      "modules": {
+        "dhan_client": true,
+        "zerodha_client": true,
+        "upstox_data": true,
+        "bhavcopy_cache": true,
+        "candle_cache": true,
+        "data_source_resilience": true,
+        "yf_compat": true
+      }
+    },
+    {
+      "name": "runtime_broker_wiring",
+      "ok": true,
+      "brokers": [
+        "AngelOne"
+      ],
+      "angel_attached": true,
+      "angel_obj_connected": true,
+      "angel_paper_trade": false
+    },
+    {
+      "name": "nifty200.csv",
+      "ok": true,
+      "rows": 192,
+      "columns": [
+        "Symbol",
+        "Company",
+        "Sector"
+      ],
+      "mtime": 1781528871.3859067
+    },
+    {
+      "name": "universe",
+      "ok": true,
+      "learning_mode": "all",
+      "learning_count": 78,
+      "learning_preview": [
+        "NIFTY",
+        "BANKNIFTY",
+        "FINNIFTY",
+        "MIDCPNIFTY",
+        "NIFTYNEXT50",
+        "SENSEX",
+        "RELIANCE",
+        "HDFCBANK",
+        "ICICIBANK",
+        "INFY",
+        "TCS",
+        "LT",
+        "SBIN",
+        "AXISBANK",
+        "KOTAKBANK",
+        "BHARTIARTL",
+        "ITC",
+        "HINDUNILVR",
+        "BAJFINANCE",
+        "ASIANPAINT"
+      ],
+      "probation_universe": [
+        "NIFTY",
+        "BANKNIFTY",
+        "SENSEX"
+      ],
+      "live_universe": []
+    },
+    {
+      "name": "data_fetcher_wiring",
+      "ok": true,
+      "ordered_symbols": 194,
+      "full_ordered_symbols": 194,
+      "preview": [
+        "NIFTY",
+        "BANKNIFTY",
+        "FINNIFTY",
+        "MIDCPNIFTY",
+        "NIFTYNEXT50",
+        "SENSEX",
+        "RELIANCE",
+        "TCS",
+        "HDFCBANK",
+        "INFY",
+        "ICICIBANK",
+        "HINDUNILVR",
+        "SBIN",
+        "BAJFINANCE",
+        "BHARTIARTL",
+        "ITC",
+        "KOTAKBANK",
+        "LT",
+        "AXISBANK",
+        "ASIANPAINT"
+      ],
+      "angel_attached": false
+    },
+    {
+      "name": "option_fetchers",
+      "ok": true,
+      "underlyings": [
+        "BANKNIFTY",
+        "FINNIFTY",
+        "MIDCPNIFTY",
+        "NIFTY",
+        "NIFTYNEXT50",
+        "SENSEX"
+      ],
+      "count": 6,
+      "cache_files": [
+        "bse_option_chain_cache.json"
+      ]
+    },
+    {
+      "name": "storage",
+      "ok": true,
+      "trades_db": {
+        "exists": true,
+        "count": 12
+      },
+      "signal_log_db": {
+        "exists": true,
+        "count": 3563
+      },
+      "candle_cache_db": {
+        "exists": true,
+        "count": 126703
+      },
+      "candle_cache_meta": {
+        "exists": true,
+        "count": 240
+      },
+      "option_chain_snapshots_db": {
+        "exists": true,
+        "count": 9
+      },
+      "historical_options_db": {
+        "exists": true,
+        "count": 3122237,
+        "db_path": "options_nifty.db",
+        "table": "options_eod"
+      },
+      "market_snapshots_db": {
+        "exists": true,
+        "count": 2
+      },
+      "confluence_features_db": {
+        "exists": true,
+        "count": 3562
+      },
+      "nse_data_hub": {
+        "exists": true,
+        "ok": true,
+        "ok_count": 10,
+        "dataset_count": 10,
+        "date": "2026-06-19"
+      },
+      "option_journal_exists": true,
+      "option_journal_size": 493
+    },
+    {
+      "name": "learning_files",
+      "ok": true,
+      "live_ready_count": 0,
+      "total_strategies": 64,
+      "autotune_selected": 1,
+      "autotune_shadow": 0,
+      "autonomous_report_exists": true
+    },
+    {
+      "name": "fetch_sample",
+      "ok": true,
+      "skipped": true
+    },
+    {
+      "name": "market_hours_freshness",
+      "ok": true,
+      "skipped": true,
+      "reason": "outside_market_hours"
+    }
+  ]
+}

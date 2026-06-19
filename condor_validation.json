@@ -1,0 +1,31 @@
+{
+  "run_date": "2026-06-07",
+  "symbol": "NIFTY",
+  "days": 420,
+  "bars": 283,
+  "window": "2025-04-15..2026-06-05",
+  "model": "synthetic BS, daily VIX, no skew",
+  "iron_condor": {
+    "oos_validation": {
+      "verdict": "FAIL",
+      "reason": "only 50% of dev windows profitable; small sample (2 windows, 23 dev trades)",
+      "dev_avg_sharpe": 2.79,
+      "deflated_sharpe": 0.788,
+      "dev_pct_profitable": 0.5,
+      "holdout_pnl": 56856.65,
+      "holdout_sharpe": 3.86,
+      "holdout_win_rate": 0.8,
+      "holdout_trades": 15,
+      "note": "high holdout Sharpe is suspect = calm-window theta mirage (no crash in sample)"
+    },
+    "stress_test": {
+      "avg_weekly_income": 893,
+      "structural_max_loss_capped": 29167,
+      "loss_on_minus7pct_gap": -27491,
+      "weeks_of_income_lost_minus7pct": 31,
+      "tail": "CAPPED by long wings (survivable), unlike naked strangle (-81k, unbounded)"
+    },
+    "verdict_plain": "BEST/ONLY defensible candidate (capped tail + positive calm-market expectancy) but NOT rigorously proven: strict OOS = FAIL, synthetic model understates tails, no real-chain confirmation."
+  },
+  "caveats": "BS understates tails (no skew/intraday surface); no real bid/ask; no crash in the sample window. Real-data paper forward-test required before deployment."
+}
