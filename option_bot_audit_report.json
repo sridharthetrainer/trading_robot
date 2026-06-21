@@ -1,0 +1,267 @@
+{
+  "generated_at": "2026-06-20T22:56:40",
+  "option_chain_snapshots": {
+    "exists": true,
+    "rows": 210,
+    "ok_rows": 201,
+    "latest": "2026-06-19T15:32:35+0530",
+    "recent_failures": [
+      {
+        "underlying": "BANKNIFTY",
+        "reason": "no_option_chain",
+        "count": 2
+      },
+      {
+        "underlying": "NIFTY",
+        "reason": "no_option_chain",
+        "count": 2
+      },
+      {
+        "underlying": "SENSEX",
+        "reason": "no_option_chain",
+        "count": 2
+      },
+      {
+        "underlying": "BANKNIFTY",
+        "reason": "No module named 'pandas'",
+        "count": 1
+      },
+      {
+        "underlying": "NIFTY",
+        "reason": "No module named 'pandas'",
+        "count": 1
+      }
+    ]
+  },
+  "decision_journal": {
+    "exists": true,
+    "rows": 85,
+    "decisions": {
+      "selected": 84,
+      "blocked_quality": 1
+    },
+    "selected_with_shadow": 84
+  },
+  "strike_autotune": {
+    "exists": true,
+    "labelled_selected": 84,
+    "labelled_shadow": 661,
+    "weights": 26
+  },
+  "option_structure_mining": {
+    "report_exists": true,
+    "db_exists": true,
+    "legs": 8,
+    "symbols": 2,
+    "latest_session": "2026-06-15",
+    "top_edges": 10,
+    "report_legs": 8
+  },
+  "hero_zero": {
+    "module_exists": true,
+    "mode": "shadow",
+    "live_vote": false,
+    "probation_block": true,
+    "journal_rows": 0,
+    "selected": 0,
+    "blocked": 0,
+    "live_micro_ok_rows": 0
+  },
+  "option_scalping": {
+    "module_exists": true,
+    "enabled": true,
+    "underlyings": [
+      "NIFTY",
+      "BANKNIFTY",
+      "FINNIFTY",
+      "MIDCPNIFTY",
+      "SENSEX"
+    ],
+    "underlying_count": 5,
+    "fetch_1m": true,
+    "max_lots": 2,
+    "stop_0dte_pct": 0.08,
+    "target_rr": 1.6,
+    "max_hold_minutes": 30,
+    "live_engine_style_hook": true,
+    "trade_manager_time_exit": true
+  },
+  "autonomous_policy": {
+    "option_first": true,
+    "cash_stock_last_resort": true,
+    "cash_last_resort_min_score": 7.0,
+    "allowed_styles": [
+      "scalping",
+      "intraday",
+      "swing",
+      "position",
+      "hero_zero"
+    ],
+    "parallel_styles": true,
+    "parallel_style_order": [
+      "scalping",
+      "intraday",
+      "swing",
+      "position",
+      "hero_zero"
+    ],
+    "max_signals_per_cycle": 5,
+    "max_new_trades_per_style_per_cycle": 1,
+    "max_new_trades_per_underlying_per_cycle": 1,
+    "qty_multipliers": {
+      "scalping": 0.75,
+      "intraday": 1.0,
+      "swing": 0.7,
+      "position": 0.5,
+      "hero_zero": 0.25
+    },
+    "cash_qty_multiplier": 0.5
+  },
+  "historical_replay": {
+    "exists": true,
+    "ok": true,
+    "generated_at": "2026-06-19T22:02:49+0530",
+    "written": 80,
+    "shadow_outcomes": 640,
+    "type_counts": {
+      "CE": 40,
+      "PE": 40
+    },
+    "style_counts": {
+      "intraday": 54,
+      "swing": 12,
+      "scalping": 14
+    }
+  },
+  "quality_layer": {
+    "selected_option_execution_quality": true,
+    "post_trade_autopsy": true,
+    "min_selected_option_oi": 100.0,
+    "min_selected_option_volume": 100.0,
+    "max_selected_option_spread_pct": 0.2,
+    "require_selected_liquidity_fields": false
+  },
+  "signal_log": {
+    "exists": true,
+    "today_option_rows": 0,
+    "today_executed_option_rows": 0
+  },
+  "historical_options": {
+    "exists": true,
+    "rows": 3122237,
+    "first_date": "2020-01-01",
+    "last_date": "2026-06-08"
+  },
+  "telegram_oi_tools": {
+    "telegram_commands": true,
+    "oi_chart": true,
+    "strikeflow": true,
+    "multi_strike_chart": true,
+    "send_photo": true
+  },
+  "automation": {
+    "live_engine_snapshot_hook": true,
+    "recorder_loop": true,
+    "eod_shadow_labeller": true,
+    "eod_structure_miner": true
+  },
+  "source_modules": {
+    "option_chain_fetcher": true,
+    "option_chain_engine": true,
+    "option_chain_intelligence": true,
+    "option_chain_recorder": true,
+    "option_strike_activity": true,
+    "option_oi_chart": true,
+    "option_shadow_labeller": true,
+    "option_strike_autotune": true,
+    "option_historical_replay_labeller": true,
+    "option_execution_quality": true,
+    "trade_autopsy": true,
+    "eod_option_structure_miner": true,
+    "pivot_scalping_strategy": true
+  },
+  "scheduled_audits": {
+    "idle_engine": true,
+    "option_bot_audit_task": true,
+    "data_pipeline_audit_task": true,
+    "autonomous_learning_task": true
+  },
+  "score": {
+    "total": 94.0,
+    "max": 100,
+    "grade": "A",
+    "readiness": "LIVE_READY",
+    "autonomous_score": {
+      "total": 100.0,
+      "max": 100,
+      "grade": "A",
+      "parts": {
+        "automation": {
+          "score": 25.0,
+          "max": 25,
+          "detail": "4/4 autonomous option loops wired"
+        },
+        "telegram_oi_tools": {
+          "score": 20.0,
+          "max": 20,
+          "detail": "5/5 command/chart tools wired"
+        },
+        "historical_options": {
+          "score": 20,
+          "max": 20,
+          "detail": "3122237 historical option rows"
+        },
+        "source_modules": {
+          "score": 20.0,
+          "max": 20,
+          "detail": "13/13 option source modules present"
+        },
+        "scheduled_audits": {
+          "score": 15.0,
+          "max": 15,
+          "detail": "4/4 audit/report schedules wired"
+        }
+      }
+    },
+    "parts": {
+      "snapshot_capture": {
+        "score": 25,
+        "max": 25,
+        "detail": "ok_rows=201, rows=210"
+      },
+      "decision_journal": {
+        "score": 15,
+        "max": 15,
+        "detail": "rows=85, selected=84, selected_with_shadow=84"
+      },
+      "strike_autotune": {
+        "score": 20,
+        "max": 20,
+        "detail": "selected=84, shadow=661, weights=26"
+      },
+      "historical_options": {
+        "score": 15,
+        "max": 15,
+        "detail": "rows=3122237, range=2020-01-01..2026-06-08"
+      },
+      "signal_activity": {
+        "score": 4.0,
+        "max": 10,
+        "detail": "today_option_rows=0, executed=0"
+      },
+      "telegram_oi_tools": {
+        "score": 10.0,
+        "max": 10,
+        "detail": "telegram_commands, oi_chart, strikeflow, multi_strike_chart, send_photo"
+      },
+      "automation": {
+        "score": 5.0,
+        "max": 5,
+        "detail": "live_engine_snapshot_hook, recorder_loop, eod_shadow_labeller, eod_structure_miner"
+      }
+    },
+    "top_improvements": [
+      "No option signal rows today yet; confirm market-hour scan and option-chain availability."
+    ]
+  }
+}

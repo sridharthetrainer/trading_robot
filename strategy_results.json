@@ -1,0 +1,135 @@
+[
+  {
+    "name": "trend",
+    "script": "backtest_trend.py",
+    "score": -100.0,
+    "metrics": {
+      "sharpe": -12.3602,
+      "win_rate": 0.0,
+      "net_profit": -28838.76,
+      "max_drawdown": 0.0,
+      "total_trades": 19,
+      "validation_verdict": "FAIL",
+      "wf_pct_profitable": 0.0,
+      "wf_avg_sharpe": -12.3602,
+      "wf_avg_pnl": -28838.76
+    },
+    "validation_verdict": "FAIL",
+    "validation_blocked": true,
+    "live_ready": false
+  },
+  {
+    "name": "mean_reversion",
+    "script": "backtest_mr_enhanced.py",
+    "score": -100.0,
+    "metrics": {
+      "sharpe": -23.0514,
+      "win_rate": 0.0,
+      "net_profit": -25172.95,
+      "max_drawdown": 0.0,
+      "total_trades": 10,
+      "validation_verdict": "FAIL",
+      "wf_pct_profitable": 0.0,
+      "wf_avg_sharpe": -23.0514,
+      "wf_avg_pnl": -25172.95
+    },
+    "validation_verdict": "FAIL",
+    "validation_blocked": true,
+    "live_ready": false
+  },
+  {
+    "name": "breakout",
+    "script": "backtest_breakout.py",
+    "score": -100.0,
+    "metrics": {
+      "sharpe": -12.886,
+      "win_rate": 0.0,
+      "net_profit": -109824.03,
+      "max_drawdown": 0.0,
+      "total_trades": 91,
+      "validation_verdict": "FAIL",
+      "wf_pct_profitable": 0.0,
+      "wf_avg_sharpe": -12.886,
+      "wf_avg_pnl": -109824.03
+    },
+    "validation_verdict": "FAIL",
+    "validation_blocked": true,
+    "live_ready": false
+  },
+  {
+    "name": "ma_cross",
+    "script": "backtest_ma_cross.py",
+    "score": -100.0,
+    "metrics": {
+      "sharpe": -12.8861,
+      "win_rate": 0.0,
+      "net_profit": -60390.86,
+      "max_drawdown": 0.0,
+      "total_trades": 45,
+      "validation_verdict": "FAIL",
+      "wf_pct_profitable": 0.0,
+      "wf_avg_sharpe": -12.8861,
+      "wf_avg_pnl": -60390.86
+    },
+    "validation_verdict": "FAIL",
+    "validation_blocked": true,
+    "live_ready": false
+  },
+  {
+    "name": "ema_5min",
+    "script": "backtest_5min_ema.py",
+    "score": -100.0,
+    "metrics": {
+      "sharpe": -18.4771,
+      "win_rate": 0.0,
+      "net_profit": -121061.7,
+      "max_drawdown": 0.0,
+      "total_trades": 80,
+      "validation_verdict": "FAIL",
+      "wf_pct_profitable": 0.0,
+      "wf_avg_sharpe": -18.4771,
+      "wf_avg_pnl": -121061.7
+    },
+    "validation_verdict": "FAIL",
+    "validation_blocked": true,
+    "live_ready": false
+  },
+  {
+    "name": "cpr",
+    "script": "backtest_cpr.py",
+    "score": -100.0,
+    "metrics": {
+      "sharpe": -7.5693,
+      "win_rate": 0.0,
+      "net_profit": -34690.18,
+      "max_drawdown": 0.0,
+      "total_trades": 44,
+      "validation_verdict": "FAIL",
+      "wf_pct_profitable": 0.0,
+      "wf_avg_sharpe": -7.5693,
+      "wf_avg_pnl": -34690.18
+    },
+    "validation_verdict": "FAIL",
+    "validation_blocked": true,
+    "live_ready": false
+  },
+  {
+    "name": "scalping",
+    "script": "backtest_scalping.py",
+    "score": -201.528,
+    "metrics": {
+      "sharpe": -66.3091,
+      "win_rate": 0.0,
+      "net_profit": -410069.61,
+      "max_drawdown": 0.0,
+      "total_trades": 262,
+      "validation_verdict": "FAIL",
+      "wf_pct_profitable": 0.0,
+      "wf_avg_sharpe": -66.3091,
+      "wf_avg_pnl": -410069.61
+    },
+    "validation_verdict": "FAIL",
+    "validation_blocked": true,
+    "live_ready": false
+  }
+]
