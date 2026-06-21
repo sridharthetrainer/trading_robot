@@ -1,0 +1,95 @@
+{
+  "pivots": {
+    "left_bars": 2,
+    "right_bars": 2,
+    "min_separation_bars": 3
+  },
+  "trendline": {
+    "min_touches": 3,
+    "touch_tolerance_pct": 0.0015,
+    "ransac_residual_threshold_pct": 0.002
+  },
+  "market_structure": {
+    "swing_lookback": 5,
+    "trend_min_swings": 2
+  },
+  "breakout": {
+    "volume_ma_period": 20,
+    "volume_multiplier": 1.5,
+    "atr_period": 14,
+    "atr_breakout_mult": 1.5,
+    "confirm_close_beyond_pct": 0.0
+  },
+  "volume": {
+    "ma_period": 20,
+    "contraction_ratio": 0.8,
+    "expansion_ratio": 1.5
+  },
+  "patterns": {
+    "peak_tolerance_pct": 0.01,
+    "min_trough_depth_pct": 0.015,
+    "min_pattern_bars": 10,
+    "max_pattern_bars": 120,
+    "neckline_break_confirm": true
+  },
+  "triangles": {
+    "flat_slope_pct": 0.0004,
+    "flat_max_spread_pct": 0.02,
+    "min_touches_per_line": 2,
+    "converge_ratio": 0.85,
+    "diverge_ratio": 1.15,
+    "min_line_r2": 0.5
+  },
+  "flags": {
+    "pole_min_move_pct": 0.05,
+    "pole_min_bars": 3,
+    "pole_max_bars": 15,
+    "flag_min_bars": 3,
+    "flag_max_bars": 25,
+    "flag_max_range_ratio": 0.5,
+    "flag_max_retrace": 0.5,
+    "pennant_converge_ratio": 0.7
+  },
+  "channels": {
+    "min_touches": 2,
+    "lookback": 80,
+    "flat_slope_pct": 0.0004,
+    "parallel_tolerance_pct": 0.0008
+  },
+  "cup_handle": {
+    "min_bars": 35,
+    "max_bars": 120,
+    "min_depth_pct": 0.05,
+    "max_depth_pct": 0.35,
+    "handle_max_retrace": 0.4
+  },
+  "rounding": {
+    "lookback": 50,
+    "min_curvature": 0.00008
+  },
+  "diamond": {
+    "lookback": 80,
+    "min_expand_contract_ratio": 1.2
+  },
+  "broadening": {
+    "lookback": 80,
+    "min_diverge_ratio": 1.15
+  },
+  "smart_money": {
+    "sweep_lookback": 20,
+    "wick_body_ratio": 1.4
+  },
+  "scoring": {
+    "weights": {
+      "pattern_quality": 0.35,
+      "volume": 0.20,
+      "trend": 0.20,
+      "market_structure": 0.15,
+      "breakout": 0.10
+    },
+    "min_confidence_to_emit": 50
+  },
+  "risk": {
+    "default_rr_min": 1.5
+  }
+}

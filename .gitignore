@@ -1,0 +1,73 @@
+# Secrets
+.env
+
+# Runtime / logs
+*.log
+.watchdog_state
+.watchdog_heartbeat
+main_live.log
+
+# Generated state (regenerated each run)
+heartbeat.json
+live_status.json
+system_state.json
+run_system_state.json
+strategy_state.json
+market_context.json
+health_snapshot.json
+learning_state.json
+sync_state.json
+dedup_state.json
+token_map.json
+lot_sizes.json
+cross_asset_cache.json
+trading_holidays.json
+nse_master_status.json
+
+# NSE master contract CSVs (re-downloaded on startup)
+MasterContract_ALL.csv
+MasterContract_NFO.csv
+NSE_EQUITY_LIST.csv
+NSE_FO_LIST.csv
+OpenAPIScripMaster.csv
+OpenAPIScripMaster.json
+
+# Cache databases
+nse_cache.db
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.venv/
+
+# Backtest/grid artifacts (outputs, not source)
+grid_search_results_*.csv
+grid_search_failed_*.csv
+backtest_*.csv
+dashboard.html
+logs/
+backup/
+connection_test_report.json
+
+.env
+.env.template
+venv/
+__pycache__/
+*.db
+backup/
+trade_card*.png
+guardian_manual_*.png
+test_card.png
+daily_videos/
+.deploy_backup/
+.deploy_staging/
+.last_deploy_timestamp
+wf_run_*.log
+tb_label_run*.log
+breakout_validation*.log
+*.pyc
+.env.example

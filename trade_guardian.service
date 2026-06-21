@@ -1,0 +1,25 @@
+[Unit]
+Description=Trade Guardian Bot — Manual Trade Manager
+After=network-online.target
+Wants=network-online.target
+# Start after main bot if present
+After=trading-robot.service
+
+[Service]
+Type=simple
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+EnvironmentFile=/home/sridhar/Desktop/trading_robot/.env
+ExecStart=/home/sridhar/Desktop/trading_robot/.venv/bin/python3 /home/sridhar/Desktop/trading_robot/trade_guardian_bot.py
+Restart=on-failure
+RestartSec=15
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=trade-guardian
+
+# Graceful shutdown
+TimeoutStopSec=30
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

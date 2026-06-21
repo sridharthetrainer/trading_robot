@@ -1,0 +1,18 @@
+{
+  "symbol": "NIFTY",
+  "strategy": "ma_cross",
+  "params": {
+    "fast_ma": 12,
+    "max_entry_atr_extension": 2.5,
+    "min_body_atr": 0.1,
+    "slow_ma": 50
+  },
+  "metrics": {
+    "total_pnl": -8119.06,
+    "total_trades": 19,
+    "win_rate": 0.23,
+    "sharpe": -3.4669,
+    "validation_verdict": "FAIL",
+    "paper_training_only": true
+  }
+}
