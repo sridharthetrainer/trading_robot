@@ -1,0 +1,86 @@
+════════════════════════════════════════════════════════════════
+URGENT — FRIDAY RECOVERY (when you have token)
+════════════════════════════════════════════════════════════════
+
+The bot runs but Scanned:0 + Telegram commands hang.
+These steps fix it permanently.
+
+STEP 1: Fix the systemd service (prevents SIGTERM = permanent kill)
+──────────────────────────────────────────────────────────────────
+Run on the trading machine:
+
+sudo tee /etc/systemd/system/trading-bot.service > /dev/null << 'EOF'
+[Unit]
+Description=NIFTY Algo Trading Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+Environment=PATH=/home/sridhar/Desktop/trading_robot/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/sridhar/Desktop/trading_robot/venv/bin/python3 /home/sridhar/Desktop/trading_robot/main_autonomous.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl restart trading-bot.service
+
+echo "✅ Service file updated — now Restart=always (SIGTERM will auto-restart)"
+
+
+STEP 2: Deploy the new zip with inline diagnostics
+────────────────────────────────────────────────────
+
+cd ~/Desktop/trading_robot
+rclone copy gdrive:trading_robot/trading_robot_FRESH.zip ~/Desktop/
+unzip -o ~/Desktop/trading_robot_FRESH.zip -d ~/Desktop/
+cp .env /tmp/.env.backup
+sudo systemctl restart trading-bot.service
+sleep 30
+
+# Verify bot is alive
+pgrep -f "main_autonomous.py" && echo "✅ Bot alive" || echo "❌ Bot dead"
+
+
+STEP 3: Run diagnostics
+───────────────────────
+
+In Telegram, send: /diagscan
+
+This will show:
+  [1] Angel Connection — whether AngelOne connects
+  [2] DataFetcher test — whether data flows
+  [3] LiveSignalEngine test — whether LSE can scan
+
+Copy the output and share with Claude.
+
+
+STEP 4: If /diagscan still hangs
+──────────────────────────────────
+
+The command handler thread is deadlocked. Hard restart:
+
+sudo systemctl kill -s SIGKILL trading-bot.service
+sleep 5
+sudo systemctl start trading-bot.service
+sleep 30
+
+Then try /diagscan again.
+
+
+════════════════════════════════════════════════════════════════
+TL;DR:
+  1. sudo tee .../trading-bot.service (copy-paste above)
+  2. deploy new zip
+  3. /diagscan
+════════════════════════════════════════════════════════════════

@@ -1,0 +1,27 @@
+{
+  "elapsed_sec": 41785.5,
+  "labels_updated": 0,
+  "signals_used": 1729,
+  "overall_wr": 0.353,
+  "danger_zones": 94,
+  "ml_auc": 0.5751,
+  "per_symbol_models": 0,
+  "filters_written": true,
+  "filters_path": "learned_filters.json",
+  "decay_strategies": [
+    "chart_pattern_descending_triangle",
+    "trend",
+    "alligator_ao",
+    "rsi_divergence",
+    "chart_pattern_head_and_shoulders",
+    "failed_bull_breakout",
+    "ma_cross"
+  ],
+  "edge_conclusion": "2 candidate(s) survived gating \u2014 REQUIRE locked-holdout validation before any live use.",
+  "edge_candidates": [
+    "chart_pattern_descending_triangle",
+    "chart_pattern_head_and_shoulders"
+  ],
+  "dry_run": false,
+  "timestamp": "2026-06-20T11:00:01.468677"
+}
