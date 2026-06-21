@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-06-18T21:34:02+0530",
+  "symbols_seen": 3,
+  "symbols_ok": 2,
+  "summary": {
+    "n": 0,
+    "wins": 0,
+    "losses": 0,
+    "timeouts": 0,
+    "target_rate": 0.0,
+    "win_rate_ex_timeout": 0.0,
+    "avg_return_pct": 0.0
+  },
+  "by_setup": [],
+  "by_side": [],
+  "by_symbol": [],
+  "by_factor": [],
+  "top_candidates": [],
+  "symbol_results": [
+    {
+      "symbol": "NIFTY",
+      "ok": true,
+      "bars_5m": 300,
+      "data": {
+        "source_5m": "candle_cache",
+        "bars_5m": 300,
+        "source_1m": "candle_cache",
+        "bars_1m": 1320
+      },
+      "candidate_count": 0
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "ok": true,
+      "bars_5m": 300,
+      "data": {
+        "source_5m": "candle_cache",
+        "bars_5m": 300,
+        "source_1m": "candle_cache",
+        "bars_1m": 1479
+      },
+      "candidate_count": 0
+    },
+    {
+      "symbol": "SENSEX",
+      "ok": false,
+      "reason": "insufficient_5m_bars:41",
+      "data": {
+        "source_5m": "data_fetcher_short",
+        "bars_5m": 41,
+        "source_1m": "candle_cache",
+        "bars_1m": 375
+      },
+      "candidate_count": 0
+    }
+  ]
+}

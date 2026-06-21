@@ -1,0 +1,12 @@
+[Unit]
+Description=Trigger post-market ML pipeline at 16:00 IST every weekday
+Requires=post-market-ml.service
+
+[Timer]
+# 16:00 IST = 10:30 UTC
+OnCalendar=Mon..Fri 10:30:00 UTC
+AccuracySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

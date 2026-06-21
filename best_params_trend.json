@@ -1,0 +1,22 @@
+{
+  "symbol": "NIFTY",
+  "strategy": "trend",
+  "params": {
+    "adx_threshold": 25,
+    "exit_on_crossover": false,
+    "fast_ema": 7,
+    "max_entry_atr_extension": 2.5,
+    "min_body_atr": 0.1,
+    "slow_ema": 26,
+    "stop_atr_mult": 1.5,
+    "trail_atr_mult": 1.5
+  },
+  "metrics": {
+    "total_pnl": -35447.57,
+    "total_trades": 15,
+    "win_rate": 0.0667,
+    "sharpe": -20.1753,
+    "validation_verdict": "FAIL",
+    "paper_training_only": true
+  }
+}

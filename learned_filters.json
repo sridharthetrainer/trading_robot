@@ -1,0 +1,413 @@
+{
+  "version": "2026-06-19T23:23:39",
+  "overall_wr": 0.353,
+  "n_signals": 1729,
+  "filters": [
+    {
+      "id": "strategy\u00d7htf_bias_enc_chart_pattern_desc",
+      "description": "strategy\u00d7htf_bias_enc chart_pattern_descending_triangle \u00d7 1.0 \u2192 loss rate 100%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "chart_pattern_descending_triangle \u00d7 1.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 20,
+        "loss_rate": 1.0
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_failed_bull_breakout",
+      "description": "strategy\u00d7regime_enc failed_bull_breakout \u00d7 0.0 \u2192 loss rate 85%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "failed_bull_breakout \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 26,
+        "loss_rate": 0.846
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_trend_\u00d7_-1.0",
+      "description": "strategy\u00d7htf_bias_enc trend \u00d7 -1.0 \u2192 loss rate 84%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "trend \u00d7 -1.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 101,
+        "loss_rate": 0.842
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_chart_pattern_descen",
+      "description": "strategy\u00d7regime_enc chart_pattern_descending_triangle \u00d7 0.0 \u2192 loss rate 84%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "chart_pattern_descending_triangle \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 131,
+        "loss_rate": 0.84
+      }
+    },
+    {
+      "id": "strategy_chart_pattern_descending_triang",
+      "description": "strategy chart_pattern_descending_triangle \u2192 loss rate 84%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "chart_pattern_descending_triangle"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 146,
+        "loss_rate": 0.836
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_chart_pattern_head_a",
+      "description": "strategy\u00d7regime_enc chart_pattern_head_and_shoulders \u00d7 0.0 \u2192 loss rate 83%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "chart_pattern_head_and_shoulders \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 35,
+        "loss_rate": 0.829
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_chart_pattern_head",
+      "description": "strategy\u00d7htf_bias_enc chart_pattern_head_and_shoulders \u00d7 0.0 \u2192 loss rate 83%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "chart_pattern_head_and_shoulders \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 35,
+        "loss_rate": 0.829
+      }
+    },
+    {
+      "id": "strategy_failed_bull_breakout",
+      "description": "strategy failed_bull_breakout \u2192 loss rate 82%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "failed_bull_breakout"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 33,
+        "loss_rate": 0.818
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_chart_pattern_desc",
+      "description": "strategy\u00d7htf_bias_enc chart_pattern_descending_triangle \u00d7 0.0 \u2192 loss rate 81%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "chart_pattern_descending_triangle \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 90,
+        "loss_rate": 0.811
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_chart_pattern_desc",
+      "description": "strategy\u00d7htf_bias_enc chart_pattern_descending_triangle \u00d7 -1.0 \u2192 loss rate 81%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "chart_pattern_descending_triangle \u00d7 -1.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 36,
+        "loss_rate": 0.806
+      }
+    },
+    {
+      "id": "strategy_chart_pattern_double_top",
+      "description": "strategy chart_pattern_double_top \u2192 loss rate 80%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "chart_pattern_double_top"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 15,
+        "loss_rate": 0.8
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_chart_pattern_descen",
+      "description": "strategy\u00d7regime_enc chart_pattern_descending_triangle \u00d7 2.0 \u2192 loss rate 80%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "chart_pattern_descending_triangle \u00d7 2.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 15,
+        "loss_rate": 0.8
+      }
+    },
+    {
+      "id": "strategy_chart_pattern_head_and_shoulder",
+      "description": "strategy chart_pattern_head_and_shoulders \u2192 loss rate 80%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "chart_pattern_head_and_shoulders"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 49,
+        "loss_rate": 0.796
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_failed_bull_breako",
+      "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 0.0 \u2192 loss rate 79%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "failed_bull_breakout \u00d7 0.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 29,
+        "loss_rate": 0.793
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_alligator_ao_\u00d7_0.0",
+      "description": "strategy\u00d7htf_bias_enc alligator_ao \u00d7 0.0 \u2192 loss rate 78%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "alligator_ao \u00d7 0.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 37,
+        "loss_rate": 0.784
+      }
+    },
+    {
+      "id": "expiry_dte_HIGH_(>1.00)",
+      "description": "expiry_dte HIGH (>1.00) \u2192 loss rate 76%",
+      "condition": {
+        "feature": "expiry_dte",
+        "gt": 1.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 51,
+        "loss_rate": 0.765
+      }
+    },
+    {
+      "id": "day_of_week_HIGH_(>3.00)",
+      "description": "day_of_week HIGH (>3.00) \u2192 loss rate 76%",
+      "condition": {
+        "feature": "day_of_week",
+        "gt": 3.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 51,
+        "loss_rate": 0.765
+      }
+    },
+    {
+      "id": "flag_near_expiry_0",
+      "description": "flag_near_expiry 0 \u2192 loss rate 76%",
+      "condition": {
+        "feature": "near_expiry",
+        "eq": 0.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 51,
+        "loss_rate": 0.765
+      }
+    },
+    {
+      "id": "side_SELL",
+      "description": "side SELL \u2192 loss rate 76%",
+      "condition": {
+        "feature": "side",
+        "eq": "SELL"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 869,
+        "loss_rate": 0.759
+      }
+    },
+    {
+      "id": "strategy_ttm_squeeze",
+      "description": "strategy ttm_squeeze \u2192 loss rate 75%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "ttm_squeeze"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 16,
+        "loss_rate": 0.75
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_mean_reversion_\u00d7_1",
+      "description": "strategy\u00d7htf_bias_enc mean_reversion \u00d7 1.0 \u2192 loss rate 75%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "mean_reversion \u00d7 1.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 16,
+        "loss_rate": 0.75
+      }
+    },
+    {
+      "id": "score_HIGH_(>14.49)",
+      "description": "score HIGH (>14.49) \u2192 loss rate 75%",
+      "condition": {
+        "feature": "score",
+        "gt": 14.49
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 576,
+        "loss_rate": 0.747
+      }
+    },
+    {
+      "id": "score_boost_HIGH_(>7.06)",
+      "description": "score_boost HIGH (>7.06) \u2192 loss rate 74%",
+      "condition": {
+        "feature": "score_boost",
+        "gt": 7.06
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 576,
+        "loss_rate": 0.745
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_vrvp_zone_\u00d7_2.0",
+      "description": "strategy\u00d7regime_enc vrvp_zone \u00d7 2.0 \u2192 loss rate 74%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "vrvp_zone \u00d7 2.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 23,
+        "loss_rate": 0.739
+      }
+    },
+    {
+      "id": "strategy_candlestick_bearish_engulfing",
+      "description": "strategy candlestick_bearish_engulfing \u2192 loss rate 73%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "candlestick_bearish_engulfing"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 15,
+        "loss_rate": 0.733
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_alligator_ao_\u00d7_0.0",
+      "description": "strategy\u00d7regime_enc alligator_ao \u00d7 0.0 \u2192 loss rate 73%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "alligator_ao \u00d7 0.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 45,
+        "loss_rate": 0.733
+      }
+    },
+    {
+      "id": "score_boost_pct_HIGH_(>0.95)",
+      "description": "score_boost_pct HIGH (>0.95) \u2192 loss rate 73%",
+      "condition": {
+        "feature": "score_boost_pct",
+        "gt": 0.95
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 576,
+        "loss_rate": 0.727
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_rsi_divergence_\u00d7_1",
+      "description": "strategy\u00d7htf_bias_enc rsi_divergence \u00d7 1.0 \u2192 loss rate 73%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "rsi_divergence \u00d7 1.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 62,
+        "loss_rate": 0.726
+      }
+    },
+    {
+      "id": "strategy_mean_reversion",
+      "description": "strategy mean_reversion \u2192 loss rate 72%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "mean_reversion"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 29,
+        "loss_rate": 0.724
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_mean_reversion_\u00d7_0.0",
+      "description": "strategy\u00d7regime_enc mean_reversion \u00d7 0.0 \u2192 loss rate 72%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "mean_reversion \u00d7 0.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 29,
+        "loss_rate": 0.724
+      }
+    }
+  ],
+  "boosts": [
+    {
+      "id": "boost_strategy\u00d7htf_bias_enc_breakout_\u00d7_1",
+      "description": "strategy\u00d7htf_bias_enc breakout \u00d7 1.0 \u2192 win rate 76%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "breakout \u00d7 1.0"
+      },
+      "mult": 1.2,
+      "evidence": {
+        "n": 21,
+        "win_rate": 0.762
+      }
+    }
+  ],
+  "ml_model_auc": 0.5751
+}
