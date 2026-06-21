@@ -1,0 +1,51 @@
+{
+  "run_date": "2026-06-08",
+  "symbol": "NIFTY",
+  "bars": 608,
+  "strategy": "pivot_boss_algo_version",
+  "results": {
+    "full": {
+      "label": "full",
+      "trades": 10,
+      "win_rate_pct": 20.0,
+      "total_pnl": -56660.0,
+      "avg_pnl": -5666.0,
+      "profit_factor": 0.04,
+      "pseudo_sharpe": -4.34,
+      "max_win": 1860.0,
+      "max_loss": -9496.0,
+      "longs": 10,
+      "shorts": 0,
+      "verdict": "NEGATIVE"
+    },
+    "in_sample": {
+      "label": "in_sample",
+      "trades": 8,
+      "win_rate_pct": 25.0,
+      "total_pnl": -46515.0,
+      "avg_pnl": -5814.0,
+      "profit_factor": 0.04,
+      "pseudo_sharpe": -3.92,
+      "max_win": 1860.0,
+      "max_loss": -9496.0,
+      "longs": 8,
+      "shorts": 0,
+      "verdict": "NEGATIVE"
+    },
+    "holdout_OOS": {
+      "label": "holdout_OOS",
+      "trades": 2,
+      "win_rate_pct": 0.0,
+      "total_pnl": -10145.0,
+      "avg_pnl": -5072.0,
+      "profit_factor": 0.0,
+      "pseudo_sharpe": -1.91,
+      "max_win": -1320.0,
+      "max_loss": -8825.0,
+      "longs": 2,
+      "shorts": 0,
+      "verdict": "NEGATIVE"
+    }
+  },
+  "caveats": "daily resolution, breakout-at-open entry, stop-first pessimistic, futures-points proxy P&L (optimistic vs option-buying)."
+}

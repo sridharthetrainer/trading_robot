@@ -1,0 +1,19 @@
+{
+  "symbol": "NIFTY",
+  "strategy": "breakout",
+  "params": {
+    "breakout_buffer_atr": 0.05,
+    "channel_period": 20,
+    "min_body_atr": 0.0,
+    "stop_atr_mult": 1.5,
+    "trail_atr_mult": 1.5
+  },
+  "metrics": {
+    "total_pnl": 1763.7,
+    "total_trades": 45,
+    "win_rate": 0.2714,
+    "sharpe": -3.3688,
+    "validation_verdict": "FAIL",
+    "paper_training_only": true
+  }
+}

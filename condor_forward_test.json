@@ -1,0 +1,52 @@
+{
+  "open": {
+    "entry_date": "2026-06-17",
+    "expiry_date": "2026-06-23",
+    "spot_entry": 24085.7,
+    "vix_entry": 13.19,
+    "T_entry": 0.01643835616438356,
+    "width": 400,
+    "legs": [
+      {
+        "strike": 24500,
+        "opt_type": "call",
+        "qty": -1,
+        "entry_prem": 37.92
+      },
+      {
+        "strike": 23700,
+        "opt_type": "put",
+        "qty": -1,
+        "entry_prem": 32.52
+      },
+      {
+        "strike": 24900,
+        "opt_type": "call",
+        "qty": 1,
+        "entry_prem": 4.54
+      },
+      {
+        "strike": 23300,
+        "opt_type": "put",
+        "qty": 1,
+        "entry_prem": 3.18
+      }
+    ],
+    "credit_rs": 4077.0,
+    "max_loss_rs": 21923.0
+  },
+  "closed": [
+    {
+      "entry_date": "2026-06-10",
+      "exit_date": "2026-06-16",
+      "expiry_date": "2026-06-16",
+      "spot_entry": 23215.0,
+      "spot_exit": 23989.0,
+      "credit_rs": 4772.0,
+      "max_loss_rs": 24478.0,
+      "pnl_rs": -17719.0,
+      "outcome": "LOSS"
+    }
+  ],
+  "created": "2026-06-08"
+}

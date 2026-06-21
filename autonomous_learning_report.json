@@ -1,0 +1,235 @@
+{
+  "generated_at": "2026-06-18T21:34:00+0530",
+  "dry_run": false,
+  "steps": {
+    "option_backfill": {
+      "ok": true,
+      "duration_sec": 0.022,
+      "result": {
+        "trades_db": 0,
+        "signal_log": 1
+      }
+    },
+    "signal_trade_reconcile": {
+      "ok": true,
+      "duration_sec": 0.06,
+      "result": {
+        "trades_seen": 12,
+        "already_linked": 3,
+        "matched": 0,
+        "updated": 0,
+        "unmatched": 9
+      }
+    },
+    "signal_reverse_engineering": {
+      "ok": true,
+      "duration_sec": 0.22,
+      "result": {
+        "ready": true,
+        "rows": 3560,
+        "labelled_rows": 1019,
+        "pending_rows": 2541,
+        "top_context_edges": 20,
+        "feature_edges": 9,
+        "next_action": ""
+      }
+    },
+    "eod_signal_mining": {
+      "ok": true,
+      "duration_sec": 1.245,
+      "result": {
+        "symbols_ok": 2,
+        "symbols_seen": 3,
+        "candidates": 0,
+        "wins": 0,
+        "losses": 0,
+        "timeouts": 0,
+        "avg_return_pct": 0.0,
+        "setup_count": 0,
+        "factor_count": 0
+      }
+    },
+    "confluence_feature_store": {
+      "ok": true,
+      "duration_sec": 0.152,
+      "result": {
+        "ok": true,
+        "rows_seen": 3560,
+        "updated": 3560
+      }
+    },
+    "data_quality_watchdog": {
+      "ok": true,
+      "duration_sec": 0.901,
+      "result": {
+        "ok": true,
+        "groups": 240,
+        "bad_groups": 4,
+        "bars": 126697
+      }
+    },
+    "shadow_portfolio": {
+      "ok": true,
+      "duration_sec": 0.025,
+      "result": {
+        "labelled_seen": 1462,
+        "shadow_trades": 10,
+        "wins": 3,
+        "losses": 4,
+        "timeouts": 3,
+        "target_rate": 0.3,
+        "rejected_wins": 2
+      }
+    },
+    "market_snapshot": {
+      "ok": true,
+      "duration_sec": 1.634,
+      "result": {
+        "ok": true,
+        "india_vix": 12.67,
+        "breadth_signal": "",
+        "cross_asset_bias": "",
+        "regime": "WEAK_TREND"
+      }
+    },
+    "option_chain_snapshot": {
+      "ok": true,
+      "duration_sec": 0.021,
+      "result": {
+        "requested": 3,
+        "ok_count": 0
+      }
+    },
+    "option_autotune": {
+      "ok": true,
+      "duration_sec": 0.0,
+      "result": {
+        "labelled_selected": 1,
+        "labelled_shadow": 0,
+        "features": 2,
+        "min_samples": 30
+      }
+    },
+    "live_eligibility": {
+      "ok": true,
+      "duration_sec": 0.006,
+      "result": {
+        "live_ready_count": 0,
+        "total_strategies": 64,
+        "live_block_reason": "no_strategy_passed_live_eligibility_manifest",
+        "warnings": []
+      }
+    },
+    "live_probation": {
+      "ok": true,
+      "duration_sec": 0.002,
+      "result": {
+        "enabled": false,
+        "max_trades_per_day": 1,
+        "max_capital": 500.0,
+        "max_lots": 1,
+        "daily_pnl": 0.0,
+        "trades_today": 0,
+        "loss_locked": false,
+        "state_file": "live_probation_state.json"
+      }
+    },
+    "universe": {
+      "ok": true,
+      "duration_sec": 0.0,
+      "result": {
+        "learning_mode": "liquid_fno",
+        "learning_count": 78,
+        "learning_preview": [
+          "NIFTY",
+          "BANKNIFTY",
+          "FINNIFTY",
+          "MIDCPNIFTY",
+          "NIFTYNEXT50",
+          "SENSEX",
+          "RELIANCE",
+          "HDFCBANK",
+          "ICICIBANK",
+          "INFY",
+          "TCS",
+          "LT",
+          "SBIN",
+          "AXISBANK",
+          "KOTAKBANK",
+          "BHARTIARTL",
+          "ITC",
+          "HINDUNILVR",
+          "BAJFINANCE",
+          "ASIANPAINT"
+        ],
+        "probation_universe": [
+          "NIFTY",
+          "BANKNIFTY",
+          "SENSEX"
+        ],
+        "live_universe": []
+      }
+    },
+    "data_pipeline": {
+      "ok": true,
+      "duration_sec": 0.017,
+      "result": {
+        "ok": true,
+        "checks": 16,
+        "warnings": []
+      }
+    },
+    "learning_coverage": {
+      "ok": true,
+      "duration_sec": 0.016,
+      "result": {
+        "ok": true,
+        "totals": {
+          "signal_rows": 3560,
+          "labelled_rows": 1462,
+          "pending_rows": 2098,
+          "executed_rows": 6,
+          "option_rows": 3,
+          "eligible_pending_rows": 1105,
+          "today_pending_rows": 993
+        },
+        "coverage": {
+          "universe_count": 78,
+          "logged_universe_count": 68,
+          "unlogged_universe_count": 10,
+          "labelled_symbol_count": 39,
+          "pending_symbol_count": 32,
+          "executed_symbol_count": 4,
+          "option_symbol_count": 1,
+          "logged_pct": 0.8718,
+          "labelled_pct": 0.5
+        }
+      }
+    },
+    "quality_gate": {
+      "ok": true,
+      "duration_sec": 0.136,
+      "result": {
+        "critical_failures": [],
+        "critical_ok": true
+      }
+    }
+  },
+  "learning_delta": {
+    "new_selected_samples": 1,
+    "new_shadow_samples": 0,
+    "selected_total": 1,
+    "shadow_total": 0,
+    "feature_count_before": 0,
+    "feature_count_after": 2,
+    "feature_count_delta": 2,
+    "weight_changes": {
+      "promoted": [],
+      "demoted": []
+    },
+    "live_ready_before": 0,
+    "live_ready_after": 0,
+    "live_block_reason": "no_strategy_passed_live_eligibility_manifest"
+  },
+  "ok": true
+}

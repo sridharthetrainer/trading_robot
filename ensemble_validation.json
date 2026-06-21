@@ -1,0 +1,29 @@
+{
+  "run_date": "2026-06-08",
+  "symbol": "NIFTY",
+  "bars": 246,
+  "min_score": 3.5,
+  "in_sample": {
+    "label": "in_sample",
+    "trades": 7,
+    "win_rate_pct": 57.1,
+    "total_pnl": 9583.0,
+    "avg_pnl": 1369.0,
+    "profit_factor": 1.14,
+    "pseudo_sharpe": 0.16,
+    "return_on_capital_pct": 9.6,
+    "verdict": "POSITIVE"
+  },
+  "holdout_OOS": {
+    "label": "holdout_OOS",
+    "trades": 16,
+    "win_rate_pct": 37.5,
+    "total_pnl": -218223.0,
+    "avg_pnl": -13639.0,
+    "profit_factor": 0.51,
+    "pseudo_sharpe": -1.23,
+    "return_on_capital_pct": -218.2,
+    "verdict": "NEGATIVE"
+  },
+  "caveats": "Network modifiers (OI/news/cost-of-carry) STUBBED to neutral, so this measures the chart/OHLC core of the ensemble, not the full live ensemble. Daily bars; small sample; charges applied."
+}
