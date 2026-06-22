@@ -1,0 +1,165 @@
+{
+  "generated_at": "2026-06-13T12:46:39.020889",
+  "total_trades": 8,
+  "matched_pairs": 0,
+  "avg_entry_slip_pct": null,
+  "note": "0 matched signal\u2192trade pairs available. Analysis grows as more live trades close.",
+  "by_strategy": {
+    "CHART_PATTERN_HEAD_AND_SHOULDERS": {
+      "trades": 1,
+      "avg_entry_slip": null,
+      "max_entry_slip": null,
+      "avg_exit_slip": -0.1372
+    },
+    "PRICE_STRUCTURE": {
+      "trades": 2,
+      "avg_entry_slip": null,
+      "max_entry_slip": null,
+      "avg_exit_slip": null
+    },
+    "VOLUME_PROFILE_FULL": {
+      "trades": 1,
+      "avg_entry_slip": null,
+      "max_entry_slip": null,
+      "avg_exit_slip": null
+    },
+    "VRVP_ZONE": {
+      "trades": 1,
+      "avg_entry_slip": null,
+      "max_entry_slip": null,
+      "avg_exit_slip": null
+    },
+    "TREND": {
+      "trades": 1,
+      "avg_entry_slip": null,
+      "max_entry_slip": null,
+      "avg_exit_slip": null
+    },
+    "CANDLESTICK_EVENING_STAR": {
+      "trades": 1,
+      "avg_entry_slip": null,
+      "max_entry_slip": null,
+      "avg_exit_slip": null
+    },
+    "CANDLESTICK_BEARISH_ENGULFING": {
+      "trades": 1,
+      "avg_entry_slip": null,
+      "max_entry_slip": null,
+      "avg_exit_slip": null
+    }
+  },
+  "trades": [
+    {
+      "trade_id": "T000001",
+      "symbol": "CREDITACC",
+      "strategy": "CHART_PATTERN_HEAD_AND_SHOULDERS",
+      "side": "SELL",
+      "exp_entry": null,
+      "act_entry": 1253.5,
+      "entry_slip": null,
+      "act_exit": 1270.0,
+      "exit_slip": -0.1372,
+      "hold_min": 333,
+      "exit_reason": "rest_poll_stop",
+      "mode": "PAPER"
+    },
+    {
+      "trade_id": "T000002",
+      "symbol": "ICICIBANK",
+      "strategy": "PRICE_STRUCTURE",
+      "side": "BUY",
+      "exp_entry": null,
+      "act_entry": 1271.4,
+      "entry_slip": null,
+      "act_exit": 1271.4,
+      "exit_slip": null,
+      "hold_min": 531,
+      "exit_reason": "startup_eod_emergency",
+      "mode": "PAPER"
+    },
+    {
+      "trade_id": "T000003",
+      "symbol": "RELIANCE",
+      "strategy": "VOLUME_PROFILE_FULL",
+      "side": "SELL",
+      "exp_entry": null,
+      "act_entry": 1263.3,
+      "entry_slip": null,
+      "act_exit": 1263.3,
+      "exit_slip": null,
+      "hold_min": 193,
+      "exit_reason": "startup_eod_emergency",
+      "mode": "PAPER"
+    },
+    {
+      "trade_id": "T000004",
+      "symbol": "PNC",
+      "strategy": "VRVP_ZONE",
+      "side": "SELL",
+      "exp_entry": null,
+      "act_entry": 19.5,
+      "entry_slip": null,
+      "act_exit": 19.8,
+      "exit_slip": null,
+      "hold_min": 814,
+      "exit_reason": "startup_eod_emergency",
+      "mode": "PAPER"
+    },
+    {
+      "trade_id": "T000005",
+      "symbol": "KOTAKBANK",
+      "strategy": "PRICE_STRUCTURE",
+      "side": "BUY",
+      "exp_entry": null,
+      "act_entry": 385.9,
+      "entry_slip": null,
+      "act_exit": 388.1,
+      "exit_slip": null,
+      "hold_min": 794,
+      "exit_reason": "startup_eod_emergency",
+      "mode": "PAPER"
+    },
+    {
+      "trade_id": "T000006",
+      "symbol": "SJVN",
+      "strategy": "TREND",
+      "side": "SELL",
+      "exp_entry": null,
+      "act_entry": 70.99,
+      "entry_slip": null,
+      "act_exit": 70.61,
+      "exit_slip": null,
+      "hold_min": 329,
+      "exit_reason": "after_hours_stale_position_safety",
+      "mode": "PAPER"
+    },
+    {
+      "trade_id": "T000007",
+      "symbol": "CONCOR",
+      "strategy": "CANDLESTICK_EVENING_STAR",
+      "side": "SELL",
+      "exp_entry": null,
+      "act_entry": 441.8,
+      "entry_slip": null,
+      "act_exit": 441.4,
+      "exit_slip": null,
+      "hold_min": 289,
+      "exit_reason": "after_hours_stale_position_safety",
+      "mode": "PAPER"
+    },
+    {
+      "trade_id": "T000008",
+      "symbol": "ICICIGI",
+      "strategy": "CANDLESTICK_BEARISH_ENGULFING",
+      "side": "SELL",
+      "exp_entry": null,
+      "act_entry": 1684.1,
+      "entry_slip": null,
+      "act_exit": 1701.0,
+      "exit_slip": null,
+      "hold_min": 239,
+      "exit_reason": "after_hours_stale_position_safety",
+      "mode": "PAPER"
+    }
+  ]
+}

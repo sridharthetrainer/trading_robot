@@ -1,0 +1,19 @@
+{
+  "symbol": "NIFTY",
+  "strategy": "mean_reversion",
+  "params": {
+    "bb_period": 15,
+    "bb_std": 2.0,
+    "overbought": 75,
+    "oversold": 25,
+    "rsi_period": 14
+  },
+  "metrics": {
+    "total_pnl": -21940.29,
+    "total_trades": 11,
+    "win_rate": 0.0333,
+    "sharpe": -31.2462,
+    "validation_verdict": "FAIL",
+    "paper_training_only": true
+  }
+}

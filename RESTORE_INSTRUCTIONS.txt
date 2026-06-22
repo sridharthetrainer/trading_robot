@@ -1,0 +1,229 @@
+═══════════════════════════════════════════════════════════════
+   NIFTY ALGO TRADING BOT — COMPLETE FRESH INSTALL GUIDE
+   172 Python files | 63 strategies | April 2026
+   Angel One SmartAPI | yf_compat (Yahoo replacement) | NSE Live
+═══════════════════════════════════════════════════════════════
+
+WHAT'S IN THIS ZIP
+──────────────────
+172 .py files — complete trading bot
+requirements.txt — all Python packages
+bot.sh — start/stop/restart/logs
+trading-bot.service — systemd auto-start
+trading-bot-watchdog.service — crash recovery
+setup_gdrive.sh — Google Drive sync setup
+download_master_contract.sh — NSE instrument tokens
+.env.example — template for all API keys
+validate_scan.py — test scanner works (run before trading)
+test_angel_direct.py — test Angel One connection
+test_data.py — test all data sources
+
+KEY FIXES IN THIS VERSION
+──────────────────────────
+✅ yf_compat.py — Yahoo Finance API dead, replaced with:
+     NIFTY/VIX → NSE allIndices API (live)
+     USD/INR   → ExchangeRate-API + Frankfurter
+     Crude/Gold → sensible defaults
+✅ data_fetcher.py — SmartConnect direct for stocks
+     RELIANCE, HDFCBANK etc → getCandleData (confirmed working)
+✅ angel.py — get_historical_data() added + stock token lookup
+✅ connection_monitor.py — NIFTY price from NSE (not yfinance)
+✅ gdrive_sync.py — whitelist + .env push-only (never pulled)
+✅ dual_mode_engine.py — min capital ₹5,000
+✅ config.py — load_dotenv(override=True)
+✅ All 29 files patched: import yf_compat as yf
+
+═══════════════════════════════════════════════════════════════
+STEP 1 — BACKUP CRITICAL DATA (DO FIRST)
+═══════════════════════════════════════════════════════════════
+
+cd ~/Desktop/trading_robot
+cp .env                         ~/Desktop/BACKUP_.env
+cp trades.db                    ~/Desktop/BACKUP_trades.db          2>/dev/null || true
+cp signal_log.csv               ~/Desktop/BACKUP_signal_log.csv     2>/dev/null || true
+cp fii_history.csv              ~/Desktop/BACKUP_fii_history.csv    2>/dev/null || true
+cp MasterContract_ALL.csv       ~/Desktop/BACKUP_MasterContract.csv 2>/dev/null || true
+cp participant_oi_history.json  ~/Desktop/BACKUP_oi_history.json    2>/dev/null || true
+
+echo "Backup files:"
+ls ~/Desktop/BACKUP_*
+
+═══════════════════════════════════════════════════════════════
+STEP 2 — STOP BOT AND DELETE OLD PROJECT
+═══════════════════════════════════════════════════════════════
+
+sudo systemctl stop trading-bot trading-bot-watchdog 2>/dev/null || true
+sudo systemctl disable trading-bot trading-bot-watchdog 2>/dev/null || true
+rm -rf ~/Desktop/trading_robot
+
+# Clean Google Drive too
+rclone delete gdrive:trading_robot/ --rmdirs 2>/dev/null || true
+
+echo "✅ Old project deleted"
+
+═══════════════════════════════════════════════════════════════
+STEP 3 — FRESH INSTALL FROM ZIP
+═══════════════════════════════════════════════════════════════
+
+mkdir ~/Desktop/trading_robot
+cd ~/Desktop/trading_robot
+unzip ~/Downloads/trading_robot_FRESH.zip
+
+echo "Files extracted: $(ls *.py | wc -l) Python files"
+
+# Restore your data
+cp ~/Desktop/BACKUP_.env .env
+cp ~/Desktop/BACKUP_trades.db . 2>/dev/null || true
+cp ~/Desktop/BACKUP_signal_log.csv . 2>/dev/null || true
+cp ~/Desktop/BACKUP_fii_history.csv . 2>/dev/null || true
+cp ~/Desktop/BACKUP_MasterContract.csv MasterContract_ALL.csv 2>/dev/null || true
+cp ~/Desktop/BACKUP_oi_history.json participant_oi_history.json 2>/dev/null || true
+
+═══════════════════════════════════════════════════════════════
+STEP 4 — PYTHON ENVIRONMENT
+═══════════════════════════════════════════════════════════════
+
+cd ~/Desktop/trading_robot
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Verify no errors in requirements
+echo "✅ pip install complete"
+
+═══════════════════════════════════════════════════════════════
+STEP 5 — DOWNLOAD MASTER CONTRACT (NSE instrument tokens)
+═══════════════════════════════════════════════════════════════
+
+cd ~/Desktop/trading_robot
+source venv/bin/activate
+
+python3 - << 'PYEOF'
+import requests, pandas as pd
+print("Downloading master contract (190,304 instruments)...")
+
+# Full contract (NSE EQ stocks + NFO + BSE)
+r = requests.get(
+    "https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json",
+    timeout=30)
+df = pd.DataFrame(r.json())
+df.to_csv("MasterContract_ALL.csv", index=False)
+print(f"✅ MasterContract_ALL.csv: {len(df):,} instruments")
+
+# NFO only (for options/futures trading)
+nfo = df[df["exch_seg"].str.upper()=="NFO"] if "exch_seg" in df.columns else df
+nfo.to_csv("MasterContract_NFO.csv", index=False)
+print(f"✅ MasterContract_NFO.csv: {len(nfo):,} NFO instruments")
+
+# NSE EQ stocks (for historical data token lookup)
+nse = df[df["exch_seg"].str.upper()=="NSE"] if "exch_seg" in df.columns else df
+print(f"✅ NSE EQ stocks: {len(nse):,}")
+
+# Spot-check key tokens
+for sym, expected in [("RELIANCE-EQ","2885"),("HDFCBANK-EQ","1333")]:
+    row = df[df["symbol"]==sym]
+    tok = str(row.iloc[0]["token"]) if len(row) else "NOT FOUND"
+    status = "✅" if tok == expected else "⚠️"
+    print(f"  {status} {sym}: token={tok}")
+PYEOF
+
+═══════════════════════════════════════════════════════════════
+STEP 6 — VALIDATE DATA PIPELINE (CRITICAL — DO BEFORE STARTING)
+═══════════════════════════════════════════════════════════════
+
+cd ~/Desktop/trading_robot
+source venv/bin/activate
+python3 validate_scan.py
+
+Expected output:
+  [3] DataFetcher: 8/8 symbols ✅
+  [4] Signal engine: WORKING ✅
+
+If DataFetcher shows < 5/8 → Angel One rate limited, wait 2 min and retry.
+
+═══════════════════════════════════════════════════════════════
+STEP 7 — INSTALL SYSTEMD SERVICE
+═══════════════════════════════════════════════════════════════
+
+cd ~/Desktop/trading_robot
+chmod +x bot.sh setup_gdrive.sh install_service.sh download_master_contract.sh
+
+sudo cp trading-bot.service /etc/systemd/system/
+sudo cp trading-bot-watchdog.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable trading-bot trading-bot-watchdog
+
+echo "✅ Services installed"
+
+═══════════════════════════════════════════════════════════════
+STEP 8 — VERIFY .env SETTINGS (CRITICAL)
+═══════════════════════════════════════════════════════════════
+
+cat ~/Desktop/trading_robot/.env | grep -E "PAPER_TRADING|MIN_LIVE|API_KEY|CLIENT_ID"
+
+Required:
+  PAPER_TRADING=false           (set true if not ready to go live)
+  ENABLE_REAL_TRADING=true
+  MIN_LIVE_CAPITAL=5000         (₹5,000 minimum for stocks)
+  API_KEY=your_angel_key
+  CLIENT_ID=your_client_id
+  PASSWORD=your_pin
+  TOTP_SECRET=your_totp_secret
+
+═══════════════════════════════════════════════════════════════
+STEP 9 — START BOT
+═══════════════════════════════════════════════════════════════
+
+cd ~/Desktop/trading_robot
+./bot.sh restart
+sleep 10
+./bot.sh logs
+
+Expected startup messages:
+  ✅ Autonomous system started | mode=LIVE
+  ✅ ConnectionMonitor: ok=13 warn=0 fail=0
+  ✅ SmartConnect direct: auto-connected
+
+═══════════════════════════════════════════════════════════════
+STEP 10 — GOOGLE DRIVE (clean slate)
+═══════════════════════════════════════════════════════════════
+
+rclone copy ~/Desktop/trading_robot gdrive:trading_robot/code/ \
+  --include "*.py" \
+  --exclude "venv/**" \
+  --exclude ".venv/**" \
+  --exclude "__pycache__/**" \
+  --progress
+
+echo "✅ Drive upload complete"
+
+═══════════════════════════════════════════════════════════════
+STEP 11 — MORNING CHECK (9:00 AM daily)
+═══════════════════════════════════════════════════════════════
+
+Send these Telegram commands at 9:00 AM:
+  /health     — all 14 feeds connected?
+  /vix        — India VIX level
+  /oi NIFTY   — OI builder snapshot
+  /regime     — market regime for today
+
+At 9:20 AM check:
+  📡 SCAN UPDATE
+    📊 Scanned: 198      ← must see this
+    ⚡ Signals: X
+
+═══════════════════════════════════════════════════════════════
+KEY FILES TO BACKUP (these are NOT in the zip)
+═══════════════════════════════════════════════════════════════
+  .env                        ← API keys (MOST IMPORTANT)
+  trades.db                   ← Trade history
+  signal_log.csv              ← ML training data
+  fii_history.csv             ← FII/DII daily data
+  MasterContract_ALL.csv      ← Instrument tokens (auto-downloaded)
+  participant_oi_history.json ← OI history
+
+DO NOT backup (auto-recreated):
+  venv/             ← pip install recreates
+  __pycache__/      ← auto-generated
+  *.log             ← logs
+═══════════════════════════════════════════════════════════════

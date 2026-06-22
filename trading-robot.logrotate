@@ -1,0 +1,41 @@
+# SEBI algo-trading audit trail — 5-year log retention
+#
+# Install:
+#   sudo cp trading-robot.logrotate /etc/logrotate.d/trading-robot
+#   sudo logrotate --debug /etc/logrotate.d/trading-robot   # dry-run test
+#
+# Design:
+#   - copytruncate: copies log, then truncates original in-place so the
+#     Python RotatingFileHandler (and any other open file handles) keep
+#     writing without needing a restart or SIGHUP.
+#   - 5-year retention: 1826 daily rotations × ~1-2 MB compressed ≈ 2-4 GB.
+#   - dateext + dateformat: produces trading_bot.log-20260613.gz for clear
+#     audit trail lookup by date.
+#   - su sridhar sridhar: logrotate runs as root; this drops to the file
+#     owner so new log files get correct ownership.
+#
+# SEBI reference: SEBI Circular SEBI/HO/MIIRD/MIIRD-POD-1/P/CIR/2024/xxx
+# requires algo trading records to be preserved for a minimum of 5 years.
+
+/home/sridhar/Desktop/trading_robot/trading_bot.log
+/home/sridhar/Desktop/trading_robot/main_live.log
+/home/sridhar/Desktop/trading_robot/manual_tracker.log
+/home/sridhar/Desktop/trading_robot/no_signal.log
+/home/sridhar/Desktop/trading_robot/auto_deploy.log
+/home/sridhar/Desktop/trading_robot/watchdog.log
+/home/sridhar/Desktop/trading_robot/diagnostics.log
+{
+    daily
+    rotate 1826
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    dateext
+    dateformat -%Y%m%d
+    extension .log
+    su sridhar sridhar
+    # Make archived logs read-only to deter accidental modification
+    create 0640 sridhar sridhar
+}
