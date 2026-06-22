@@ -1,0 +1,17 @@
+[Unit]
+Description=Post-Market ML Training & Auto-Upgrade Pipeline
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+Environment=PATH=/home/sridhar/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/sridhar/Desktop/trading_robot/.venv/bin/python3 /home/sridhar/Desktop/trading_robot/post_market_ml.py --days 15 --candle-days 15
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=1800
+
+[Install]
+WantedBy=multi-user.target

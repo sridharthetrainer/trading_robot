@@ -1,0 +1,90 @@
+{
+  "run_date": "2026-06-08",
+  "symbols": "NIFTY,BANKNIFTY,FINNIFTY",
+  "n_trades": 2,
+  "strategy": "pivot_boss_algo_version_intraday_pullback",
+  "results": {
+    "pooled_full": {
+      "label": "pooled_full",
+      "trades": 2,
+      "win_rate_pct": 0.0,
+      "avg_R": -1.285,
+      "total_R": -2.57,
+      "expectancy_R": -1.285,
+      "profit_factor": 0.0,
+      "best_R": -1.28,
+      "worst_R": -1.29,
+      "targets": 0,
+      "stops": 2,
+      "eod": 0,
+      "verdict": "NEGATIVE edge"
+    },
+    "in_sample": {
+      "label": "in_sample",
+      "trades": 1,
+      "win_rate_pct": 0.0,
+      "avg_R": -1.29,
+      "total_R": -1.29,
+      "expectancy_R": -1.29,
+      "profit_factor": 0.0,
+      "best_R": -1.29,
+      "worst_R": -1.29,
+      "targets": 0,
+      "stops": 1,
+      "eod": 0,
+      "verdict": "NEGATIVE edge"
+    },
+    "holdout_OOS": {
+      "label": "holdout_OOS",
+      "trades": 1,
+      "win_rate_pct": 0.0,
+      "avg_R": -1.28,
+      "total_R": -1.28,
+      "expectancy_R": -1.28,
+      "profit_factor": 0.0,
+      "best_R": -1.28,
+      "worst_R": -1.28,
+      "targets": 0,
+      "stops": 1,
+      "eod": 0,
+      "verdict": "NEGATIVE edge"
+    },
+    "per_symbol": {
+      "NIFTY": {
+        "label": "NIFTY",
+        "trades": 1,
+        "win_rate_pct": 0.0,
+        "avg_R": -1.28,
+        "total_R": -1.28,
+        "expectancy_R": -1.28,
+        "profit_factor": 0.0,
+        "best_R": -1.28,
+        "worst_R": -1.28,
+        "targets": 0,
+        "stops": 1,
+        "eod": 0,
+        "verdict": "NEGATIVE edge"
+      },
+      "BANKNIFTY": {
+        "label": "BANKNIFTY",
+        "trades": 0
+      },
+      "FINNIFTY": {
+        "label": "FINNIFTY",
+        "trades": 1,
+        "win_rate_pct": 0.0,
+        "avg_R": -1.29,
+        "total_R": -1.29,
+        "expectancy_R": -1.29,
+        "profit_factor": 0.0,
+        "best_R": -1.29,
+        "worst_R": -1.29,
+        "targets": 0,
+        "stops": 1,
+        "eod": 0,
+        "verdict": "NEGATIVE edge"
+      }
+    }
+  },
+  "caveat": "futures-points proxy; round-trip slippage in points; R = profit/initial-risk."
+}

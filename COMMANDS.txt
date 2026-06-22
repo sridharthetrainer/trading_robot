@@ -1,0 +1,155 @@
+══════════════════════════════════════════════════════════════════════════════
+DEPLOYMENT COMMANDS — Copy & Paste into terminal
+══════════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 1: Stop current bot and kill any processes
+# ─────────────────────────────────────────────────────────────────────────────
+
+sudo systemctl stop trading-bot.service
+sleep 5
+pkill -9 -f main_autonomous
+sleep 2
+echo "Bot stopped"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 2: Download and extract the new zip
+# ─────────────────────────────────────────────────────────────────────────────
+
+cd ~/Desktop/trading_robot
+
+# Download
+rclone copy gdrive:trading_robot/trading_robot_FRESH.zip ~/Desktop/
+
+# Extract (overwrites old files)
+unzip -o ~/Desktop/trading_robot_FRESH.zip -d ~/Desktop/
+
+# Verify
+ls -la ~/Desktop/trading_robot/telegram_commands.py | head -1
+echo "Extract done"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 3: Update systemd service (CRITICAL FIX)
+# ─────────────────────────────────────────────────────────────────────────────
+
+sudo cp ~/Desktop/trading_robot/trading-bot.service /etc/systemd/system/
+
+sudo systemctl daemon-reload
+
+sudo systemctl reset-failed trading-bot.service
+
+echo "Service updated — checking Restart setting:"
+sudo grep "^Restart=" /etc/systemd/system/trading-bot.service
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 4: Verify .env credentials
+# ─────────────────────────────────────────────────────────────────────────────
+
+cd ~/Desktop/trading_robot
+
+# Check if .env has credentials
+echo "Checking .env:"
+grep "API_KEY\|CLIENT_ID\|PASSWORD" .env || echo "WARNING: .env missing or incomplete"
+
+# If .env is missing or incomplete, create it:
+# cat > .env << 'ENDENV'
+# API_KEY=3QNSvtA4
+# CLIENT_ID=S230512
+# PASSWORD=2365
+# TOTP_SECRET=5XGIRDTA4SPQW7HOKRFDEAVJSM
+# TELEGRAM_BOT_TOKEN=YOUR_BOT_TOKEN
+# TELEGRAM_CHAT_ID=8257513231
+# FREE_CH=-1003830079189
+# PREMIUM_CH=-1003993110321
+# PAPER_TRADING=false
+# MIN_LIVE_CAPITAL=0
+# GDRIVE_REMOTE=gdrive
+# GDRIVE_FOLDER=trading_robot
+# ENDENV
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 5: Start the bot
+# ─────────────────────────────────────────────────────────────────────────────
+
+sudo systemctl start trading-bot.service
+
+sleep 30
+
+echo "Checking if bot is running..."
+pgrep -f main_autonomous && echo "✅ BOT RUNNING" || echo "❌ BOT DEAD"
+
+echo "Checking logs..."
+tail -20 ~/Desktop/trading_robot/trading_bot.log
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 6: Test the diagnostic (run in terminal)
+# ─────────────────────────────────────────────────────────────────────────────
+
+cd ~/Desktop/trading_robot
+./venv/bin/python3 diag.py
+
+# Expected: All steps should show ✓ or ⚠️ (not ✗)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 7: Test Telegram (send in Telegram app)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Send this in Telegram:
+/status
+
+# Expected: System status within 5 seconds
+# If you see "⏳ Status (timeout)" — that's OK, bot is busy trading
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 8: Watch the logs overnight (optional)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# In one terminal, watch logs in real-time:
+tail -f ~/Desktop/trading_robot/trading_bot.log
+
+# Press Ctrl+C to stop watching
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 9: At 9:15 AM tomorrow, verify in Telegram
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Send:
+/signals
+
+# Expected: Symbol names with scores (e.g., "NIFTY 4.5", "INFY 4.2")
+# NOT: "Scanned: 0"
+
+
+══════════════════════════════════════════════════════════════════════════════
+THAT'S IT! The bot will run autonomously after that.
+══════════════════════════════════════════════════════════════════════════════
+
+KEY FIXES IN THIS ZIP:
+  ✅ /status now uses 3-second timeout (prevents deadlock)
+  ✅ Freshness gate is post-market aware (fixes low bars issue)
+  ✅ Service file changed: Restart=always (fixes SIGTERM = kill)
+  ✅ Telegram credentials properly loaded from .env
+  ✅ Angel patch with method tracking (shows which path won)
+  ✅ All 37 tests pass
+
+EXPECTED BEHAVIOR:
+  • Bot runs continuously 24/7
+  • Scans every 5 min during market hours
+  • Generates signals when score ≥ 5.5
+  • Executes trades automatically
+  • Telegram commands work (may timeout if bot is busy)
+  • Tomorrow morning at 9:15 AM: /signals will show actual symbols
+
+TROUBLESHOOTING:
+  If /status says "⏳ timeout" — that's normal when bot is busy
+  Send /signals instead (reads database, faster)
+  Check diag.py output for connection issues
+  Check tail -50 trading_bot.log for errors

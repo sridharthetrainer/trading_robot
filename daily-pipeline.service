@@ -1,0 +1,17 @@
+[Unit]
+Description=Post-Market Daily Analysis Pipeline (validator + decay + report + ML)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+Environment=PATH=/home/sridhar/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/sridhar/Desktop/trading_robot/.venv/bin/python3 /home/sridhar/Desktop/trading_robot/daily_pipeline.py --telegram
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=2400
+
+[Install]
+WantedBy=multi-user.target
