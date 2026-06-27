@@ -3124,6 +3124,44 @@ class LiveSignalEngine:
             )
             return False
 
+        # Probabilistic after-cost gate (trade_economics): on top of the cost
+        # hurdle above, reject setups whose win-probability (= signal confidence,
+        # 0-1 ML/AI prob) sits below the after-cost breakeven probability. Only
+        # acts on that specific reason; invalid levels / cost-hurdle are handled
+        # elsewhere, so a bad input fails safe (no block).
+        try:
+            from trade_economics import evaluate_trade_economics
+            _ec_entry  = float(execution_plan.get("entry_price", 0) or 0)
+            _ec_target = float(execution_plan.get("target_price", 0) or 0)
+            _ec_stop   = float(execution_plan.get("stop_loss", 0) or 0)
+            _ec_conf   = _safe_float(signal.get("confidence"), 0.0)
+            if _ec_entry > 0 and _ec_target > 0 and _ec_stop > 0 and _ec_conf > 0:
+                _econ = evaluate_trade_economics(
+                    entry_price=_ec_entry,
+                    target_price=_ec_target,
+                    stop_loss=_ec_stop,
+                    qty=int(final_qty),
+                    side=str(signal_side or "BUY").upper(),
+                    win_probability=_ec_conf,
+                    brokerage_per_leg=float(getattr(cfg, "BROKERAGE_PER_ORDER", 20.0) or 20.0),
+                    is_options=(str(execution_plan.get("asset_type", "CASH")).upper() == "OPTION"),
+                    cost_hurdle_multiplier=float(getattr(cfg, "COST_HURDLE_MULTIPLIER", 2.5) or 2.5),
+                )
+                if (not _econ.allowed
+                        and _econ.reason == "win_probability_below_after_cost_breakeven"):
+                    self._log_no_signal(
+                        "economic_edge_below_breakeven",
+                        {
+                            "symbol": symbol,
+                            "win_probability": _econ.win_probability,
+                            "breakeven_probability": _econ.breakeven_probability,
+                            "expected_net": _econ.expected_net,
+                        },
+                    )
+                    return False
+        except Exception:
+            pass
+
         # Pre-market gap reduction (computed once per cycle in _run_cycle):
         # shrink size on big-gap mornings. Previously the multiplier was logged
         # ("position size reduced to 70%") but never applied — now it is.
