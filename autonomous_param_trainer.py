@@ -99,12 +99,15 @@ def _load_live_data(symbol: str, interval: str, days: int):
 
 
 def _load_training_data(symbol: str, interval: str, days: int):
+    # Normalise OHLCV column case so cached sources that return lowercase columns
+    # match the backtesters' Open/High/Low/Close/Volume lookups (else a strategy
+    # silently sees no data and the param search is meaningless).
     df = _load_cached_data(symbol, interval, days)
     if df is not None and len(df) >= 100:
-        return df, "candle_cache"
+        return _normalise_backtest_data(df), "candle_cache"
     df = _load_live_data(symbol, interval, days)
     if df is not None and len(df) >= 100:
-        return df, "live_fetch"
+        return _normalise_backtest_data(df), "live_fetch"
     return None, "insufficient_data"
 
 

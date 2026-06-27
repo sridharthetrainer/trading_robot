@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sqlite3
 import time
 from datetime import datetime, time as dtime
 from typing import Any, Dict, Iterable, List
 
+logger = logging.getLogger(__name__)
 
 DB_PATH = "option_chain_snapshots.db"
 
@@ -77,9 +79,11 @@ def record_option_chain_snapshot(
     insert_failure: bool = True,
 ) -> Dict[str, Any]:
     underlying = str(underlying or "").upper()
+    fetcher = None
     try:
         from option_chain_fetcher import NSEOptionChainFetcher
-        result = NSEOptionChainFetcher(underlying=underlying).fetch_and_analyze()
+        fetcher = NSEOptionChainFetcher(underlying=underlying)
+        result = fetcher.fetch_and_analyze()
     except Exception as exc:
         result = None
         fetch_error = str(exc)
@@ -121,6 +125,13 @@ def record_option_chain_snapshot(
     rows = _chain_rows(result.dataframe)
     ok = bool(rows)
     reason = "" if ok else "empty_chain_rows"
+    # Only count chains from a LIVE source as ok — a stale-cache fallback has rows
+    # but must not be recorded as a valid live snapshot (downstream flow/worthiness
+    # queries filter on ok=1). Source comes from the fetcher's last_source.
+    _src = str(getattr(fetcher, "last_source", "") or "")
+    if ok and not _is_live_source(_src):
+        ok = False
+        reason = f"non_live_source:{_src or 'unknown'}"
     payload = {
         "underlying": underlying,
         "ok": ok,
@@ -131,6 +142,8 @@ def record_option_chain_snapshot(
         "rows": len(rows),
         "summary": summary,
     }
+    snap_ts = time.time()
+    snap_time = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     conn = _conn(db_path)
     conn.execute(
         """
@@ -140,8 +153,8 @@ def record_option_chain_snapshot(
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
-            time.time(),
-            time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            snap_ts,
+            snap_time,
             underlying,
             payload["spot"],
             payload["expiry"],
@@ -156,6 +169,23 @@ def record_option_chain_snapshot(
         ),
     )
     conn.commit()
+    # Per-strike CE/PE flow signals: compare this LIVE snapshot to the previous
+    # one and persist ranked LONG_BUILDUP/SHORT_COVERING signals. Best-effort —
+    # never let flow computation break snapshot recording.
+    if ok:
+        try:
+            from option_multistrike_signals import persist_multistrike_signals
+            persist_multistrike_signals(
+                conn=conn,
+                snapshot_time=snap_time,
+                underlying=underlying,
+                expiry=payload["expiry"],
+                current_rows=rows,
+                source=_src or "nse_live",
+            )
+            conn.commit()
+        except Exception as exc:
+            logger.debug("multistrike flow persist failed for %s: %s", underlying, exc, exc_info=True)
     conn.close()
     return payload
 

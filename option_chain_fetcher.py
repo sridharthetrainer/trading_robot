@@ -103,11 +103,31 @@ class NSEOptionChainFetcher:
         except (TypeError, ValueError):
             return False
 
+    def _spot_ok(self, data) -> bool:
+        """Fail-OPEN guard: reject a fetched chain only when it carries a clearly
+        implausible spot for this underlying (cross-underlying contamination).
+        Missing/zero spot or any error → allow (can't judge, don't block)."""
+        try:
+            from option_quality import extract_spot
+            spot = extract_spot(data, 0.0)
+            if spot <= 0:
+                return True
+            if self._is_plausible_spot(spot):
+                return True
+            logger.warning(
+                "Option-chain rejected: spot %.1f implausible for %s "
+                "(cross-underlying contamination?) — trying next source",
+                spot, self.underlying,
+            )
+            return False
+        except Exception:
+            return True
+
     def fetch(self, expiry: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Fetch option chain: NSE → Sensibull → Angel."""
         if self.underlying in {"SENSEX", "BANKEX"}:
             bse_data = self._fetch_from_bse()
-            if bse_data:
+            if bse_data and self._spot_ok(bse_data):
                 self._save_cache(bse_data)
                 if expiry:
                     bse_data = self._filter_by_expiry(bse_data, expiry)
@@ -131,7 +151,7 @@ class NSEOptionChainFetcher:
         try:
             from data_source_resilience import fetch_option_chain
             _data = fetch_option_chain(self.underlying)
-            if _data:
+            if _data and self._spot_ok(_data):
                 self.last_source = "resilience_nse"
                 logger.info("Option-chain source=resilience_nse | underlying=%s", self.underlying)
                 return _data
@@ -140,13 +160,13 @@ class NSEOptionChainFetcher:
         try:
             from sensibull_client import fetch_option_chain as _sb_oc
             _sb_data = _sb_oc(self.underlying)
-            if _sb_data:
+            if _sb_data and self._spot_ok(_sb_data):
                 self.last_source = "sensibull"
                 logger.info("Option-chain source=sensibull | underlying=%s", self.underlying)
                 return _sb_data
         except Exception: pass
         raw = self._fetch_live()
-        if raw:
+        if raw and self._spot_ok(raw):
             self.last_source = "nse_live"
             logger.info("Option-chain source=nse_live | underlying=%s", self.underlying)
             self._save_cache(raw)
@@ -158,7 +178,7 @@ class NSEOptionChainFetcher:
         # promised "NSE → Sensibull → Angel" but the Angel step was missing,
         # so with the NSE endpoint 404ing the chain was simply dead).
         angel_data = self._fetch_from_angel()
-        if angel_data:
+        if angel_data and self._spot_ok(angel_data):
             self.last_source = "angel"
             logger.info("Option-chain source=angel | underlying=%s", self.underlying)
             self._save_cache(angel_data)
