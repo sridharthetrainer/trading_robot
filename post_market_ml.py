@@ -465,6 +465,40 @@ def run_pipeline(
         logger.warning("Training failed: %s", training["error"])
         training = {}
 
+    # MDA (leakage-free permutation) feature-importance report → prune SUGGESTIONS
+    # (report-only, never auto-disable — data-gated, consistent with pruned.json).
+    try:
+        _cs = training.get("cross_symbol") or {}
+        _mda = _cs.get("mda_importances") or []
+        if _mda:
+            Path("mda_feature_report.json").write_text(json.dumps({
+                "timestamp": datetime.now().isoformat(),
+                "cv_method": _cs.get("cv_method"),
+                "cv_auc_mean": _cs.get("cv_auc_mean"),
+                "importances": _mda,
+                "noise_features_suggest_prune": _cs.get("noise_features") or [],
+            }, indent=2))
+            logger.info("[4/6] MDA report written | %d noise feature(s) suggested for prune",
+                        len(_cs.get("noise_features") or []))
+    except Exception as _mda_exc:
+        logger.debug("MDA report write skipped: %s", _mda_exc, exc_info=True)
+
+    # PBO (Probability of Backtest Overfitting) of strategy selection — quantifies
+    # how likely the best in-sample strategy is just luck. Report-only; data-gated
+    # (needs enough distinct days, else ok:False — the honest current state).
+    try:
+        from signal_log import strategy_selection_pbo
+        _pbo = strategy_selection_pbo()
+        Path("pbo_report.json").write_text(json.dumps({
+            "timestamp": datetime.now().isoformat(), **_pbo}, indent=2))
+        if _pbo.get("ok"):
+            logger.info("[4/6] PBO(strategy selection)=%.2f over %d days (%.0f%%+ = overfit)",
+                        _pbo.get("pbo", float('nan')), _pbo.get("distinct_days", 0), 50)
+        else:
+            logger.info("[4/6] PBO not computable yet: %s", _pbo.get("reason", "-"))
+    except Exception as _pbo_exc:
+        logger.debug("PBO report write skipped: %s", _pbo_exc, exc_info=True)
+
     # ── Step 5: Write learned_filters.json ────────────────────────────────────
     if dry_run:
         logger.info("[5/6] DRY RUN — skipping learned_filters.json write")

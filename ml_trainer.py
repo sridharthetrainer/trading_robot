@@ -106,6 +106,20 @@ def _train_model(
     n_pos = int(y.sum())
     n_neg = len(y) - n_pos
 
+    # MDA (permutation) importance under PurgedKFold — leakage-free, model-agnostic.
+    # Unlike GBM impurity importance, MDA reveals features that are NOISE (importance
+    # ~0 / negative): candidates to prune ("reduce, don't add"). Fit-once-per-fold,
+    # so it's cheap; guard with a flag in case of tiny data.
+    mda = []
+    if os.getenv("ML_COMPUTE_MDA", "true").lower() == "true":
+        try:
+            from model_quality import mda_importance
+            mda = mda_importance(pipe, X, y, feature_names, n_splits=CV_FOLDS,
+                                 horizon=PURGE_HORIZON, embargo=PURGE_EMBARGO,
+                                 n_repeats=int(os.getenv("ML_MDA_REPEATS", "3")))
+        except Exception as exc:
+            logger.debug("[%s] MDA importance skipped: %s", label, exc, exc_info=True)
+
     logger.info(
         "[%s] CV AUC(purged)=%.3f±%.3f  (TSCV=%.3f) | n=%d (W=%d L=%d) | top: %s (%.3f)",
         label,
@@ -128,6 +142,10 @@ def _train_model(
         "n_positive":          n_pos,
         "n_negative":          n_neg,
         "feature_importances": [(f, round(float(imp), 5)) for f, imp in feat_imp],
+        # leakage-free permutation importance; noise_features = MDA <= 0 (prunable)
+        "mda_importances":     [{"feature": m["feature"], "importance": round(m["importance"], 5),
+                                 "std": round(m["std"], 5)} for m in mda],
+        "noise_features":      [m["feature"] for m in mda if m["importance"] <= 0.0],
     }
 
 

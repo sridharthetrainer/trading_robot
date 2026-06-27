@@ -1003,3 +1003,63 @@ def worthiness_summary(db_path: str = str(_DB_PATH), days: int = 30,
         "best": ranked[:top], "worst": ranked[-top:][::-1] if len(ranked) > top else [],
     })
     return out
+
+
+def strategy_selection_pbo(db_path: str = str(_DB_PATH), days: int = 3650,
+                           n_splits: int = 8, min_days: int = 8) -> dict:
+    """Probability of Backtest Overfitting for STRATEGY selection.
+
+    Builds a (trading-day × strategy) matrix of mean net-of-cost R from the
+    triple-barrier shadow labels and asks, via CSCV: if you pick the best strategy
+    in-sample, how often is it below median out-of-sample? High PBO = "the best
+    pocket is probably luck" (exactly the risk when chasing positive sub-groups on
+    few days). Needs >= min_days distinct days; returns {ok:False} otherwise.
+    """
+    import sqlite3 as _sql
+    out = {"ok": False}
+    try:
+        import numpy as _np
+        from triple_barrier import cost_aware_r_multiple, r_multiple_for_outcome
+        from pbo import probability_of_backtest_overfitting
+        conn = _sql.connect(db_path)
+        conn.row_factory = _sql.Row
+        rows = conn.execute(
+            f"SELECT strategy, side, entry_price, outcome_price, tb_stop, "
+            f"tb_r_multiple, tb_r_multiple_net, signal_date "
+            f"FROM {_TBL} WHERE tb_label IN (1,0,-1) AND tb_stop > 0 "
+            f"AND signal_date >= date('now', ?, 'localtime')",
+            (f'-{int(days)} days',),
+        ).fetchall()
+        conn.close()
+    except Exception as e:
+        out["error"] = str(e)
+        return out
+
+    cell = {}  # (day, strategy) -> [net_r,...]
+    strategies, dayset = set(), set()
+    for r in rows:
+        ep, op, st = r["entry_price"] or 0, r["outcome_price"] or 0, r["tb_stop"] or 0
+        if ep <= 0 or op <= 0 or st <= 0 or not r["signal_date"]:
+            continue
+        nt = r["tb_r_multiple_net"] or cost_aware_r_multiple(ep, op, r["side"] or "BUY", st)
+        d, s = str(r["signal_date"]), (r["strategy"] or "?")
+        cell.setdefault((d, s), []).append(nt)
+        strategies.add(s); dayset.add(d)
+
+    dd = len(dayset)
+    strategies = sorted(strategies)
+    if dd < int(min_days) or len(strategies) < 2:
+        out.update({"ok": False, "distinct_days": dd, "n_strategies": len(strategies),
+                    "reason": f"need >= {min_days} days and >= 2 strategies "
+                              f"(have {dd} days, {len(strategies)} strategies)"})
+        return out
+
+    day_list = sorted(dayset)
+    M = _np.zeros((len(day_list), len(strategies)), dtype=float)
+    for i, d in enumerate(day_list):
+        for j, s in enumerate(strategies):
+            v = cell.get((d, s))
+            M[i, j] = float(_np.mean(v)) if v else 0.0
+    res = probability_of_backtest_overfitting(M, n_splits=min(int(n_splits), len(day_list)))
+    res.update({"ok": True, "distinct_days": dd, "n_strategies": len(strategies)})
+    return res
