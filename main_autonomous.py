@@ -2228,8 +2228,41 @@ class AutonomousTradingSystem:
                             try: self._tg_cmd_option.register(_a, _cmd_opt_positions)
                             except Exception: pass
 
+                        def _cmd_opt_help(_=""):
+                            return (
+                                "🎯 <b>OPTION BOT — COMMANDS</b>\n\n"
+                                "📊 <b>Status</b>\n"
+                                "  /status  /optpositions  /optedge\n\n"
+                                "🎯 <b>Signals</b>\n"
+                                "  /signals\n\n"
+                                "📈 <b>OI / Options</b>\n"
+                                "  /oisr  /chainsignals  /strikeflow\n"
+                                "  /pcr  /oi  /oitrend  /strikes  /maxpain\n\n"
+                                "🌅 <b>Market</b>\n"
+                                "  /vix  /regime  /brief  /morning  /fii\n\n"
+                                "🔧 <b>Control</b>\n"
+                                "  /pause  /resume  /kill  /restart\n\n"
+                                "ℹ️ /health  /version  /mode  /log"
+                            )
+                        try: self._tg_cmd_option.register("help", _cmd_opt_help)
+                        except Exception: pass
+
+                        # Curate the option channel: keep only option/index-relevant
+                        # commands so it stops inheriting the full equity menu.
+                        _OPT_ALLOWED = {
+                            "help", "start", "status", "version", "health", "mode", "log", "restart",
+                            "signals", "optedge", "edge", "worthiness", "optpositions", "positions",
+                            "oisr", "chainsignals", "chains", "strikeflow", "pcr",
+                            "oi", "oib", "oitrend", "strikes", "maxpain", "oichart",
+                            "vix", "regime", "brief", "morning", "premarket", "fii",
+                            "pause", "resume", "kill",
+                        }
+                        try: self._tg_cmd_option.restrict_to(_OPT_ALLOWED)
+                        except Exception: pass
+
                         self._tg_cmd_option.start()
-                        logger.info("Option Telegram command handler started")
+                        logger.info("Option Telegram command handler started (curated %d cmds)",
+                                    len(self._tg_cmd_option._handlers))
                     except Exception as _oe:
                         logger.warning("Option TG command handler: %s", _oe)
             except Exception as _tge:

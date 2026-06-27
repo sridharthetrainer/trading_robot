@@ -351,6 +351,13 @@ class TelegramCommandHandler:
     def register(self, command: str, handler: Callable) -> None:
         self._handlers[command.lstrip("/")] = handler
 
+    def restrict_to(self, allowed) -> None:
+        """Keep only whitelisted command names. Used by the option channel so it
+        serves a curated option/index command set instead of inheriting the full
+        ~215-command equity menu. Unknown names in the list are simply ignored."""
+        keep = {str(c).lstrip("/").lower() for c in (allowed or [])}
+        self._handlers = {k: v for k, v in self._handlers.items() if k.lower() in keep}
+
     def _register_defaults(self) -> None:
         # ── Core ─────────────────────────────────────────────────────────────
         self.register("help",        self._cmd_help)
@@ -410,6 +417,12 @@ class TelegramCommandHandler:
         self.register("strikeflow",  self._cmd_strikeflow)
         self.register("flowstrikes", self._cmd_strikeflow)
         self.register("topstrikes",  self._cmd_strikeflow)
+        # Wired orphan handlers (built but previously unregistered):
+        self.register("maxpain",     self._cmd_maxpain)
+        self.register("herozero",    self._cmd_herozero)
+        self.register("0dte",        self._cmd_herozero)
+        self.register("breadth",     self._cmd_breadth)
+        self.register("smi",         self._cmd_smi)
         self.register("cepe",        self._cmd_strikeflow)
         self.register("oisr",        self._cmd_oi_sr)
         self.register("sr",          self._cmd_oi_sr)
@@ -598,13 +611,14 @@ class TelegramCommandHandler:
             "  /sentiment  /sectors  /fii  /gift\n"
             "  /macro  /globalbias  /earnings  /score\n\n"
             "📈 <b>OI / Options</b>\n"
-            "  /oisr — OI support/resistance chart 🆕\n"
+            "  /oisr — OI support-resistance chart 🆕\n"
             "  /strikeflow — top strikes by OI change\n"
-            "  /oi  /oitrend  /oichart  /pcr  /fnoban\n\n"
+            "  /oi  /oitrend  /oichart  /pcr  /fnoban\n"
+            "  /maxpain  /herozero  /strikes\n\n"
             "🧠 <b>Intelligence</b>\n"
             "  /intel  /orderflow  /darkpool\n"
             "  /hmm  /waves  /meta  /fiipos\n"
-            "  /insider  /social  /news\n"
+            "  /insider  /social  /news  /breadth  /smi\n"
             "  /commodities  /corpactions  /wow\n\n"
             "💹 <b>Performance</b>\n"
             "  /edge — signal worthiness: gross vs NET-of-cost R 🆕\n"
@@ -684,24 +698,6 @@ class TelegramCommandHandler:
             return _pa(days)
         except Exception as e:
             return f"❌ P&L: {e}"
-
-    def _cmd_pnl_OLD(self, _="") -> str:
-        try:
-            bot = self.bot_ref
-            if not bot: return "⚠️ No bot ref"
-            tm   = bot.live_engine.trade_manager
-            pnl  = getattr(tm,'daily_realized_pnl',0)
-            trades = tm.get_today_closed_trades() if hasattr(tm,'get_today_closed_trades') else []
-            lines = [f"💰 <b>TODAY'S P&L</b>  {date.today()}",
-                     f"{'🟢' if pnl>=0 else '🔴'} Net: <b>₹{pnl:+,.0f}</b>",
-                     f"{'─'*28}"]
-            for t in trades[-8:]:
-                sym = t.get('symbol','?')
-                tp  = float(t.get('pnl',0))
-                lines.append(f"  {'✅' if tp>0 else '❌'} {sym:<12} ₹{tp:+,.0f}")
-            return "\n".join(lines)
-        except Exception as e:
-            return f"⚠️ {e}"
 
     def _ensure_guardian(self):
         """Lazy-init TradeGuardian (manual /in trades) using THIS bot's send fn and
@@ -982,23 +978,6 @@ class TelegramCommandHandler:
         lines.append(f"🕐 {_dt.now().strftime('%H:%M:%S')}")
         return "\n".join(lines) if lines else "Health data unavailable"
 
-
-    def _cmd_weekly(self, _="") -> str:
-        """Weekly TRADING performance (not download stats)."""
-        return self._cmd_weekly_performance()
-
-    def _cmd_weekly_OLD(self, _="") -> str:
-        try:
-            from data_download_tracker import get_tracker
-            s = get_tracker().get_weekly_summary()
-            lines = [f"📊 <b>WEEKLY DOWNLOAD RELIABILITY</b>",
-                     f"Items tracked: {s.get('total_items',0)}",
-                     f"Perfect (100%): {s.get('perfect',0)}"]
-            for key, v in list(s.get("unreliable",{}).items())[:5]:
-                lines.append(f"  ⚠️ {key.split('|')[1]}: {v['pct']}% ({v['ok']}ok/{v['failed']}fail)")
-            return "\n".join(lines)
-        except Exception as e:
-            return f"⚠️ {e}"
 
     def _cmd_vix(self, _="") -> str:
         try:
@@ -1640,31 +1619,6 @@ class TelegramCommandHandler:
         except Exception as e:
             return f"❌ Sync error: {str(e)[:80]}"
 
-    def _cmd_deploy(self, _: str = "") -> str:
-        """
-        /deploy — pull latest code from Drive and restart bot immediately.
-        Use this after editing files on Google Drive remotely.
-        """
-        try:
-            from gdrive_sync import pull_from_drive
-            result = pull_from_drive("all", auto_restart=True,
-                                     alerts=getattr(self, "alerts_ref", None))
-            files  = result.get("files_updated", [])
-            if files:
-                return (
-                    f"🚀 <b>DEPLOY STARTED</b>\n"
-                    f"  {len(files)} files pulled from Drive:\n"
-                    f"  {', '.join(files[:5])}\n"
-                    f"  Bot restarting in 3 seconds..."
-                )
-            return (
-                f"☁️ <b>DEPLOY: No changes found</b>\n"
-                f"  Drive code matches local — nothing to deploy.\n"
-                f"  Make changes on Drive first, then /deploy"
-            )
-        except Exception as e:
-            return f"❌ Deploy error: {str(e)[:80]}"
-
     def _cmd_drive_status(self, _: str = "") -> str:
         """Google Drive sync status."""
         try:
@@ -1735,30 +1689,6 @@ class TelegramCommandHandler:
             return "\n".join(lines)
         except Exception as e:
             return f"❌ Implied move: {e}"
-
-    def _cmd_events(self, _: str = "") -> str:
-        """Today's market events + trading playbook."""
-        try:
-            from greeks_live import get_event_playbook
-            ep = get_event_playbook()
-            if not ep.get("has_event"):
-                return (
-                    f"📅 <b>EVENT CALENDAR</b>\n"
-                    f"  No major scheduled events today.\n"
-                    f"  RBI MPC: Apr 7, Jun 5, Aug 7, Oct 7, Dec 4\n"
-                    f"  Budget: Feb 1\n"
-                    f"  Use /oi for OI-based levels"
-                )
-            lines = [f"📅 <b>EVENT TODAY: {', '.join(ep['events'])}</b>", ""]
-            for key, pb in ep.get("playbook",{}).items():
-                lines.append(f"<b>{pb['event']}</b>")
-                for k,v in pb.items():
-                    if k != "event":
-                        lines.append(f"  {k.title()}: {v}")
-                lines.append("")
-            return "\n".join(lines)
-        except Exception as e:
-            return f"❌ Events: {e}"
 
     def _cmd_globalbias(self, args: str = "") -> str:
         """Global macro CONTEXT (report-only): composite bias, GIFT, sectors.
@@ -2105,33 +2035,6 @@ class TelegramCommandHandler:
             return f"❌ News: {e}"
 
 
-    def _cmd_corporate(self, _="") -> str:
-        """Today's corporate actions and upcoming events."""
-        try:
-            from mega_intelligence_engine import get_full_intelligence
-            d = get_full_intelligence()
-            ca = d.get("corporate_actions", [])
-            ev = d.get("upcoming_events", [])
-            ban= d.get("fno_ban", [])
-            now = __import__("datetime").datetime.now().strftime("%d-%b %H:%M")
-            lines = [f"📋 <b>CORPORATE INTELLIGENCE</b> | {now}", ""]
-            if ca:
-                lines.append("  <b>TODAY'S CORPORATE ACTIONS</b>")
-                for a in ca[:8]:
-                    lines.append(f"  {a.get('symbol','?'):12} {str(a.get('subject', a.get('purpose','?')))[:40]}")
-                lines.append("")
-            if ev:
-                lines.append("  <b>UPCOMING EVENTS (results/AGM)</b>")
-                for e in ev[:6]:
-                    lines.append(f"  {e.get('symbol','?'):12} {str(e.get('purpose','?'))[:30]:30} {e.get('date','?')}")
-                lines.append("")
-            if ban:
-                lines.append(f"  <b>F&O BAN LIST</b> ({len(ban)} stocks)")
-                lines.append(f"  {', '.join(ban)}")
-            return "\n".join(lines) if len(lines) > 2 else "  No corporate actions today"
-        except Exception as e:
-            return f"❌ Corporate: {e}"
-
     def _cmd_monsoon(self, _="") -> str:
         """Monsoon progress + agri stock impact."""
         try:
@@ -2217,14 +2120,6 @@ class TelegramCommandHandler:
         except Exception as e:
             return f"❌ Subscribe: {e}"
 
-
-    def _cmd_intel(self, _="") -> str:
-        """Full market intelligence report."""
-        try:
-            from market_intelligence import format_telegram_report
-            return format_telegram_report()
-        except Exception as e:
-            return f"❌ Intel: {e}"
 
     def _cmd_breadth(self, _="") -> str:
         """NSE market breadth — A/D ratio, 52w highs/lows."""
@@ -2488,26 +2383,6 @@ class TelegramCommandHandler:
             return (f"❌ Calculate: {e}\n"
                     f"Usage: /calculate NIFTY 100000\n"
                     f"Or: /calculate BANKNIFTY 50000 1.5")
-
-    def _cmd_watchlist(self, args="") -> str:
-        """UX-15: Manage watchlist — alert on specific stocks only."""
-        try:
-            from ux_commands import get_watchlist, set_watchlist
-            if not args.strip():
-                wl = get_watchlist()
-                if not wl:
-                    return ("👀 <b>WATCHLIST</b> — empty\n\n"
-                            "Add stocks: /watch HDFCBANK TCS INFY\n"
-                            "Clear: /watch clear")
-                return f"👀 <b>WATCHLIST</b>\n\n  {', '.join(wl)}\n\nEdit: /watch SYMBOL1 SYMBOL2"
-            if args.strip().lower() == "clear":
-                set_watchlist([])
-                return "✅ Watchlist cleared — getting all 196 symbols again"
-            symbols = [s.upper() for s in args.strip().split()]
-            set_watchlist(symbols)
-            return f"✅ Watchlist set: {', '.join(symbols)}\nYou'll only see signals for these stocks"
-        except Exception as e:
-            return f"❌ Watchlist: {e}"
 
     def _cmd_price_alert(self, args="") -> str:
         """UX-16: Set price alert. Usage: /alert NIFTY above 24000"""
@@ -3796,27 +3671,6 @@ class TelegramCommandHandler:
         lines += ["", "  Add missing keys to .env then /restart"]
         return "\n".join(lines)
 
-    def _cmd_datasources(self, _="") -> str:
-        """Check health of all data sources."""
-        try:
-            from data_sources import source_health_check
-            results = source_health_check()
-            note  = results.pop("_note", "")
-            cache = results.pop("_cache", "")
-            lines = ["<b>📡 DATA SOURCES (10 sources)</b>", ""]
-            for name, status in results.items():
-                lines.append(f"  {status} {name}")
-            lines += ["",
-                      "Free keys (register once):",
-                      "  twelvedata.com → TWELVE_DATA_KEY",
-                      "  alphavantage.co → ALPHA_VANTAGE_KEY",
-                      "  tiingo.com → TIINGO_KEY",
-                      cache]
-            if note: lines.append(note)
-            return "\n".join(lines)
-        except Exception as e:
-            return f"❌ Data sources: {e}"
-
     def _cmd_stt(self, _="") -> str:
         """Show April 2026 STT charges and breakeven per instrument."""
         try:
@@ -3966,34 +3820,6 @@ class TelegramCommandHandler:
             return fii_dii_telegram_report()
         except Exception as e:
             return f"❌ FII: {e}"
-
-    def _cmd_fii_OLD(self, _="") -> str:
-        try:
-            from fii_tracker import analyse_fii_patterns
-            from participant_oi import get_participant_data
-            from datetime import datetime as _dt
-            fp = analyse_fii_patterns()
-            lines = [
-                f"📊 <b>FII/DII ANALYSIS</b> | {_dt.now().strftime('%H:%M')}",
-                "",
-                f"   FII 5-day net:  ₹{fp.get('fii_5d',0):>8,.0f} Cr",
-                f"   FII sentiment:  {fp.get('sentiment','NEUTRAL')}",
-                f"   Score boost:    {fp.get('score',0):+.1f}",
-                "",
-            ]
-            try:
-                pd = get_participant_data() or {}
-                fii = pd.get("FII",{})
-                dii = pd.get("DII",{})
-                lines += [
-                    f"   FII cash net:   ₹{float(fii.get('net_cash',0) or 0):>8,.0f} Cr",
-                    f"   DII cash net:   ₹{float(dii.get('net_cash',0) or 0):>8,.0f} Cr",
-                    f"   FII fut net:    ₹{float(fii.get('net_futures',0) or 0):>8,.0f} Cr",
-                ]
-            except Exception: pass
-            return "\n".join(lines)
-        except Exception as e:
-            return f"❌ FII data: {e}"
 
     def _cmd_backup(self, _="") -> str:
         try:
