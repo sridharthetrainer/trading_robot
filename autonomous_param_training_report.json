@@ -1,0 +1,156 @@
+{
+  "generated_at": "2026-06-25T19:05:00+0530",
+  "dry_run": false,
+  "interval": "5m",
+  "days": 210,
+  "capital": 100000.0,
+  "planned": [
+    {
+      "symbol": "NIFTY",
+      "strategy": "trend"
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "breakout"
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "mean_reversion"
+    }
+  ],
+  "results": [
+    {
+      "symbol": "NIFTY",
+      "strategy": "trend",
+      "status": "validated",
+      "data_source": "candle_cache",
+      "bars": 10575,
+      "verdict": "INSUFFICIENT_DATA",
+      "best_params": {},
+      "metrics": {
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "paper_training_only": true,
+        "total_trades": 0,
+        "num_trades": 0,
+        "sharpe": 0.0,
+        "win_rate": 0.0,
+        "deflated_sharpe": 0.0,
+        "parameter_stability_cv": 1.0,
+        "holdout_pnl": null,
+        "beats_benchmark": false
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "breakout",
+      "status": "validated",
+      "data_source": "candle_cache",
+      "bars": 10575,
+      "verdict": "INSUFFICIENT_DATA",
+      "best_params": {},
+      "metrics": {
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "paper_training_only": true,
+        "total_trades": 0,
+        "num_trades": 0,
+        "sharpe": 0.0,
+        "win_rate": 0.0,
+        "deflated_sharpe": 0.0,
+        "parameter_stability_cv": 1.0,
+        "holdout_pnl": null,
+        "beats_benchmark": false
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "mean_reversion",
+      "status": "validated",
+      "data_source": "candle_cache",
+      "bars": 10575,
+      "verdict": "INSUFFICIENT_DATA",
+      "best_params": {},
+      "metrics": {
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "paper_training_only": true,
+        "total_trades": 0,
+        "num_trades": 0,
+        "sharpe": 0.0,
+        "win_rate": 0.0,
+        "deflated_sharpe": 0.0,
+        "parameter_stability_cv": 1.0,
+        "holdout_pnl": null,
+        "beats_benchmark": false
+      }
+    }
+  ],
+  "promoted": [],
+  "paper_only": [],
+  "skipped": [
+    {
+      "symbol": "NIFTY",
+      "strategy": "trend",
+      "status": "validated",
+      "data_source": "candle_cache",
+      "bars": 10575,
+      "verdict": "INSUFFICIENT_DATA",
+      "best_params": {},
+      "metrics": {
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "paper_training_only": true,
+        "total_trades": 0,
+        "num_trades": 0,
+        "sharpe": 0.0,
+        "win_rate": 0.0,
+        "deflated_sharpe": 0.0,
+        "parameter_stability_cv": 1.0,
+        "holdout_pnl": null,
+        "beats_benchmark": false
+      },
+      "reason": "no_best_params"
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "breakout",
+      "status": "validated",
+      "data_source": "candle_cache",
+      "bars": 10575,
+      "verdict": "INSUFFICIENT_DATA",
+      "best_params": {},
+      "metrics": {
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "paper_training_only": true,
+        "total_trades": 0,
+        "num_trades": 0,
+        "sharpe": 0.0,
+        "win_rate": 0.0,
+        "deflated_sharpe": 0.0,
+        "parameter_stability_cv": 1.0,
+        "holdout_pnl": null,
+        "beats_benchmark": false
+      },
+      "reason": "no_best_params"
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "mean_reversion",
+      "status": "validated",
+      "data_source": "candle_cache",
+      "bars": 10575,
+      "verdict": "INSUFFICIENT_DATA",
+      "best_params": {},
+      "metrics": {
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "paper_training_only": true,
+        "total_trades": 0,
+        "num_trades": 0,
+        "sharpe": 0.0,
+        "win_rate": 0.0,
+        "deflated_sharpe": 0.0,
+        "parameter_stability_cv": 1.0,
+        "holdout_pnl": null,
+        "beats_benchmark": false
+      },
+      "reason": "no_best_params"
+    }
+  ]
+}

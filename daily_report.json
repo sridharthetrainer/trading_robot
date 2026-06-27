@@ -1,0 +1,2213 @@
+{
+  "report_date": "2026-06-25",
+  "generated_at": "2026-06-25T19:04:48.898292",
+  "n_days_in_window": 5,
+  "lookback_days": 5,
+  "total_signals": 2994,
+  "active_strategies": 91,
+  "pause_candidates": [
+    "trend",
+    "chart_pattern_ascending_triangle",
+    "vrvp_zone",
+    "mean_reversion",
+    "failed_bull_breakout",
+    "donchian_breakout",
+    "failed_bear_breakout",
+    "rsi2_mr",
+    "heikin_ashi"
+  ],
+  "promote_candidates": [
+    "alligator_ao",
+    "elder_triple_screen",
+    "ichimoku"
+  ],
+  "strategies": {
+    "PIVOT_SCALPING": {
+      "strategy": "PIVOT_SCALPING",
+      "n_total": 10,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          3
+        ],
+        [
+          "2026-06-21",
+          1.0,
+          7
+        ]
+      ],
+      "n_days": 2
+    },
+    "chart_pattern_head_and_shoulders": {
+      "strategy": "chart_pattern_head_and_shoulders",
+      "n_total": 50,
+      "n_today": 16,
+      "today_wr": 0.625,
+      "roll_wr": 0.46,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          8
+        ],
+        [
+          "2026-06-22",
+          0.5714,
+          7
+        ],
+        [
+          "2026-06-24",
+          0.4737,
+          19
+        ],
+        [
+          "2026-06-25",
+          0.625,
+          16
+        ]
+      ],
+      "n_days": 4
+    },
+    "ttm_squeeze": {
+      "strategy": "ttm_squeeze",
+      "n_total": 20,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.15,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          7
+        ],
+        [
+          "2026-06-22",
+          0.0,
+          3
+        ],
+        [
+          "2026-06-24",
+          0.25,
+          8
+        ],
+        [
+          "2026-06-25",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "trend": {
+      "strategy": "trend",
+      "n_total": 246,
+      "n_today": 35,
+      "today_wr": 0.4286,
+      "roll_wr": 0.3902,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.2381,
+          21
+        ],
+        [
+          "2026-06-22",
+          0.4405,
+          84
+        ],
+        [
+          "2026-06-24",
+          0.3679,
+          106
+        ],
+        [
+          "2026-06-25",
+          0.4286,
+          35
+        ]
+      ],
+      "n_days": 4
+    },
+    "rsi_divergence": {
+      "strategy": "rsi_divergence",
+      "n_total": 253,
+      "n_today": 55,
+      "today_wr": 0.6182,
+      "roll_wr": 0.4032,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.1875,
+          16
+        ],
+        [
+          "2026-06-22",
+          0.4706,
+          85
+        ],
+        [
+          "2026-06-24",
+          0.2577,
+          97
+        ],
+        [
+          "2026-06-25",
+          0.6182,
+          55
+        ]
+      ],
+      "n_days": 4
+    },
+    "chart_pattern_ascending_triangle": {
+      "strategy": "chart_pattern_ascending_triangle",
+      "n_total": 115,
+      "n_today": 21,
+      "today_wr": 0.2381,
+      "roll_wr": 0.3913,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.3333,
+          6
+        ],
+        [
+          "2026-06-22",
+          0.3125,
+          32
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          56
+        ],
+        [
+          "2026-06-25",
+          0.2381,
+          21
+        ]
+      ],
+      "n_days": 4
+    },
+    "ma_cross": {
+      "strategy": "ma_cross",
+      "n_total": 161,
+      "n_today": 11,
+      "today_wr": 0.5455,
+      "roll_wr": 0.4161,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.1,
+          10
+        ],
+        [
+          "2026-06-22",
+          0.4356,
+          101
+        ],
+        [
+          "2026-06-24",
+          0.4103,
+          39
+        ],
+        [
+          "2026-06-25",
+          0.5455,
+          11
+        ]
+      ],
+      "n_days": 4
+    },
+    "price_structure": {
+      "strategy": "price_structure",
+      "n_total": 300,
+      "n_today": 20,
+      "today_wr": 0.4,
+      "roll_wr": 0.44,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.3333,
+          12
+        ],
+        [
+          "2026-06-22",
+          0.4737,
+          95
+        ],
+        [
+          "2026-06-24",
+          0.4335,
+          173
+        ],
+        [
+          "2026-06-25",
+          0.4,
+          20
+        ]
+      ],
+      "n_days": 4
+    },
+    "chart_pattern_rising_wedge": {
+      "strategy": "chart_pattern_rising_wedge",
+      "n_total": 10,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.2,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-24",
+          0.1429,
+          7
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 3
+    },
+    "candlestick_on_neck_pattern": {
+      "strategy": "candlestick_on_neck_pattern",
+      "n_total": 6,
+      "n_today": 1,
+      "today_wr": 0.0,
+      "roll_wr": 0.3333,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_tweezer_bottom": {
+      "strategy": "candlestick_tweezer_bottom",
+      "n_total": 14,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.3571,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.3333,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.75,
+          4
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          5
+        ],
+        [
+          "2026-06-25",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_bullish_engulfing": {
+      "strategy": "candlestick_bullish_engulfing",
+      "n_total": 23,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.4348,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.5556,
+          9
+        ],
+        [
+          "2026-06-22",
+          0.4,
+          5
+        ],
+        [
+          "2026-06-24",
+          0.2857,
+          7
+        ],
+        [
+          "2026-06-25",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "vrvp_zone": {
+      "strategy": "vrvp_zone",
+      "n_total": 76,
+      "n_today": 9,
+      "today_wr": 0.1111,
+      "roll_wr": 0.3684,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.1,
+          10
+        ],
+        [
+          "2026-06-22",
+          0.4375,
+          32
+        ],
+        [
+          "2026-06-24",
+          0.48,
+          25
+        ],
+        [
+          "2026-06-25",
+          0.1111,
+          9
+        ]
+      ],
+      "n_days": 4
+    },
+    "chart_pattern_double_top": {
+      "strategy": "chart_pattern_double_top",
+      "n_total": 23,
+      "n_today": 9,
+      "today_wr": 0.4444,
+      "roll_wr": 0.4348,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-24",
+          0.3636,
+          11
+        ],
+        [
+          "2026-06-25",
+          0.4444,
+          9
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_evening_star": {
+      "strategy": "candlestick_evening_star",
+      "n_total": 10,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.3,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.25,
+          4
+        ],
+        [
+          "2026-06-22",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-24",
+          0.25,
+          4
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 4
+    },
+    "chart_pattern_inverse_head_shoulders": {
+      "strategy": "chart_pattern_inverse_head_shoulders",
+      "n_total": 41,
+      "n_today": 9,
+      "today_wr": 0.3333,
+      "roll_wr": 0.4634,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-22",
+          0.4,
+          5
+        ],
+        [
+          "2026-06-24",
+          0.56,
+          25
+        ],
+        [
+          "2026-06-25",
+          0.3333,
+          9
+        ]
+      ],
+      "n_days": 4
+    },
+    "mean_reversion": {
+      "strategy": "mean_reversion",
+      "n_total": 31,
+      "n_today": 2,
+      "today_wr": 0.0,
+      "roll_wr": 0.3226,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.3333,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.5,
+          14
+        ],
+        [
+          "2026-06-24",
+          0.1667,
+          12
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "chart_pattern_descending_triangle": {
+      "strategy": "chart_pattern_descending_triangle",
+      "n_total": 120,
+      "n_today": 27,
+      "today_wr": 0.7778,
+      "roll_wr": 0.4167,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.125,
+          8
+        ],
+        [
+          "2026-06-22",
+          0.7333,
+          15
+        ],
+        [
+          "2026-06-24",
+          0.2429,
+          70
+        ],
+        [
+          "2026-06-25",
+          0.7778,
+          27
+        ]
+      ],
+      "n_days": 4
+    },
+    "failed_bull_breakout": {
+      "strategy": "failed_bull_breakout",
+      "n_total": 30,
+      "n_today": 3,
+      "today_wr": 0.0,
+      "roll_wr": 0.3333,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          6
+        ],
+        [
+          "2026-06-22",
+          0.3077,
+          13
+        ],
+        [
+          "2026-06-24",
+          0.75,
+          8
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          3
+        ]
+      ],
+      "n_days": 4
+    },
+    "alligator_ao": {
+      "strategy": "alligator_ao",
+      "n_total": 103,
+      "n_today": 26,
+      "today_wr": 0.6538,
+      "roll_wr": 0.6019,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-22",
+          0.6444,
+          45
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          30
+        ],
+        [
+          "2026-06-25",
+          0.6538,
+          26
+        ]
+      ],
+      "n_days": 4
+    },
+    "vp_breakout": {
+      "strategy": "vp_breakout",
+      "n_total": 18,
+      "n_today": 2,
+      "today_wr": 0.0,
+      "roll_wr": 0.1667,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-22",
+          0.3,
+          10
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          4
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_bearish_marubozu": {
+      "strategy": "candlestick_bearish_marubozu",
+      "n_total": 6,
+      "n_today": 1,
+      "today_wr": 0.0,
+      "roll_wr": 0.1667,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.3333,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_spinning_top_black": {
+      "strategy": "candlestick_spinning_top_black",
+      "n_total": 26,
+      "n_today": 2,
+      "today_wr": 1.0,
+      "roll_wr": 0.5385,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.6667,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.6667,
+          12
+        ],
+        [
+          "2026-06-24",
+          0.2222,
+          9
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "chart_pattern_range_expansion": {
+      "strategy": "chart_pattern_range_expansion",
+      "n_total": 16,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.3125,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.4444,
+          9
+        ],
+        [
+          "2026-06-24",
+          0.25,
+          4
+        ]
+      ],
+      "n_days": 3
+    },
+    "candlestick_spinning_top_white": {
+      "strategy": "candlestick_spinning_top_white",
+      "n_total": 15,
+      "n_today": 3,
+      "today_wr": 0.0,
+      "roll_wr": 0.4667,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.6667,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.75,
+          4
+        ],
+        [
+          "2026-06-24",
+          0.4,
+          5
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          3
+        ]
+      ],
+      "n_days": 4
+    },
+    "donchian_breakout": {
+      "strategy": "donchian_breakout",
+      "n_total": 31,
+      "n_today": 2,
+      "today_wr": 1.0,
+      "roll_wr": 0.3871,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.2857,
+          7
+        ],
+        [
+          "2026-06-22",
+          0.375,
+          16
+        ],
+        [
+          "2026-06-24",
+          0.3333,
+          6
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_hammer": {
+      "strategy": "candlestick_hammer",
+      "n_total": 13,
+      "n_today": 4,
+      "today_wr": 0.0,
+      "roll_wr": 0.2308,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.6667,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.25,
+          4
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          4
+        ]
+      ],
+      "n_days": 4
+    },
+    "td_sequential": {
+      "strategy": "td_sequential",
+      "n_total": 15,
+      "n_today": 5,
+      "today_wr": 0.8,
+      "roll_wr": 0.8,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          1.0,
+          6
+        ],
+        [
+          "2026-06-24",
+          0.6667,
+          3
+        ],
+        [
+          "2026-06-25",
+          0.8,
+          5
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_three_black_soldiers": {
+      "strategy": "candlestick_three_black_soldiers",
+      "n_total": 19,
+      "n_today": 4,
+      "today_wr": 0.5,
+      "roll_wr": 0.5263,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.5,
+          12
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-25",
+          0.5,
+          4
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_morning_star": {
+      "strategy": "candlestick_morning_star",
+      "n_total": 14,
+      "n_today": 2,
+      "today_wr": 0.0,
+      "roll_wr": 0.2857,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.5714,
+          7
+        ],
+        [
+          "2026-06-22",
+          0.0,
+          3
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "elder_triple_screen": {
+      "strategy": "elder_triple_screen",
+      "n_total": 34,
+      "n_today": 7,
+      "today_wr": 0.5714,
+      "roll_wr": 0.6176,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-22",
+          0.875,
+          16
+        ],
+        [
+          "2026-06-24",
+          0.3333,
+          9
+        ],
+        [
+          "2026-06-25",
+          0.5714,
+          7
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_bearish_engulfing": {
+      "strategy": "candlestick_bearish_engulfing",
+      "n_total": 21,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.381,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.3636,
+          11
+        ],
+        [
+          "2026-06-24",
+          0.4286,
+          7
+        ],
+        [
+          "2026-06-25",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "chart_pattern_breakout_retest": {
+      "strategy": "chart_pattern_breakout_retest",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "elder_ray": {
+      "strategy": "elder_ray",
+      "n_total": 27,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.3333,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.2857,
+          21
+        ],
+        [
+          "2026-06-24",
+          0.25,
+          4
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 4
+    },
+    "failed_bear_breakout": {
+      "strategy": "failed_bear_breakout",
+      "n_total": 35,
+      "n_today": 7,
+      "today_wr": 0.4286,
+      "roll_wr": 0.3429,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.3333,
+          3
+        ],
+        [
+          "2026-06-22",
+          0.2857,
+          7
+        ],
+        [
+          "2026-06-24",
+          0.3333,
+          18
+        ],
+        [
+          "2026-06-25",
+          0.4286,
+          7
+        ]
+      ],
+      "n_days": 4
+    },
+    "cci_trend": {
+      "strategy": "cci_trend",
+      "n_total": 28,
+      "n_today": 2,
+      "today_wr": 1.0,
+      "roll_wr": 0.4286,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.45,
+          20
+        ],
+        [
+          "2026-06-24",
+          0.2,
+          5
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          2
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_three_white_soldiers": {
+      "strategy": "candlestick_three_white_soldiers",
+      "n_total": 15,
+      "n_today": 3,
+      "today_wr": 0.3333,
+      "roll_wr": 0.5333,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          2
+        ],
+        [
+          "2026-06-22",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-24",
+          0.7778,
+          9
+        ],
+        [
+          "2026-06-25",
+          0.3333,
+          3
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_bullish_marubozu": {
+      "strategy": "candlestick_bullish_marubozu",
+      "n_total": 7,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.4286,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          1
+        ],
+        [
+          "2026-06-24",
+          0.3333,
+          6
+        ]
+      ],
+      "n_days": 2
+    },
+    "rsi2_mr": {
+      "strategy": "rsi2_mr",
+      "n_total": 32,
+      "n_today": 9,
+      "today_wr": 0.5556,
+      "roll_wr": 0.2812,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.2857,
+          7
+        ],
+        [
+          "2026-06-24",
+          0.1333,
+          15
+        ],
+        [
+          "2026-06-25",
+          0.5556,
+          9
+        ]
+      ],
+      "n_days": 4
+    },
+    "aroon_trend": {
+      "strategy": "aroon_trend",
+      "n_total": 23,
+      "n_today": 4,
+      "today_wr": 0.75,
+      "roll_wr": 0.6087,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-19",
+          1.0,
+          1
+        ],
+        [
+          "2026-06-22",
+          0.5833,
+          12
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          6
+        ],
+        [
+          "2026-06-25",
+          0.75,
+          4
+        ]
+      ],
+      "n_days": 4
+    },
+    "breakout": {
+      "strategy": "breakout",
+      "n_total": 99,
+      "n_today": 14,
+      "today_wr": 0.5,
+      "roll_wr": 0.4343,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.4182,
+          55
+        ],
+        [
+          "2026-06-24",
+          0.4333,
+          30
+        ],
+        [
+          "2026-06-25",
+          0.5,
+          14
+        ]
+      ],
+      "n_days": 3
+    },
+    "cpr": {
+      "strategy": "cpr",
+      "n_total": 101,
+      "n_today": 8,
+      "today_wr": 1.0,
+      "roll_wr": 0.495,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.4512,
+          82
+        ],
+        [
+          "2026-06-24",
+          0.4545,
+          11
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          8
+        ]
+      ],
+      "n_days": 3
+    },
+    "heikin_ashi": {
+      "strategy": "heikin_ashi",
+      "n_total": 65,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.3538,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.3443,
+          61
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          4
+        ]
+      ],
+      "n_days": 2
+    },
+    "parabolic_sar": {
+      "strategy": "parabolic_sar",
+      "n_total": 54,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5185,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5185,
+          54
+        ]
+      ],
+      "n_days": 1
+    },
+    "waddah_attar": {
+      "strategy": "waddah_attar",
+      "n_total": 40,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.425,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.425,
+          40
+        ]
+      ],
+      "n_days": 1
+    },
+    "failed_auction": {
+      "strategy": "failed_auction",
+      "n_total": 3,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.3333,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.3333,
+          3
+        ]
+      ],
+      "n_days": 1
+    },
+    "smc": {
+      "strategy": "smc",
+      "n_total": 27,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.4444,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.44,
+          25
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "weinstein_stage": {
+      "strategy": "weinstein_stage",
+      "n_total": 31,
+      "n_today": 7,
+      "today_wr": 0.7143,
+      "roll_wr": 0.4516,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.3182,
+          22
+        ],
+        [
+          "2026-06-24",
+          1.0,
+          2
+        ],
+        [
+          "2026-06-25",
+          0.7143,
+          7
+        ]
+      ],
+      "n_days": 3
+    },
+    "candlestick_tweezer_top": {
+      "strategy": "candlestick_tweezer_top",
+      "n_total": 20,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.6,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.8,
+          15
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          5
+        ]
+      ],
+      "n_days": 2
+    },
+    "elliott_wave": {
+      "strategy": "elliott_wave",
+      "n_total": 21,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5714,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.6,
+          20
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 2
+    },
+    "anchored_vwap": {
+      "strategy": "anchored_vwap",
+      "n_total": 49,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.4694,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.4681,
+          47
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "chaikin_mf": {
+      "strategy": "chaikin_mf",
+      "n_total": 29,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5517,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5517,
+          29
+        ]
+      ],
+      "n_days": 1
+    },
+    "supertrend_mtf": {
+      "strategy": "supertrend_mtf",
+      "n_total": 60,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.45,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.4655,
+          58
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "vwap_bands": {
+      "strategy": "vwap_bands",
+      "n_total": 23,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.6522,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.6522,
+          23
+        ]
+      ],
+      "n_days": 1
+    },
+    "order_flow": {
+      "strategy": "order_flow",
+      "n_total": 57,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5088,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5273,
+          55
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "chart_pattern_diamond_top": {
+      "strategy": "chart_pattern_diamond_top",
+      "n_total": 7,
+      "n_today": 2,
+      "today_wr": 0.0,
+      "roll_wr": 0.4286,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.6,
+          5
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "ema_ribbon": {
+      "strategy": "ema_ribbon",
+      "n_total": 33,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5152,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5152,
+          33
+        ]
+      ],
+      "n_days": 1
+    },
+    "ema_cloud_sd": {
+      "strategy": "ema_cloud_sd",
+      "n_total": 26,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.4615,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.4615,
+          26
+        ]
+      ],
+      "n_days": 1
+    },
+    "kama_trend": {
+      "strategy": "kama_trend",
+      "n_total": 15,
+      "n_today": 1,
+      "today_wr": 0.0,
+      "roll_wr": 0.5333,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5833,
+          12
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 3
+    },
+    "canslim": {
+      "strategy": "canslim",
+      "n_total": 23,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.3913,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.3913,
+          23
+        ]
+      ],
+      "n_days": 1
+    },
+    "williams_r": {
+      "strategy": "williams_r",
+      "n_total": 4,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.25,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "vwap_reversion": {
+      "strategy": "vwap_reversion",
+      "n_total": 8,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.75,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.8571,
+          7
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 2
+    },
+    "ichimoku": {
+      "strategy": "ichimoku",
+      "n_total": 37,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.6216,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.6452,
+          31
+        ],
+        [
+          "2026-06-24",
+          0.4,
+          5
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 3
+    },
+    "volume_profile_full": {
+      "strategy": "volume_profile_full",
+      "n_total": 10,
+      "n_today": 1,
+      "today_wr": 0.0,
+      "roll_wr": 0.4,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.4444,
+          9
+        ],
+        [
+          "2026-06-25",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 2
+    },
+    "awesome_osc": {
+      "strategy": "awesome_osc",
+      "n_total": 6,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.3333,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.3333,
+          6
+        ]
+      ],
+      "n_days": 1
+    },
+    "ehlers_fisher": {
+      "strategy": "ehlers_fisher",
+      "n_total": 11,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.4545,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.4545,
+          11
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_fred_tam_white_inside_out": {
+      "strategy": "candlestick_fred_tam_white_inside_out",
+      "n_total": 6,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.5,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-24",
+          0.3333,
+          3
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 3
+    },
+    "chart_pattern_diamond_bottom": {
+      "strategy": "chart_pattern_diamond_bottom",
+      "n_total": 3,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.3333,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 2
+    },
+    "cci_zero_cross": {
+      "strategy": "cci_zero_cross",
+      "n_total": 6,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.1667,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.1667,
+          6
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_shooting_star": {
+      "strategy": "candlestick_shooting_star",
+      "n_total": 7,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.4286,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.6667,
+          3
+        ],
+        [
+          "2026-06-24",
+          0.0,
+          3
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 3
+    },
+    "uo_overbought": {
+      "strategy": "uo_overbought",
+      "n_total": 3,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          1.0,
+          3
+        ]
+      ],
+      "n_days": 1
+    },
+    "chart_pattern_rectangle": {
+      "strategy": "chart_pattern_rectangle",
+      "n_total": 6,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.3333,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.3333,
+          6
+        ]
+      ],
+      "n_days": 1
+    },
+    "vsa": {
+      "strategy": "vsa",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_hanging_man": {
+      "strategy": "candlestick_hanging_man",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_doji": {
+      "strategy": "candlestick_doji",
+      "n_total": 6,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.8333,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          1.0,
+          3
+        ],
+        [
+          "2026-06-24",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 3
+    },
+    "bb_percentb": {
+      "strategy": "bb_percentb",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "chart_pattern_falling_wedge": {
+      "strategy": "chart_pattern_falling_wedge",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_bullish_harami": {
+      "strategy": "candlestick_bullish_harami",
+      "n_total": 3,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.6667,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.5,
+          2
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 2
+    },
+    "kst": {
+      "strategy": "kst",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_homing_pigeon_bullish": {
+      "strategy": "candlestick_homing_pigeon_bullish",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_fred_tam_black_inside_out": {
+      "strategy": "candlestick_fred_tam_black_inside_out",
+      "n_total": 2,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 0.5,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 2
+    },
+    "chart_pattern_double_bottom": {
+      "strategy": "chart_pattern_double_bottom",
+      "n_total": 32,
+      "n_today": 8,
+      "today_wr": 0.25,
+      "roll_wr": 0.5625,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-06-22",
+          0.0,
+          1
+        ],
+        [
+          "2026-06-24",
+          0.6957,
+          23
+        ],
+        [
+          "2026-06-25",
+          0.25,
+          8
+        ]
+      ],
+      "n_days": 3
+    },
+    "orb": {
+      "strategy": "orb",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_inverted_hammer": {
+      "strategy": "candlestick_inverted_hammer",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.5,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_eight_to_ten_new_record_highs": {
+      "strategy": "candlestick_eight_to_ten_new_record_highs",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "chart_pattern_symmetrical_triangle": {
+      "strategy": "chart_pattern_symmetrical_triangle",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_bullish_separating_lines": {
+      "strategy": "candlestick_bullish_separating_lines",
+      "n_total": 3,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          0.0,
+          3
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_bearish_harami": {
+      "strategy": "candlestick_bearish_harami",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_bearish_separating_lines": {
+      "strategy": "candlestick_bearish_separating_lines",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_three_river_evening_star": {
+      "strategy": "candlestick_three_river_evening_star",
+      "n_total": 1,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-24",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_three_river_morning_star": {
+      "strategy": "candlestick_three_river_morning_star",
+      "n_total": 1,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_low_price_gapping_play_bearish": {
+      "strategy": "candlestick_low_price_gapping_play_bearish",
+      "n_total": 1,
+      "n_today": 1,
+      "today_wr": 1.0,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-06-25",
+          1.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-06-21T18:11:25+0530",
+  "ok": true,
+  "db_path": "candle_cache.db",
+  "dry_run": false,
+  "before_total": 485281,
+  "invalid_total": 218301,
+  "deleted": 218301,
+  "after_total": 266980,
+  "invalid_by_interval": [
+    {
+      "interval": "15m",
+      "invalid_rows": 44263,
+      "symbols": 192
+    },
+    {
+      "interval": "1d",
+      "invalid_rows": 961,
+      "symbols": 4
+    },
+    {
+      "interval": "1h",
+      "invalid_rows": 56848,
+      "symbols": 193
+    },
+    {
+      "interval": "1m",
+      "invalid_rows": 3266,
+      "symbols": 2
+    },
+    {
+      "interval": "5m",
+      "invalid_rows": 112963,
+      "symbols": 191
+    }
+  ],
+  "valid_by_interval": [
+    {
+      "interval": "15m",
+      "rows": 576,
+      "symbols": 6
+    },
+    {
+      "interval": "1d",
+      "rows": 1359,
+      "symbols": 192
+    },
+    {
+      "interval": "1h",
+      "rows": 48,
+      "symbols": 6
+    },
+    {
+      "interval": "1m",
+      "rows": 264351,
+      "symbols": 192
+    },
+    {
+      "interval": "5m",
+      "rows": 646,
+      "symbols": 5
+    }
+  ]
+}

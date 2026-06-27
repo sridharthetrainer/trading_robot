@@ -1,0 +1,241 @@
+{
+  "generated_at": "2026-06-24T21:49:41+0530",
+  "symbols_requested": 194,
+  "intervals": [
+    "1m",
+    "5m",
+    "15m",
+    "1h",
+    "1d"
+  ],
+  "duration_sec": 1129.579,
+  "before": {
+    "exists": true,
+    "total": 685470,
+    "intervals": {
+      "15m": {
+        "rows": 27805,
+        "symbols": 193,
+        "first": "2026-05-25 09:15:00+05:30",
+        "last": "2026-06-24 15:15:00+05:30"
+      },
+      "1d": {
+        "rows": 47896,
+        "symbols": 193,
+        "first": "2025-06-04 00:00:00+05:30",
+        "last": "2026-06-24 00:00:00+05:30"
+      },
+      "1h": {
+        "rows": 11482,
+        "symbols": 193,
+        "first": "2026-06-02 00:00:00+05:30",
+        "last": "2026-06-24 14:15:00+05:30"
+      },
+      "1m": {
+        "rows": 486168,
+        "symbols": 193,
+        "first": "2026-05-25 09:15:00+05:30",
+        "last": "2026-06-24 15:29:00+05:30"
+      },
+      "5m": {
+        "rows": 112119,
+        "symbols": 194,
+        "first": "2025-11-25 09:15:00+05:30",
+        "last": "2026-06-24 15:25:00+05:30"
+      }
+    }
+  },
+  "after": {
+    "exists": true,
+    "total": 711177,
+    "intervals": {
+      "15m": {
+        "rows": 28359,
+        "symbols": 193,
+        "first": "2026-05-25 09:15:00+05:30",
+        "last": "2026-06-24 15:15:00+05:30"
+      },
+      "1d": {
+        "rows": 47896,
+        "symbols": 193,
+        "first": "2025-06-04 00:00:00+05:30",
+        "last": "2026-06-24 00:00:00+05:30"
+      },
+      "1h": {
+        "rows": 11686,
+        "symbols": 193,
+        "first": "2026-06-02 00:00:00+05:30",
+        "last": "2026-06-24 15:15:00+05:30"
+      },
+      "1m": {
+        "rows": 511090,
+        "symbols": 193,
+        "first": "2026-05-25 09:15:00+05:30",
+        "last": "2026-06-24 15:29:00+05:30"
+      },
+      "5m": {
+        "rows": 112146,
+        "symbols": 194,
+        "first": "2025-11-25 09:15:00+05:30",
+        "last": "2026-06-24 15:25:00+05:30"
+      }
+    }
+  },
+  "interval_reports": [
+    {
+      "interval": "1m",
+      "days": 5,
+      "requested": 194,
+      "ok_count": 186,
+      "sample_failures": [
+        {
+          "symbol": "NIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "BANKNIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "FINNIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "MIDCPNIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "NIFTYNEXT50",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "SENSEX",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "HPCL",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        }
+      ]
+    },
+    {
+      "interval": "5m",
+      "days": 15,
+      "requested": 194,
+      "ok_count": 191,
+      "sample_failures": [
+        {
+          "symbol": "NIFTYNEXT50",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "SENSEX",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        }
+      ]
+    },
+    {
+      "interval": "15m",
+      "days": 30,
+      "requested": 194,
+      "ok_count": 187,
+      "sample_failures": [
+        {
+          "symbol": "NIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "BANKNIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "FINNIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "MIDCPNIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "NIFTYNEXT50",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "SENSEX",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        }
+      ]
+    },
+    {
+      "interval": "1h",
+      "days": 60,
+      "requested": 194,
+      "ok_count": 193,
+      "sample_failures": [
+        {
+          "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        }
+      ]
+    },
+    {
+      "interval": "1d",
+      "days": 365,
+      "requested": 194,
+      "ok_count": 190,
+      "sample_failures": [
+        {
+          "symbol": "NIFTYNEXT50",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "SENSEX",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "HPCL",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        }
+      ]
+    }
+  ]
+}

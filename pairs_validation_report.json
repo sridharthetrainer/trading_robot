@@ -1,0 +1,36 @@
+{
+  "verdict": "INSUFFICIENT_DATA",
+  "common_days": 271,
+  "dev_days": 189,
+  "holdout_days": 82,
+  "hedge_beta": 1.4338,
+  "cointegration": {
+    "adf_tstat": -0.201,
+    "adf_crit_5pct": -2.86,
+    "stationary": false,
+    "half_life_days": 200.5,
+    "corr": 0.851,
+    "cointegrated": false
+  },
+  "dev_backtest": {
+    "trades": 8,
+    "sharpe": -0.153,
+    "win_rate": 62.5,
+    "net": -0.002,
+    "avg_ret": -0.00025
+  },
+  "oos_backtest": {
+    "trades": 2,
+    "sharpe": 52.949,
+    "win_rate": 100.0,
+    "net": 0.03,
+    "avg_ret": 0.01501
+  },
+  "gate": {
+    "min_oos_trades": 20,
+    "oos_sharpe_bar": 1.0,
+    "cost_bps_per_leg": 3.0,
+    "passed": false
+  },
+  "note": "Relative-value experiment. PASS requires cointegration + OOS net-Sharpe >= bar + min trades, after costs. Limited history \u2192 treat PASS cautiously."
+}

@@ -1,0 +1,12 @@
+[Unit]
+Description=Trigger daily analysis pipeline at 15:45 IST every weekday
+Requires=daily-pipeline.service
+
+[Timer]
+# 15:45 IST = 10:15 UTC
+OnCalendar=Mon..Fri 10:15:00 UTC
+AccuracySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

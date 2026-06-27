@@ -1,0 +1,64 @@
+{
+  "started_at": "2026-06-25T19:04:44.750299",
+  "finished_at": "2026-06-25T19:12:19.273156",
+  "total_elapsed": 454.5,
+  "steps_ok": 8,
+  "steps_error": 0,
+  "errors": [],
+  "steps": [
+    {
+      "step": "strategy_validator",
+      "status": "ok",
+      "elapsed": 4.12,
+      "error": null
+    },
+    {
+      "step": "alpha_decay_tracker",
+      "status": "ok",
+      "elapsed": 0.01,
+      "error": null
+    },
+    {
+      "step": "daily_performance_report",
+      "status": "ok",
+      "elapsed": 0.08,
+      "error": null
+    },
+    {
+      "step": "candle_coverage_plan",
+      "status": "ok",
+      "elapsed": 1.92,
+      "error": null
+    },
+    {
+      "step": "derive_daily_candles",
+      "status": "ok",
+      "elapsed": 9.32,
+      "error": null
+    },
+    {
+      "step": "autonomous_param_training",
+      "status": "ok",
+      "elapsed": 0.87,
+      "error": null
+    },
+    {
+      "step": "system_readiness_report",
+      "status": "ok",
+      "elapsed": 0.13,
+      "error": null
+    },
+    {
+      "step": "post_market_ml",
+      "status": "ok",
+      "elapsed": 438.07,
+      "error": null
+    },
+    {
+      "step": "walk_forward_backtest",
+      "status": "skipped",
+      "elapsed": 0,
+      "error": null
+    }
+  ]
+}

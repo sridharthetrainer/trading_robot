@@ -1,0 +1,215 @@
+{
+  "n_signals": 7213,
+  "corrupt_dropped": 6,
+  "cost_pct": 0.12,
+  "n_tests": 19,
+  "alpha_corrected": 0.002632,
+  "by_modifier": {
+    "bhav_delivery": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    },
+    "cross_asset_mod": {
+      "coverage": 0.4909,
+      "n_endorsed": 1729,
+      "n_headwind": 1812,
+      "n_silent": 3672,
+      "endorsed_mean": 0.0573,
+      "silent_mean": -0.0142,
+      "lift": 0.0715,
+      "endorsed_win_rate": 0.4754,
+      "endorsed_net_of_cost": -0.0627,
+      "t_stat": 3.928,
+      "p_value": 8.7e-05,
+      "significant": true,
+      "verdict": "UNSTABLE_OOS",
+      "note": "lift sign not stable across time halves"
+    },
+    "participant_mod": {
+      "coverage": 0.9986,
+      "n_endorsed": 4208,
+      "n_headwind": 2995,
+      "n_silent": 10,
+      "verdict": "INSUFFICIENT"
+    },
+    "expiry_mod": {
+      "coverage": 0.3789,
+      "n_endorsed": 1098,
+      "n_headwind": 1635,
+      "n_silent": 4480,
+      "endorsed_mean": -0.026,
+      "silent_mean": -0.0094,
+      "lift": -0.0166,
+      "endorsed_win_rate": 0.4262,
+      "endorsed_net_of_cost": -0.146,
+      "t_stat": -0.858,
+      "p_value": 0.390782,
+      "significant": false,
+      "verdict": "NOISE"
+    },
+    "sip_boost": {
+      "coverage": 0.0801,
+      "n_endorsed": 578,
+      "n_headwind": 0,
+      "n_silent": 6635,
+      "endorsed_mean": -0.1995,
+      "silent_mean": -0.0026,
+      "lift": -0.1968,
+      "endorsed_win_rate": 0.2889,
+      "endorsed_net_of_cost": -0.3195,
+      "t_stat": -5.544,
+      "p_value": 0.0,
+      "significant": true,
+      "verdict": "UNSTABLE_OOS",
+      "note": "lift sign not stable across time halves"
+    },
+    "bulk_deal_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    },
+    "theta_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    },
+    "rebal_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    },
+    "news_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    },
+    "mtf_pivot_mod": {
+      "coverage": 0.5937,
+      "n_endorsed": 4275,
+      "n_headwind": 7,
+      "n_silent": 2931,
+      "endorsed_mean": -0.0405,
+      "silent_mean": 0.0145,
+      "lift": -0.055,
+      "endorsed_win_rate": 0.4276,
+      "endorsed_net_of_cost": -0.1605,
+      "t_stat": -3.667,
+      "p_value": 0.000248,
+      "significant": true,
+      "verdict": "UNSTABLE_OOS",
+      "note": "lift sign not stable across time halves"
+    },
+    "ai_score": {
+      "coverage": 0.8005,
+      "n_endorsed": 5774,
+      "n_headwind": 0,
+      "n_silent": 1439,
+      "endorsed_mean": -0.0267,
+      "silent_mean": 0.0149,
+      "lift": -0.0415,
+      "endorsed_win_rate": 0.4229,
+      "endorsed_net_of_cost": -0.1467,
+      "t_stat": -1.764,
+      "p_value": 0.077962,
+      "significant": false,
+      "verdict": "NOISE"
+    },
+    "rl_bias": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    },
+    "weinstein_mod": {
+      "coverage": 0.0018,
+      "n_endorsed": 13,
+      "n_headwind": 0,
+      "n_silent": 7200,
+      "verdict": "DEAD"
+    },
+    "gex_mod": {
+      "coverage": 0.0007,
+      "n_endorsed": 4,
+      "n_headwind": 1,
+      "n_silent": 7208,
+      "verdict": "DEAD"
+    },
+    "skew_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    },
+    "whale_mod": {
+      "coverage": 0.9986,
+      "n_endorsed": 0,
+      "n_headwind": 7203,
+      "n_silent": 10,
+      "verdict": "INSUFFICIENT"
+    },
+    "sr_level_mod": {
+      "coverage": 0.5939,
+      "n_endorsed": 4267,
+      "n_headwind": 17,
+      "n_silent": 2929,
+      "endorsed_mean": -0.0405,
+      "silent_mean": 0.0134,
+      "lift": -0.0539,
+      "endorsed_win_rate": 0.4277,
+      "endorsed_net_of_cost": -0.1605,
+      "t_stat": -3.595,
+      "p_value": 0.000327,
+      "significant": true,
+      "verdict": "UNSTABLE_OOS",
+      "note": "lift sign not stable across time halves"
+    },
+    "pivot_boss_mod": {
+      "coverage": 0.9961,
+      "n_endorsed": 4315,
+      "n_headwind": 2870,
+      "n_silent": 28,
+      "verdict": "INSUFFICIENT"
+    },
+    "oi_mod": {
+      "coverage": 0.0,
+      "n_endorsed": 0,
+      "n_headwind": 0,
+      "n_silent": 7213,
+      "verdict": "DEAD"
+    }
+  },
+  "summary": {
+    "helps": [],
+    "hurts": [],
+    "dead": [
+      "bhav_delivery",
+      "bulk_deal_mod",
+      "theta_mod",
+      "rebal_mod",
+      "news_mod",
+      "rl_bias",
+      "weinstein_mod",
+      "gex_mod",
+      "skew_mod",
+      "oi_mod"
+    ],
+    "noise": [
+      "expiry_mod",
+      "ai_score"
+    ]
+  },
+  "conclusion": "HELPS=\u2014 | HURTS=\u2014 | DEAD=['bhav_delivery', 'bulk_deal_mod', 'theta_mod', 'rebal_mod', 'news_mod', 'rl_bias', 'weinstein_mod', 'gex_mod', 'skew_mod', 'oi_mod'] | NOISE=['expiry_mod', 'ai_score']. Prune/flip is a human call after a locked-holdout pass \u2014 report only."
+}

@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-06-25T19:05:01+0530",
+  "mode": {
+    "paper_training_only": true,
+    "live_ready_count": 0,
+    "total_strategies": 94,
+    "live_block_reason": "no_strategy_passed_live_eligibility_manifest"
+  },
+  "scores": {
+    "data_pipeline": 95.0,
+    "data_pipeline_grade": "A",
+    "institutional": 78.0,
+    "institutional_grade": "B",
+    "option_bot": 98.0,
+    "option_bot_grade": "A"
+  },
+  "data": {
+    "candle_1m_symbols": 193,
+    "candle_1d_symbols": 193,
+    "derived_daily_symbols": 193,
+    "bad_candle_groups": 204,
+    "stale_candle_groups": 203,
+    "total_candle_groups": 407,
+    "latest_option_snapshot_ok": "2026-06-25T15:32:05+0530",
+    "latest_option_snapshot_age_hours": 3.55
+  },
+  "execution": {
+    "trades": 12,
+    "live_trades": 0,
+    "order_id_coverage_pct": 100.0,
+    "fill_status_coverage_pct": 0.0,
+    "fill_latency_coverage_pct": 0.0,
+    "entry_slippage_coverage_pct": 100.0,
+    "avg_entry_slippage_pct": 0.0
+  },
+  "learning": {
+    "experiments_logged": 3,
+    "labelled_rows": 5629,
+    "labelled_days": 6,
+    "target_labelled": 5000,
+    "target_days": 15
+  },
+  "blocks": [
+    "no_live_ready_strategy",
+    "labelled_days_below_target"
+  ],
+  "warnings": [
+    "candle_quality_bad_groups_high",
+    "intraday_candle_cache_stale"
+  ],
+  "ready_for_scaled_live": false
+}

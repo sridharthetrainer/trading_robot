@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-06-25T19:04:50+0530",
+  "db_path": "candle_cache.db",
+  "db_exists": true,
+  "target_symbols": 194,
+  "intervals": [
+    "1m",
+    "1d"
+  ],
+  "batch_size": 25,
+  "interval_plans": [
+    {
+      "interval": "1m",
+      "target_symbols": 194,
+      "present_symbols": 193,
+      "missing_symbols": 1,
+      "coverage_pct": 99.48,
+      "priority_missing": [
+        "LTIM"
+      ],
+      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM"
+    },
+    {
+      "interval": "1d",
+      "target_symbols": 194,
+      "present_symbols": 193,
+      "missing_symbols": 1,
+      "coverage_pct": 99.48,
+      "priority_missing": [
+        "LTIM"
+      ],
+      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols LTIM"
+    }
+  ],
+  "missing_by_interval": {
+    "1m": [
+      "LTIM"
+    ],
+    "1d": [
+      "LTIM"
+    ]
+  },
+  "next_actions": [
+    {
+      "interval": "1m",
+      "missing_symbols": 1,
+      "priority_missing": [
+        "LTIM"
+      ],
+      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM"
+    },
+    {
+      "interval": "1d",
+      "missing_symbols": 1,
+      "priority_missing": [
+        "LTIM"
+      ],
+      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols LTIM"
+    }
+  ]
+}
