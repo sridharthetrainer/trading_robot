@@ -168,25 +168,86 @@ def _option_alerts():
     return _OPTION_ALERTS
 
 
+def _fmt_oi(value: Any) -> str:
+    v = _safe_float(value)
+    if v >= 1e7:  return f"{v/1e7:.1f}Cr"
+    if v >= 1e5:  return f"{v/1e5:.1f}L"
+    if v >= 1e3:  return f"{v/1e3:.0f}K"
+    return f"{v:.0f}" if v else "—"
+
+
 def _format_option_card(p: Dict[str, Any]) -> str:
+    """Rich option-selection card for the separate option Telegram channel.
+    Uses only fields actually present in the decision payload; each line is
+    omitted gracefully when its data is missing."""
     sel = p.get("selected") or {}
+    q = p.get("quality") or {}
+    if isinstance(q.get("chain_quality"), dict):   # tolerate nested shape
+        q = q["chain_quality"]
+
+    sym = p.get("symbol", "")
     strike = sel.get("strike") or ""
     otype = str(sel.get("option_type") or "").upper()
     leg = str(sel.get("symbol") or "").strip()
     if not leg and strike and otype:
-        leg = f"{p.get('symbol','')} {int(_safe_float(strike))}{otype}".strip()
-    lines = [
-        f"🎯 <b>OPTION SELECTED — {p.get('symbol','')}</b>",
-        f"  {p.get('strategy','')} | {p.get('side','')}",
-        f"  Spot: {_safe_float(p.get('spot')):.1f} | Score: {_safe_float(p.get('setup_score')):.1f}",
-    ]
-    if leg:
-        lines.append(f"  Leg: {leg}")
-    entry = _safe_float(sel.get("entry") or sel.get("ltp") or sel.get("premium"))
+        leg = f"{sym} {int(_safe_float(strike))}{otype}".strip()
+    stype = str(sel.get("strike_type") or "").upper()          # ATM / OTM / ITM
+    side = str(p.get("side") or "").upper()
+    arrow = "📈" if side == "BUY" else ("📉" if side == "SELL" else "•")
+    style = str(sel.get("style") or "").strip()
+
+    hdr = f"🎯 <b>OPTION SELECTED — {sym}</b>"
+    if style:
+        hdr += f"  <i>{style}</i>"
+    lines = [hdr, "━━━━━━━━━━━━━━━━━━"]
+
+    legline = f"{arrow} <b>{side} {leg or sym}</b>"
+    if stype:
+        legline += f"  ({stype})"
+    lines.append(legline)
+
+    exp_bits = []
+    if str(sel.get("expiry") or "").strip():
+        exp_bits.append(str(sel["expiry"]).strip())
+    if sel.get("dte") not in (None, ""):
+        exp_bits.append(f"{int(_safe_float(sel.get('dte')))}DTE")
+    if exp_bits:
+        lines.append("🗓 " + " · ".join(exp_bits))
+
+    entry = _safe_float(sel.get("entry_price") or sel.get("entry")
+                        or sel.get("premium") or sel.get("ltp"))
+    money = []
     if entry > 0:
-        lines.append(f"  Entry≈ ₹{entry:.1f}")
+        money.append(f"Entry ≈ ₹{entry:.1f}")
+    if sel.get("oi") not in (None, "", 0):
+        money.append(f"OI {_fmt_oi(sel.get('oi'))}")
+    if money:
+        lines.append("💰 " + "  ·  ".join(money))
+
+    ctx = []
+    spot = _safe_float(p.get("spot") or sel.get("spot"))
+    if spot > 0:
+        ctx.append(f"Spot {spot:,.0f}")
+    if _safe_float(p.get("setup_score")) > 0:
+        ctx.append(f"Score {_safe_float(p.get('setup_score')):.0f}")
+    if p.get("strategy"):
+        ctx.append(str(p.get("strategy")))
+    if ctx:
+        lines.append("📊 " + " · ".join(ctx))
+
+    chain = []
+    if _safe_float(q.get("implied_move_pct")) > 0:
+        chain.append(f"impl move {_safe_float(q.get('implied_move_pct')):.2f}%")
+    if _safe_float(q.get("move_used_ratio")) > 0:
+        chain.append(f"used {_safe_float(q.get('move_used_ratio'))*100:.0f}%")
+    spr = q.get("ce_spread_pct") if otype == "CE" else q.get("pe_spread_pct")
+    if spr is not None and _safe_float(spr) > 0:
+        chain.append(f"spread {_safe_float(spr)*100:.1f}%")
+    if chain:
+        lines.append("🔎 " + " · ".join(chain))
+
     if p.get("reason"):
-        lines.append(f"  {p.get('reason')}")
+        lines.append("📝 " + str(p.get("reason")))
     return "\n".join(lines)
 
 
@@ -198,6 +259,112 @@ _RESEARCH_STRAT_MARKERS = ("historical_replay", "replay", "snapshot", "backtest"
 def _is_research_strategy(strategy: str) -> bool:
     s = str(strategy or "").lower()
     return any(m in s for m in _RESEARCH_STRAT_MARKERS)
+
+
+def option_performance_summary(days: int = 400, min_n: int = 10, top: int = 5,
+                               path: Optional[str] = None) -> Dict[str, Any]:
+    """Option worthiness from labelled option decisions (shadow/replay + live).
+
+    Reads the option journal, aggregates outcome_label/pnl over the window, and
+    ranks strategies by avg P&L. Also counts LIVE (non-research) selections so the
+    digest separates measured edge from live activity. Best-effort; never raises.
+    """
+    import json as _json
+    from datetime import datetime as _dt, timedelta as _td
+    out: Dict[str, Any] = {"ok": False, "days": days}
+    try:
+        jpath = ensure_option_journal(path)
+        cutoff = (_dt.now() - _td(days=int(days))).strftime("%Y-%m-%d")
+        rows = []
+        live_sel = 0
+        with open(jpath) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = _json.loads(line)
+                except Exception:
+                    continue
+                t = str(d.get("time", ""))[:10]
+                if t and t < cutoff:
+                    continue
+                dec = str(d.get("decision", ""))
+                if dec.startswith("selected") and not _is_research_strategy(d.get("strategy")):
+                    live_sel += 1
+                if d.get("outcome_label") in (1, 0, -1):
+                    rows.append(d)
+    except FileNotFoundError:
+        out["error"] = "no_option_journal"
+        return out
+    except Exception as exc:
+        out["error"] = str(exc)
+        return out
+
+    if not rows:
+        out.update({"ok": True, "n_labelled": 0, "live_selected": live_sel})
+        return out
+
+    wins = sum(1 for d in rows if d.get("outcome_label") == 1)
+    losses = sum(1 for d in rows if d.get("outcome_label") == -1)
+    timeouts = sum(1 for d in rows if d.get("outcome_label") == 0)
+    pnls = [_safe_float(d.get("pnl")) for d in rows if d.get("pnl") not in (None, "")]
+    median_pnl = 0.0
+    if pnls:
+        _sp = sorted(pnls); _m = len(_sp)
+        median_pnl = _sp[_m // 2] if _m % 2 else (_sp[_m // 2 - 1] + _sp[_m // 2]) / 2.0
+    by: Dict[str, Dict[str, float]] = {}
+    for d in rows:
+        s = str(d.get("strategy") or "?")
+        b = by.setdefault(s, {"n": 0, "w": 0, "pnl": 0.0})
+        b["n"] += 1
+        if d.get("outcome_label") == 1:
+            b["w"] += 1
+        b["pnl"] += _safe_float(d.get("pnl"))
+    ranked = sorted(
+        ({"strategy": k, "n": int(v["n"]), "win_rate": round(100.0*v["w"]/v["n"], 1),
+          "avg_pnl": round(v["pnl"]/v["n"], 1)} for k, v in by.items() if v["n"] >= min_n),
+        key=lambda x: x["avg_pnl"], reverse=True,
+    )
+    n = len(rows)
+    out.update({
+        "ok": True, "n_labelled": n, "live_selected": live_sel,
+        "wins": wins, "losses": losses, "timeouts": timeouts,
+        "win_rate": round(100.0*wins/n, 1) if n else 0.0,
+        "total_pnl": round(sum(pnls), 1), "avg_pnl": round(sum(pnls)/len(pnls), 1) if pnls else 0.0,
+        "median_pnl": round(median_pnl, 1),
+        "best": ranked[:top], "worst": ranked[-top:][::-1] if len(ranked) > top else [],
+    })
+    return out
+
+
+def format_option_summary(d: Dict[str, Any]) -> str:
+    """Render option_performance_summary() as an HTML Telegram digest."""
+    if not d.get("ok"):
+        return f"📊 Option summary unavailable ({d.get('error', '-')})"
+    if not d.get("n_labelled"):
+        return (f"📊 <b>Option Edge</b> — last {d['days']}d\n"
+                f"live selections: {d.get('live_selected', 0)}\n"
+                f"no labelled outcomes yet (need EOD/replay labelling)")
+    # Flag on MEDIAN (avg is outlier-skewed for option buying): a low win rate
+    # with positive avg is the classic "few big wins" profile — don't call it a win.
+    flag = "✅" if d.get("median_pnl", 0) > 0 else "🔴"
+    lines = [
+        f"📊 <b>Option Edge</b> — last {d['days']}d",
+        f"labelled {d['n_labelled']} · live selections {d.get('live_selected', 0)}",
+        f"W/L/T: {d['wins']}/{d['losses']}/{d['timeouts']} · win {d['win_rate']}%",
+        f"P&L: {flag} median ₹{d.get('median_pnl', 0):+.0f} · avg ₹{d['avg_pnl']:+.0f} · total ₹{d['total_pnl']:+.0f}",
+        "<i>shadow/replay-labelled — live N still small; avg is outlier-skewed</i>",
+    ]
+    if d.get("best"):
+        lines.append("\n🏆 <b>best</b> (n≥10):")
+        for b in d["best"]:
+            lines.append(f"  {b['strategy'][:24]}: ₹{b['avg_pnl']:+.0f} (n={b['n']}, win {b['win_rate']}%)")
+    if d.get("worst"):
+        lines.append("\n⚠️ <b>worst</b>:")
+        for b in d["worst"]:
+            lines.append(f"  {b['strategy'][:24]}: ₹{b['avg_pnl']:+.0f} (n={b['n']})")
+    return "\n".join(lines)
 
 
 def _alert_option_selection(payload: Dict[str, Any]) -> None:
@@ -218,6 +385,58 @@ def _alert_option_selection(payload: Dict[str, Any]) -> None:
                 dedup_key=f"optsel_{key}", dedup_cooldown_override=3600)
     except Exception as exc:
         logger.debug("option selection alert: %s", exc)
+
+
+def _alert_option_result(payload: Dict[str, Any]) -> None:
+    """Lifecycle/result alert to the option channel when a LIVE option decision
+    gets its outcome recorded (win/loss/timeout + P&L). Research/replay outcomes
+    are excluded. NOTE: this fires when the OUTCOME is journaled — autonomous
+    options aren't tracked as live intraday positions, so real-time SL/target
+    hits are not emitted (no option position tracker on that path)."""
+    try:
+        if payload.get("outcome_label") not in (1, 0, -1):
+            return
+        if _is_research_strategy(payload.get("strategy")):
+            return
+        am = _option_alerts()
+        if am is None:
+            return
+        sel = payload.get("selected") or {}
+        leg = str(sel.get("symbol") or "").strip()
+        if not leg:
+            leg = (f"{payload.get('symbol','')} {sel.get('strike','')}"
+                   f"{(sel.get('option_type') or '')}").strip()
+        lbl = payload.get("outcome_label")
+        verdict = "✅ WIN" if lbl == 1 else ("🔴 LOSS" if lbl == -1 else "⏱ TIMEOUT")
+        lines = [f"🏁 <b>OPTION RESULT — {payload.get('symbol','')}</b>",
+                 f"{verdict}  {leg}"]
+        if payload.get("pnl") is not None:
+            lines.append(f"P&L: ₹{_safe_float(payload.get('pnl')):+.0f}")
+        oc = payload.get("outcome") or {}
+        if isinstance(oc, dict) and oc.get("exit_reason"):
+            lines.append(f"exit: {oc.get('exit_reason')}")
+        key = (payload.get("trade_id") or payload.get("source_id")
+               or f"{leg}_{payload.get('ts','')}")
+        am.send("\n".join(lines), dedup_key=f"optres_{key}", dedup_cooldown_override=3600)
+    except Exception as exc:
+        logger.debug("option result alert: %s", exc)
+
+
+def send_option_daily_summary(days: int = 1) -> bool:
+    """Post the option edge digest to the option channel (once/day via dedup).
+    Best-effort; returns True if sent. Call from the EOD/post-market path."""
+    try:
+        am = _option_alerts()
+        if am is None:
+            return False
+        import time as _t
+        text = format_option_summary(option_performance_summary(days=days))
+        am.send(text, dedup_key=f"optsum_{_t.strftime('%Y-%m-%d')}",
+                dedup_cooldown_override=72_000)   # ~20h: once per trading day
+        return True
+    except Exception as exc:
+        logger.debug("send_option_daily_summary: %s", exc)
+        return False
 
 
 def record_option_decision(
@@ -281,6 +500,7 @@ def record_option_decision(
     with out_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, separators=(",", ":"), ensure_ascii=False) + "\n")
     _alert_option_selection(payload)
+    _alert_option_result(payload)
     return payload
 
 

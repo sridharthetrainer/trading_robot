@@ -2192,6 +2192,42 @@ class AutonomousTradingSystem:
 
                         try: self._tg_cmd_option.register("status", _cmd_opt_status)
                         except Exception: pass
+
+                        def _cmd_opt_edge(_=""):
+                            """Option worthiness digest (labelled outcomes + live count)."""
+                            try:
+                                from option_decision_journal import (
+                                    option_performance_summary, format_option_summary)
+                                return format_option_summary(option_performance_summary(days=400))
+                            except Exception as _ee:
+                                return f"option /optedge error: {_ee}"
+                        for _a in ("optedge", "edge", "worthiness"):
+                            try: self._tg_cmd_option.register(_a, _cmd_opt_edge)
+                            except Exception: pass
+
+                        def _cmd_opt_positions(_=""):
+                            """Open option positions from trades.db (option symbols only)."""
+                            try:
+                                import sqlite3 as _sqp
+                                _cp = _sqp.connect("file:trades.db?mode=ro", uri=True, timeout=5)
+                                _of = "(symbol GLOB '*[0-9]CE' OR symbol GLOB '*[0-9]PE')"
+                                _rows = _cp.execute(
+                                    f"SELECT symbol,side,qty,entry_price FROM trades "
+                                    f"WHERE status='OPEN' AND {_of} ORDER BY entry_time DESC LIMIT 15"
+                                ).fetchall()
+                                _cp.close()
+                                if not _rows:
+                                    return "📭 No open option positions."
+                                _out = ["📌 <b>Open option positions</b>"]
+                                for _sy, _sd, _qt, _ep in _rows:
+                                    _out.append(f"  {_sy} {_sd} x{_qt} @ ₹{float(_ep or 0):.1f}")
+                                return "\n".join(_out)
+                            except Exception as _pe:
+                                return f"option /optpositions error: {_pe}"
+                        for _a in ("optpositions", "positions"):
+                            try: self._tg_cmd_option.register(_a, _cmd_opt_positions)
+                            except Exception: pass
+
                         self._tg_cmd_option.start()
                         logger.info("Option Telegram command handler started")
                     except Exception as _oe:
@@ -2949,6 +2985,13 @@ class AutonomousTradingSystem:
             self.alerts._mark_dedup_sent(today_key)
         except Exception:
             logger.debug("_send_daily_summary_if_needed failed", exc_info=True)
+
+        # Option-channel EOD digest (separate channel; no-op if not configured).
+        try:
+            from option_decision_journal import send_option_daily_summary
+            send_option_daily_summary(days=1)
+        except Exception:
+            logger.debug("option daily summary failed", exc_info=True)
 
     def _send_learning_alert(self, result: Dict[str, Any]) -> None:
         """Send rich after-hours learning summary to Telegram."""
