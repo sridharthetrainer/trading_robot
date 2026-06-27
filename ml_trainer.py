@@ -33,6 +33,10 @@ N_ESTIMATORS       = int(os.getenv("ML_N_ESTIMATORS", "200"))
 MAX_DEPTH          = int(os.getenv("ML_MAX_DEPTH", "3"))
 LEARNING_RATE      = float(os.getenv("ML_LEARNING_RATE", "0.05"))
 CV_FOLDS           = int(os.getenv("ML_CV_FOLDS", "5"))
+# Purged-CV params: triple-barrier labels span a forward horizon, so plain CV
+# leaks. Horizon ≈ triple-barrier max_bars; embargo adds a serial-correlation gap.
+PURGE_HORIZON      = int(os.getenv("ML_PURGE_HORIZON", "12"))
+PURGE_EMBARGO      = int(os.getenv("ML_PURGE_EMBARGO", "3"))
 
 # Metadata columns — excluded from training features
 _META_COLS = {"tb_outcome", "tb_label", "__symbol", "__signal_date",
@@ -69,9 +73,24 @@ def _train_model(
         )),
     ])
 
-    # TimeSeriesSplit respects temporal order — no data-snooping
+    # TimeSeriesSplit (legacy, kept for comparison) — respects order but does NOT
+    # purge overlapping triple-barrier label windows → leaks.
     tscv = TimeSeriesSplit(n_splits=CV_FOLDS)
     cv_scores = cross_val_score(pipe, X, y, cv=tscv, scoring="roc_auc")
+
+    # Purged K-Fold + embargo — the TRUSTWORTHY CV (removes label-window leakage).
+    # This becomes the promotion gate; fall back to TimeSeriesSplit if it can't run.
+    purged = {"mean": float("nan"), "std": float("nan"), "n_splits_used": 0, "folds": []}
+    try:
+        from purged_cv import purged_cv_score
+        purged = purged_cv_score(pipe, X, y, n_splits=CV_FOLDS,
+                                 horizon=PURGE_HORIZON, embargo=PURGE_EMBARGO,
+                                 scoring="roc_auc")
+    except Exception as exc:
+        logger.debug("purged CV unavailable, using TimeSeriesSplit: %s", exc, exc_info=True)
+    _purged_ok = purged.get("n_splits_used", 0) >= 2 and purged["mean"] == purged["mean"]
+    cv_auc_primary = float(purged["mean"]) if _purged_ok else float(cv_scores.mean())
+    cv_std_primary = float(purged["std"]) if _purged_ok else float(cv_scores.std())
 
     pipe.fit(X, y)
 
@@ -88,9 +107,9 @@ def _train_model(
     n_neg = len(y) - n_pos
 
     logger.info(
-        "[%s] CV AUC=%.3f±%.3f | n=%d (W=%d L=%d) | top feature: %s (%.3f)",
+        "[%s] CV AUC(purged)=%.3f±%.3f  (TSCV=%.3f) | n=%d (W=%d L=%d) | top: %s (%.3f)",
         label,
-        cv_scores.mean(), cv_scores.std(),
+        cv_auc_primary, cv_std_primary, cv_scores.mean(),
         len(y), n_pos, n_neg,
         feat_imp[0][0] if feat_imp else "—",
         feat_imp[0][1] if feat_imp else 0,
@@ -99,8 +118,12 @@ def _train_model(
     return {
         "label":               label,
         "model":               pipe,
-        "cv_auc_mean":         round(float(cv_scores.mean()), 4),
-        "cv_auc_std":          round(float(cv_scores.std()),  4),
+        # Gate uses the PURGED (leakage-free) AUC; legacy TSCV kept for comparison.
+        "cv_auc_mean":         round(cv_auc_primary, 4),
+        "cv_auc_std":          round(cv_std_primary, 4),
+        "cv_auc_mean_tscv":    round(float(cv_scores.mean()), 4),
+        "cv_auc_purged":       round(float(purged["mean"]), 4) if _purged_ok else None,
+        "cv_method":           "purged_kfold" if _purged_ok else "timeseries_split",
         "n_samples":           len(y),
         "n_positive":          n_pos,
         "n_negative":          n_neg,
