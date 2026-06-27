@@ -21,19 +21,13 @@ def _get_angel_data_fetcher():
     return DataFetcher(angel=_ang, paper_trade=False)
 
 
-# Re-export everything from ux_engine (canonical implementations)
-try:
-    from ux_engine import (
-        get_watchlist, set_watchlist,
-        get_price_alerts, add_price_alert, check_price_alerts,
-        calculate_position_size, get_todays_signals,
-        get_weekly_performance, export_trades_csv,
-        track_signal_on_paper, get_paper_results,
-        generate_voice_status,
-    )
-except ImportError:
-    pass  # ux_engine not available — fallbacks below
-
+# NOTE: the implementations BELOW are authoritative for ux_commands. A previous
+# `from ux_engine import (...)` lived here but was dead code — every name was
+# unconditionally redefined at module scope just below, so the import was always
+# shadowed (pyflakes: "redefinition of unused"). Removed to stop implying ux_engine
+# is the source of truth on this path. ux_engine.py has parallel implementations
+# sharing the SAME state files (paper_trades.json / price_alerts.json);
+# consolidating the two is a separate follow-up (needs equivalence verification).
 
 import json, logging
 from datetime import datetime
