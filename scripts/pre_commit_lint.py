@@ -14,6 +14,7 @@ Wired via .git/hooks/pre-commit (install with scripts/install_hooks.sh).
 """
 from __future__ import annotations
 
+import ast
 import os
 import py_compile
 import subprocess
@@ -26,6 +27,52 @@ def _staged_py_files() -> list:
         capture_output=True, text=True,
     ).stdout
     return [f for f in out.splitlines() if f.endswith(".py") and os.path.exists(f)]
+
+
+def _added_lines(path: str) -> set:
+    """New-file line numbers added/changed for this file in the staged diff."""
+    out = subprocess.run(
+        ["git", "diff", "--cached", "-U0", "--", path],
+        capture_output=True, text=True,
+    ).stdout
+    added, new_ln = set(), 0
+    for line in out.splitlines():
+        if line.startswith("@@"):
+            # @@ -a,b +c,d @@  → new-file hunk starts at c
+            try:
+                plus = line.split("+", 1)[1].split("@@", 1)[0].strip()
+                new_ln = int(plus.split(",", 1)[0])
+            except Exception:
+                new_ln = 0
+        elif line.startswith("+") and not line.startswith("+++"):
+            added.add(new_ln)
+            new_ln += 1
+        elif line.startswith("-") and not line.startswith("---"):
+            pass  # removed line — does not advance new-file counter
+    return added
+
+
+def _silent_except_findings(path: str, added: set):
+    """Return (blocking_bare, warn_silent) for except-handlers ON ADDED lines:
+    newly-added bare `except:` (also swallows SystemExit/KeyboardInterrupt) and
+    newly-added `except …: pass` (a silent swallow — this repo's recurring
+    failure-hiding pattern)."""
+    blocking, warn = [], []
+    try:
+        tree = ast.parse(open(path, encoding="utf-8").read())
+    except Exception:
+        return blocking, warn          # syntax errors handled separately
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ExceptHandler):
+            continue
+        if node.lineno not in added:
+            continue                   # only NEW handlers
+        is_silent = len(node.body) == 1 and isinstance(node.body[0], ast.Pass)
+        if node.type is None:          # bare `except:`
+            blocking.append(f"  BARE-EXCEPT {path}:{node.lineno}  (use `except Exception:` + log)")
+        elif is_silent:
+            warn.append(f"  SILENT-PASS {path}:{node.lineno}  (add logger.debug(..., exc_info=True))")
+    return blocking, warn
 
 
 def main() -> int:
@@ -54,11 +101,29 @@ def main() -> int:
         if "undefined name" in line:
             errors.append(f"  UNDEFINED {line.strip()}")
 
+    # 3) Newly-added silent failure patterns (visibility for this repo's #1
+    #    incident shape: errors swallowed with no log). Bare except blocks;
+    #    `except …: pass` warns (non-blocking — many legitimate uses exist).
+    warnings: list = []
+    for f in files:
+        added = _added_lines(f)
+        if not added:
+            continue
+        bare, silent = _silent_except_findings(f, added)
+        errors.extend(bare)
+        warnings.extend(silent)
+
+    if warnings:
+        print("\n".join([
+            "⚠️  pre-commit: newly-added silent `except …: pass` (consider logging):",
+            *warnings, "",
+        ]))
+
     if errors:
         print("\n".join([
             "",
             "❌ pre-commit lint gate FAILED — commit blocked.",
-            "   (syntax error or undefined name — this repo's #1 outage cause)",
+            "   (syntax error, undefined name, or new bare `except:` — outage causes)",
             "",
             *errors,
             "",

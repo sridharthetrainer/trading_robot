@@ -4068,6 +4068,9 @@ def generate_signal(
 
         except Exception as exc:
             rejections.append(f"{strategy_fn.__name__}: {exc}")
+            # Also leave a log trail — rejection stats are per-scan and ephemeral,
+            # so a strategy that errors every bar was otherwise invisible in logs.
+            logger.debug("strategy %s raised: %s", strategy_fn.__name__, exc, exc_info=True)
 
     # ── CONFLUENCE ENGINE: All strategies run, vote by direction ────────────
     # This is the core upgrade — no strategy is time-gated to zero.
