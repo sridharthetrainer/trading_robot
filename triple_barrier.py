@@ -96,6 +96,58 @@ def r_multiple_for_outcome(
     return pnl / risk
 
 
+def cost_aware_r_multiple(
+    entry_price: float,
+    outcome_price: float,
+    side: str = "BUY",
+    stop_price: float | None = None,
+    is_options: bool = False,
+    product_type: str = "INTRADAY",
+    slippage_pct: float = 0.0005,   # 0.05% per leg (0.1% round-trip) — the real bias-killer
+    brokerage_per_leg: float = 20.0,
+    representative_qty: float | None = None,
+) -> float:
+    """
+    Net-of-cost R-multiple for a labelled signal.
+
+    Gross `r_multiple_for_outcome` is PRE-COST and, with asymmetric barriers,
+    biases average-R positive even with zero edge. This subtracts a realistic
+    round-trip cost (taxes/fees from the corrected cost model + slippage on both
+    legs, brokerage amortised over a representative position) before normalising
+    by risk.
+
+    NOTE: triple-barrier labels are UNDERLYING-DIRECTIONAL (entry/stop are the
+    underlying price, not the option premium), so this is the cost of trading the
+    underlying directionally — NOT the option-premium P&L. Option-buying bleed
+    (premium spread + theta) is larger and measured separately from the option
+    premium path. Defaults to the cash intraday model.
+    """
+    entry = _safe_float(entry_price, 0.0)
+    outcome = _safe_float(outcome_price, 0.0)
+    stop = _safe_float(stop_price, 0.0)
+    risk = abs(entry - stop)
+    if entry <= 0 or outcome <= 0 or risk <= 0:
+        return 0.0
+
+    gross = outcome - entry if str(side or "BUY").upper() == "BUY" else entry - outcome
+
+    qty = representative_qty if (representative_qty and representative_qty > 0) else max(1.0, 100_000.0 / entry)
+    try:
+        from capital_compounder import calculate_full_costs
+        costs = calculate_full_costs(
+            entry, outcome, int(round(qty)), brokerage_per_leg, is_options, product_type
+        )
+        fee_per_unit = float(costs.total) / qty
+    except Exception:
+        # conservative fallback: ~0.06% round-trip taxes/fees + amortised brokerage
+        fee_per_unit = (entry + outcome) * 0.0003 + (2.0 * brokerage_per_leg) / qty
+
+    slip_per_unit = (entry + outcome) * max(0.0, _safe_float(slippage_pct, 0.0))  # one leg each side
+    cost_per_unit = fee_per_unit + slip_per_unit
+    net_pnl = gross - cost_per_unit
+    return net_pnl / risk
+
+
 def label_triple_barrier(
     df:          pd.DataFrame,
     entry_idx:   int,

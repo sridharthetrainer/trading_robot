@@ -166,7 +166,8 @@ CREATE TABLE IF NOT EXISTS {_TBL} (
     tb_target            REAL DEFAULT 0,
     tb_stop              REAL DEFAULT 0,
     tb_rr                REAL DEFAULT 0,
-    tb_r_multiple        REAL DEFAULT 0,
+    tb_r_multiple        REAL DEFAULT 0,         -- PRE-COST (gross) directional R
+    tb_r_multiple_net    REAL DEFAULT 0,         -- net of round-trip cost + slippage
     tb_used_custom_barrier INTEGER DEFAULT 0,
     peak_price           REAL DEFAULT 0,
     max_adverse_move     REAL DEFAULT 0,
@@ -318,6 +319,7 @@ class SignalLogger:
                     "tb_stop":        "REAL DEFAULT 0",
                     "tb_rr":          "REAL DEFAULT 0",
                     "tb_r_multiple":  "REAL DEFAULT 0",
+                    "tb_r_multiple_net": "REAL DEFAULT 0",
                     "tb_used_custom_barrier": "INTEGER DEFAULT 0",
                 }
                 for _c, _decl in _new_cols.items():
@@ -715,6 +717,7 @@ class SignalLogger:
         """
         try:
             from triple_barrier import (
+                cost_aware_r_multiple,
                 get_dynamic_barriers,
                 label_triple_barrier,
                 r_multiple_for_outcome,
@@ -835,6 +838,9 @@ class SignalLogger:
                     else:
                         peak = ep; max_adv = 0.0; max_fav = 0.0
                     tb_r_multiple = r_multiple_for_outcome(ep, outcome_price, side, tb_stop)
+                    # Net-of-cost directional R (corrected cost model + slippage):
+                    # removes the PRE-COST / asymmetric-barrier positive bias.
+                    tb_r_net = cost_aware_r_multiple(ep, outcome_price, side, tb_stop)
 
                     with self._conn() as conn:
                         conn.execute(
@@ -842,12 +848,14 @@ class SignalLogger:
                             f"max_adverse_move=?, max_favorable_move=?, "
                             f"outcome_price=?, outcome_time=?, "
                             f"tb_target=?, tb_stop=?, tb_rr=?, tb_r_multiple=?, "
+                            f"tb_r_multiple_net=?, "
                             f"tb_used_custom_barrier=? "
                             f"WHERE id=?",
                             (label, peak, round(max_adv, 3), round(max_fav, 3),
                              round(outcome_price, 4), outcome_time,
                              round(tb_target, 4), round(tb_stop, 4), round(tb_rr, 4),
-                             round(tb_r_multiple, 4), 1 if used_custom else 0, sig_id)
+                             round(tb_r_multiple, 4), round(tb_r_net, 4),
+                             1 if used_custom else 0, sig_id)
                         )
                     labelled += 1
                 except Exception as e:
@@ -922,3 +930,76 @@ def get_signal_logger(db_path: str = str(_DB_PATH)) -> SignalLogger:
     if _logger_instance is None:
         _logger_instance = SignalLogger(db_path)
     return _logger_instance
+
+
+def worthiness_summary(db_path: str = str(_DB_PATH), days: int = 30,
+                       min_n: int = 20, top: int = 5) -> dict:
+    """
+    Signal worthiness from triple-barrier shadow labels — GROSS vs NET-of-cost R.
+
+    Decides edge from every generated signal (not just executed trades). Net R
+    subtracts the corrected round-trip cost + slippage, removing the PRE-COST /
+    asymmetric-barrier positive bias. Only rows with a real barrier (tb_stop>0)
+    are scored; net is computed on the fly where the column isn't populated yet.
+    Reports meta-labeler readiness (needs >=10 distinct trading days).
+    """
+    import sqlite3 as _sql
+    out = {"ok": False, "days": days}
+    try:
+        from triple_barrier import cost_aware_r_multiple, r_multiple_for_outcome
+        conn = _sql.connect(db_path)
+        conn.row_factory = _sql.Row
+        rows = conn.execute(
+            f"SELECT strategy, side, entry_price, outcome_price, tb_stop, tb_label, "
+            f"tb_r_multiple, tb_r_multiple_net, signal_date "
+            f"FROM {_TBL} WHERE tb_label IN (1,0,-1) AND tb_stop > 0 "
+            f"AND signal_date >= date('now', ?, 'localtime')",
+            (f'-{int(days)} days',),
+        ).fetchall()
+        conn.close()
+    except Exception as e:
+        out["error"] = str(e)
+        return out
+
+    if not rows:
+        out["error"] = "no_barriered_labels_in_window"
+        return out
+
+    days_seen, by_strat = set(), {}
+    n = wins = net_pos = 0
+    g_sum = nt_sum = 0.0
+    for r in rows:
+        ep = r["entry_price"] or 0; op = r["outcome_price"] or 0
+        st = r["tb_stop"] or 0; side = r["side"] or "BUY"
+        if ep <= 0 or op <= 0 or st <= 0:
+            continue
+        g = r["tb_r_multiple"] or r_multiple_for_outcome(ep, op, side, st)
+        nt = r["tb_r_multiple_net"] or cost_aware_r_multiple(ep, op, side, st)
+        n += 1
+        if r["tb_label"] == 1: wins += 1
+        if nt > 0: net_pos += 1
+        g_sum += g; nt_sum += nt
+        if r["signal_date"]: days_seen.add(str(r["signal_date"]))
+        s = (r["strategy"] or "?")
+        d = by_strat.setdefault(s, {"n": 0, "g": 0.0, "nt": 0.0})
+        d["n"] += 1; d["g"] += g; d["nt"] += nt
+
+    if n == 0:
+        out["error"] = "no_valid_rows"
+        return out
+
+    ranked = sorted(
+        ({"strategy": k, "n": v["n"], "avg_gross_R": round(v["g"]/v["n"], 3),
+          "avg_net_R": round(v["nt"]/v["n"], 3)} for k, v in by_strat.items() if v["n"] >= min_n),
+        key=lambda x: x["avg_net_R"], reverse=True,
+    )
+    dd = len(days_seen)
+    out.update({
+        "ok": True, "n_scored": n, "distinct_days": dd,
+        "win_rate": round(100.0*wins/n, 1),
+        "avg_gross_R": round(g_sum/n, 3), "avg_net_R": round(nt_sum/n, 3),
+        "pct_net_positive": round(100.0*net_pos/n, 1),
+        "meta_labeler_ready": dd >= 10,
+        "best": ranked[:top], "worst": ranked[-top:][::-1] if len(ranked) > top else [],
+    })
+    return out

@@ -372,6 +372,9 @@ class TelegramCommandHandler:
         self.register("signals",     self._cmd_signals)
         self.register("today",       self._cmd_today)
         self.register("missed",      self._cmd_missed)
+        self.register("edge",        self._cmd_edge)
+        self.register("worthiness",  self._cmd_edge)
+        self.register("netr",        self._cmd_edge)
         self.register("heat",        self._cmd_heat)
         self.register("symbols",     self._cmd_symbols)
         # ── Morning / Market Context ──────────────────────────────────────────
@@ -604,6 +607,7 @@ class TelegramCommandHandler:
             "  /insider  /social  /news\n"
             "  /commodities  /corpactions  /wow\n\n"
             "💹 <b>Performance</b>\n"
+            "  /edge — signal worthiness: gross vs NET-of-cost R 🆕\n"
             "  /weekly  /analytics  /compare\n"
             "  /sharpe  /streak  /attribution\n"
             "  /eod  /downloads  /export\n\n"
@@ -2435,6 +2439,39 @@ class TelegramCommandHandler:
             return get_todays_signals()
         except Exception as e:
             return f"❌ Today's signals: {e}"
+
+    def _cmd_edge(self, args="") -> str:
+        """Signal worthiness: GROSS vs NET-of-cost R from triple-barrier labels.
+        Decides edge from every signal generated, not just executed trades.
+        Usage: /edge [days]  (default 30)."""
+        try:
+            from signal_log import worthiness_summary
+            parts = args.strip().split()
+            days = int(parts[1]) if len(parts) > 1 and parts[1].lstrip("-").isdigit() else 30
+            s = worthiness_summary(days=days)
+            if not s.get("ok"):
+                return f"📊 Signal worthiness: no scored signals yet ({s.get('error', '-')})"
+            flag = "✅" if s["avg_net_R"] > 0 else "🔴"
+            ready = "yes ✅" if s["meta_labeler_ready"] else f"no ({s['distinct_days']}/10 days)"
+            lines = [
+                f"📊 <b>Signal Worthiness</b> — last {s['days']}d",
+                f"scored {s['n_scored']} signals · {s['distinct_days']} day(s) · win {s['win_rate']}%",
+                f"avg R: gross {s['avg_gross_R']:+.3f} → {flag} <b>net {s['avg_net_R']:+.3f}</b>",
+                f"net-positive: {s['pct_net_positive']}%  |  meta-labeler ready: {ready}",
+            ]
+            if s.get("best"):
+                lines.append("\n🏆 <b>best net-R</b> (n≥20):")
+                for b in s["best"]:
+                    lines.append(f"  {b['strategy'][:26]}: net {b['avg_net_R']:+.3f} "
+                                 f"(n={b['n']}, gross {b['avg_gross_R']:+.3f})")
+            if s.get("worst"):
+                lines.append("\n⚠️ <b>worst net-R</b>:")
+                for b in s["worst"]:
+                    lines.append(f"  {b['strategy'][:26]}: net {b['avg_net_R']:+.3f} (n={b['n']})")
+            lines.append("\n<i>net = gross − round-trip cost − slippage (directional)</i>")
+            return "\n".join(lines)
+        except Exception as e:
+            return f"❌ /edge error: {e}"
 
     def _cmd_calculate(self, args="") -> str:
         """UX-5+13: Position sizing calculator."""
