@@ -13,6 +13,7 @@ Run:
 
 import sqlite3
 import sys
+from datetime import date
 from pathlib import Path
 
 # Add workspace to path
@@ -117,10 +118,13 @@ def test_option_metadata_wiring(tmp_path):
     print("[3] Calling mark_executed() with option metadata...")
     
     trade_id = "TRADE_001"
+    # 0DTE scalping: expiry is today (dynamic so the test never goes stale;
+    # mark_executed blocks expiry < today as an expired contract).
+    today_iso = date.today().isoformat()
     option_metadata = {
         "option_type": "CE",
         "option_strike": 23500,
-        "option_expiry": "2026-06-25",
+        "option_expiry": today_iso,
         "option_dte": 0,
         "option_style": "scalping",
         "option_premium": 45.50,
@@ -164,7 +168,7 @@ def test_option_metadata_wiring(tmp_path):
     print(f"   trade_id: {trade_id_chk} (should be {trade_id})")
     print(f"   option_type: '{opt_type_new}' (should be 'CE')")
     print(f"   option_strike: {opt_strike_new} (should be 23500)")
-    print(f"   option_expiry: '{opt_expiry_new}' (should be '2026-06-25')")
+    print(f"   option_expiry: '{opt_expiry_new}' (should be '{today_iso}')")
     print(f"   option_dte: {opt_dte_new} (should be 0)")
     print(f"   option_style: '{opt_style_new}' (should be 'scalping')")
     print(f"   option_premium: {opt_premium_new} (should be 45.5)")
@@ -176,7 +180,7 @@ def test_option_metadata_wiring(tmp_path):
         ("trade_id", trade_id_chk, trade_id),
         ("option_type", opt_type_new, "CE"),
         ("option_strike", opt_strike_new, 23500),
-        ("option_expiry", opt_expiry_new, "2026-06-25"),
+        ("option_expiry", opt_expiry_new, today_iso),
         ("option_dte", opt_dte_new, 0),
         ("option_style", opt_style_new, "scalping"),
         ("option_premium", opt_premium_new, 45.5),
