@@ -193,9 +193,36 @@ def record_option_chains(
     }
 
 
+def _load_trading_holidays() -> set:
+    """NSE holiday dates ('YYYY-MM-DD') from trading_holidays.json. Best-effort."""
+    try:
+        import json as _j
+        with open("trading_holidays.json") as f:
+            data = _j.load(f)
+        if isinstance(data, dict):
+            data = data.get("holidays") or data.get("dates") or []
+        return {str(d)[:10] for d in (data or [])}
+    except Exception:
+        return set()
+
+
 def _in_market_hours(now: datetime | None = None) -> bool:
     now = now or datetime.now()
-    return now.weekday() < 5 and dtime(9, 15) <= now.time() <= dtime(15, 35)
+    if now.weekday() >= 5:                                  # weekend
+        return False
+    if now.strftime("%Y-%m-%d") in _load_trading_holidays():  # NSE holiday
+        return False
+    return dtime(9, 15) <= now.time() <= dtime(15, 35)
+
+
+# Only these sources are LIVE chain data — anything else (cache aliases, unknown
+# resilience tags) must NOT be persisted as a live snapshot.
+_LIVE_SOURCES = {"nse_live", "angel", "angel_fallback", "resilience_nse",
+                 "sensibull", "bse_oc", "bse"}
+
+
+def _is_live_source(src) -> bool:
+    return str(src or "").lower() in _LIVE_SOURCES
 
 
 def run_snapshot_loop(

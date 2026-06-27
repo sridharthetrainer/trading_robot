@@ -123,6 +123,38 @@ def _spread_pct(leg: Dict[str, Any]) -> Optional[float]:
     return (ask - bid) / mid
 
 
+def extract_contract_liquidity(
+    option_data: Optional[Dict[str, Any]],
+    strike: float,
+    option_type: str,
+) -> Dict[str, Any]:
+    """Per-strike CE/PE liquidity from a flat chain row
+    ({strikePrice, <CE/PE>_lastPrice/_openInterest/_totalTradedVolume/_bidPrice/_askPrice}).
+    Returns {last_price, oi, volume, spread_pct}. Used by option_multistrike_signals."""
+    rows = (option_data or {}).get("chain") or []
+    ot = str(option_type or "").upper()
+    for r in rows:
+        try:
+            k = float(r.get("strikePrice", r.get("strike", 0)) or 0)
+        except (TypeError, ValueError):
+            continue
+        if abs(k - float(strike)) > 1e-6:
+            continue
+        lp  = _leg_float(r, f"{ot}_lastPrice", f"{ot}_lastprice")
+        bid = _leg_float(r, f"{ot}_bidPrice", f"{ot}_bidprice")
+        ask = _leg_float(r, f"{ot}_askPrice", f"{ot}_askprice")
+        mid = (bid + ask) / 2.0
+        # Fraction (e.g. 0.009 = 0.9%), matching _spread_pct() convention.
+        spread = round((ask - bid) / mid, 6) if (mid > 0 and ask >= bid > 0) else None
+        return {
+            "last_price": lp,
+            "oi":         _leg_float(r, f"{ot}_openInterest", f"{ot}_oi"),
+            "volume":     _leg_float(r, f"{ot}_totalTradedVolume", f"{ot}_volume"),
+            "spread_pct": spread,
+        }
+    return {"last_price": 0.0, "oi": 0.0, "volume": 0.0, "spread_pct": None}
+
+
 def _session_move_pct(df: Any, spot: float) -> float:
     if df is None or spot <= 0:
         return 0.0

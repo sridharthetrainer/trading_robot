@@ -22,6 +22,22 @@ from typing import Any, Dict, Iterable, List, Optional
 
 REPORT_JSON = "autonomous_param_training_report.json"
 
+
+def _normalise_backtest_data(df):
+    """Title-case OHLCV columns so cached sources that return lowercase
+    (open/high/low/close/volume) match the backtesters' Open/High/Low/Close/Volume
+    lookups. Returns df unchanged if empty/None."""
+    if df is None or getattr(df, "empty", True):
+        return df
+    canon = {
+        "open": "Open", "high": "High", "low": "Low", "close": "Close",
+        "volume": "Volume", "adj close": "Close", "adj_close": "Close",
+    }
+    out = df.copy()
+    out.columns = [canon.get(str(c).lower(), c) for c in out.columns]
+    return out
+
+
 STRATEGY_BACKTESTS: Dict[str, tuple[str, str]] = {
     "trend": ("backtest_trend", "backtest_trend"),
     "mean_reversion": ("backtest_mr_enhanced", "backtest_mr"),

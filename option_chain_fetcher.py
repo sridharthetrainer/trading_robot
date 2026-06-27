@@ -49,7 +49,10 @@ class NSEOptionChainFetcher:
         self.max_retries = max_retries
         self.strike_count_each_side = strike_count_each_side
         self.include_gamma_approx = include_gamma_approx
-        self.cache_file = cache_file
+        # Per-underlying cache so NIFTY/BANKNIFTY/SENSEX never serve each other's
+        # cached chain (cross-underlying contamination). Custom paths kept as-is.
+        self.cache_file = (cache_file if cache_file != "option_chain_cache.json"
+                           else f"option_chain_cache_{self.underlying.lower()}.json")
         self.use_cache_fallback = use_cache_fallback
 
         self.session = requests.Session()
@@ -83,6 +86,22 @@ class NSEOptionChainFetcher:
         if _dt.now().weekday() >= 5: return False
         n = _dt.now().time()
         return _dtime(8,45) <= n <= _dtime(16,30)
+
+    # Plausible spot range per underlying — rejects cross-underlying cache/data
+    # (e.g. a NIFTY ~24k spot wrongly served for SENSEX ~82k).
+    _SPOT_RANGES = {
+        "NIFTY": (15000, 40000), "BANKNIFTY": (30000, 80000),
+        "FINNIFTY": (15000, 40000), "MIDCPNIFTY": (8000, 30000),
+        "NIFTYNEXT50": (40000, 110000),
+        "SENSEX": (50000, 130000), "BANKEX": (40000, 90000),
+    }
+
+    def _is_plausible_spot(self, spot) -> bool:
+        lo, hi = self._SPOT_RANGES.get(self.underlying, (0.0, 1e12))
+        try:
+            return lo <= float(spot) <= hi
+        except (TypeError, ValueError):
+            return False
 
     def fetch(self, expiry: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Fetch option chain: NSE → Sensibull → Angel."""

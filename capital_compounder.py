@@ -57,11 +57,18 @@ logger = logging.getLogger(__name__)
 # ─── NSE Options full cost model ────────────────────────────────────────────
 # All rates verified against NSE/SEBI circulars (2024-2025)
 
-NSE_EXCHANGE_CHARGE_RATE = 0.000530   # 0.053% of options turnover (both sides)
+NSE_EXCHANGE_CHARGE_RATE = 0.0003553  # ₹3553/cr options premium turnover (post Oct-2024 NSE revision; both sides)
 SEBI_LEVY_RATE           = 0.000001   # 0.0001% of turnover
 GST_RATE                 = 0.18       # 18% GST on brokerage+exchange+SEBI
 STAMP_DUTY_RATE          = 0.00003    # 0.003% of buy-side premium (buyer only)
 STT_OPTIONS_SELL         = 0.0015  # Budget 2026: raised 0.10%→0.15% from Apr 1 2026     # 0.05% of sell premium (seller/exit)
+
+# ─── Equity (cash) cost model — segment-specific (intraday vs delivery) ──────
+EQ_EXCHANGE_CHARGE_RATE  = 0.0000297  # ₹297/cr NSE cash turnover (both sides)
+EQ_STT_DELIVERY          = 0.001      # 0.1% on BOTH buy + sell (delivery)
+EQ_STT_INTRADAY_SELL     = 0.00025    # 0.025% on sell side only (intraday)
+EQ_STAMP_DELIVERY        = 0.00015    # 0.015% buy side (delivery)
+EQ_STAMP_INTRADAY        = 0.00003    # 0.003% buy side (intraday)
 
 # ─── Capital tier definitions ────────────────────────────────────────────────
 
@@ -164,6 +171,7 @@ def calculate_full_costs(
     qty:                int,
     brokerage_per_leg:  float = 20.0,
     is_options:         bool  = True,
+    product_type:       str   = "INTRADAY",
 ) -> TransactionCosts:
     """
     Calculate ALL NSE options transaction costs for a round-trip trade.
@@ -214,12 +222,19 @@ def calculate_full_costs(
         c.stamp_duty = entry_turnover * STAMP_DUTY_RATE
 
     else:
-        # Equity delivery — different rate structure
-        c.stt             = exit_turnover * 0.0015  # Budget 2026: 0.15% effective Apr 1 2026    # 0.1% on sell
-        c.exchange_charge = total_turnover * 0.00035
+        # Equity (cash) — segment-specific (intraday vs delivery)
+        delivery = str(product_type or "INTRADAY").upper() == "DELIVERY"
+        if delivery:
+            # STT 0.1% on BOTH buy + sell; stamp 0.015% buy side
+            c.stt        = total_turnover * EQ_STT_DELIVERY
+            c.stamp_duty = entry_turnover * EQ_STAMP_DELIVERY
+        else:
+            # Intraday: STT 0.025% sell side only; stamp 0.003% buy side
+            c.stt        = exit_turnover  * EQ_STT_INTRADAY_SELL
+            c.stamp_duty = entry_turnover * EQ_STAMP_INTRADAY
+        c.exchange_charge = total_turnover * EQ_EXCHANGE_CHARGE_RATE
         c.sebi_levy       = total_turnover * SEBI_LEVY_RATE
         c.gst             = (c.brokerage + c.exchange_charge + c.sebi_levy) * GST_RATE
-        c.stamp_duty      = entry_turnover * 0.00015
 
     c.total = (
         c.brokerage + c.stt + c.exchange_charge
@@ -236,6 +251,7 @@ def calculate_net_pnl(
     side:              str   = "BUY",
     brokerage_per_leg: float = 20.0,
     is_options:        bool  = True,
+    product_type:      str   = "INTRADAY",
 ) -> Tuple[float, float, TransactionCosts]:
     """
     Calculate gross P&L, net P&L, and full cost breakdown.
@@ -248,7 +264,7 @@ def calculate_net_pnl(
         gross = (entry_price - exit_price) * qty
 
     costs  = calculate_full_costs(entry_price, exit_price, qty,
-                                   brokerage_per_leg, is_options)
+                                   brokerage_per_leg, is_options, product_type)
     net    = gross - costs.total
 
     return round(gross, 2), round(net, 2), costs
