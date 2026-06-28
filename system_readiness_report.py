@@ -64,17 +64,43 @@ def build_system_readiness_report(
     report_file: str = REPORT_FILE,
     write: bool = True,
 ) -> Dict[str, Any]:
-    data_audit = _read_json("data_pipeline_audit.json")
-    option_audit = _read_json("option_bot_audit_report.json")
+    # Readiness must be built from current state. Stale JSON reports previously
+    # allowed an old 98/A score to survive after the underlying evidence failed.
+    try:
+        from data_pipeline_audit import run_audit
+        data_audit = run_audit(fetch_sample=0, internet=False)
+    except Exception:
+        data_audit = _read_json("data_pipeline_audit.json")
+    try:
+        from option_bot_audit import build_audit
+        option_audit = build_audit()
+    except Exception:
+        option_audit = _read_json("option_bot_audit_report.json")
     option_score = option_audit.get("score") if isinstance(option_audit.get("score"), dict) else {}
     live_elig = _read_json("live_eligibility.json")
-    fill = _read_json("execution_fill_telemetry.json")
-    quality = _read_json("data_quality_watchdog_report.json")
+    try:
+        from execution_fill_telemetry import build_execution_fill_telemetry
+        fill = build_execution_fill_telemetry(write=False)
+    except Exception:
+        fill = _read_json("execution_fill_telemetry.json")
+    try:
+        from data_quality_watchdog import audit_candle_cache
+        quality = audit_candle_cache()
+    except Exception:
+        quality = _read_json("data_quality_watchdog_report.json")
     derived = _read_json("derived_daily_candles_report.json")
+    edge = _read_json("edge_analysis_last_run.json")
+    health = _read_json("health_snapshot.json")
+    try:
+        from release_integrity import verify_manifest
+        release_integrity = verify_manifest()
+    except Exception as exc:
+        release_integrity = {"ok": False, "reason": str(exc)}
 
     latest_option_ok = _sqlite_scalar(
         "option_chain_snapshots.db",
-        "SELECT MAX(snapshot_time) FROM option_chain_snapshots WHERE ok=1",
+        "SELECT MAX(snapshot_time) FROM option_chain_snapshots "
+        "WHERE ok=1 AND is_live=1 AND COALESCE(source,'')<>''",
         None,
     )
     experiments = _sqlite_scalar("experiments.db", "SELECT COUNT(*) FROM experiments", 0)
@@ -93,6 +119,28 @@ def build_system_readiness_report(
     warnings = []
     if int(live_elig.get("live_ready_count", 0) or 0) <= 0:
         blocks.append("no_live_ready_strategy")
+    option_blocks = (option_score.get("evidence_blocks") or []) if isinstance(option_score, dict) else []
+    blocks.extend(str(item) for item in option_blocks)
+    if str(edge.get("overall", {}).get("verdict", "")).upper() != "EDGE" and "NO significant edge" in str(edge.get("conclusion", "")):
+        blocks.append("no_after_cost_statistical_edge")
+    gross_pnl = _sqlite_scalar("trades.db", "SELECT COALESCE(SUM(gross_pnl),0) FROM trades WHERE status='CLOSED'", 0)
+    net_pnl = _sqlite_scalar("trades.db", "SELECT COALESCE(SUM(realized_pnl),0) FROM trades WHERE status='CLOSED'", 0)
+    profitable = _sqlite_scalar("trades.db", "SELECT COUNT(*) FROM trades WHERE status='CLOSED' AND realized_pnl>0", 0)
+    if int(fill.get("paper", 0) or 0) < 100:
+        blocks.append("paper_execution_sample_below_100")
+    if float(net_pnl or 0) <= 0:
+        blocks.append("paper_net_pnl_not_positive")
+    broker_status = health.get("broker_status", []) if isinstance(health.get("broker_status"), list) else []
+    broker_connected = any(bool(row.get("connected")) for row in broker_status if isinstance(row, dict))
+    if not broker_connected:
+        blocks.append("broker_connectivity_unverified")
+    custom_barriers = _sqlite_scalar(
+        "signal_log.db", "SELECT COUNT(*) FROM signal_log WHERE tb_used_custom_barrier=1", 0
+    )
+    if int(custom_barriers or 0) <= 0:
+        blocks.append("no_setup_specific_barrier_labels")
+    if not release_integrity.get("ok"):
+        blocks.append("release_integrity_unverified")
     label_detail = (
         data_audit.get("checks", [{}]) if isinstance(data_audit.get("checks"), list) else []
     )
@@ -110,6 +158,10 @@ def build_system_readiness_report(
     if int(experiments or 0) == 0:
         warnings.append("experiment_registry_empty")
 
+    raw_data_score = (data_audit.get("score") or {}).get("total")
+    raw_inst_score = (data_audit.get("institutional_readiness") or {}).get("total")
+    data_score = min(float(raw_data_score or 0), 79.0) if not latest_option_ok else raw_data_score
+    institutional_score = min(float(raw_inst_score or 0), 59.0) if blocks else raw_inst_score
     report = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "mode": {
@@ -119,10 +171,12 @@ def build_system_readiness_report(
             "live_block_reason": live_elig.get("live_block_reason", ""),
         },
         "scores": {
-            "data_pipeline": (data_audit.get("score") or {}).get("total"),
-            "data_pipeline_grade": (data_audit.get("score") or {}).get("grade"),
-            "institutional": (data_audit.get("institutional_readiness") or {}).get("total"),
-            "institutional_grade": (data_audit.get("institutional_readiness") or {}).get("grade"),
+            "data_pipeline": data_score,
+            "data_pipeline_grade": "A" if float(data_score or 0) >= 90 else "B" if float(data_score or 0) >= 80 else "C" if float(data_score or 0) >= 70 else "D" if float(data_score or 0) >= 60 else "F",
+            "data_pipeline_raw_capability": raw_data_score,
+            "institutional": institutional_score,
+            "institutional_grade": "A" if float(institutional_score or 0) >= 90 else "B" if float(institutional_score or 0) >= 80 else "C" if float(institutional_score or 0) >= 70 else "D" if float(institutional_score or 0) >= 60 else "F",
+            "institutional_raw_capability": raw_inst_score,
             "option_bot": option_score.get("total"),
             "option_bot_grade": option_score.get("grade"),
         },
@@ -144,6 +198,10 @@ def build_system_readiness_report(
             "fill_latency_coverage_pct": fill.get("fill_latency_coverage_pct"),
             "entry_slippage_coverage_pct": fill.get("entry_slippage_coverage_pct"),
             "avg_entry_slippage_pct": fill.get("avg_entry_slippage_pct"),
+            "gross_pnl": round(float(gross_pnl or 0), 2),
+            "net_pnl": round(float(net_pnl or 0), 2),
+            "profitable_trades": int(profitable or 0),
+            "broker_connected": broker_connected,
         },
         "learning": {
             "experiments_logged": int(experiments or 0),
@@ -151,9 +209,12 @@ def build_system_readiness_report(
             "labelled_days": int(labelled_check.get("distinct_days", 0) or 0),
             "target_labelled": int(labelled_check.get("target_labelled", 5000) or 5000),
             "target_days": int(labelled_check.get("target_days", 15) or 15),
+            "custom_barrier_labels": int(custom_barriers or 0),
+            "edge_conclusion": edge.get("conclusion", ""),
         },
-        "blocks": blocks,
+        "blocks": list(dict.fromkeys(blocks)),
         "warnings": warnings,
+        "release_integrity": release_integrity,
         "ready_for_scaled_live": not blocks and not warnings,
     }
     if write:

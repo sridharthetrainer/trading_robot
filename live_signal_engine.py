@@ -2539,6 +2539,39 @@ class LiveSignalEngine:
         )
         stop_loss_f = _safe_float(stop_loss, 0.0)
         target_price_f = _safe_float(target_price, 0.0)
+        risk_level_source = str(
+            self._first_present(
+                signal.get("risk_level_source"), candidate.get("risk_level_source")
+            ) or ""
+        )
+        side_value = str(side or "").upper()
+        valid_risk = (
+            side_value == "BUY" and 0 < stop_loss_f < entry_price_f < target_price_f
+        ) or (
+            side_value == "SELL" and 0 < target_price_f < entry_price_f < stop_loss_f
+        )
+        if entry_price_f > 0 and side_value in {"BUY", "SELL"} and not valid_risk:
+            atr_value = _safe_float(
+                self._first_present(
+                    signal.get("atr"),
+                    signal_meta.get("atr"),
+                    candidate.get("atr"),
+                ),
+                0.0,
+            )
+            style = str(
+                self._first_present(signal.get("option_style"), candidate.get("option_style"), "intraday")
+            ).lower()
+            fallback_pct = 0.005 if "scalp" in style else 0.02 if "swing" in style else 0.01
+            risk_distance = atr_value if 0 < atr_value < entry_price_f * 0.10 else entry_price_f * fallback_pct
+            reward_distance = risk_distance * 1.5
+            if side_value == "BUY":
+                stop_loss_f = entry_price_f - risk_distance
+                target_price_f = entry_price_f + reward_distance
+            else:
+                stop_loss_f = entry_price_f + risk_distance
+                target_price_f = entry_price_f - reward_distance
+            risk_level_source = "signal_atr" if atr_value > 0 else f"signal_policy_{style}"
         rr_f = _safe_float(
             self._first_present(signal.get("rr"), signal.get("risk_reward"), candidate.get("rr")),
             0.0,
@@ -2565,6 +2598,7 @@ class LiveSignalEngine:
             "target": target_price_f,
             "target_price": target_price_f,
             "rr": round(rr_f, 4),
+            "risk_level_source": risk_level_source,
             "confidence": _safe_float(
                 self._first_present(signal.get("confidence"), candidate.get("ai_probability")),
                 0.0,
@@ -3012,6 +3046,16 @@ class LiveSignalEngine:
             self._log_no_signal("execution_plan_failed", {"symbol": symbol})
             return False
 
+        paper_mode = bool(getattr(cfg, "PAPER_TRADING", True))
+        if not paper_mode:
+            try:
+                broker_ready = bool(self.broker_manager.has_any_connected_broker())
+            except Exception:
+                broker_ready = False
+            if not broker_ready:
+                self._log_no_signal("broker_connectivity_unavailable", {"symbol": symbol})
+                return False
+
         asset_type = str(execution_plan.get("asset_type", "CASH")).upper()
         if asset_type == "CASH" and bool(getattr(cfg, "AUTONOMOUS_OPTION_FIRST", True)):
             if not bool(getattr(cfg, "ENABLE_CASH_STOCK_LAST_RESORT", True)):
@@ -3135,8 +3179,14 @@ class LiveSignalEngine:
             _ec_target = float(execution_plan.get("target_price", 0) or 0)
             _ec_stop   = float(execution_plan.get("stop_loss", 0) or 0)
             _ec_conf   = _safe_float(signal.get("confidence"), 0.0)
-            if _ec_entry > 0 and _ec_target > 0 and _ec_stop > 0 and _ec_conf > 0:
-                _econ = evaluate_trade_economics(
+            if not (_ec_entry > 0 and _ec_target > 0 and _ec_stop > 0 and _ec_conf > 0):
+                self._log_no_signal(
+                    "economic_gate_missing_inputs",
+                    {"symbol": symbol, "entry": _ec_entry, "target": _ec_target,
+                     "stop": _ec_stop, "confidence": _ec_conf},
+                )
+                return False
+            _econ = evaluate_trade_economics(
                     entry_price=_ec_entry,
                     target_price=_ec_target,
                     stop_loss=_ec_stop,
@@ -3146,21 +3196,24 @@ class LiveSignalEngine:
                     brokerage_per_leg=float(getattr(cfg, "BROKERAGE_PER_ORDER", 20.0) or 20.0),
                     is_options=(str(execution_plan.get("asset_type", "CASH")).upper() == "OPTION"),
                     cost_hurdle_multiplier=float(getattr(cfg, "COST_HURDLE_MULTIPLIER", 2.5) or 2.5),
+                    min_expected_net=float(getattr(cfg, "MIN_EXPECTED_NET_PROFIT", 0.0) or 0.0),
                 )
-                if (not _econ.allowed
-                        and _econ.reason == "win_probability_below_after_cost_breakeven"):
-                    self._log_no_signal(
-                        "economic_edge_below_breakeven",
-                        {
-                            "symbol": symbol,
-                            "win_probability": _econ.win_probability,
-                            "breakeven_probability": _econ.breakeven_probability,
-                            "expected_net": _econ.expected_net,
-                        },
-                    )
-                    return False
-        except Exception:
-            pass
+            execution_plan["trade_economics"] = _econ.to_dict()
+            if not _econ.allowed:
+                self._log_no_signal(
+                    f"economic_gate_{_econ.reason}",
+                    {
+                        "symbol": symbol,
+                        "win_probability": _econ.win_probability,
+                        "breakeven_probability": _econ.breakeven_probability,
+                        "expected_net": _econ.expected_net,
+                    },
+                )
+                return False
+        except Exception as exc:
+            logger.exception("Trade economics gate failed for %s", symbol)
+            self._log_no_signal("economic_gate_error", {"symbol": symbol, "error": str(exc)[:160]})
+            return False
 
         # Pre-market gap reduction (computed once per cycle in _run_cycle):
         # shrink size on big-gap mornings. Previously the multiplier was logged
@@ -3195,7 +3248,11 @@ class LiveSignalEngine:
             if _var and _var > 0.03:
                 final_qty = max(1, int(final_qty * 0.03 / _var))
                 logger.debug("VaR=%.1f%% → qty=%d", _var*100, final_qty)
-        except Exception: pass
+        except Exception as exc:
+            if not bool(getattr(cfg, "PAPER_TRADING", True)):
+                self._log_no_signal("var_gate_error", {"symbol": symbol, "error": str(exc)[:160]})
+                return False
+            logger.debug("VaR gate unavailable in paper mode: %s", exc)
 
         # ── Beta sizing ───────────────────────────────────────────────────────
         try:

@@ -82,7 +82,8 @@ def per_strategy_record(min_samples: int = _MIN_SAMPLES) -> Dict[str, Any]:
     """
     rows = _query(
         f"SELECT strategy, tb_label, score, regime, signal_date "
-        f"FROM {_TABLE} WHERE tb_label != -99 AND strategy IS NOT NULL "
+        f"FROM {_TABLE} WHERE tb_label IN (-1,0,1) AND training_eligible=1 "
+        f"AND stop_loss>0 AND target>0 AND rr>0 AND strategy IS NOT NULL "
         f"ORDER BY signal_date ASC"
     )
     if not rows:
@@ -213,10 +214,10 @@ def build_track_record(min_samples: int = _MIN_SAMPLES) -> Dict[str, Any]:
 
     # Overall system stats
     all_labels  = _query(
-        f"SELECT tb_label FROM {_TABLE} WHERE tb_label != -99"
+        f"SELECT tb_label FROM {_TABLE} WHERE tb_label IN (-1,0,1) AND training_eligible=1"
     )
     all_executed = _query(
-        f"SELECT tb_label FROM {_TABLE} WHERE tb_label != -99 AND executed = 1"
+        f"SELECT tb_label FROM {_TABLE} WHERE tb_label IN (-1,0,1) AND training_eligible=1 AND executed = 1"
     )
     total_l = [int(r["tb_label"]) for r in all_labels if int(r["tb_label"]) in (1,-1)]
     exec_l  = [int(r["tb_label"]) for r in all_executed if int(r["tb_label"]) in (1,-1)]

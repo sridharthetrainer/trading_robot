@@ -163,7 +163,8 @@ def _shadow_candidates(
         exit_price = _price(exit_close, exit_settle)
         if entry <= 0 or exit_price <= 0:
             continue
-        pnl = exit_price - entry
+        from shadow_execution import simulate_option_round_trip
+        execution = simulate_option_round_trip(entry, exit_price, side="BUY")
         strike_f = _safe_float(strike, 0.0)
         out.append({
             "symbol": _option_symbol(root, expiry, strike_f, opt_type),
@@ -181,10 +182,11 @@ def _shadow_candidates(
             "synthetic_shadow": False,
             "entry_source": "historical_option_eod_replay",
             "shadow_outcome": {
-                "label": 1 if pnl > 0 else -1 if pnl < 0 else 0,
-                "pnl": round(pnl, 2),
+                "label": execution["label"],
+                "pnl": execution["net_pnl"],
                 "exit_price": round(exit_price, 2),
                 "exit_reason": "historical_option_eod_replay_next_session",
+                "execution_model": execution,
             },
         })
     return out
@@ -269,7 +271,8 @@ def run_historical_option_replay(
                 spot = _safe_float(spot_raw, 0.0)
                 dte = _date_diff_days(str(date), str(expiry))
                 style = _style_for_dte(dte)
-                pnl = exit_price - entry
+                from shadow_execution import simulate_option_round_trip
+                execution = simulate_option_round_trip(entry, exit_price, side="BUY")
                 selected = {
                     "symbol": _option_symbol(root, str(expiry), strike_f, opt_type),
                     "strike": strike_f,
@@ -316,16 +319,17 @@ def run_historical_option_replay(
                         selected=selected,
                         strikes=shadows,
                         source_id=source_id,
-                        outcome_label=1 if pnl > 0 else -1 if pnl < 0 else 0,
-                        pnl=round(pnl, 2),
+                        outcome_label=execution["label"],
+                        pnl=execution["net_pnl"],
                         outcome={
-                            "label": 1 if pnl > 0 else -1 if pnl < 0 else 0,
-                            "pnl": round(pnl, 2),
+                            "label": execution["label"],
+                            "pnl": execution["net_pnl"],
                             "entry_price": round(entry, 2),
                             "exit_price": round(exit_price, 2),
                             "entry_date": str(date),
                             "exit_date": str(next_day),
                             "exit_reason": "historical_option_eod_replay_next_session",
+                            "execution_model": execution,
                         },
                         metadata={
                             "historical_replay": True,

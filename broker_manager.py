@@ -344,6 +344,20 @@ class BrokerManager:
         order_tag  = kwargs.get("order_tag", "")
 
         try:
+            from execution_compliance import preflight_order, record_order_result
+            allowed, compliance_reason = preflight_order(
+                symbol=symbol, qty=qty, side=buy_sell, order_type=order_type,
+                price=price, exchange=exchange or ("NFO" if "CE" in symbol or "PE" in symbol else "NSE"),
+                order_tag=order_tag, live=not bool(getattr(broker, "paper_trade", False)),
+            )
+        except Exception as exc:
+            logger.exception("Execution compliance preflight failed")
+            return None, None
+        if not allowed:
+            logger.error("Order blocked by execution compliance: %s", compliance_reason)
+            return None, None
+
+        try:
             if stop_loss and target and hasattr(broker, "place_bracket_order"):
                 order_id = broker.place_bracket_order(
                     symbol=symbol, qty=qty, buy_sell=buy_sell,
@@ -359,11 +373,18 @@ class BrokerManager:
                 if order_tag and _broker_accepts(broker.place_order, "order_tag"):
                     _po_kwargs["order_tag"] = order_tag
                 order_id = broker.place_order(**_po_kwargs)
+            if not order_id:
+                raise RuntimeError("broker returned no order id")
             self._mark_success(broker)
+            record_order_result(symbol=symbol, order_id=order_id, broker=self._broker_name(broker))
             return order_id, self._broker_name(broker)
 
         except Exception as exc:
             self._mark_failure(broker, str(exc))
+            try:
+                record_order_result(symbol=symbol, order_id=None, broker=self._broker_name(broker), error=str(exc))
+            except Exception:
+                pass
             logger.error("Order failed on %s: %s", self._broker_name(broker), exc)
             return None, None
 

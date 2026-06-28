@@ -72,7 +72,8 @@ def _load_clean(days: int = 400):
         df = pd.read_sql(
             f"SELECT side, strategy, signal_date, entry_price, outcome_price, "
             f"tb_label{cols} FROM signal_log "
-            "WHERE tb_label IN (1,0,-1) AND side IN ('BUY','SELL') "
+            "WHERE tb_label IN (1,0,-1) AND training_eligible=1 "
+            "AND stop_loss>0 AND target>0 AND rr>0 AND side IN ('BUY','SELL') "
             "AND entry_price > 0 AND outcome_price > 0", con)
     finally:
         con.close()

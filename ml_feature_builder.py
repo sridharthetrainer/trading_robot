@@ -105,7 +105,9 @@ def _load_signals(days: int = 90, executed_only: bool = False) -> List[Dict]:
         exec_clause = "AND executed = 1" if executed_only else ""
         rows = conn.execute(
             f"""SELECT * FROM signal_log
-                WHERE tb_label NOT IN (-99, -2)
+                WHERE tb_label IN (-1, 0, 1)
+                  AND training_eligible = 1
+                  AND stop_loss > 0 AND target > 0 AND rr > 0
                   AND signal_date >= ?
                   {exec_clause}
                 ORDER BY signal_date, signal_time""",

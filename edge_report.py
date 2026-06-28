@@ -59,7 +59,8 @@ def fetch(days: int) -> List[sqlite3.Row]:
                   india_vix, max_adverse_move,
                   max_favorable_move, executed, tb_label
            FROM signal_log
-           WHERE tb_label IN (-1, 0, 1) AND signal_date >= ?""",
+           WHERE tb_label IN (-1, 0, 1) AND training_eligible=1
+             AND stop_loss>0 AND target>0 AND rr>0 AND signal_date >= ?""",
         (cutoff,)).fetchall()
     conn.close()
     return rows

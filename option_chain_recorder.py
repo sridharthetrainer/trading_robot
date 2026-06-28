@@ -36,7 +36,10 @@ def _conn(db_path: str = DB_PATH):
             ok INTEGER DEFAULT 1,
             reason TEXT DEFAULT '',
             rows_json TEXT DEFAULT '[]',
-            summary_json TEXT DEFAULT '{}'
+            summary_json TEXT DEFAULT '{}',
+            source TEXT DEFAULT '',
+            is_live INTEGER DEFAULT 0,
+            provider_request_id TEXT DEFAULT ''
         )
     """)
     cols = {row[1] for row in conn.execute("PRAGMA table_info(option_chain_snapshots)").fetchall()}
@@ -44,6 +47,12 @@ def _conn(db_path: str = DB_PATH):
         conn.execute("ALTER TABLE option_chain_snapshots ADD COLUMN ok INTEGER DEFAULT 1")
     if "reason" not in cols:
         conn.execute("ALTER TABLE option_chain_snapshots ADD COLUMN reason TEXT DEFAULT ''")
+    if "source" not in cols:
+        conn.execute("ALTER TABLE option_chain_snapshots ADD COLUMN source TEXT DEFAULT ''")
+    if "is_live" not in cols:
+        conn.execute("ALTER TABLE option_chain_snapshots ADD COLUMN is_live INTEGER DEFAULT 0")
+    if "provider_request_id" not in cols:
+        conn.execute("ALTER TABLE option_chain_snapshots ADD COLUMN provider_request_id TEXT DEFAULT ''")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_oc_snap_u_ts ON option_chain_snapshots(underlying, ts)")
     conn.commit()
     return conn
@@ -98,8 +107,9 @@ def record_option_chain_snapshot(
             """
             INSERT INTO option_chain_snapshots
             (ts, snapshot_time, underlying, spot, expiry, atm_strike,
-             pcr_oi, pcr_change_oi, max_pain, ok, reason, rows_json, summary_json)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+             pcr_oi, pcr_change_oi, max_pain, ok, reason, rows_json, summary_json,
+             source, is_live, provider_request_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 time.time(),
@@ -115,6 +125,9 @@ def record_option_chain_snapshot(
                 reason,
                 "[]",
                 "{}",
+                "",
+                0,
+                "",
             ),
         )
         conn.commit()
@@ -129,7 +142,8 @@ def record_option_chain_snapshot(
     # but must not be recorded as a valid live snapshot (downstream flow/worthiness
     # queries filter on ok=1). Source comes from the fetcher's last_source.
     _src = str(getattr(fetcher, "last_source", "") or "")
-    if ok and not _is_live_source(_src):
+    is_live = bool(ok and _is_live_source(_src))
+    if ok and not is_live:
         ok = False
         reason = f"non_live_source:{_src or 'unknown'}"
     payload = {
@@ -149,8 +163,9 @@ def record_option_chain_snapshot(
         """
         INSERT INTO option_chain_snapshots
         (ts, snapshot_time, underlying, spot, expiry, atm_strike,
-         pcr_oi, pcr_change_oi, max_pain, ok, reason, rows_json, summary_json)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+         pcr_oi, pcr_change_oi, max_pain, ok, reason, rows_json, summary_json,
+         source, is_live, provider_request_id)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             snap_ts,
@@ -166,6 +181,9 @@ def record_option_chain_snapshot(
             reason,
             json.dumps(rows, default=str),
             json.dumps(summary, default=str),
+            _src,
+            1 if is_live else 0,
+            str(getattr(fetcher, "last_request_id", "") or ""),
         ),
     )
     conn.commit()

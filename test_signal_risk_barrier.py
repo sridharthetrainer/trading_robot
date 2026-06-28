@@ -89,7 +89,9 @@ def test_mark_executed_can_update_risk_levels(tmp_path):
     assert row == (1, "T_RISK", 97.0, 106.0, 2.0)
 
 
-def test_eod_labeller_uses_stored_signal_barriers(tmp_path):
+def test_eod_labeller_uses_stored_signal_barriers(tmp_path, monkeypatch):
+    import trading_calendar
+    monkeypatch.setattr(trading_calendar, "is_trading_day", lambda *_args, **_kwargs: True)
     db_path = tmp_path / "signal_log.db"
     sl = SignalLogger(db_path=str(db_path))
     row_id = sl.log_candidate(

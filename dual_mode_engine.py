@@ -240,16 +240,22 @@ class DualModeEngine:
                 )
             return self.get_status()
 
-        # RULE 4: Any positive balance can attempt live. TradeManager will
-        # downsize/skip the live leg if the specific order cannot fit.
+        # RULE 4: Capital alone never authorises live trading.
         if balance > 0:
-            self._live_enabled = True
+            try:
+                from live_admission import evaluate_live_admission
+                admission = evaluate_live_admission()
+            except Exception as exc:
+                admission = {"allowed": False, "reason": f"readiness_gate_error:{exc}"}
+            self._live_enabled = bool(admission.get("allowed"))
+            if not self._live_enabled:
+                logger.warning("Dual mode remains PAPER: %s", admission.get("reason", "readiness blocked"))
+                return self.get_status()
             if not prev_live:
                 # Just became funded — switch to live
                 shortfall = 0
                 logger.info(
-                    "DUAL MODE: balance ₹%.0f available — live orders enabled "
-                    "when the specific trade can fit.",
+                    "DUAL MODE: balance ₹%.0f and evidence gates passed — live orders enabled.",
                     balance
                 )
                 self._send_status_alert(prev_live=False, reason="balance_sufficient")

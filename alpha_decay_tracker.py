@@ -103,7 +103,8 @@ def _load_outcomes() -> Dict[str, List[Tuple[str, int]]]:
         rows = conn.execute("""
             SELECT strategy, signal_time, tb_label
               FROM signal_log
-             WHERE tb_label IN (1, -1)
+             WHERE tb_label IN (1, -1) AND training_eligible=1
+               AND stop_loss>0 AND target>0 AND rr>0
              ORDER BY signal_time
         """).fetchall()
         conn.close()

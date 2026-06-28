@@ -13,6 +13,8 @@ from typing import Any, Dict, Iterable, List
 
 import pandas as pd
 
+from trading_calendar import session_lag
+
 
 REPORT_JSON = "data_quality_watchdog_report.json"
 
@@ -67,7 +69,10 @@ def audit_candle_cache(
                 exp = _expected(interval)
                 spacing_ok = bool(exp and ((median <= exp * 3) if interval != "1d" else median >= 60))
         age_days = _age_days(last_ts)
-        freshness_ok = bool(interval == "1d" or age_days <= max_intraday_age_days)
+        lag_sessions = session_lag(last_ts)
+        # Wall-clock age incorrectly marks every Friday snapshot stale on Sunday
+        # and every pre-holiday snapshot stale during a long exchange holiday.
+        freshness_ok = bool(interval == "1d" or lag_sessions == 0)
         checks.append({
             "symbol": symbol,
             "interval": interval,
@@ -75,6 +80,7 @@ def audit_candle_cache(
             "first": first_ts,
             "last": last_ts,
             "age_days": round(age_days, 3),
+            "session_lag": int(lag_sessions),
             "median_spacing_min": round(median, 3),
             "spacing_ok": spacing_ok,
             "freshness_ok": freshness_ok,

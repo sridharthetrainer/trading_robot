@@ -83,7 +83,8 @@ def _load(days: int = 800):
         cols = ", ".join(feats + extra + ["tb_label"])
         df = pd.read_sql(
             f"SELECT {cols} FROM signal_log "
-            "WHERE tb_label IN (1,0,-1) AND side IN ('BUY','SELL')", con)
+            "WHERE tb_label IN (1,0,-1) AND training_eligible=1 "
+            "AND stop_loss>0 AND target>0 AND rr>0 AND side IN ('BUY','SELL')", con)
     finally:
         con.close()
 

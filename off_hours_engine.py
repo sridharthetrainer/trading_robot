@@ -45,14 +45,16 @@ NSE_HOLIDAYS_2026 = {
 
 def is_market_holiday(d: Optional[date] = None) -> bool:
     d = d or date.today()
-    if d.weekday() >= 5:   # Sat/Sun
-        return True
-    return d.isoformat() in NSE_HOLIDAYS_2026
+    try:
+        from trading_calendar import is_trading_day
+        return not is_trading_day(d)
+    except Exception:
+        return d.weekday() >= 5 or d.isoformat() in NSE_HOLIDAYS_2026
 
 
 def is_market_hours(now: Optional[datetime] = None) -> bool:
     now = now or datetime.now()
-    if now.weekday() >= 5:
+    if is_market_holiday(now.date()):
         return False
     from datetime import time as dtime
     return dtime(9,15) <= now.time() <= dtime(15,30)

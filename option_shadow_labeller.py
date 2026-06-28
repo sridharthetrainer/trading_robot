@@ -224,15 +224,17 @@ def label_shadow_candidates_from_eod(
                 if exit_price is None:
                     skipped += 1
                     continue
-                pnl = float(exit_price) - float(entry)
+                from shadow_execution import simulate_option_round_trip
+                execution = simulate_option_round_trip(entry, exit_price, side="BUY")
                 outcomes.append({
                     "symbol": candidate.get("symbol", ""),
                     "strike": strike,
                     "option_type": opt_type,
-                    "pnl": round(pnl, 2),
-                    "label": 1 if pnl > 0 else -1 if pnl < 0 else 0,
+                    "pnl": execution["net_pnl"],
+                    "label": execution["label"],
                     "exit_price": round(float(exit_price), 2),
                     "exit_reason": "historical_option_eod_or_snapshot_shadow_label",
+                    "execution_model": execution,
                 })
             if outcomes:
                 eligible_rows += 1

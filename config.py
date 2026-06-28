@@ -167,7 +167,7 @@ FORCE_MARKET_CLOSE = _env("FORCE_MARKET_CLOSE", "false").lower() == "true"
 # Minimum balance required to trade live. Below this → paper mode automatically.
 # Set to 0 to disable auto-switching (use PAPER_TRADING flag instead).
 AUTO_MODE_SWITCH   = _benv("AUTO_MODE_SWITCH",   True)
-MIN_LIVE_CAPITAL   = _fenv("MIN_LIVE_CAPITAL",   500.0)
+MIN_LIVE_CAPITAL   = _fenv("MIN_LIVE_CAPITAL",   25000.0)
 REQUIRE_LIVE_ARM   = _benv("REQUIRE_LIVE_ARM",   False)
 ALLOW_VALIDATION_BLOCKED_LIVE = _benv("ALLOW_VALIDATION_BLOCKED_LIVE", False)
 LIVE_ELIGIBILITY_FILE = os.getenv("LIVE_ELIGIBILITY_FILE", "live_eligibility.json")
@@ -298,6 +298,11 @@ SOFT_DAILY_LOSS_LIMIT: float = float(
     os.getenv("SOFT_DAILY_LOSS_LIMIT",
               str(MAX_DAILY_LOSS * 0.67))
 )
+if not PAPER_TRADING:
+    # A static rupee limit must never become a catastrophic percentage when a
+    # small account is connected. Live mode is capped at 2% of real capital.
+    MAX_DAILY_LOSS = min(MAX_DAILY_LOSS, max(1.0, REAL_CAPITAL * 0.02))
+    SOFT_DAILY_LOSS_LIMIT = min(SOFT_DAILY_LOSS_LIMIT, MAX_DAILY_LOSS * 0.67)
 
 # C02: Risk per trade — phase-in
 RISK_PER_TRADE_PCT: float = float(
@@ -882,6 +887,7 @@ MIN_VOLUME_RATIO_ENTRY      = _fenv("MIN_VOLUME_RATIO_ENTRY",         0.40)
 MIN_BREAKOUT_VOLUME_RATIO   = _fenv("MIN_BREAKOUT_VOLUME_RATIO",      1.20)
 MIN_CASH_VOLUME_RATIO_ENTRY = _fenv("MIN_CASH_VOLUME_RATIO_ENTRY",    0.80)
 COST_HURDLE_MULTIPLIER      = _fenv("COST_HURDLE_MULTIPLIER",         2.50)
+MIN_EXPECTED_NET_PROFIT     = _fenv("MIN_EXPECTED_NET_PROFIT",        0.0)
 CASH_NO_NEW_ENTRY_AFTER     = _env("CASH_NO_NEW_ENTRY_AFTER",         "14:45")
 OPTION_NO_NEW_ENTRY_AFTER   = _env("OPTION_NO_NEW_ENTRY_AFTER",       "15:00")
 MIN_BARS_FOR_SIGNAL         = _ienv("MIN_BARS_FOR_SIGNAL", 5)  # lowered: bhavcopy gives ~39-250 bars

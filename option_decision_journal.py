@@ -25,6 +25,10 @@ DEFAULT_JOURNAL_FILE = "option_decision_journal.jsonl"
 MAX_FIELD_CHARS = 2000
 AUTO_SHADOW_CANDIDATES = os.getenv("OPTION_JOURNAL_AUTO_SHADOWS", "true").lower() == "true"
 AUTO_SHADOW_WINGS = max(1, int(os.getenv("OPTION_JOURNAL_SHADOW_WINGS", "4")))
+_LIVE_DATA_SOURCES = {
+    "nse_live", "resilience_nse", "angel", "angel_fallback",
+    "sensibull", "bse", "bse_oc",
+}
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -472,6 +476,41 @@ def record_option_decision(
         and not strike_rows
     ):
         strike_rows = synthesize_shadow_candidates(selected, spot=spot, side=side)
+    selected_row = selected if isinstance(selected, dict) else {}
+    metadata_row = metadata if isinstance(metadata, dict) else {}
+    source = str(
+        metadata_row.get("data_source")
+        or metadata_row.get("source")
+        or selected_row.get("source")
+        or ""
+    ).lower()
+    synthetic = bool(selected_row.get("synthetic_shadow")) or any(
+        isinstance(row, dict) and row.get("synthetic_shadow") for row in strike_rows
+    )
+    research = (
+        _is_research_strategy(strategy)
+        or "backfill" in str(reason or "").lower()
+        or "replay" in str(source_id or "").lower()
+    )
+    valid_contract = bool(
+        float(spot or 0) > 0
+        and _safe_float(selected_row.get("strike"), 0) > 0
+        and str(selected_row.get("option_type") or "").upper() in {"CE", "PE"}
+        and str(selected_row.get("expiry") or selected_row.get("option_expiry") or "").strip()
+        and _safe_float(
+            selected_row.get("premium") or selected_row.get("entry_price") or selected_row.get("ltp"),
+            0,
+        ) > 0
+    )
+    is_live_data = bool(source in _LIVE_DATA_SOURCES and valid_contract and not synthetic and not research)
+    if research or synthetic:
+        evidence_class = "RESEARCH_SYNTHETIC"
+    elif is_live_data and trade_id:
+        evidence_class = "LIVE_EXECUTION"
+    elif is_live_data:
+        evidence_class = "LIVE_OBSERVATION"
+    else:
+        evidence_class = "UNVERIFIED"
     payload = {
         "ts": time.time(),
         "time": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
@@ -487,6 +526,9 @@ def record_option_decision(
         "strikes": _clean(strike_rows),
         "trade_id": str(trade_id or ""),
         "source_id": str(source_id or ""),
+        "data_source": source,
+        "is_live_data": is_live_data,
+        "evidence_class": evidence_class,
     }
     if metadata:
         payload["metadata"] = _clean(metadata)

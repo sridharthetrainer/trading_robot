@@ -42,6 +42,10 @@ CRITICAL_FILES = [
     "market_snapshot_recorder.py",
     "confluence_feature_store.py",
     "data_quality_watchdog.py",
+    "trading_calendar.py",
+    "live_admission.py",
+    "release_integrity.py",
+    "execution_compliance.py",
     "shadow_portfolio_simulator.py",
     "autonomous_learning_cycle.py",
     "live_signal_engine.py",
@@ -153,6 +157,14 @@ def main() -> int:
                     + ", ".join(str(w) for w in probation.get("warnings", []) or ["unknown"])
                 )
             return 3
+
+    if real_trading_requested:
+        from live_admission import evaluate_live_admission
+        admission = evaluate_live_admission(force=True)
+        if not admission.get("allowed"):
+            print("FAIL evidence-based live admission blocked")
+            print("Blocks: " + ", ".join(admission.get("blocks") or [admission.get("reason", "unknown")]))
+            return 5
 
     if live_ready_count <= 0:
         print(f"WARN live orders blocked: {manifest.get('live_block_reason', 'unknown')}")

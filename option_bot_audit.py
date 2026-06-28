@@ -22,10 +22,11 @@ from typing import Any, Dict
 
 REPORT_FILE = "option_bot_audit_report.json"
 
+from trading_calendar import is_trading_day, session_lag
+
 
 def _is_market_day(now: datetime | None = None) -> bool:
-    now = now or datetime.now()
-    return now.weekday() < 5
+    return is_trading_day(now or datetime.now())
 
 
 def _parse_dt(value: Any) -> datetime | None:
@@ -80,6 +81,18 @@ def _snapshot_stats(path: Path) -> Dict[str, Any]:
             ok_rows = rows
             latest_ok = latest
             recent_failures = []
+        if {"source", "is_live"} <= cols:
+            verified_live_rows = conn.execute(
+                "SELECT COUNT(*) FROM option_chain_snapshots "
+                "WHERE ok=1 AND is_live=1 AND COALESCE(source,'')<>''"
+            ).fetchone()[0]
+            latest_verified_live = conn.execute(
+                "SELECT MAX(snapshot_time) FROM option_chain_snapshots "
+                "WHERE ok=1 AND is_live=1 AND COALESCE(source,'')<>''"
+            ).fetchone()[0]
+        else:
+            verified_live_rows = 0
+            latest_verified_live = None
     latest_ok_dt = _parse_dt(latest_ok)
     latest_ok_age_hours = None
     if latest_ok_dt is not None:
@@ -89,6 +102,8 @@ def _snapshot_stats(path: Path) -> Dict[str, Any]:
         "exists": True,
         "rows": int(rows or 0),
         "ok_rows": int(ok_rows or 0),
+        "verified_live_rows": int(verified_live_rows or 0),
+        "latest_verified_live": latest_verified_live,
         "latest": latest,
         "latest_ok": latest_ok,
         "latest_ok_age_hours": latest_ok_age_hours,
@@ -107,6 +122,10 @@ def _journal_stats(path: Path) -> Dict[str, Any]:
     rows = 0
     today_rows = 0
     selected_with_shadow = 0
+    verified_selected = 0
+    executed_selected = 0
+    synthetic_rows = 0
+    research_rows = 0
     today_selected = 0
     today_blocked = 0
     today_chain_signal = 0
@@ -130,6 +149,25 @@ def _journal_stats(path: Path) -> Dict[str, Any]:
                 today_chain_signal += 1
         if decision.startswith("selected") and isinstance(row.get("strikes"), list) and row["strikes"]:
             selected_with_shadow += 1
+        evidence_class = str(row.get("evidence_class") or "")
+        synthetic = evidence_class == "RESEARCH_SYNTHETIC" or any(
+            isinstance(item, dict) and item.get("synthetic_shadow")
+            for item in (row.get("strikes") or [])
+        )
+        if synthetic:
+            synthetic_rows += 1
+        research = (
+            evidence_class == "RESEARCH_SYNTHETIC"
+            or "backfill" in str(row.get("reason") or "").lower()
+            or "replay" in str(row.get("strategy") or "").lower()
+            or "historical" in str(row.get("strategy") or "").lower()
+        )
+        if research:
+            research_rows += 1
+        if decision.startswith("selected") and bool(row.get("is_live_data")) and not synthetic:
+            verified_selected += 1
+            if row.get("trade_id"):
+                executed_selected += 1
     return {
         "exists": True,
         "rows": rows,
@@ -140,6 +178,10 @@ def _journal_stats(path: Path) -> Dict[str, Any]:
         "today_blocked": today_blocked,
         "today_chain_signal": today_chain_signal,
         "selected_with_shadow": selected_with_shadow,
+        "verified_selected": verified_selected,
+        "executed_selected": executed_selected,
+        "synthetic_rows": synthetic_rows,
+        "research_rows": research_rows,
     }
 
 
@@ -320,19 +362,20 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
     snaps = audit.get("option_chain_snapshots", {}) or {}
     rows = int(snaps.get("rows", 0) or 0)
     ok_rows = int(snaps.get("ok_rows", 0) or 0)
+    verified_live_rows = int(snaps.get("verified_live_rows", 0) or 0)
     ok_ratio = ok_rows / max(rows, 1)
     latest_ok_age_hours = snaps.get("latest_ok_age_hours")
     fresh_ok = latest_ok_age_hours is not None and float(latest_ok_age_hours) <= 96.0
     snap_score = 0.0
-    if ok_rows >= 60:
+    if verified_live_rows >= 60:
         snap_score = weights["snapshot_capture"]
-    elif ok_rows >= 20:
+    elif verified_live_rows >= 20:
         snap_score = 18.0
-    elif ok_rows >= 5:
+    elif verified_live_rows >= 5:
         snap_score = 10.0
     elif rows > 0:
-        snap_score = 3.0 * ok_ratio
-        improvements.append("Capture successful option-chain snapshots during market hours; current ok_rows is too low.")
+        snap_score = min(3.0, 3.0 * ok_ratio)
+        improvements.append("Capture source-attributed live option-chain snapshots; historical ok rows are unverified.")
     else:
         improvements.append("Start market-hour option-chain snapshot collection.")
     if ok_rows > 0 and not fresh_ok:
@@ -341,7 +384,7 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
     parts["snapshot_capture"] = {
         "score": round(snap_score, 1),
         "max": weights["snapshot_capture"],
-        "detail": f"ok_rows={ok_rows}, rows={rows}, latest_ok={snaps.get('latest_ok')}",
+        "detail": f"verified_live={verified_live_rows}, ok_rows={ok_rows}, rows={rows}, latest={snaps.get('latest_verified_live')}",
     }
 
     journal = audit.get("decision_journal", {}) or {}
@@ -349,17 +392,19 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
     decisions = journal.get("decisions", {}) or {}
     selected = sum(int(v or 0) for k, v in decisions.items() if str(k).startswith("selected"))
     with_shadow = int(journal.get("selected_with_shadow", 0) or 0)
+    verified_selected = int(journal.get("verified_selected", 0) or 0)
+    executed_selected = int(journal.get("executed_selected", 0) or 0)
     journal_score = 0.0
     journal_score += 4.0 if journal.get("exists") else 0.0
     journal_score += 4.0 if journal_rows >= 20 else 2.0 if journal_rows > 0 else 0.0
-    journal_score += 3.0 if selected >= 10 else 1.5 if selected > 0 else 0.0
-    journal_score += 4.0 if with_shadow >= 10 else 1.0 if with_shadow > 0 else 0.0
-    if with_shadow == 0:
-        improvements.append("Generate selected option decisions with shadow strike candidates for comparison learning.")
+    journal_score += 3.0 if verified_selected >= 10 else 1.5 if verified_selected > 0 else 0.0
+    journal_score += 4.0 if executed_selected >= 10 else 1.0 if executed_selected > 0 else 0.0
+    if verified_selected == 0:
+        improvements.append("Collect real, source-attributed option selections; synthetic shadows do not qualify.")
     parts["decision_journal"] = {
         "score": round(min(weights["decision_journal"], journal_score), 1),
         "max": weights["decision_journal"],
-        "detail": f"rows={journal_rows}, selected={selected}, selected_with_shadow={with_shadow}",
+        "detail": f"rows={journal_rows}, selected={selected}, verified={verified_selected}, executed={executed_selected}, research={journal.get('research_rows', 0)}",
     }
 
     tune = audit.get("strike_autotune", {}) or {}
@@ -445,11 +490,17 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
         "detail": ", ".join(k for k, v in automation.items() if v) or "none",
     }
 
-    total = round(sum(p["score"] for p in parts.values()), 1)
+    raw_total = round(sum(p["score"] for p in parts.values()), 1)
+    evidence_blocks = []
+    if verified_live_rows < 20:
+        evidence_blocks.append("insufficient_verified_live_snapshots")
+    if executed_selected < 30:
+        evidence_blocks.append("insufficient_verified_option_executions")
+    total = min(raw_total, 59.0) if evidence_blocks else raw_total
     grade = "A" if total >= 90 else "B" if total >= 80 else "C" if total >= 70 else "D" if total >= 60 else "F"
     readiness = (
         "LIVE_READY"
-        if total >= 85 and ok_rows >= 20 and labelled_selected >= 30 and labelled_shadow >= 10
+        if total >= 85 and verified_live_rows >= 20 and executed_selected >= 30
         else "PAPER_OR_SHADOW"
         if total >= 60
         else "FIX_BEFORE_LIVE"
@@ -466,6 +517,8 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
         "grade": grade,
         "readiness": readiness,
         "autonomous_score": _score_option_bot_autonomy(audit),
+        "raw_capability_score": raw_total,
+        "evidence_blocks": evidence_blocks,
         "parts": parts,
         "top_improvements": dedup[:8],
     }
@@ -522,13 +575,23 @@ def _score_option_bot_autonomy(audit: Dict[str, Any]) -> Dict[str, Any]:
         "detail": f"{scheduled_hits}/{len(scheduled)} audit/report schedules wired",
     }
 
-    total = round(sum(p["score"] for p in parts.values()), 1)
+    raw_total = round(sum(p["score"] for p in parts.values()), 1)
+    snaps = audit.get("option_chain_snapshots", {}) or {}
+    journal = audit.get("decision_journal", {}) or {}
+    evidence_blocks = []
+    if int(snaps.get("verified_live_rows", 0) or 0) < 20:
+        evidence_blocks.append("insufficient_verified_live_snapshots")
+    if int(journal.get("executed_selected", 0) or 0) < 30:
+        evidence_blocks.append("insufficient_verified_option_executions")
+    total = min(raw_total, 59.0) if evidence_blocks else raw_total
     grade = "A" if total >= 90 else "B" if total >= 80 else "C" if total >= 70 else "D" if total >= 60 else "F"
     return {
         "total": total,
         "max": sum(weights.values()),
         "grade": grade,
         "parts": parts,
+        "raw_capability_score": raw_total,
+        "evidence_blocks": evidence_blocks,
     }
 
 

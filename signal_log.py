@@ -321,6 +321,9 @@ class SignalLogger:
                     "tb_r_multiple":  "REAL DEFAULT 0",
                     "tb_r_multiple_net": "REAL DEFAULT 0",
                     "tb_used_custom_barrier": "INTEGER DEFAULT 0",
+                    "risk_level_source": "TEXT DEFAULT ''",
+                    "training_eligible": "INTEGER DEFAULT 0",
+                    "training_exclusion_reason": "TEXT DEFAULT ''",
                 }
                 for _c, _decl in _new_cols.items():
                     if _c not in cols:
@@ -368,6 +371,25 @@ class SignalLogger:
             rr = _safe_float(signal.get("rr", signal.get("risk_reward", 0)), 0.0)
             if rr <= 0 and ep > 0 and stop_loss > 0 and target > 0:
                 rr = _risk_reward(ep, target, stop_loss)
+            side_value = str(signal.get("side", signal.get("direction", "")) or "").upper()
+            risk_level_source = str(signal.get("risk_level_source", "") or "")
+            if side_value == "BUY":
+                risk_levels_valid = bool(ep > 0 and 0 < stop_loss < ep < target and rr > 0)
+            elif side_value == "SELL":
+                risk_levels_valid = bool(ep > 0 and 0 < target < ep < stop_loss and rr > 0)
+            else:
+                risk_levels_valid = False
+            try:
+                from trading_calendar import is_trading_day
+                session_valid = is_trading_day(now)
+            except Exception:
+                session_valid = now.weekday() < 5
+            training_eligible = bool(risk_levels_valid and session_valid)
+            exclusion_reasons = []
+            if not session_valid:
+                exclusion_reasons.append("non_trading_session")
+            if not risk_levels_valid:
+                exclusion_reasons.append("missing_or_invalid_risk_levels")
             executed_flag = bool(executed)
             cleaned_reason = str(rejection_reason or "")
             cleaned_trade_id = str(trade_id or "")
@@ -423,7 +445,7 @@ class SignalLogger:
                 "signal_date":     now.strftime("%Y-%m-%d"),
                 "signal_time":     now.strftime("%H:%M:%S"),
                 "symbol":          sym,
-                "side":            str(signal.get("side", signal.get("direction","")) or ""),
+                "side":            side_value,
                 "strategy":        str(signal.get("strategy","") or ""),
                 "confluence":      str(signal.get("confluence","SINGLE") or "SINGLE"),
                 "n_agree":         int(signal.get("n_agree", 1) or 1),
@@ -437,6 +459,9 @@ class SignalLogger:
                 "stop_loss":       stop_loss,
                 "target":          target,
                 "rr":              round(rr, 4),
+                "risk_level_source": risk_level_source,
+                "training_eligible": 1 if training_eligible else 0,
+                "training_exclusion_reason": ",".join(exclusion_reasons),
                 "executed":        1 if executed_flag else 0,
                 "rejection_reason":cleaned_reason,
                 "trade_id":        cleaned_trade_id if executed_flag else "",
@@ -735,8 +760,14 @@ class SignalLogger:
                     f"SELECT id, symbol, side, entry_price, signal_time, "
                     f"signal_date, stop_loss, target, rr "
                     f"FROM {_TBL} WHERE tb_label = -99 "
+                    f"AND training_eligible = 1 "
                     f"AND signal_date <= date('now','localtime')"
                 ).fetchall()
+                conn.execute(
+                    f"UPDATE {_TBL} SET tb_label=-2 "
+                    f"WHERE tb_label=-99 AND training_eligible=0 "
+                    f"AND signal_date < date('now','localtime')"
+                )
 
             for row in pending:
                 sig_id = row["id"]
@@ -887,7 +918,9 @@ class SignalLogger:
             sql = f"""
                 SELECT * FROM {_TBL}
                 WHERE signal_date >= ?
-                  AND tb_label != -99
+                  AND tb_label IN (-1, 0, 1)
+                  AND training_eligible = 1
+                  AND stop_loss > 0 AND target > 0 AND rr > 0
                   {exec_filter}
                 ORDER BY signal_date, signal_time
             """
@@ -952,7 +985,8 @@ def worthiness_summary(db_path: str = str(_DB_PATH), days: int = 30,
         rows = conn.execute(
             f"SELECT strategy, side, entry_price, outcome_price, tb_stop, tb_label, "
             f"tb_r_multiple, tb_r_multiple_net, signal_date "
-            f"FROM {_TBL} WHERE tb_label IN (1,0,-1) AND tb_stop > 0 "
+            f"FROM {_TBL} WHERE tb_label IN (1,0,-1) AND training_eligible=1 "
+            f"AND stop_loss>0 AND target>0 AND rr>0 AND tb_stop > 0 "
             f"AND signal_date >= date('now', ?, 'localtime')",
             (f'-{int(days)} days',),
         ).fetchall()
@@ -1026,7 +1060,8 @@ def strategy_selection_pbo(db_path: str = str(_DB_PATH), days: int = 3650,
         rows = conn.execute(
             f"SELECT strategy, side, entry_price, outcome_price, tb_stop, "
             f"tb_r_multiple, tb_r_multiple_net, signal_date "
-            f"FROM {_TBL} WHERE tb_label IN (1,0,-1) AND tb_stop > 0 "
+            f"FROM {_TBL} WHERE tb_label IN (1,0,-1) AND training_eligible=1 "
+            f"AND stop_loss>0 AND target>0 AND rr>0 AND tb_stop > 0 "
             f"AND signal_date >= date('now', ?, 'localtime')",
             (f'-{int(days)} days',),
         ).fetchall()

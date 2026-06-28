@@ -1086,11 +1086,23 @@ class AutonomousTradingSystem:
         except Exception:
             trade_summary = {}
 
+        broker_status = []
+        try:
+            manager = (
+                getattr(self.live_engine, "broker_manager", None)
+                or getattr(self.live_engine, "_broker_manager", None)
+            )
+            if manager is not None:
+                broker_status = manager.get_all_broker_status()
+        except Exception:
+            logger.debug("broker status snapshot failed", exc_info=True)
+
         payload = {
             "timestamp":     datetime.now().isoformat(),
             "runtime_state": asdict(self.runtime_state),
             "trade_summary": trade_summary,
             "market_window": self._market_window(),
+            "broker_status": broker_status,
         }
         path = Path(HEALTH_FILE)
         path.parent.mkdir(parents=True, exist_ok=True)

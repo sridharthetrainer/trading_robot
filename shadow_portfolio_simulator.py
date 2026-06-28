@@ -30,6 +30,8 @@ def simulate_shadow_portfolio(
           FROM signal_log
          WHERE signal_date >= date('now','localtime', ?)
            AND tb_label IN (1, 0, -1)
+           AND training_eligible=1
+           AND stop_loss>0 AND target>0 AND rr>0
          ORDER BY signal_date, score DESC, log_time
         """,
         (f"-{int(days)} day",),
@@ -45,6 +47,7 @@ def simulate_shadow_portfolio(
     losses = sum(1 for r in picked if int(r["tb_label"]) == -1)
     timeouts = sum(1 for r in picked if int(r["tb_label"]) == 0)
     rejected_wins = sum(1 for r in picked if int(r["tb_label"]) == 1 and int(r["executed"] or 0) == 0)
+    net_r = [float(r["tb_r_multiple_net"] or 0) for r in picked]
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "ok": True,
@@ -57,6 +60,9 @@ def simulate_shadow_portfolio(
         "timeouts": timeouts,
         "target_rate": round(wins / max(len(picked), 1), 4),
         "rejected_wins": rejected_wins,
+        "total_net_r": round(sum(net_r), 4),
+        "average_net_r": round(sum(net_r) / max(len(net_r), 1), 4),
+        "after_cost_positive": bool(net_r and sum(net_r) > 0),
         "top": [
             {
                 "date": r["signal_date"], "symbol": r["symbol"], "side": r["side"],

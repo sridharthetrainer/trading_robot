@@ -128,7 +128,9 @@ def _load_training_data() -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
         conn = sqlite3.connect(str(_DB_PATH))
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
-            f"SELECT * FROM {_TABLE} WHERE tb_label IN (1, -1) ORDER BY signal_date ASC"
+            f"SELECT * FROM {_TABLE} WHERE tb_label IN (1, -1) "
+            "AND training_eligible=1 AND stop_loss>0 AND target>0 AND rr>0 "
+            "ORDER BY signal_date ASC"
         ).fetchall()
         conn.close()
         rows = [dict(r) for r in rows]
@@ -225,7 +227,8 @@ class SignalCalibrator:
                 _conn = sqlite3.connect(str(_DB_PATH))
                 _days = _conn.execute(
                     f"SELECT COUNT(DISTINCT signal_date) FROM {_TABLE} "
-                    "WHERE tb_label IN (1,-1)").fetchone()[0]
+                    "WHERE tb_label IN (1,-1) AND training_eligible=1 "
+                    "AND stop_loss>0 AND target>0 AND rr>0").fetchone()[0]
                 _conn.close()
             except Exception:
                 _days = 0

@@ -54,7 +54,8 @@ def _strategy_ranking() -> Dict[str, List[Tuple]]:
         rows = con.execute(
             "SELECT strategy, COUNT(*) n, AVG(tb_r_multiple) avg_R, "
             "100.0*SUM(CASE WHEN tb_label=1 THEN 1 ELSE 0 END)/COUNT(*) win "
-            "FROM signal_log WHERE tb_label IN (-1,0,1) AND strategy!='' "
+            "FROM signal_log WHERE tb_label IN (-1,0,1) AND training_eligible=1 "
+            "AND stop_loss>0 AND target>0 AND rr>0 AND strategy!='' "
             "GROUP BY strategy HAVING n>=15"
         ).fetchall()
         con.close()

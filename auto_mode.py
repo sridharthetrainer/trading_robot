@@ -244,6 +244,18 @@ class AutoModeSelector:
                 self._alert_switch("PAPER", balance, "Live trading not armed for today")
             return self._status(switched=(prev_mode != "PAPER"))
 
+        # Balance and credentials are necessary, not sufficient. All mode
+        # selectors share the same evidence gate so none can bypass failed edge,
+        # data, execution, or broker-readiness controls.
+        try:
+            from live_admission import evaluate_live_admission
+            admission = evaluate_live_admission()
+        except Exception as exc:
+            admission = {"allowed": False, "reason": f"readiness_gate_error:{exc}"}
+        if not admission.get("allowed"):
+            self._set_mode("PAPER", f"live_admission_blocked:{admission.get('reason', 'unknown')}")
+            return self._status(switched=(prev_mode != "PAPER"))
+
         # RULE 9: ALL CONDITIONS MET → LIVE mode
         # balance > minimum AND login ok AND real trading enabled AND no open positions
         self._set_mode("LIVE",

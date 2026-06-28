@@ -84,7 +84,8 @@ def _load_strategy_data() -> Dict[str, List[int]]:
         rows = conn.execute("""
             SELECT strategy, tb_label
               FROM signal_log
-             WHERE tb_label IN (1, -1)
+             WHERE tb_label IN (1, -1) AND training_eligible=1
+               AND stop_loss>0 AND target>0 AND rr>0
              ORDER BY id
         """).fetchall()
         conn.close()
@@ -105,7 +106,8 @@ def _load_strategy_day_counts() -> Dict[str, int]:
         rows = conn.execute("""
             SELECT strategy, COUNT(DISTINCT signal_date) AS n_days
               FROM signal_log
-             WHERE tb_label IN (1, -1)
+             WHERE tb_label IN (1, -1) AND training_eligible=1
+               AND stop_loss>0 AND target>0 AND rr>0
              GROUP BY strategy
         """).fetchall()
         conn.close()
