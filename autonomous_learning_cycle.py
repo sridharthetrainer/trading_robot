@@ -312,6 +312,48 @@ def run_autonomous_learning_cycle(
 
     report["steps"]["data_quality_watchdog"] = _step("data_quality_watchdog", _data_quality_watchdog)
 
+    def _research_bias_audit() -> Dict[str, Any]:
+        from research_bias_audit import run_bias_audit
+
+        result = run_bias_audit(write=not dry_run)
+        return {
+            "ok": bool(result.get("ok")),
+            "checks": len(result.get("checks", []) or []),
+            "failed": result.get("failed", []),
+            "sample": result.get("sample", {}),
+        }
+
+    report["steps"]["research_bias_audit"] = _step(
+        "research_bias_audit", _research_bias_audit
+    )
+
+    def _data_evidence_catalog() -> Dict[str, Any]:
+        from data_evidence_catalog import build_evidence_catalog
+
+        result = build_evidence_catalog(write=not dry_run)
+        return {
+            "ok": bool(result.get("ok")),
+            "databases": result.get("database_count", 0),
+            "tables": result.get("table_count", 0),
+            "rows": result.get("total_rows", 0),
+            "issues": result.get("issues", []),
+        }
+
+    report["steps"]["data_evidence_catalog"] = _step(
+        "data_evidence_catalog", _data_evidence_catalog
+    )
+
+    def _execution_audit_chain() -> Dict[str, Any]:
+        from execution_compliance import record_assurance_event, verify_audit_chain
+
+        if not dry_run:
+            record_assurance_event("autonomous_learning_cycle")
+        return verify_audit_chain()
+
+    report["steps"]["execution_audit_chain"] = _step(
+        "execution_audit_chain", _execution_audit_chain
+    )
+
     def _shadow_portfolio() -> Dict[str, Any]:
         from shadow_portfolio_simulator import simulate_shadow_portfolio
 

@@ -101,6 +101,21 @@ def build_system_readiness_report(
         release_integrity = verify_manifest()
     except Exception as exc:
         release_integrity = {"ok": False, "reason": str(exc)}
+    try:
+        from research_bias_audit import run_bias_audit
+        bias_audit = run_bias_audit(write=False)
+    except Exception as exc:
+        bias_audit = {"ok": False, "error": str(exc)}
+    try:
+        from data_evidence_catalog import build_evidence_catalog
+        evidence_catalog = build_evidence_catalog(write=False)
+    except Exception as exc:
+        evidence_catalog = {"ok": False, "error": str(exc)}
+    try:
+        from execution_compliance import verify_audit_chain
+        execution_chain = verify_audit_chain()
+    except Exception as exc:
+        execution_chain = {"ok": False, "error": str(exc)}
 
     latest_option_ok = _sqlite_scalar(
         "option_chain_snapshots.db",
@@ -171,6 +186,14 @@ def build_system_readiness_report(
         warnings.append("intraday_candle_cache_stale")
     if int(experiments or 0) == 0:
         warnings.append("experiment_registry_empty")
+    if not bias_audit.get("ok"):
+        blocks.append("indicator_lookahead_audit_failed")
+    if not evidence_catalog.get("ok"):
+        warnings.append("stored_data_catalog_has_integrity_issues")
+    if not execution_chain.get("ok"):
+        blocks.append("execution_audit_chain_invalid")
+    elif int(execution_chain.get("chained_rows", 0) or 0) == 0:
+        warnings.append("execution_audit_chain_awaiting_new_events")
 
     raw_data_score = (data_audit.get("score") or {}).get("total")
     raw_inst_score = (data_audit.get("institutional_readiness") or {}).get("total")
@@ -233,6 +256,18 @@ def build_system_readiness_report(
         "blocks": list(dict.fromkeys(blocks)),
         "warnings": warnings,
         "release_integrity": release_integrity,
+        "assurance": {
+            "indicator_lookahead": bias_audit,
+            "stored_data_catalog": {
+                "ok": evidence_catalog.get("ok"),
+                "databases": evidence_catalog.get("database_count", 0),
+                "tables": evidence_catalog.get("table_count", 0),
+                "rows": evidence_catalog.get("total_rows", 0),
+                "issues": evidence_catalog.get("issues", []),
+                "empty_databases": evidence_catalog.get("empty_databases", []),
+            },
+            "execution_audit_chain": execution_chain,
+        },
         "ready_for_scaled_live": not blocks and not warnings,
     }
     if write:

@@ -12,6 +12,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import os
 import pickle
@@ -162,6 +163,33 @@ def _save_model(result: Dict[str, Any]) -> Path:
     return path
 
 
+def _training_fingerprint(df: "pd.DataFrame", feature_names: List[str]) -> str:
+    """Stable lineage hash over labels, selected features, and sample identity."""
+    columns = [
+        col for col in (
+            "__symbol", "__signal_date", "__strategy", "__side", "__log_time",
+            "tb_outcome", *feature_names,
+        ) if col in df.columns
+    ]
+    if not columns:
+        return ""
+    normalized = df[columns].copy()
+    row_hashes = pd.util.hash_pandas_object(normalized, index=True).to_numpy()
+    digest = hashlib.sha256()
+    digest.update(TRAINING_CONTRACT.encode("utf-8"))
+    digest.update("|".join(columns).encode("utf-8"))
+    digest.update(row_hashes.tobytes())
+    return digest.hexdigest()
+
+
+def _model_sha256(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def _load_model(label: str) -> Optional[Dict[str, Any]]:
     """Load a previously saved model, or None if not found."""
     safe_label = label.replace(" ", "_").replace("/", "_")
@@ -212,6 +240,7 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
 
     X_all   = df_clean[feat_cols].values.astype(np.float32)
     y_all   = df_clean["tb_outcome"].values.astype(int)
+    training_fingerprint = _training_fingerprint(df_clean, feat_cols)
 
     saved_paths = []
     results: Dict[str, Any] = {
@@ -222,6 +251,8 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     # ── Cross-symbol model ────────────────────────────────────────────────────
     logger.info("Training cross-symbol model on %d samples", len(df_clean))
     cross_result = _train_model(X_all, y_all, feat_cols, label="cross_symbol")
+    cross_result["training_data_fingerprint"] = training_fingerprint
+    cross_result["selected_features"] = list(feat_cols)
     results["cross_symbol"] = {k: v for k, v in cross_result.items() if k != "model"}
     saved_paths.append(str(_save_model(cross_result)))
 
@@ -237,12 +268,19 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             if len(np.unique(ys)) < 2:
                 continue   # only one class — can't train
             sym_result = _train_model(Xs, ys, feat_cols, label=symbol)
+            sym_result["training_data_fingerprint"] = _training_fingerprint(sym_df, feat_cols)
+            sym_result["selected_features"] = list(feat_cols)
             results["per_symbol"][symbol] = {
                 k: v for k, v in sym_result.items() if k != "model"
             }
             saved_paths.append(str(_save_model(sym_result)))
 
     results["saved_paths"] = saved_paths
+    results["training_contract"] = TRAINING_CONTRACT
+    results["training_data_fingerprint"] = training_fingerprint
+    results["model_artifacts"] = [
+        {"path": path, "sha256": _model_sha256(path)} for path in saved_paths
+    ]
 
     # Save importances to JSON for human review
     imp_path = MODEL_DIR / "feature_importances.json"
@@ -252,6 +290,9 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             "timestamp": results["timestamp"],
             "cross_symbol_top20": cross_result["feature_importances"][:20],
             "cross_symbol_cv_auc": cross_result["cv_auc_mean"],
+            "training_contract": TRAINING_CONTRACT,
+            "training_data_fingerprint": training_fingerprint,
+            "model_artifacts": results["model_artifacts"],
         }, f, indent=2)
 
     logger.info("Training complete. %d models saved.", len(saved_paths))

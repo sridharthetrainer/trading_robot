@@ -126,6 +126,62 @@ def test_live_order_requires_algo_tag(tmp_path, monkeypatch):
     assert reason == "live_algo_order_tag_missing"
 
 
+def test_execution_compliance_log_is_hash_chained(tmp_path, monkeypatch):
+    import execution_compliance
+
+    path = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(execution_compliance, "AUDIT_FILE", path)
+    for symbol in ("NIFTY25000CE", "NIFTY25100CE"):
+        execution_compliance.preflight_order(
+            symbol=symbol, qty=65, side="BUY", order_type="LIMIT",
+            price=100, exchange="NFO", order_tag="algo", live=True,
+        )
+    valid = execution_compliance.verify_audit_chain(path)
+    assert valid["ok"] is True
+    assert valid["chained_rows"] == 2
+    rows = path.read_text().splitlines()
+    tampered = json.loads(rows[0])
+    tampered["qty"] = 999
+    rows[0] = json.dumps(tampered)
+    path.write_text("\n".join(rows) + "\n")
+    assert execution_compliance.verify_audit_chain(path)["ok"] is False
+
+
+def test_indicator_truncation_audit_has_no_lookahead(tmp_path):
+    from research_bias_audit import run_bias_audit
+
+    report = run_bias_audit(report_file=str(tmp_path / "bias.json"))
+    assert report["ok"] is True, report.get("failed")
+    assert len(report["checks"]) >= 10
+
+
+def test_data_evidence_catalog_preserves_and_counts_rows(tmp_path):
+    from data_evidence_catalog import build_evidence_catalog
+
+    db = tmp_path / "historical_replay.db"
+    with sqlite3.connect(db) as conn:
+        conn.execute("CREATE TABLE samples (id INTEGER PRIMARY KEY, value REAL)")
+        conn.executemany("INSERT INTO samples(value) VALUES (?)", [(1.0,), (2.0,)])
+    report = build_evidence_catalog(root=str(tmp_path), report_file=str(tmp_path / "catalog.json"))
+    assert report["ok"] is True
+    assert report["total_rows"] == 2
+    assert report["databases"][0]["tier"] == "RESEARCH_REPLAY"
+
+
+def test_ml_training_fingerprint_changes_with_label_or_feature():
+    from ml_trainer import _training_fingerprint
+
+    base = pd.DataFrame({
+        "__symbol": ["NIFTY", "BANKNIFTY"],
+        "tb_outcome": [1, 0], "score": [7.0, 6.0],
+    })
+    first = _training_fingerprint(base, ["score"])
+    changed = base.copy()
+    changed.loc[0, "tb_outcome"] = 0
+    assert first
+    assert first != _training_fingerprint(changed, ["score"])
+
+
 def test_shadow_option_execution_is_after_cost():
     from shadow_execution import simulate_option_round_trip
 
