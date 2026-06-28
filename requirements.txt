@@ -63,6 +63,13 @@ aiohttp>=3.8.0
 websocket-client>=1.6.0
 websockets>=11.0
 
+# ── Direct deps used unguarded in code (were only transitively present) ──
+# Found by scripts/clean_env_check.py — a fresh install must list these explicitly
+# (e.g. trade_guardian hard-imports yaml; self_learning_engine imports joblib).
+joblib>=1.3.0
+pyyaml>=6.0
+tqdm>=4.66.0
+
 # ── Browser Automation (Zerodha token refresh — optional) ──────
 # playwright>=1.40.0
 

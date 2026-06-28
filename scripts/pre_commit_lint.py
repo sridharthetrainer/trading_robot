@@ -119,6 +119,20 @@ def main() -> int:
             *warnings, "",
         ]))
 
+    # 4) Dependency coverage (local stand-in for CI's clean-install check) — if a
+    #    staged .py adds a third-party import missing from requirements.txt, warn
+    #    so a fresh deploy won't crash. Non-blocking (run only when .py staged).
+    try:
+        dep = subprocess.run(
+            [sys.executable, "scripts/clean_env_check.py"],
+            capture_output=True, text=True,
+        )
+        if dep.returncode != 0:
+            print("⚠️  pre-commit: dependency-coverage gap (fresh install would crash):")
+            print(dep.stdout.strip() + "\n")
+    except Exception:
+        pass
+
     if errors:
         print("\n".join([
             "",
