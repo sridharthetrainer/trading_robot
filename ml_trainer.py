@@ -37,6 +37,7 @@ CV_FOLDS           = int(os.getenv("ML_CV_FOLDS", "5"))
 # leaks. Horizon ≈ triple-barrier max_bars; embargo adds a serial-correlation gap.
 PURGE_HORIZON      = int(os.getenv("ML_PURGE_HORIZON", "12"))
 PURGE_EMBARGO      = int(os.getenv("ML_PURGE_EMBARGO", "3"))
+TRAINING_CONTRACT  = "all_generated_signals_v2"
 
 # Metadata columns — excluded from training features
 _META_COLS = {"tb_outcome", "tb_label", "__symbol", "__signal_date",
@@ -146,6 +147,8 @@ def _train_model(
         "mda_importances":     [{"feature": m["feature"], "importance": round(m["importance"], 5),
                                  "std": round(m["std"], 5)} for m in mda],
         "noise_features":      [m["feature"] for m in mda if m["importance"] <= 0.0],
+        "training_contract":   TRAINING_CONTRACT,
+        "trained_at":          datetime.now().isoformat(),
     }
 
 
@@ -279,6 +282,11 @@ def predict(
 
     if model_result is None:
         return {"win_prob": 0.5, "model_used": "none", "available": False}
+    if model_result.get("training_contract") != TRAINING_CONTRACT:
+        return {
+            "win_prob": 0.5, "model_used": model_used, "available": False,
+            "reason": "legacy_training_contract",
+        }
 
     try:
         pipe      = model_result["model"]

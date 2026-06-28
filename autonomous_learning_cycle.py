@@ -421,6 +421,26 @@ def run_autonomous_learning_cycle(
 
     report["steps"]["option_shadow_labels"] = _step("option_shadow_labels", _option_shadow_labels)
 
+    def _multistrike_labels() -> Dict[str, Any]:
+        if dry_run:
+            return {"skipped": True, "reason": "dry_run"}
+        from option_multistrike_signals import label_multistrike_outcomes
+        return label_multistrike_outcomes()
+
+    report["steps"]["option_multistrike_labels"] = _step(
+        "option_multistrike_labels", _multistrike_labels
+    )
+
+    def _multistrike_edge() -> Dict[str, Any]:
+        if dry_run:
+            return {"skipped": True, "reason": "dry_run"}
+        from option_multistrike_signals import build_multistrike_edge_model
+        return build_multistrike_edge_model()
+
+    report["steps"]["option_multistrike_edge"] = _step(
+        "option_multistrike_edge", _multistrike_edge
+    )
+
     def _option_autotune() -> Dict[str, Any]:
         from option_strike_autotune import build_strike_autotune
 

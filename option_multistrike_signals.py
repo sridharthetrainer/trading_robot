@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 import time
 from dataclasses import asdict, dataclass
@@ -10,6 +11,9 @@ from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional
 
 from option_quality import extract_contract_liquidity
+
+
+EDGE_MODEL_FILE = "option_multistrike_edge.json"
 
 
 @dataclass(frozen=True)
@@ -63,6 +67,18 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(option_strike_signals)")}
+    migrations = {
+        "outcome_label": "INTEGER DEFAULT -99",
+        "exit_price": "REAL DEFAULT 0",
+        "gross_pnl": "REAL DEFAULT 0",
+        "estimated_costs": "REAL DEFAULT 0",
+        "net_pnl": "REAL DEFAULT 0",
+        "labelled_at": "TEXT DEFAULT ''",
+    }
+    for name, declaration in migrations.items():
+        if name not in columns:
+            conn.execute(f"ALTER TABLE option_strike_signals ADD COLUMN {name} {declaration}")
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_strike_signal_lookup "
         "ON option_strike_signals(underlying, option_type, ts DESC, score DESC)"
@@ -260,6 +276,127 @@ def persist_multistrike_signals(
     }
 
 
+def label_multistrike_outcomes(
+    *,
+    db_path: str = "option_chain_snapshots.db",
+    min_horizon_sec: int = 900,
+    max_horizon_sec: int = 3600,
+    limit: int = 20000,
+) -> Dict[str, Any]:
+    """Label every generated strike-flow signal from a later premium observation."""
+    from shadow_execution import simulate_option_round_trip
+
+    labelled = 0
+    skipped = 0
+    verified = 0
+    live_sources = {"nse_live", "resilience_nse", "angel", "angel_fallback", "sensibull", "bse", "bse_oc"}
+    with sqlite3.connect(db_path) as conn:
+        ensure_multistrike_schema(conn)
+        conn.row_factory = sqlite3.Row
+        pending = conn.execute(
+            "SELECT rowid,* FROM option_strike_signals "
+            "WHERE outcome_label=-99 AND price>0 ORDER BY ts LIMIT ?",
+            (max(1, int(limit)),),
+        ).fetchall()
+        for row in pending:
+            future = conn.execute(
+                """
+                SELECT price,ts FROM option_strike_signals
+                 WHERE upper(underlying)=upper(?) AND expiry=? AND strike=?
+                   AND upper(option_type)=upper(?) AND price>0
+                   AND ts>=? AND ts<=?
+                 ORDER BY ts LIMIT 1
+                """,
+                (
+                    row["underlying"], row["expiry"], row["strike"], row["option_type"],
+                    float(row["ts"]) + max(60, int(min_horizon_sec)),
+                    float(row["ts"]) + max(int(min_horizon_sec), int(max_horizon_sec)),
+                ),
+            ).fetchone()
+            if not future:
+                skipped += 1
+                continue
+            execution = simulate_option_round_trip(row["price"], future["price"], side="BUY")
+            conn.execute(
+                """
+                UPDATE option_strike_signals
+                   SET outcome_label=?,exit_price=?,gross_pnl=?,estimated_costs=?,
+                       net_pnl=?,labelled_at=?
+                 WHERE rowid=?
+                """,
+                (
+                    execution["label"], execution["fill_exit_price"], execution["gross_pnl"],
+                    execution["estimated_costs"], execution["net_pnl"],
+                    time.strftime("%Y-%m-%dT%H:%M:%S%z"), row["rowid"],
+                ),
+            )
+            labelled += 1
+            if str(row["source"] or "").lower() in live_sources:
+                verified += 1
+        conn.commit()
+    return {
+        "ok": True,
+        "labelled": labelled,
+        "verified_labelled": verified,
+        "skipped_no_future_price": skipped,
+        "pending_seen": len(pending),
+    }
+
+
+def build_multistrike_edge_model(
+    *,
+    db_path: str = "option_chain_snapshots.db",
+    output_file: str = EDGE_MODEL_FILE,
+    min_samples: int = 30,
+) -> Dict[str, Any]:
+    """Learn bounded strike-flow weights from verified generated outcomes."""
+    live_sources = ("nse_live", "resilience_nse", "angel", "angel_fallback", "sensibull", "bse", "bse_oc")
+    groups: Dict[str, Dict[str, float]] = {}
+    with sqlite3.connect(db_path) as conn:
+        ensure_multistrike_schema(conn)
+        placeholders = ",".join("?" for _ in live_sources)
+        rows = conn.execute(
+            f"SELECT option_type,flow,score,outcome_label,net_pnl FROM option_strike_signals "
+            f"WHERE outcome_label IN (-1,0,1) AND lower(COALESCE(source,'')) IN ({placeholders})",
+            live_sources,
+        ).fetchall()
+    for option_type, flow, score, label, net_pnl in rows:
+        bucket = "high" if float(score or 0) >= 75 else "mid" if float(score or 0) >= 60 else "low"
+        key = f"{str(option_type).upper()}:{str(flow).upper()}:{bucket}"
+        stat = groups.setdefault(key, {"samples": 0, "wins": 0, "net_pnl": 0.0, "abs_pnl": 0.0})
+        stat["samples"] += 1
+        stat["wins"] += 1 if int(label) > 0 else 0
+        stat["net_pnl"] += float(net_pnl or 0)
+        stat["abs_pnl"] += abs(float(net_pnl or 0))
+    weights = {}
+    for key, stat in groups.items():
+        n = int(stat["samples"])
+        if n < max(1, int(min_samples)):
+            weights[key] = 1.0
+            continue
+        win_rate = stat["wins"] / n
+        expectancy = stat["net_pnl"] / max(stat["abs_pnl"], 1.0)
+        confidence = min(1.0, n / max(2 * min_samples, 1))
+        weights[key] = round(max(0.75, min(1.25, 1 + confidence * (0.25 * (win_rate - 0.5) * 2 + 0.15 * math.tanh(expectancy)))), 4)
+    payload = {
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "verified_outcomes": len(rows), "min_samples": int(min_samples),
+        "weights": weights, "groups": groups,
+    }
+    with open(output_file, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2)
+    return payload
+
+
+def _learned_flow_multiplier(option_type: str, flow: str, score: float) -> float:
+    try:
+        payload = json.loads(open(EDGE_MODEL_FILE, encoding="utf-8").read())
+        bucket = "high" if score >= 75 else "mid" if score >= 60 else "low"
+        return float((payload.get("weights") or {}).get(f"{option_type.upper()}:{flow.upper()}:{bucket}", 1.0))
+    except Exception:
+        return 1.0
+
+
 def latest_flow_scores(
     underlying: str,
     option_type: str,
@@ -286,8 +423,12 @@ def latest_flow_scores(
     for strike, score, tradable, flow, signal, ts, reason in rows:
         key = float(strike)
         if key not in output:
+            raw_score = float(score or 0)
+            multiplier = _learned_flow_multiplier(option_type, str(flow or ""), raw_score)
             output[key] = {
-                "score": float(score or 0), "tradable": bool(tradable),
+                "score": round(max(0.0, min(100.0, raw_score * multiplier)), 4),
+                "raw_score": raw_score, "learned_multiplier": multiplier,
+                "tradable": bool(tradable),
                 "flow": flow, "signal": signal, "ts": float(ts or 0),
                 "reason": reason,
             }

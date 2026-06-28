@@ -193,6 +193,8 @@ def build_strike_autotune(
     feature_stats: Dict[str, Dict[str, Any]] = defaultdict(_empty_stat)
     labelled = 0
     shadow_labelled = 0
+    verified_labelled = 0
+    verified_shadow_labelled = 0
 
     for row in rows:
         if str(row.get("decision", "")) != "selected":
@@ -201,6 +203,8 @@ def build_strike_autotune(
         if outcome is not None:
             won, pnl = outcome
             labelled += 1
+            if bool(row.get("is_live_data")):
+                verified_labelled += 1
             for feat in candidate_features(row):
                 _add(feature_stats[feat], won, pnl)
 
@@ -218,6 +222,8 @@ def build_strike_autotune(
                 continue
             won, pnl = out
             shadow_labelled += 1
+            if bool(row.get("is_live_data")) and not shadow.get("synthetic_shadow"):
+                verified_shadow_labelled += 1
             sample_weight = (
                 SYNTHETIC_SHADOW_SAMPLE_WEIGHT
                 if shadow.get("synthetic_shadow")
@@ -242,6 +248,9 @@ def build_strike_autotune(
         "min_samples": min_samples,
         "labelled_selected": labelled,
         "labelled_shadow": shadow_labelled,
+        "verified_labelled_selected": verified_labelled,
+        "verified_labelled_shadow": verified_shadow_labelled,
+        "verified_generated_outcomes": verified_labelled + verified_shadow_labelled,
         "shadow_sample_weight": SHADOW_SAMPLE_WEIGHT,
         "synthetic_shadow_sample_weight": SYNTHETIC_SHADOW_SAMPLE_WEIGHT,
         "feature_weights": weights,

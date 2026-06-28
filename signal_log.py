@@ -230,6 +230,37 @@ def _risk_reward(entry_price: float, target_price: float, stop_price: float) -> 
     return reward / risk
 
 
+def _signal_risk_levels(signal: dict, entry: float, side: str) -> tuple[float, float, float, str]:
+    """Return signal-time risk levels for every generated candidate."""
+    stop = _safe_float(signal.get("stop_loss", signal.get("sl", signal.get("stop", 0))), 0.0)
+    target = _safe_float(
+        signal.get("target", signal.get("target_price", signal.get("take_profit", 0))), 0.0
+    )
+    rr = _safe_float(signal.get("rr", signal.get("risk_reward", 0)), 0.0)
+    source = str(signal.get("risk_level_source", "") or "")
+    side_u = str(side or "").upper()
+    valid = (
+        side_u == "BUY" and 0 < stop < entry < target
+    ) or (
+        side_u == "SELL" and 0 < target < entry < stop
+    )
+    if entry > 0 and side_u in {"BUY", "SELL"} and not valid:
+        metadata = signal.get("metadata", {}) if isinstance(signal.get("metadata"), dict) else {}
+        atr = _safe_float(signal.get("atr", metadata.get("atr", 0)), 0.0)
+        style = str(signal.get("option_style", signal.get("style", "intraday")) or "intraday").lower()
+        fallback_pct = 0.005 if "scalp" in style else 0.02 if "swing" in style else 0.01
+        risk = atr if 0 < atr < entry * 0.10 else entry * fallback_pct
+        reward = risk * 1.5
+        if side_u == "BUY":
+            stop, target = entry - risk, entry + reward
+        else:
+            stop, target = entry + risk, entry - reward
+        source = "signal_atr" if atr > 0 else f"signal_policy_{style}"
+    if rr <= 0 and entry > 0 and stop > 0 and target > 0:
+        rr = _risk_reward(entry, target, stop)
+    return stop, target, rr, source
+
+
 def _parse_expiry_date(value: Any) -> Optional[date]:
     text = str(value or "").strip()
     if not text:
@@ -363,16 +394,10 @@ class SignalLogger:
             now  = datetime.now()
             sym  = str(signal.get("symbol", "?")).upper()
             ep   = float(signal.get("entry_price", signal.get("price", 0)) or 0)
-            stop_loss = _safe_float(signal.get("stop_loss", signal.get("sl", signal.get("stop", 0))), 0.0)
-            target = _safe_float(
-                signal.get("target", signal.get("target_price", signal.get("take_profit", 0))),
-                0.0,
-            )
-            rr = _safe_float(signal.get("rr", signal.get("risk_reward", 0)), 0.0)
-            if rr <= 0 and ep > 0 and stop_loss > 0 and target > 0:
-                rr = _risk_reward(ep, target, stop_loss)
             side_value = str(signal.get("side", signal.get("direction", "")) or "").upper()
-            risk_level_source = str(signal.get("risk_level_source", "") or "")
+            stop_loss, target, rr, risk_level_source = _signal_risk_levels(
+                signal, ep, side_value
+            )
             if side_value == "BUY":
                 risk_levels_valid = bool(ep > 0 and 0 < stop_loss < ep < target and rr > 0)
             elif side_value == "SELL":
@@ -811,8 +836,9 @@ class SignalLogger:
                     if "atr" in df.columns:
                         atr = float(df["atr"].iloc[entry_idx])
                     else:
-                        high = df["high"] if "high" in df.columns else df.iloc[:, 1]
-                        low  = df["low"]  if "low"  in df.columns else df.iloc[:, 2]
+                        history = df.iloc[: entry_idx + 1]
+                        high = history["high"] if "high" in history.columns else history.iloc[:, 1]
+                        low  = history["low"]  if "low"  in history.columns else history.iloc[:, 2]
                         atr  = float((high - low).tail(14).mean())
 
                     t_pct, s_pct, max_b = get_dynamic_barriers(atr, ep)

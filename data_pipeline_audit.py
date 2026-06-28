@@ -941,9 +941,12 @@ def _audit_labelled_dataset() -> Dict[str, Any]:
             """
             SELECT
                 COUNT(*) AS total,
-                SUM(CASE WHEN tb_label NOT IN (-99, -2) THEN 1 ELSE 0 END) AS labelled,
+                SUM(CASE WHEN tb_label IN (-1,0,1) THEN 1 ELSE 0 END) AS legacy_labelled,
+                SUM(CASE WHEN tb_label IN (-1,0,1) AND training_eligible=1
+                          AND stop_loss>0 AND target>0 AND rr>0 THEN 1 ELSE 0 END) AS labelled,
                 SUM(CASE WHEN executed = 1 THEN 1 ELSE 0 END) AS executed,
-                COUNT(DISTINCT CASE WHEN tb_label NOT IN (-99, -2) THEN signal_date END) AS distinct_days
+                COUNT(DISTINCT CASE WHEN tb_label IN (-1,0,1) AND training_eligible=1
+                          AND stop_loss>0 AND target>0 AND rr>0 THEN signal_date END) AS distinct_days
             FROM signal_log
             """
         ).fetchone()
@@ -959,6 +962,7 @@ def _audit_labelled_dataset() -> Dict[str, Any]:
         payload = {
             "total": int(row["total"] or 0),
             "labelled": int(row["labelled"] or 0),
+            "legacy_labelled": int(row["legacy_labelled"] or 0),
             "executed": int(row["executed"] or 0),
             "distinct_days": int(row["distinct_days"] or 0),
             "by_label": {str(r["tb_label"]): int(r["n"] or 0) for r in by_label},

@@ -85,7 +85,7 @@ def test_signal_training_requires_valid_risk_and_session(tmp_path, monkeypatch):
         "stop_loss": 98, "target": 104, "strategy": "valid",
     })
     invalid = logger.log_candidate({
-        "symbol": "NIFTY", "side": "BUY", "entry_price": 100, "strategy": "invalid",
+        "symbol": "NIFTY", "entry_price": 100, "strategy": "invalid",
     })
     with sqlite3.connect(tmp_path / "signals.db") as conn:
         rows = conn.execute(
@@ -94,6 +94,24 @@ def test_signal_training_requires_valid_risk_and_session(tmp_path, monkeypatch):
     assert rows[0][0] == valid and rows[0][1] == 1
     assert rows[1][0] == invalid and rows[1][1] == 0
     assert "missing_or_invalid_risk_levels" in rows[1][2]
+
+
+def test_signal_logger_derives_risk_for_every_generated_signal(tmp_path, monkeypatch):
+    import trading_calendar
+    from signal_log import SignalLogger
+
+    monkeypatch.setattr(trading_calendar, "is_trading_day", lambda *_args, **_kwargs: True)
+    logger = SignalLogger(db_path=str(tmp_path / "signals.db"))
+    row_id = logger.log_candidate({
+        "symbol": "SBIN", "side": "SELL", "entry_price": 100,
+        "strategy": "generated_shadow", "style": "scalping",
+    })
+    with sqlite3.connect(tmp_path / "signals.db") as conn:
+        row = conn.execute(
+            "SELECT stop_loss,target,rr,risk_level_source,training_eligible "
+            "FROM signal_log WHERE id=?", (row_id,),
+        ).fetchone()
+    assert row == (100.5, 99.25, 1.5, "signal_policy_scalping", 1)
 
 
 def test_live_order_requires_algo_tag(tmp_path, monkeypatch):

@@ -36,7 +36,9 @@ def _query_rows(db_path: str) -> List[Dict[str, Any]]:
         SELECT
             symbol,
             COUNT(*) AS total,
-            SUM(CASE WHEN tb_label != -99 THEN 1 ELSE 0 END) AS labelled,
+            SUM(CASE WHEN tb_label IN (-1,0,1) THEN 1 ELSE 0 END) AS legacy_labelled,
+            SUM(CASE WHEN tb_label IN (-1,0,1) AND training_eligible=1
+                      AND stop_loss>0 AND target>0 AND rr>0 THEN 1 ELSE 0 END) AS labelled,
             SUM(CASE WHEN tb_label = -99 THEN 1 ELSE 0 END) AS pending,
             SUM(CASE WHEN executed = 1 THEN 1 ELSE 0 END) AS executed,
             SUM(CASE WHEN option_symbol != '' OR option_strike > 0 THEN 1 ELSE 0 END) AS option_rows,
@@ -78,6 +80,7 @@ def build_learning_coverage_report(db_path: str = "signal_log.db") -> Dict[str, 
     totals = {
         "signal_rows": sum(int(r.get("total", 0) or 0) for r in rows),
         "labelled_rows": sum(int(r.get("labelled", 0) or 0) for r in rows),
+        "legacy_labelled_rows": sum(int(r.get("legacy_labelled", 0) or 0) for r in rows),
         "pending_rows": sum(int(r.get("pending", 0) or 0) for r in rows),
         "executed_rows": sum(int(r.get("executed", 0) or 0) for r in rows),
         "option_rows": sum(int(r.get("option_rows", 0) or 0) for r in rows),
@@ -89,11 +92,13 @@ def build_learning_coverage_report(db_path: str = "signal_log.db") -> Dict[str, 
         try:
             eligible_pending = int(conn.execute(
                 "SELECT COUNT(*) FROM signal_log "
-                "WHERE tb_label = -99 AND signal_date <= date('now','localtime','-1 day')"
+                "WHERE tb_label = -99 AND training_eligible=1 "
+                "AND signal_date <= date('now','localtime','-1 day')"
             ).fetchone()[0] or 0)
             today_pending = int(conn.execute(
                 "SELECT COUNT(*) FROM signal_log "
-                "WHERE tb_label = -99 AND signal_date = date('now','localtime')"
+                "WHERE tb_label = -99 AND training_eligible=1 "
+                "AND signal_date = date('now','localtime')"
             ).fetchone()[0] or 0)
         finally:
             conn.close()

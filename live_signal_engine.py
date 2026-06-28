@@ -2224,8 +2224,25 @@ class LiveSignalEngine:
         falling back to the shared model.
         """
         strategy = str(signal.get("strategy", "")).lower()
+        # Primary model: every valid generated signal, including rejected and
+        # shadow candidates. Models without the v2 contract are ignored.
+        try:
+            from ml_trainer import predict as _predict_signal_model
+            pred = _predict_signal_model(
+                _build_signal_ml_features(signal),
+                symbol=str(signal.get("symbol", "") or ""),
+            )
+            if pred.get("available"):
+                signal["ai_model_state"] = "signal_log_model"
+                signal["ai_model_used"] = pred.get("model_used", "")
+                signal["ai_model_auc"] = pred.get("cv_auc", 0)
+                return float(pred.get("win_prob", 0.5) or 0.5)
+        except Exception as exc:
+            logger.debug("generated-signal AI model unavailable: %s", exc)
+
         # Use per-strategy model if learning engine supports it
-        if (hasattr(self.learning_engine, "predict_for_strategy")
+        if (bool(getattr(cfg, "ALLOW_LEGACY_TRADE_MODELS", False))
+                and hasattr(self.learning_engine, "predict_for_strategy")
                 and strategy in self.learning_engine._strategy_models):
             try:
                 prob = self.learning_engine.predict_for_strategy(signal, strategy)
@@ -2243,22 +2260,8 @@ class LiveSignalEngine:
             except Exception as _e:
                 import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
         # Fall through to original shared-model path
-        if not getattr(self.learning_engine, "model", None):
-            try:
-                from ml_trainer import predict as _predict_signal_model
-
-                pred = _predict_signal_model(
-                    _build_signal_ml_features(signal),
-                    symbol=str(signal.get("symbol", "") or ""),
-                )
-                if pred.get("available"):
-                    signal["ai_model_state"] = "signal_log_model"
-                    signal["ai_model_used"] = pred.get("model_used", "")
-                    signal["ai_model_auc"] = pred.get("cv_auc", 0)
-                    return float(pred.get("win_prob", 0.5) or 0.5)
-            except Exception as exc:
-                logger.debug("signal-log AI model unavailable: %s", exc)
-
+        if (not bool(getattr(cfg, "ALLOW_LEGACY_TRADE_MODELS", False))
+                or not getattr(self.learning_engine, "model", None)):
             score = _safe_float(signal.get("score"), 0.0)
             n_agree = _safe_float(signal.get("n_agree"), 0.0)
             n_conflict = _safe_float(signal.get("n_conflict"), 0.0)
@@ -2272,7 +2275,7 @@ class LiveSignalEngine:
                 prob += 0.02
             prob = max(0.50, min(0.78, prob))
             signal["ai_model_state"] = "rule_based_fallback"
-            signal["ai_fallback_reason"] = "trained_model_missing"
+            signal["ai_fallback_reason"] = "clean_generated_signal_model_missing"
             return prob
 
         try:
@@ -2716,8 +2719,13 @@ class LiveSignalEngine:
                     or (shadow_signal.get("metadata", {}) or {}).get("shadow_reason")
                     or "shadow_strategy_candidate"
                 )
+                shadow_payload = self._candidate_signal_log_payload({
+                    "symbol": symbol,
+                    "score": _safe_float(shadow_signal.get("score"), 0.0),
+                    "signal": shadow_signal,
+                })
                 logger_obj.log_candidate(
-                    signal=shadow_signal,
+                    signal=shadow_payload,
                     executed=False,
                     rejection_reason=reason,
                     india_vix=float(india_vix or 15.0),
@@ -2871,6 +2879,15 @@ class LiveSignalEngine:
     ) -> None:
         try:
             from option_decision_journal import record_option_decision
+            quality_payload = quality or {}
+            selected_payload = selected or {}
+            source = str(
+                selected_payload.get("source")
+                or quality_payload.get("source")
+                or (quality_payload.get("chain_quality", {}) or {}).get("source")
+                or signal.get("option_source")
+                or ""
+            )
             record_option_decision(
                 strategy=str(signal.get("strategy", "AUTO") or "AUTO"),
                 symbol=str(symbol or ""),
@@ -2879,10 +2896,11 @@ class LiveSignalEngine:
                 side=str(side or signal.get("side", "") or ""),
                 spot=_safe_float(spot, _safe_float(signal.get("spot"), _safe_float(signal.get("price"), 0.0))),
                 setup_score=_safe_float(signal.get("setup_score"), _safe_float(signal.get("score"), 0.0)),
-                quality=quality or {},
-                selected=selected or {},
+                quality=quality_payload,
+                selected=selected_payload,
                 strikes=strikes or [],
                 trade_id=str(trade_id or ""),
+                metadata={"data_source": source},
             )
         except Exception as exc:
             logger.debug("option decision journal entry failed: %s", exc)

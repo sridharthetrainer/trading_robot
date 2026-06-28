@@ -92,6 +92,11 @@ def build_system_readiness_report(
     edge = _read_json("edge_analysis_last_run.json")
     health = _read_json("health_snapshot.json")
     try:
+        from shadow_portfolio_simulator import simulate_shadow_portfolio
+        shadow_portfolio = simulate_shadow_portfolio()
+    except Exception:
+        shadow_portfolio = _read_json("shadow_portfolio_report.json")
+    try:
         from release_integrity import verify_manifest
         release_integrity = verify_manifest()
     except Exception as exc:
@@ -126,10 +131,10 @@ def build_system_readiness_report(
     gross_pnl = _sqlite_scalar("trades.db", "SELECT COALESCE(SUM(gross_pnl),0) FROM trades WHERE status='CLOSED'", 0)
     net_pnl = _sqlite_scalar("trades.db", "SELECT COALESCE(SUM(realized_pnl),0) FROM trades WHERE status='CLOSED'", 0)
     profitable = _sqlite_scalar("trades.db", "SELECT COUNT(*) FROM trades WHERE status='CLOSED' AND realized_pnl>0", 0)
-    if int(fill.get("paper", 0) or 0) < 100:
-        blocks.append("paper_execution_sample_below_100")
-    if float(net_pnl or 0) <= 0:
-        blocks.append("paper_net_pnl_not_positive")
+    # Generated signals, not rare executions, are the strategy-learning sample.
+    # Execution count remains infrastructure telemetry and never trains edge.
+    if int(fill.get("paper", 0) or 0) < 10:
+        warnings.append("paper_execution_telemetry_below_10")
     broker_status = health.get("broker_status", []) if isinstance(health.get("broker_status"), list) else []
     broker_connected = any(bool(row.get("connected")) for row in broker_status if isinstance(row, dict))
     if not broker_connected:
@@ -141,12 +146,21 @@ def build_system_readiness_report(
         blocks.append("no_setup_specific_barrier_labels")
     if not release_integrity.get("ok"):
         blocks.append("release_integrity_unverified")
+    elif not release_integrity.get("git_head_matches", False):
+        warnings.append("release_manifest_commit_mismatch")
     label_detail = (
         data_audit.get("checks", [{}]) if isinstance(data_audit.get("checks"), list) else []
     )
     labelled_check = next((c for c in label_detail if c.get("name") == "labelled_dataset"), {})
     if int(labelled_check.get("distinct_days", 0) or 0) < int(labelled_check.get("target_days", 15) or 15):
         blocks.append("labelled_days_below_target")
+    if int(labelled_check.get("labelled", 0) or 0) < int(labelled_check.get("target_labelled", 5000) or 5000):
+        blocks.append("clean_generated_signal_outcomes_below_target")
+    if (
+        int(labelled_check.get("labelled", 0) or 0) >= int(labelled_check.get("target_labelled", 5000) or 5000)
+        and not bool(shadow_portfolio.get("after_cost_positive"))
+    ):
+        blocks.append("generated_signal_after_cost_edge_not_positive")
     if latest_option_ok and (_age_hours(latest_option_ok) or 999) > 24 and datetime.now().weekday() < 5:
         warnings.append("option_chain_snapshot_stale_market_day")
     if float(fill.get("fill_latency_coverage_pct", 0.0) or 0.0) < 80 and int(fill.get("live", 0) or 0) > 0:
@@ -202,6 +216,7 @@ def build_system_readiness_report(
             "net_pnl": round(float(net_pnl or 0), 2),
             "profitable_trades": int(profitable or 0),
             "broker_connected": broker_connected,
+            "role": "execution_infrastructure_validation_only",
         },
         "learning": {
             "experiments_logged": int(experiments or 0),
@@ -211,6 +226,9 @@ def build_system_readiness_report(
             "target_days": int(labelled_check.get("target_days", 15) or 15),
             "custom_barrier_labels": int(custom_barriers or 0),
             "edge_conclusion": edge.get("conclusion", ""),
+            "sample_source": "all_training_eligible_generated_signals",
+            "legacy_labelled_rows": int(labelled_check.get("legacy_labelled", 0) or 0),
+            "shadow_portfolio": shadow_portfolio,
         },
         "blocks": list(dict.fromkeys(blocks)),
         "warnings": warnings,
