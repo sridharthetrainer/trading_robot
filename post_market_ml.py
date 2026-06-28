@@ -133,7 +133,15 @@ def _update_strategy_matrix(df: "pd.DataFrame") -> None:
         # Idempotent EOD refresh: drop the previous night's replay before re-adding,
         # so re-running the pipeline never double-counts the same signals. Live
         # trade-close records (src='live') are preserved.
-        matrix.purge_source("eod")
+        matrix.purge_source("clean_v3")
+
+        distinct_days = int(df["__signal_date"].astype(str).nunique()) if "__signal_date" in df else 0
+        if len(df) < 5000 or distinct_days < 15:
+            logger.info(
+                "strategy_performance_matrix promotion deferred: clean=%d/5000 days=%d/15",
+                len(df), distinct_days,
+            )
+            return
 
         import datetime as _dt
 
@@ -165,7 +173,7 @@ def _update_strategy_matrix(df: "pd.DataFrame") -> None:
                     vix         = vix,
                     regime      = regime,
                     autosave    = False,   # bulk replay: save once at the end (was 11.6h)
-                    src         = "eod",   # idempotent: purged + rebuilt each run
+                    src         = "clean_v3",
                 )
             except Exception:
                 pass
@@ -373,6 +381,19 @@ def run_pipeline(
     if not force and not _is_post_market():
         logger.warning("Market is still open (before 15:30). Use --force to override.")
         return {"error": "market_open"}
+
+    # ML-training window guard: all training must run 07:00–21:00 (config) so heavy
+    # jobs never fire overnight. --force bypasses for manual/ad-hoc runs.
+    try:
+        from trading_calendar import in_ml_training_window
+        _win_ok, _win = in_ml_training_window()
+    except Exception:
+        _win_ok, _win = True, "07:00-21:00"
+    if not force and not _win_ok:
+        logger.warning("Outside ML training window %s (now %s) — skipping. Use --force.",
+                       _win, datetime.now().strftime("%H:%M"))
+        return {"error": "outside_training_window", "window": _win,
+                "now": datetime.now().strftime("%H:%M")}
 
     # ── Step 1: Update pending labels ─────────────────────────────────────────
     logger.info("[1/6] Updating pending signal labels …")

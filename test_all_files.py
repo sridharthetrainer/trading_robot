@@ -262,9 +262,9 @@ print(f"  RESULTS: {results['pass']} passed | {results['fail']} failed | {result
 print("═"*60)
 
 if results["fail"] == 0:
-    print(f"\n  ✅ ALL TESTS PASSED — system is ready")
-    print(f"  Bot is running in paper mode")
-    print(f"  Watch Telegram tomorrow from 8:30 AM")
+    print(f"\n  ✅ OPERATIONAL TEST SURFACE PASSED")
+    print(f"  This verifies wiring/syntax only; it is not evidence of strategy edge.")
+    print(f"  Bot remains in paper mode until system_readiness_report has no blocks.")
 else:
     print(f"\n  ❌ {results['fail']} FAILURES — fix before going live")
     print(f"  Run: python validate_env.py   for .env issues")

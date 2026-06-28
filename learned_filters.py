@@ -53,6 +53,7 @@ FILTER_MAX_MULT = float(os.getenv("LEARNED_FILTER_MAX_MULT", "1.20"))
 
 # In-memory cache: avoid re-reading file every signal
 _CACHE: Dict[str, Any] = {"mtime": 0.0, "data": {}}
+FILTER_TRAINING_CONTRACT = "all_generated_signals_v3_no_outcome_leakage"
 
 
 def _load_filters() -> Dict[str, Any]:
@@ -93,7 +94,12 @@ def apply_learned_filters(signal_context: Dict[str, Any]) -> Dict[str, Any]:
     }
     """
     data = _load_filters()
-    if not data:
+    if (
+        not data
+        or data.get("training_contract") != FILTER_TRAINING_CONTRACT
+        or not data.get("active", False)
+        or data.get("rule_validation") != "locked_forward_holdout"
+    ):
         return {"mult": 1.0, "reason": "", "win_prob": 0.5, "filters_hit": []}
 
     combined_mult = 1.0
@@ -243,12 +249,23 @@ def generate_and_save(
 
     ml_auc = (training_results.get("cross_symbol") or {}).get("cv_auc_mean", 0)
 
+    cross_result = training_results.get("cross_symbol") or {}
+    model_promoted = bool(cross_result.get("promoted", False))
+    # These univariate autopsy rules are discovered on the same sample. Keep
+    # them as candidates, but do not let in-sample bins alter live scores.
     payload = {
         "version":      __import__("datetime").datetime.now().isoformat(timespec="seconds"),
         "overall_wr":   summary.get("overall_wr", 0),
         "n_signals":    summary.get("n_total", 0),
-        "filters":      filters,
-        "boosts":       boosts,
+        "training_contract": FILTER_TRAINING_CONTRACT,
+        "model_promoted": model_promoted,
+        "active": False,
+        "activation_reason": "autopsy_rules_require_locked_forward_holdout",
+        "rule_validation": "in_sample_discovery_only",
+        "filters":      [],
+        "boosts":       [],
+        "candidate_filters": filters,
+        "candidate_boosts": boosts,
         "ml_model_auc": ml_auc,
     }
 
@@ -258,7 +275,7 @@ def generate_and_save(
 
     logger.info(
         "learned_filters.json written: %d filters + %d boosts | ML AUC=%.3f",
-        len(filters), len(boosts), ml_auc,
+        0, 0, ml_auc,
     )
     return FILTERS_FILE
 

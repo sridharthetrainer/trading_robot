@@ -22,7 +22,8 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 MATRIX_FILE = "strategy_matrix.json"
-MIN_TRADES_FOR_FILTER = 10   # need at least 10 trades before filtering
+MIN_TRADES_FOR_FILTER = 30
+ACTIVE_EVIDENCE_SOURCES = {"clean_v3", "live_verified"}
 
 
 class StrategyPerformanceMatrix:
@@ -49,7 +50,7 @@ class StrategyPerformanceMatrix:
         vix:       float = 15.0,
         regime:    str = "UNKNOWN",
         autosave:  bool = True,
-        src:       str = "live",
+        src:       str = "live_verified",
     ) -> None:
         """Record a closed trade outcome for matrix learning.
 
@@ -88,7 +89,10 @@ class StrategyPerformanceMatrix:
         0.0 = strategy should be blocked in these conditions
         """
         key     = self._make_key(day_type, time_bucket, self._vix_regime(vix), regime)
-        trades  = self._data.get(strategy, {}).get(key, [])
+        trades = [
+            trade for trade in self._data.get(strategy, {}).get(key, [])
+            if trade.get("src") in ACTIVE_EVIDENCE_SOURCES
+        ]
         n       = len(trades)
 
         if n < MIN_TRADES_FOR_FILTER:
@@ -119,9 +123,10 @@ class StrategyPerformanceMatrix:
         """Return the top 3 conditions where this strategy performs best."""
         results = []
         for key, trades in self._data.get(strategy, {}).items():
-            if len(trades) >= MIN_TRADES_FOR_FILTER:
-                wr  = sum(t["won"] for t in trades) / len(trades)
-                results.append((wr, len(trades), key))
+            active = [t for t in trades if t.get("src") in ACTIVE_EVIDENCE_SOURCES]
+            if len(active) >= MIN_TRADES_FOR_FILTER:
+                wr = sum(t["won"] for t in active) / len(active)
+                results.append((wr, len(active), key))
         results.sort(reverse=True)
         return results[:3]
 

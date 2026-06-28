@@ -38,11 +38,21 @@ CV_FOLDS           = int(os.getenv("ML_CV_FOLDS", "5"))
 # leaks. Horizon ≈ triple-barrier max_bars; embargo adds a serial-correlation gap.
 PURGE_HORIZON      = int(os.getenv("ML_PURGE_HORIZON", "12"))
 PURGE_EMBARGO      = int(os.getenv("ML_PURGE_EMBARGO", "3"))
-TRAINING_CONTRACT  = "all_generated_signals_v2"
+TRAINING_CONTRACT  = "all_generated_signals_v3_no_outcome_leakage"
+MIN_PROMOTION_SAMPLES = int(os.getenv("ML_MIN_PROMOTION_SAMPLES", "5000"))
+MIN_PROMOTION_DAYS = int(os.getenv("ML_MIN_PROMOTION_DAYS", "15"))
+MIN_PROMOTION_AUC = float(os.getenv("ML_MIN_PROMOTION_AUC", "0.55"))
 
 # Metadata columns — excluded from training features
-_META_COLS = {"tb_outcome", "tb_label", "__symbol", "__signal_date",
-              "__strategy", "__side", "__log_time"}
+_OUTCOME_ONLY_COLS = {
+    "tb_outcome", "tb_label", "tb_r_multiple", "tb_r_multiple_net",
+    "outcome_price", "outcome_time", "exit_price", "exit_time",
+    "gross_pnl", "net_pnl", "realized_pnl", "estimated_costs",
+    "labelled_at", "tb_used_custom_barrier",
+}
+_META_COLS = _OUTCOME_ONLY_COLS | {
+    "__symbol", "__signal_date", "__strategy", "__side", "__log_time",
+}
 
 
 def _feature_cols(df: "pd.DataFrame") -> List[str]:
@@ -59,21 +69,15 @@ def _train_model(
     Train a GradientBoostingClassifier with TimeSeriesSplit cross-validation.
     Returns dict with model, cv_scores, feature_importances.
     """
-    from sklearn.ensemble import GradientBoostingClassifier
     from sklearn.model_selection import TimeSeriesSplit, cross_val_score
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.pipeline import Pipeline
+    from model_champion import compare_candidates
 
-    pipe = Pipeline([
-        ("scaler", StandardScaler()),
-        ("clf",    GradientBoostingClassifier(
-            n_estimators  = N_ESTIMATORS,
-            max_depth     = MAX_DEPTH,
-            learning_rate = LEARNING_RATE,
-            subsample     = 0.8,
-            random_state  = 42,
-        )),
-    ])
+    tournament = compare_candidates(
+        X, y, n_splits=CV_FOLDS, horizon=PURGE_HORIZON, embargo=PURGE_EMBARGO
+    )
+    pipe = tournament.get("estimator")
+    if pipe is None:
+        raise ValueError("No candidate produced at least two valid purged folds")
 
     # TimeSeriesSplit (legacy, kept for comparison) — respects order but does NOT
     # purge overlapping triple-barrier label windows → leaks.
@@ -97,9 +101,23 @@ def _train_model(
     pipe.fit(X, y)
 
     # Feature importances from the GBM (not affected by scaling)
-    clf        = pipe.named_steps["clf"]
-    importances = clf.feature_importances_
-    feat_imp   = sorted(
+    clf = pipe.named_steps.get("clf") if hasattr(pipe, "named_steps") else pipe
+    selector = pipe.named_steps.get("select") if hasattr(pipe, "named_steps") else None
+    if hasattr(clf, "feature_importances_"):
+        importances = np.asarray(clf.feature_importances_, dtype=float)
+    elif hasattr(clf, "coef_"):
+        importances = np.abs(np.asarray(clf.coef_, dtype=float)[0])
+        total = float(importances.sum())
+        importances = importances / total if total > 0 else importances
+    else:
+        importances = np.zeros(len(feature_names), dtype=float)
+    if selector is not None and hasattr(selector, "get_support"):
+        support = np.asarray(selector.get_support(), dtype=bool)
+        full_importances = np.zeros(len(feature_names), dtype=float)
+        if int(support.sum()) == len(importances):
+            full_importances[support] = importances
+        importances = full_importances
+    feat_imp = sorted(
         zip(feature_names, importances),
         key=lambda x: x[1], reverse=True
     )
@@ -131,9 +149,36 @@ def _train_model(
         feat_imp[0][1] if feat_imp else 0,
     )
 
+    # Calibrate the selected classifier using the same purged/embargoed split
+    # contract. This probability is consumed by the after-cost economics gate.
+    calibrated_model = pipe
+    calibration_method = "none"
+    try:
+        from sklearn.calibration import CalibratedClassifierCV
+        from purged_cv import PurgedKFold
+        calibrated_model = CalibratedClassifierCV(
+            pipe, method="sigmoid",
+            cv=PurgedKFold(CV_FOLDS, PURGE_HORIZON, PURGE_EMBARGO),
+        ).fit(X, y)
+        calibration_method = "sigmoid_purged_cv"
+    except Exception as exc:
+        logger.warning("[%s] probability calibration unavailable: %s", label, exc)
+
+    champion_metrics = next(
+        (row for row in tournament.get("leaderboard", [])
+         if row.get("name") == tournament.get("champion")),
+        {},
+    )
     return {
         "label":               label,
-        "model":               pipe,
+        "model":               calibrated_model,
+        "champion_algorithm":  tournament.get("champion", ""),
+        "candidate_count":     tournament.get("candidate_count", 0),
+        "candidate_leaderboard": tournament.get("leaderboard", []),
+        "purged_brier":        champion_metrics.get("brier"),
+        "purged_baseline_brier": champion_metrics.get("baseline_brier"),
+        "purged_brier_skill":  champion_metrics.get("brier_skill"),
+        "probability_calibration": calibration_method,
         # Gate uses the PURGED (leakage-free) AUC; legacy TSCV kept for comparison.
         "cv_auc_mean":         round(cv_auc_primary, 4),
         "cv_auc_std":          round(cv_std_primary, 4),
@@ -228,15 +273,9 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     if len(df_clean) < 20:
         return {"error": f"Only {len(df_clean)} clean rows — need at least 20"}
 
-    # Feature selection: reduce 60+ features to top 20 to prevent overfitting.
-    # With 5-fold CV, each training fold has ~400 samples; 10:1 sample-to-feature
-    # ratio requires no more than 40 features — target 20 for safety margin.
-    try:
-        from ml_feature_builder import select_top_features as _sel
-        feat_cols = _sel(df_clean, feat_cols, n=20)
-        logger.info("Feature selection: %d features selected", len(feat_cols))
-    except Exception as _fe:
-        logger.debug("Feature selection unavailable, using all %d: %s", len(feat_cols), _fe)
+    # Supervised feature selection lives INSIDE each sklearn pipeline so every
+    # CV fold selects using training rows only. Pre-selecting against the full
+    # target leaks holdout labels into model design.
 
     X_all   = df_clean[feat_cols].values.astype(np.float32)
     y_all   = df_clean["tb_outcome"].values.astype(int)
@@ -251,10 +290,21 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     # ── Cross-symbol model ────────────────────────────────────────────────────
     logger.info("Training cross-symbol model on %d samples", len(df_clean))
     cross_result = _train_model(X_all, y_all, feat_cols, label="cross_symbol")
+    distinct_days = int(df_clean["__signal_date"].astype(str).nunique()) if "__signal_date" in df_clean else 0
+    cross_result["distinct_days"] = distinct_days
+    cross_result["promoted"] = bool(
+        len(df_clean) >= MIN_PROMOTION_SAMPLES
+        and distinct_days >= MIN_PROMOTION_DAYS
+        and cross_result.get("cv_method") == "purged_kfold"
+        and float(cross_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
+        and float(cross_result.get("purged_brier_skill") or -1) > 0
+        and cross_result.get("probability_calibration") == "sigmoid_purged_cv"
+    )
     cross_result["training_data_fingerprint"] = training_fingerprint
     cross_result["selected_features"] = list(feat_cols)
     results["cross_symbol"] = {k: v for k, v in cross_result.items() if k != "model"}
-    saved_paths.append(str(_save_model(cross_result)))
+    if cross_result["promoted"]:
+        saved_paths.append(str(_save_model(cross_result)))
 
     # ── Per-symbol models ─────────────────────────────────────────────────────
     if "__symbol" in df_clean.columns:
@@ -268,12 +318,23 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             if len(np.unique(ys)) < 2:
                 continue   # only one class — can't train
             sym_result = _train_model(Xs, ys, feat_cols, label=symbol)
+            sym_days = int(sym_df["__signal_date"].astype(str).nunique()) if "__signal_date" in sym_df else 0
+            sym_result["distinct_days"] = sym_days
+            sym_result["promoted"] = bool(
+                len(sym_df) >= MIN_PROMOTION_SAMPLES
+                and sym_days >= MIN_PROMOTION_DAYS
+                and sym_result.get("cv_method") == "purged_kfold"
+                and float(sym_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
+                and float(sym_result.get("purged_brier_skill") or -1) > 0
+                and sym_result.get("probability_calibration") == "sigmoid_purged_cv"
+            )
             sym_result["training_data_fingerprint"] = _training_fingerprint(sym_df, feat_cols)
             sym_result["selected_features"] = list(feat_cols)
             results["per_symbol"][symbol] = {
                 k: v for k, v in sym_result.items() if k != "model"
             }
-            saved_paths.append(str(_save_model(sym_result)))
+            if sym_result["promoted"]:
+                saved_paths.append(str(_save_model(sym_result)))
 
     results["saved_paths"] = saved_paths
     results["training_contract"] = TRAINING_CONTRACT
@@ -328,10 +389,20 @@ def predict(
             "win_prob": 0.5, "model_used": model_used, "available": False,
             "reason": "legacy_training_contract",
         }
+    if not model_result.get("promoted", False):
+        return {
+            "win_prob": 0.5, "model_used": model_used, "available": False,
+            "reason": "model_not_promoted",
+        }
 
     try:
         pipe      = model_result["model"]
-        feat_cols = [f for f, _ in model_result["feature_importances"]]
+        feat_cols = list(model_result.get("selected_features") or [])
+        if not feat_cols:
+            return {
+                "win_prob": 0.5, "model_used": model_used, "available": False,
+                "reason": "ordered_feature_contract_missing",
+            }
 
         # Build feature vector in same column order as training
         x_vec = np.array(

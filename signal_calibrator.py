@@ -38,7 +38,9 @@ Output per signal:
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -51,7 +53,9 @@ _MODEL_FILE  = Path("signal_calibrator_model.pkl")
 _META_FILE   = Path("signal_calibrator_meta.json")
 _DB_PATH     = Path("signal_log.db")
 _TABLE       = "signal_log"
-_MIN_SAMPLES = 30       # must match meta_learner._MIN_TRADES
+_MIN_SAMPLES = int(os.getenv("CALIBRATOR_MIN_CLEAN_SAMPLES", "5000"))
+_MIN_DAYS = int(os.getenv("CALIBRATOR_MIN_CLEAN_DAYS", "15"))
+_TRAINING_CONTRACT = "all_generated_signals_v2_purged_calibration"
 
 # Probability thresholds
 _PASS_THRESHOLD = 0.60
@@ -120,31 +124,32 @@ def _extract_row(row: Dict) -> List[float]:
     ]
 
 
-def _load_training_data() -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
+def _load_training_data() -> Tuple[Optional[np.ndarray], Optional[np.ndarray], List[str]]:
     """Load labelled signal data from signal_log.db."""
     if not _DB_PATH.exists():
-        return None, None
+        return None, None, []
     try:
         conn = sqlite3.connect(str(_DB_PATH))
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
             f"SELECT * FROM {_TABLE} WHERE tb_label IN (1, -1) "
             "AND training_eligible=1 AND stop_loss>0 AND target>0 AND rr>0 "
-            "ORDER BY signal_date ASC"
+            "ORDER BY signal_date ASC, signal_time ASC, id ASC"
         ).fetchall()
         conn.close()
         rows = [dict(r) for r in rows]
     except Exception as e:
         logger.debug("_load_training_data: %s", e)
-        return None, None
+        return None, None, []
 
     if len(rows) < _MIN_SAMPLES:
         logger.info("Calibrator: only %d labelled signals (need %d)", len(rows), _MIN_SAMPLES)
-        return None, None
+        return None, None, []
 
     X = np.array([_extract_row(r) for r in rows], dtype=float)
     y = np.array([1 if int(r["tb_label"]) == 1 else 0 for r in rows], dtype=int)
-    return X, y
+    dates = [str(r.get("signal_date") or "") for r in rows]
+    return X, y, dates
 
 
 class SignalCalibrator:
@@ -166,9 +171,16 @@ class SignalCalibrator:
         try:
             import joblib
             if _MODEL_FILE.exists():
-                self._model = joblib.load(str(_MODEL_FILE))
                 if _META_FILE.exists():
                     self._meta = json.loads(_META_FILE.read_text())
+                if (
+                    self._meta.get("training_contract") != _TRAINING_CONTRACT
+                    or not self._meta.get("promoted", False)
+                ):
+                    logger.warning("SignalCalibrator ignored: legacy or unpromoted model")
+                    self._model = None
+                    return
+                self._model = joblib.load(str(_MODEL_FILE))
                 logger.info(
                     "SignalCalibrator loaded: n_train=%d val_brier=%.4f",
                     self._meta.get("n_train", 0),
@@ -188,27 +200,42 @@ class SignalCalibrator:
 
         Returns training metadata dict.
         """
-        X, y = _load_training_data()
+        X, y, dates = _load_training_data()
         if X is None:
             return {"trained": False, "reason": "insufficient_data"}
 
         n = len(X)
-        split = max(1, int(n * 0.80))
-        X_train, y_train = X[:split], y[:split]
-        X_val,   y_val   = X[split:], y[split:]
+        unique_days = sorted(set(dates))
+        if len(unique_days) < _MIN_DAYS:
+            return {
+                "trained": False,
+                "reason": f"insufficient_temporal_coverage days={len(unique_days)}/{_MIN_DAYS}",
+            }
+        split_day = unique_days[max(1, int(len(unique_days) * 0.80))]
+        train_mask = np.array([day < split_day for day in dates], dtype=bool)
+        X_train, y_train = X[train_mask], y[train_mask]
+        X_val, y_val = X[~train_mask], y[~train_mask]
+        if len(X_val) < 100 or len(np.unique(y_train)) < 2 or len(np.unique(y_val)) < 2:
+            return {"trained": False, "reason": "insufficient_holdout_class_balance"}
 
         try:
             from sklearn.linear_model import LogisticRegression
             from sklearn.calibration import CalibratedClassifierCV
+            from sklearn.metrics import roc_auc_score
             from sklearn.preprocessing import StandardScaler
             from sklearn.pipeline import Pipeline
+            from purged_cv import PurgedKFold
 
             pipeline = Pipeline([
                 ("scaler", StandardScaler()),
                 ("lr",     LogisticRegression(C=1.0, solver="lbfgs", max_iter=500,
                                               random_state=42)),
             ])
-            calibrated = CalibratedClassifierCV(pipeline, method="isotonic", cv=3)
+            calibrated = CalibratedClassifierCV(
+                pipeline,
+                method="sigmoid",
+                cv=PurgedKFold(n_splits=5, horizon=12, embargo=3),
+            )
             calibrated.fit(X_train, y_train)
 
             # Validation metrics
@@ -217,33 +244,36 @@ class SignalCalibrator:
             val_acc  = float((preds == y_val).mean()) if len(y_val) > 0 else 0.0
             # Brier score (lower is better; 0.25 = random; 0.0 = perfect)
             val_brier = float(np.mean((probs - y_val) ** 2)) if len(y_val) > 0 else 0.25
+            train_base_rate = float(np.mean(y_train))
+            baseline_brier = float(np.mean((train_base_rate - y_val) ** 2))
+            val_auc = float(roc_auc_score(y_val, probs))
+            brier_skill = 1.0 - (val_brier / baseline_brier) if baseline_brier > 0 else -1.0
 
             # QUALITY GUARD (2026-06-12): refuse to publish a model that is
             # worse than random on validation. With <3 distinct trading days
             # the chronological split validates intraday drift, not skill —
             # the first real run (503 train / 126 val, all one day) produced
             # val_acc 0.8% / Brier 0.79, i.e. confidently inverted.
-            try:
-                _conn = sqlite3.connect(str(_DB_PATH))
-                _days = _conn.execute(
-                    f"SELECT COUNT(DISTINCT signal_date) FROM {_TABLE} "
-                    "WHERE tb_label IN (1,-1) AND training_eligible=1 "
-                    "AND stop_loss>0 AND target>0 AND rr>0").fetchone()[0]
-                _conn.close()
-            except Exception:
-                _days = 0
-            if val_brier > 0.30 or _days < 3:
+            if val_auc < 0.55 or brier_skill <= 0.0:
                 logger.warning(
-                    "SignalCalibrator NOT saved: val_brier=%.3f (max 0.30), "
-                    "distinct label days=%d (min 3) — model would be worse "
-                    "than random / single-day artifact", val_brier, _days)
+                    "SignalCalibrator NOT saved: AUC=%.3f Brier=%.3f baseline=%.3f skill=%.3f",
+                    val_auc, val_brier, baseline_brier, brier_skill)
                 return {"trained": False,
-                        "reason": f"failed_quality_guard brier={val_brier:.3f} days={_days}",
-                        "val_acc": round(val_acc, 4), "val_brier": round(val_brier, 4)}
+                        "reason": "failed_probability_skill_guard",
+                        "val_acc": round(val_acc, 4), "val_auc": round(val_auc, 4),
+                        "val_brier": round(val_brier, 4),
+                        "baseline_brier": round(baseline_brier, 4),
+                        "brier_skill": round(brier_skill, 4)}
 
             # Extract LR coefficients for interpretability
             try:
-                lr_coef = calibrated.estimator.named_steps["lr"].coef_[0].tolist()
+                estimators = getattr(calibrated, "calibrated_classifiers_", [])
+                coefs = [
+                    item.estimator.named_steps["lr"].coef_[0]
+                    for item in estimators
+                    if hasattr(item, "estimator")
+                ]
+                lr_coef = np.mean(coefs, axis=0).tolist() if coefs else []
                 coef_map = dict(zip(FEATURE_NAMES, lr_coef))
             except Exception:
                 coef_map = {}
@@ -251,10 +281,18 @@ class SignalCalibrator:
             import joblib
             joblib.dump(calibrated, str(_MODEL_FILE))
             meta = {
-                "n_train":    split,
+                "n_train":    len(X_train),
                 "n_val":      len(y_val),
                 "val_acc":    round(val_acc, 4),
+                "val_auc":    round(val_auc, 4),
                 "val_brier":  round(val_brier, 4),
+                "baseline_brier": round(baseline_brier, 4),
+                "brier_skill": round(brier_skill, 4),
+                "distinct_days": len(unique_days),
+                "holdout_start": split_day,
+                "training_contract": _TRAINING_CONTRACT,
+                "training_fingerprint": hashlib.sha256(X.tobytes() + y.tobytes()).hexdigest(),
+                "promoted": True,
                 "trained_at": __import__("datetime").datetime.now().isoformat(),
                 "feature_coef": coef_map,
             }
@@ -264,7 +302,7 @@ class SignalCalibrator:
 
             logger.info(
                 "SignalCalibrator trained: n=%d val_acc=%.2f brier=%.4f",
-                split, val_acc, val_brier,
+                len(X_train), val_acc, val_brier,
             )
             return {"trained": True, **meta}
 

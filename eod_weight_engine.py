@@ -39,6 +39,9 @@ LOOKBACK_DAYS = int(os.getenv("EOD_WEIGHT_LOOKBACK_DAYS", os.getenv("ML_TRAINING
 MIN_WEIGHT = float(os.getenv("EOD_MIN_WEIGHT", "0.50"))
 MAX_WEIGHT = float(os.getenv("EOD_MAX_WEIGHT", "1.50"))
 MAX_SCORE_NUDGE = float(os.getenv("EOD_MAX_SCORE_NUDGE", "1.25"))
+WEIGHT_TRAINING_CONTRACT = "all_generated_signals_v3_no_outcome_leakage"
+MIN_CLEAN_SAMPLES = int(os.getenv("EOD_WEIGHT_MIN_CLEAN_SAMPLES", "5000"))
+MIN_CLEAN_DAYS = int(os.getenv("EOD_WEIGHT_MIN_CLEAN_DAYS", "15"))
 
 
 INDICATOR_SPECS: Dict[str, Tuple[str, str, float]] = {
@@ -227,6 +230,8 @@ def _load_labelled_signals(cutoff: str) -> List[sqlite3.Row]:
                 FROM signal_log
                 WHERE signal_date >= ?
                   AND tb_label IN (1, -1)
+                  AND training_eligible = 1
+                  AND stop_loss > 0 AND target > 0 AND rr > 0
             """, (cutoff,)).fetchall()
     except Exception as exc:
         logger.debug("EOD weights labelled signal load failed: %s", exc)
@@ -371,6 +376,8 @@ def run_eod_weight_update(alerts=None, lookback_days: int = LOOKBACK_DAYS) -> Di
     indicator_stats: Dict[str, Dict[str, Any]] = defaultdict(_empty_stat)
 
     labelled = _load_labelled_signals(cutoff)
+    distinct_days = len({str(row["signal_date"] or "") for row in labelled})
+    clean_active = len(labelled) >= MIN_CLEAN_SAMPLES and distinct_days >= MIN_CLEAN_DAYS
     for row in labelled:
         strategy = str(row["strategy"] or "").strip()
         label = int(row["tb_label"])
@@ -422,6 +429,24 @@ def run_eod_weight_update(alerts=None, lookback_days: int = LOOKBACK_DAYS) -> Di
             )
 
     payload = _persist_weights(strategy_stats, indicator_stats, lookback_days)
+    payload.update({
+        "training_contract": WEIGHT_TRAINING_CONTRACT,
+        "active": bool(clean_active),
+        "activation_reason": (
+            "clean_sample_and_day_gates_passed" if clean_active
+            else f"clean_evidence_pending samples={len(labelled)}/{MIN_CLEAN_SAMPLES} "
+                 f"days={distinct_days}/{MIN_CLEAN_DAYS}"
+        ),
+        "clean_labelled": len(labelled),
+        "clean_distinct_days": distinct_days,
+    })
+    if not clean_active:
+        payload["candidate_strategy_weights"] = payload.get("strategy_weights", {})
+        payload["candidate_indicator_weights"] = payload.get("indicator_weights", {})
+        payload["strategy_weights"] = {}
+        payload["indicator_weights"] = {}
+    WEIGHTS_FILE.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    _CACHE["mtime"] = 0.0
     logger.info(
         "EOD weights updated: %d strategies, %d indicators, labelled=%d, trades=%d",
         len(payload.get("strategy_weights", {})),
@@ -464,6 +489,16 @@ def load_current_weights() -> Dict[str, Any]:
         if _CACHE.get("mtime") == mtime and _CACHE.get("weights"):
             return _CACHE["weights"]
         data = json.loads(WEIGHTS_FILE.read_text())
+        if (
+            data.get("training_contract") != WEIGHT_TRAINING_CONTRACT
+            or not data.get("active", False)
+        ):
+            data = {
+                "training_contract": data.get("training_contract", "legacy"),
+                "active": False,
+                "strategy_weights": {},
+                "indicator_weights": {},
+            }
         _CACHE["mtime"] = mtime
         _CACHE["weights"] = data
         return data

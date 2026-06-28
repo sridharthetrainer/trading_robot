@@ -924,8 +924,26 @@ class SelfLearningEngine:
             except Exception as e:
                 logger.debug("Specialised model %s: %s", seg_name, e)
 
-    def run(self) -> Dict[str, Any]:
+    def run(self, force: bool = False) -> Dict[str, Any]:
         logger.info("Self-learning engine started")
+
+        # ML-training window guard (07:00–21:00, config) — never train overnight.
+        try:
+            from trading_calendar import in_ml_training_window
+            _win_ok, _win = in_ml_training_window()
+        except Exception:
+            _win_ok, _win = True, "07:00-21:00"
+        if not force and not _win_ok:
+            logger.info("Outside ML training window %s — skipping self-learning run", _win)
+            return {
+                "status": "skipped_outside_training_window",
+                "window": _win,
+                "best_strategy": None,
+                "model_ready": getattr(self, "model", None) is not None,
+                "training_result": {"trained": False, "reason": f"outside_training_window:{_win}"},
+                "rl_result": {"updated": False, "strategies": 0, "trades_processed": 0},
+                "selector_result": {},
+            }
 
         try:
             all_closed_trades = self.trade_manager.get_closed_trades() or []

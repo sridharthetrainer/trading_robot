@@ -327,6 +327,20 @@ def run_autonomous_learning_cycle(
         "research_bias_audit", _research_bias_audit
     )
 
+    def _training_contract_audit() -> Dict[str, Any]:
+        from training_contract_audit import build_training_contract_audit
+
+        result = build_training_contract_audit(write=not dry_run)
+        return {
+            "ok": bool(result.get("ok")),
+            "checks": result.get("checks", {}),
+            "clean_evidence": result.get("clean_evidence", {}),
+        }
+
+    report["steps"]["training_contract_audit"] = _step(
+        "training_contract_audit", _training_contract_audit
+    )
+
     def _data_evidence_catalog() -> Dict[str, Any]:
         from data_evidence_catalog import build_evidence_catalog
 

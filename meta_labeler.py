@@ -204,6 +204,10 @@ def train_and_save(days: int = 800) -> Dict[str, Any]:
     rep = analyze(days)
     if "error" in rep:
         return rep
+    if rep.get("auc", 0.0) < 0.55 or not rep.get("best_threshold"):
+        rep["model_saved"] = False
+        rep["model_save_reason"] = "no_locked_holdout_precision_lift"
+        return rep
     try:
         import joblib
         from sklearn.ensemble import RandomForestClassifier

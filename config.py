@@ -891,6 +891,13 @@ MIN_EXPECTED_NET_PROFIT     = _fenv("MIN_EXPECTED_NET_PROFIT",        0.0)
 ALLOW_LEGACY_TRADE_MODELS   = _benv("ALLOW_LEGACY_TRADE_MODELS",      False)
 CASH_NO_NEW_ENTRY_AFTER     = _env("CASH_NO_NEW_ENTRY_AFTER",         "14:45")
 OPTION_NO_NEW_ENTRY_AFTER   = _env("OPTION_NO_NEW_ENTRY_AFTER",       "15:00")
+# ML-training window: all model training/retraining must run between these hours
+# (default 7am–9pm) so heavy jobs never fire overnight. Enforced in
+# post_market_ml / autonomous_param_trainer / calibrator (trading_calendar
+# .in_ml_training_window is the single source of truth). --force bypasses.
+ML_TRAINING_WINDOW_START    = _env("ML_TRAINING_WINDOW_START",        "07:00")
+ML_TRAINING_WINDOW_END      = _env("ML_TRAINING_WINDOW_END",          "21:00")
+ML_TRAINING_ENFORCE_WINDOW  = _benv("ML_TRAINING_ENFORCE_WINDOW",     True)
 MIN_BARS_FOR_SIGNAL         = _ienv("MIN_BARS_FOR_SIGNAL", 5)  # lowered: bhavcopy gives ~39-250 bars
 LIVE_MIN_SIGNAL_SCORE       = _fenv("LIVE_MIN_SIGNAL_SCORE", 6.0)
 LIVE_MIN_AI_PROBABILITY     = _fenv("LIVE_MIN_AI_PROBABILITY", ML_CONFIDENCE_LIVE)

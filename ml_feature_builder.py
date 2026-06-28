@@ -31,6 +31,21 @@ logger = logging.getLogger(__name__)
 
 SIGNAL_DB = Path(os.getenv("SIGNAL_LOG_DB", "signal_log.db"))
 
+
+def _strict_prior_context_map(
+    context: Dict[str, Dict[str, float]], signal_dates: List[str]
+) -> Dict[str, Dict[str, float]]:
+    """Map each signal date to the latest strictly earlier EOD context."""
+    from bisect import bisect_left
+
+    available = sorted(str(day) for day in context)
+    mapped: Dict[str, Dict[str, float]] = {}
+    for date in signal_dates:
+        key = str(date)
+        pos = bisect_left(available, key) - 1
+        mapped[key] = context.get(available[pos], {}) if pos >= 0 else {}
+    return mapped
+
 # ── Categorical encoding maps ─────────────────────────────────────────────────
 _REGIME_ENC    = {"TREND": 2, "BREAKOUT": 2, "RANGING": 0, "MEAN_REVERT": 0,
                   "VOLATILE": 1, "UNKNOWN": -1, "": -1}
@@ -360,14 +375,18 @@ def build_feature_matrix(
 
     df = pd.DataFrame(feature_rows)
 
-    # Join captured market context (FII/DII cash + sector breadth) by signal date,
-    # so the ML/analysis uses them once the history accumulates (eod_market_capture).
+    # FII/DII cash and sector breadth are finalized after the session. Joining
+    # same-day EOD values to an intraday signal leaks future information, so each
+    # signal receives the latest context strictly BEFORE its signal date.
     try:
         from eod_market_capture import market_context_by_date
         _ctx = market_context_by_date()
+        _prior_by_date = _strict_prior_context_map(
+            _ctx, list(df["__signal_date"].astype(str).unique())
+        )
         for _col in ("hist_fii_net", "hist_fii_cum5", "sector_breadth"):
             df[_col] = df["__signal_date"].astype(str).map(
-                lambda d, c=_col: _ctx.get(d, {}).get(c, 0.0))
+                lambda d, c=_col: _prior_by_date.get(d, {}).get(c, 0.0))
     except Exception as _mce:
         logger.debug("market-context join skipped: %s", _mce)
 

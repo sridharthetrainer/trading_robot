@@ -14,11 +14,13 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import logging
 import os
 import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+logger = logging.getLogger(__name__)
 
 REPORT_JSON = "autonomous_param_training_report.json"
 
@@ -194,7 +196,21 @@ def run_autonomous_param_training(
     max_runs: int | None = None,
     dry_run: bool = False,
     write: bool = True,
+    force: bool = False,
 ) -> Dict[str, Any]:
+    # ML-training window guard: param training is heavy — only run 07:00–21:00
+    # (config) unless forced. Single source of truth: trading_calendar.
+    try:
+        from trading_calendar import in_ml_training_window
+        _win_ok, _win = in_ml_training_window()
+    except Exception:
+        _win_ok, _win = True, "07:00-21:00"
+    if not force and not _win_ok:
+        import time as _t
+        logger.warning("Outside ML training window %s — skipping param training. Use force=True.", _win)
+        return {"ok": False, "error": "outside_training_window", "window": _win,
+                "now": _t.strftime("%H:%M")}
+
     from validation_harness import _build_default_param_grid, run_validation, save_result
 
     selected_strategies = [

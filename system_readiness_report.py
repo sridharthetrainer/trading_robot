@@ -112,6 +112,11 @@ def build_system_readiness_report(
     except Exception as exc:
         evidence_catalog = {"ok": False, "error": str(exc)}
     try:
+        from training_contract_audit import build_training_contract_audit
+        training_contract = build_training_contract_audit(write=False)
+    except Exception as exc:
+        training_contract = {"ok": False, "error": str(exc)}
+    try:
         from execution_compliance import verify_audit_chain
         execution_chain = verify_audit_chain()
     except Exception as exc:
@@ -194,6 +199,8 @@ def build_system_readiness_report(
         blocks.append("execution_audit_chain_invalid")
     elif int(execution_chain.get("chained_rows", 0) or 0) == 0:
         warnings.append("execution_audit_chain_awaiting_new_events")
+    if not training_contract.get("ok"):
+        blocks.append("ml_training_contract_audit_failed")
 
     raw_data_score = (data_audit.get("score") or {}).get("total")
     raw_inst_score = (data_audit.get("institutional_readiness") or {}).get("total")
@@ -267,6 +274,7 @@ def build_system_readiness_report(
                 "empty_databases": evidence_catalog.get("empty_databases", []),
             },
             "execution_audit_chain": execution_chain,
+            "ml_training_contract": training_contract,
         },
         "ready_for_scaled_live": not blocks and not warnings,
     }

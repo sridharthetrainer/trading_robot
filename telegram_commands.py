@@ -873,10 +873,22 @@ class TelegramCommandHandler:
             return f"⚠️ Backtest error: {e}"
 
     def _cmd_train(self, _="") -> str:
-        """Run ML training safely."""
+        """Run ML training safely (only within the ML training window 07:00–21:00)."""
         try:
             if getattr(self, "_train_running", False):
                 return "⚠️ Training already running"
+
+            # Enforce the ML training window — all training runs 07:00–21:00.
+            try:
+                from trading_calendar import in_ml_training_window
+                win_ok, win = in_ml_training_window()
+            except Exception:
+                win_ok, win = True, "07:00-21:00"
+            if not win_ok:
+                from datetime import datetime as _dt
+                return (f"⛔ <b>ML training window closed</b>\n"
+                        f"  Training runs {win} only (now {_dt.now().strftime('%H:%M')}).\n"
+                        f"  Retry inside the window.")
 
             def _run_train():
                 self._train_running = True
@@ -895,7 +907,8 @@ class TelegramCommandHandler:
                     self._train_running = False
 
             threading.Thread(target=_run_train, name="train_manual", daemon=True).start()
-            return "🧠 <b>ML TRAINING TRIGGERED</b>\nResults in ~5 min on Telegram."
+            return (f"🧠 <b>ML TRAINING TRIGGERED</b>\n  Window {win} ✅\n"
+                    f"  Results in ~5 min on Telegram.")
         except Exception as e:
             return f"⚠️ Training error: {e}"
 
@@ -1371,8 +1384,17 @@ class TelegramCommandHandler:
                 lines.append("  Model: not yet trained (need 50+ signals)")
         except Exception as e:
             lines.append(f"  Model meta: {e}")
-        lines.append(f"\nNext training: 6:00 PM daily")
-        lines.append(f"Training runs on: ALL candidates (not just executed)")
+        # ML training window status (single source of truth: trading_calendar).
+        try:
+            from trading_calendar import in_ml_training_window
+            from datetime import datetime as _dt
+            win_ok, win = in_ml_training_window()
+            lines.append(f"\n🕖 Training window: {win}  "
+                         f"({'OPEN ✅ now' if win_ok else 'closed ⛔ now'} {_dt.now().strftime('%H:%M')})")
+        except Exception:
+            lines.append("\n🕖 Training window: 07:00-21:00")
+        lines.append("Post-market run: ~16:00 (after close, within window)")
+        lines.append("Training runs on: ALL candidates (not just executed)")
         return "\n".join(lines)
 
 
@@ -3993,6 +4015,12 @@ class TelegramCommandHandler:
         now = datetime.now()
         h   = now.hour
         lines = [f"📅 <b>UPCOMING TASKS</b>  {now.strftime('%H:%M')}"]
+        try:
+            from trading_calendar import in_ml_training_window
+            _w_ok, _w = in_ml_training_window()
+            lines.append(f"🧠 ML training window: {_w} ({'open' if _w_ok else 'closed'})")
+        except Exception:
+            pass
         schedule = [
             (8, 28,  "Pre-market intelligence brief"),
             (8, 30,  "Pivot levels + trading plan"),

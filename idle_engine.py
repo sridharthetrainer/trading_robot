@@ -270,6 +270,12 @@ def _run_edge_report(alerts=None) -> dict:
 def _run_calibrator_retrain(alerts=None) -> dict:
     """Nightly retrain of the logistic regression signal calibrator."""
     try:
+        # ML-training window guard (07:00–21:00, config) — heavy job, not overnight.
+        from trading_calendar import in_ml_training_window
+        _win_ok, _win = in_ml_training_window()
+        if not _win_ok:
+            logger.info("Signal calibrator: outside ML training window %s — skipped", _win)
+            return {"trained": False, "reason": f"outside_training_window:{_win}"}
         from signal_calibrator import retrain_calibrator
         result = retrain_calibrator()
         if result.get("trained"):
@@ -926,8 +932,15 @@ class IdleEngine:
         ]:
             items.append((h, m, key, desc, False))
         items.sort(key=lambda x: (x[0], x[1]))
+        try:
+            from trading_calendar import in_ml_training_window
+            _w_ok, _w = in_ml_training_window()
+            _ml_line = f"  🧠 ML training window: {_w} ({'open' if _w_ok else 'closed'})"
+        except Exception:
+            _ml_line = "  🧠 ML training window: 07:00-21:00"
         lines = ["📅 <b>TODAY'S SCHEDULE</b>  (07:00–20:00 active)",
                  f"  🕐 Now: {now.strftime('%H:%M')}",
+                 _ml_line,
                  "  ─────────────────────────"]
         for h, m, key, desc, tracked in items:
             t = now.replace(hour=h, minute=m, second=0, microsecond=0)
