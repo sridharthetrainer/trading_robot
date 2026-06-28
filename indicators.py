@@ -1166,7 +1166,7 @@ def calculate_ichimoku(
     - kijun_sen:  Base line (26-period midpoint)
     - senkou_a:   Leading span A (future cloud upper edge)
     - senkou_b:   Leading span B (future cloud lower edge)
-    - chikou:     Lagging span (close shifted back 26 periods)
+    - chikou:     Current close value; plotting clients may display it 26 bars back
 
     Trading rules:
     - Price above cloud + TK cross (tenkan > kijun) = BUY
@@ -1184,7 +1184,10 @@ def calculate_ichimoku(
     kijun_sen  = midpoint(kijun)
     senkou_a   = ((tenkan_sen + kijun_sen) / 2).shift(kijun)
     senkou_b   = midpoint(senkou).shift(kijun)
-    chikou     = c.shift(-kijun)
+    # Shifting values backward with c.shift(-kijun) inserts FUTURE closes into
+    # historical rows. Keep the causal value series here; visualization code may
+    # shift only the display coordinate without exposing it to strategies/ML.
+    chikou     = c.copy()
 
     return {
         "tenkan_sen": tenkan_sen,

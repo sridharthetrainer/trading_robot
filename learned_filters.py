@@ -53,7 +53,7 @@ FILTER_MAX_MULT = float(os.getenv("LEARNED_FILTER_MAX_MULT", "1.20"))
 
 # In-memory cache: avoid re-reading file every signal
 _CACHE: Dict[str, Any] = {"mtime": 0.0, "data": {}}
-FILTER_TRAINING_CONTRACT = "all_generated_signals_v3_no_outcome_leakage"
+FILTER_TRAINING_CONTRACT = "all_generated_signals_v4_causal_representations"
 
 
 def _load_filters() -> Dict[str, Any]:

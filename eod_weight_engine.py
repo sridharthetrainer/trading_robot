@@ -39,7 +39,7 @@ LOOKBACK_DAYS = int(os.getenv("EOD_WEIGHT_LOOKBACK_DAYS", os.getenv("ML_TRAINING
 MIN_WEIGHT = float(os.getenv("EOD_MIN_WEIGHT", "0.50"))
 MAX_WEIGHT = float(os.getenv("EOD_MAX_WEIGHT", "1.50"))
 MAX_SCORE_NUDGE = float(os.getenv("EOD_MAX_SCORE_NUDGE", "1.25"))
-WEIGHT_TRAINING_CONTRACT = "all_generated_signals_v3_no_outcome_leakage"
+WEIGHT_TRAINING_CONTRACT = "all_generated_signals_v4_causal_representations"
 MIN_CLEAN_SAMPLES = int(os.getenv("EOD_WEIGHT_MIN_CLEAN_SAMPLES", "5000"))
 MIN_CLEAN_DAYS = int(os.getenv("EOD_WEIGHT_MIN_CLEAN_DAYS", "15"))
 

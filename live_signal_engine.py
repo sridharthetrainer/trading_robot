@@ -606,6 +606,15 @@ def _build_signal_ml_features(signal: Dict[str, Any]) -> Dict[str, float]:
             }.get(str(key), str(key))
             row.setdefault(mapped, value)
         decision_inputs = meta.get("decision_inputs") if isinstance(meta.get("decision_inputs"), dict) else {}
+        representation = (
+            meta.get("representation_features")
+            if isinstance(meta.get("representation_features"), dict)
+            else row.get("representation_features")
+            if isinstance(row.get("representation_features"), dict)
+            else {}
+        )
+        for key, value in representation.items():
+            row.setdefault(str(key), value)
         profile = (
             meta.get("market_profile")
             if isinstance(meta.get("market_profile"), dict)
@@ -2625,6 +2634,21 @@ class LiveSignalEngine:
         meta = signal.get("metadata", {}) if isinstance(signal.get("metadata"), dict) else {}
         metadata = dict(meta)
         metadata.update(signal_meta)
+        representation = (
+            metadata.get("representation_features")
+            if isinstance(metadata.get("representation_features"), dict)
+            else {}
+        )
+        if hasattr(candidate.get("df"), "columns"):
+            try:
+                from alternative_price_representations import build_representation_features
+                representation = build_representation_features(candidate["df"])
+            except Exception:
+                pass
+        if representation:
+            metadata["representation_features"] = representation
+            metadata["footprint_source"] = "OHLCV_CLOSE_LOCATION_PROXY"
+            payload["representation_features"] = representation
         decision_inputs = (
             metadata.get("decision_inputs", {})
             if isinstance(metadata.get("decision_inputs"), dict)

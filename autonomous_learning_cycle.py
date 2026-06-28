@@ -250,6 +250,17 @@ def run_autonomous_learning_cycle(
         _confluence_feature_store,
     )
 
+    def _alternative_representation_backfill() -> Dict[str, Any]:
+        if dry_run:
+            return {"skipped": True, "reason": "dry_run"}
+        from alternative_representation_backfill import backfill_representation_features
+
+        return backfill_representation_features(limit=2000)
+
+    report["steps"]["alternative_representation_backfill"] = _step(
+        "alternative_representation_backfill", _alternative_representation_backfill
+    )
+
     def _candle_coverage_backfill() -> Dict[str, Any]:
         if dry_run:
             return {"skipped": True, "reason": "dry_run"}

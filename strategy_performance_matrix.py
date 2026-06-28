@@ -23,7 +23,7 @@ from typing import Dict, Optional
 logger = logging.getLogger(__name__)
 MATRIX_FILE = "strategy_matrix.json"
 MIN_TRADES_FOR_FILTER = 30
-ACTIVE_EVIDENCE_SOURCES = {"clean_v3", "live_verified"}
+ACTIVE_EVIDENCE_SOURCES = {"clean_v4", "live_verified"}
 
 
 class StrategyPerformanceMatrix:

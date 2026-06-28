@@ -133,7 +133,7 @@ def _update_strategy_matrix(df: "pd.DataFrame") -> None:
         # Idempotent EOD refresh: drop the previous night's replay before re-adding,
         # so re-running the pipeline never double-counts the same signals. Live
         # trade-close records (src='live') are preserved.
-        matrix.purge_source("clean_v3")
+        matrix.purge_source("clean_v4")
 
         distinct_days = int(df["__signal_date"].astype(str).nunique()) if "__signal_date" in df else 0
         if len(df) < 5000 or distinct_days < 15:
@@ -173,7 +173,7 @@ def _update_strategy_matrix(df: "pd.DataFrame") -> None:
                     vix         = vix,
                     regime      = regime,
                     autosave    = False,   # bulk replay: save once at the end (was 11.6h)
-                    src         = "clean_v3",
+                    src         = "clean_v4",
                 )
             except Exception:
                 pass

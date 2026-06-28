@@ -55,7 +55,7 @@ _DB_PATH     = Path("signal_log.db")
 _TABLE       = "signal_log"
 _MIN_SAMPLES = int(os.getenv("CALIBRATOR_MIN_CLEAN_SAMPLES", "5000"))
 _MIN_DAYS = int(os.getenv("CALIBRATOR_MIN_CLEAN_DAYS", "15"))
-_TRAINING_CONTRACT = "all_generated_signals_v2_purged_calibration"
+_TRAINING_CONTRACT = "all_generated_signals_v4_causal_representations"
 
 # Probability thresholds
 _PASS_THRESHOLD = 0.60

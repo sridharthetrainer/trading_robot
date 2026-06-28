@@ -88,6 +88,13 @@ _DB_COLS = [
     "above_weekly_pvt", "above_monthly_pvt", "pct_from_w_r1", "pct_from_m_r1",
     "expiry_dte",
     "sector_code", "hour_of_day", "day_of_week", "trade_num_today",
+    "bar_return_1_atr", "line_slope_atr", "line_turn", "step_direction",
+    "baseline_distance_atr", "hollow_state", "hollow_run",
+    "volume_candle_strength", "line_break_direction", "line_break_run",
+    "line_break_event", "kagi_direction", "kagi_reversal", "kagi_distance_atr",
+    "pnf_direction", "pnf_boxes", "pnf_reversal", "range_direction",
+    "range_run", "range_event", "footprint_delta_proxy", "footprint_available",
+    "ichimoku_position", "ichimoku_tk", "representation_coverage",
 ]
 _ENCODE_COLS = {
     "regime":        _REGIME_ENC,

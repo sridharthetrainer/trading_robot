@@ -2253,6 +2253,21 @@ except Exception as _ns_err:
     logger.warning("strategies_new import failed: %s", _ns_err)
     _NEW_STRATEGIES = []
 
+try:
+    from alternative_price_representations import (
+        build_representation_features as _build_representation_features,
+        run_hollow_candle_state_strategy,
+        run_three_line_break_strategy,
+        run_kagi_reversal_strategy,
+        run_point_and_figure_strategy,
+        run_range_bar_momentum_strategy,
+        run_ohlcv_footprint_proxy_strategy,
+    )
+    _ALT_PRICE_REP_AVAILABLE = True
+except Exception as _alt_rep_exc:
+    logger.warning("alternative price representations unavailable: %s", _alt_rep_exc)
+    _ALT_PRICE_REP_AVAILABLE = False
+
 # ── STRATEGIES LIST ──────────────────────────────────────────────────────────
 # run_scalping_strategy is OOS-disabled by default: walk-forward 2026-06-12
 # (420d NIFTY 5m, 7 windows) measured 0/7 profitable windows, avg −₹377,616
@@ -2331,6 +2346,14 @@ STRATEGIES = [
     *([run_williams_r_strategy, run_volatility_breakout_strategy,
        run_oops_strategy]              if _WILLIAMS_AVAIL  else []),
     *([run_weinstein_stage_strategy]   if _WEINSTEIN_AVAIL else []),
+    *([
+        run_hollow_candle_state_strategy,
+        run_three_line_break_strategy,
+        run_kagi_reversal_strategy,
+        run_point_and_figure_strategy,
+        run_range_bar_momentum_strategy,
+        run_ohlcv_footprint_proxy_strategy,
+    ] if _ALT_PRICE_REP_AVAILABLE else []),
 
     # ── NEW STRATEGIES (gap analysis v1.2.6) ─────────────────────────────────
     *(_NEW_STRATEGIES),
@@ -2897,6 +2920,15 @@ def generate_signal(
             logger.debug("Market profile context unavailable: %s", _mp_exc)
             _market_profile_context = {}
 
+    _representation_features = {}
+    if _ALT_PRICE_REP_AVAILABLE:
+        try:
+            _representation_features = _build_representation_features(df)
+            _sig_meta["representation_features"] = _representation_features
+            _sig_meta["footprint_source"] = "OHLCV_CLOSE_LOCATION_PROXY"
+        except Exception as _alt_feature_exc:
+            logger.debug("alternative representation features unavailable: %s", _alt_feature_exc)
+
     for strategy_fn in STRATEGIES:
         # ── Regime-aware strategy routing ─────────────────────────────────
         try:
@@ -3038,6 +3070,9 @@ def generate_signal(
                 "raw_strategy": strategy,
                 "base_factor": _strategy_factor(strategy),
             }
+            if _representation_features:
+                _cand_meta["representation_features"] = dict(_representation_features)
+                _cand_meta["footprint_source"] = "OHLCV_CLOSE_LOCATION_PROXY"
             _cand_factors = {_cand_meta["base_factor"]}
             if bool(cfg.get("enable_market_profile_context", True)):
                 try:

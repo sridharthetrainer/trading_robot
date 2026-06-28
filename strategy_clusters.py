@@ -18,6 +18,8 @@ from typing import Iterable, List
 # Order matters: the FIRST matching factor wins, so put the more specific
 # keywords (pattern, breakout, mean-reversion) ahead of the broad ones.
 _FACTOR_KEYWORDS = [
+    ("PRICE_TRANSFORM", ["three_line_break", "kagi", "point_and_figure",
+                          "range_bar", "hollow_candle"]),
     ("PATTERN",        ["chart_pattern", "wedge", "triangle", "head_and_shoulder",
                          "head_shoulder", "double_top", "double_bottom", "cup",
                          "flag", "pennant", "elliott", "harmonic", "candlestick",

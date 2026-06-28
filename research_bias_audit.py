@@ -46,7 +46,12 @@ def _load_sample(db_path: str = "candle_cache.db", rows: int = 320) -> pd.DataFr
 
 
 def _series_list(value: Any) -> list[pd.Series]:
-    values = value if isinstance(value, tuple) else (value,)
+    if isinstance(value, dict):
+        values = tuple(value.values())
+    elif isinstance(value, pd.DataFrame):
+        values = tuple(value[column] for column in value.columns)
+    else:
+        values = value if isinstance(value, tuple) else (value,)
     return [item for item in values if isinstance(item, pd.Series)]
 
 
@@ -97,6 +102,11 @@ def run_bias_audit(*, report_file: str = REPORT_FILE, write: bool = True) -> dic
         ("volume_ratio", lambda df: ind.calculate_volume_ratio(df, 20)),
         ("obv", lambda df: ind.calculate_obv(df)),
         ("mfi", lambda df: ind.calculate_mfi(df, 14)),
+        ("ichimoku", lambda df: ind.calculate_ichimoku(df)),
+        (
+            "alternative_price_representations",
+            lambda df: __import__("alternative_price_representations").representation_history(df),
+        ),
     ]
     results = []
     for name, fn in checks:

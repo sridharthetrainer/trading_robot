@@ -38,7 +38,7 @@ CV_FOLDS           = int(os.getenv("ML_CV_FOLDS", "5"))
 # leaks. Horizon ≈ triple-barrier max_bars; embargo adds a serial-correlation gap.
 PURGE_HORIZON      = int(os.getenv("ML_PURGE_HORIZON", "12"))
 PURGE_EMBARGO      = int(os.getenv("ML_PURGE_EMBARGO", "3"))
-TRAINING_CONTRACT  = "all_generated_signals_v3_no_outcome_leakage"
+TRAINING_CONTRACT  = "all_generated_signals_v4_causal_representations"
 MIN_PROMOTION_SAMPLES = int(os.getenv("ML_MIN_PROMOTION_SAMPLES", "5000"))
 MIN_PROMOTION_DAYS = int(os.getenv("ML_MIN_PROMOTION_DAYS", "15"))
 MIN_PROMOTION_AUC = float(os.getenv("ML_MIN_PROMOTION_AUC", "0.55"))

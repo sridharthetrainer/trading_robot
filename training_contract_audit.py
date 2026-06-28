@@ -60,7 +60,7 @@ def build_training_contract_audit(*, report_file: str = REPORT_FILE, write: bool
         "legacy_eod_weights_neutral": float(get_strategy_weight("__audit_probe__", 1.0)) == 1.0,
         "calibrator_contract_enforced": (
             not calibrator.is_trained()
-            or calibrator._meta.get("training_contract") == "all_generated_signals_v2_purged_calibration"
+            or calibrator._meta.get("training_contract") == ml_trainer.TRAINING_CONTRACT
         ),
     }
     report = {
