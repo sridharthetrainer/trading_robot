@@ -72,6 +72,9 @@ def _chain_rows(df) -> List[Dict[str, Any]]:
             "CE_totalTradedVolume", "PE_totalTradedVolume",
             "CE_lastPrice", "PE_lastPrice",
             "CE_impliedVolatility", "PE_impliedVolatility",
+            "CE_bidPrice", "PE_bidPrice", "CE_bidQty", "PE_bidQty",
+            "CE_askPrice", "PE_askPrice", "CE_askQty", "PE_askQty",
+            "CE_delta", "PE_delta", "CE_theta", "PE_theta",
             "distance_from_atm", "gamma_approx",
         }
     ]
@@ -265,8 +268,8 @@ def _in_market_hours(now: datetime | None = None) -> bool:
 
 # Only these sources are LIVE chain data — anything else (cache aliases, unknown
 # resilience tags) must NOT be persisted as a live snapshot.
-_LIVE_SOURCES = {"nse_live", "angel", "angel_fallback", "resilience_nse",
-                 "sensibull", "bse_oc", "bse"}
+_LIVE_SOURCES = {"nse_live", "angel", "angel_fallback", "upstox_live",
+                 "dhan_live", "bse_oc", "bse"}
 
 
 def _is_live_source(src) -> bool:

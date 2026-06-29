@@ -127,11 +127,13 @@ class WebSocketEngine:
 
         self._ws            = None      # SmartWebSocketV2 instance
         self._running       = False
+        self._connected     = False
         self._thread        = None
         self._reconnect_count = 0
         self._subscribed_tokens: Set[str] = set()
         self._token_symbol_map: Dict[str, str] = {}   # token → symbol
         self._symbol_token_map: Dict[str, str] = {}   # symbol → token
+        self._token_exchange_map: Dict[str, str] = {} # token → NSE/NFO
         self._lock          = threading.Lock()
         self._tick_callbacks: list = []   # [(symbol, ltp) → None] — registered externally
         self._ws_available  = self._check_ws_available()
@@ -204,6 +206,7 @@ class WebSocketEngine:
         logger.info("WebSocketEngine stopped")
 
     def _close_ws(self) -> None:
+        self._connected = False
         try:
             if self._ws:
                 self._ws.close_connection()
@@ -274,15 +277,24 @@ class WebSocketEngine:
     def _on_open(self, ws) -> None:
         """Connection established — subscribe to all open positions."""
         logger.info("WebSocket connection opened")
+        self._connected = True
         self._reconnect_count = 0
         # Re-subscribe to any tokens we had before reconnect
         if self._subscribed_tokens:
-            self._do_subscribe(list(self._subscribed_tokens))
+            for exchange in ("NSE", "NFO"):
+                tokens = [
+                    token for token in self._subscribed_tokens
+                    if self._token_exchange_map.get(token, "NFO") == exchange
+                ]
+                if tokens:
+                    self._do_subscribe(tokens, exchange)
 
     def _on_error(self, ws, error) -> None:
+        self._connected = False
         logger.warning("WebSocket error: %s", error)
 
     def _on_close(self, ws) -> None:
+        self._connected = False
         logger.info("WebSocket connection closed")
 
     # ── Data handler — hot path ───────────────────────────────────────────────
@@ -313,7 +325,12 @@ class WebSocketEngine:
     def _process_json_tick(self, data: Dict) -> None:
         """Process JSON tick format."""
         token = str(data.get("token", data.get("symbolToken", "")))
-        ltp   = float(data.get("ltp", data.get("last_traded_price", 0)) or 0)
+        if data.get("ltp") is not None:
+            ltp = float(data.get("ltp") or 0)
+        else:
+            # SmartWebSocketV2 decodes binary packets before invoking on_data.
+            # Its last_traded_price field is in paise for NSE/NFO instruments.
+            ltp = float(data.get("last_traded_price", 0) or 0) / 100.0
         if ltp <= 0 or not token:
             return
         symbol = self._token_symbol_map.get(token)
@@ -322,9 +339,11 @@ class WebSocketEngine:
             self._check_trailing_stop(symbol, ltp)
             for _cb in self._tick_callbacks:
                 try:
+                    _cb(symbol, ltp, data)
+                except TypeError:
                     _cb(symbol, ltp)
                 except Exception:
-                    pass
+                    logger.debug("WebSocket tick callback failed", exc_info=True)
 
     def _process_binary_tick(self, data: bytes) -> None:
         """
@@ -481,6 +500,7 @@ class WebSocketEngine:
             if token and token not in self._subscribed_tokens:
                 tokens.append(token)
                 self._subscribed_tokens.add(token)
+                self._token_exchange_map[token] = exchange.upper()
 
         if tokens and self._ws:
             self._do_subscribe(tokens, exchange)
@@ -502,6 +522,7 @@ class WebSocketEngine:
             if token:
                 self._token_symbol_map.pop(token, None)
                 self._subscribed_tokens.discard(token)
+                self._token_exchange_map.pop(token, None)
 
     def _do_subscribe(self, tokens: List[str], exchange: str = "NFO") -> None:
         """Actually send subscribe request to WebSocket."""
@@ -535,7 +556,7 @@ class WebSocketEngine:
         return self.ltp_cache.get(symbol)
 
     def is_connected(self) -> bool:
-        return self._ws is not None and self._running
+        return bool(self._connected and self._ws is not None and self._running)
 
     def status(self) -> Dict[str, Any]:
         return {

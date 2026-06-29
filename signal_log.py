@@ -137,6 +137,11 @@ CREATE TABLE IF NOT EXISTS {_TBL} (
     ichimoku_position REAL DEFAULT 0,
     ichimoku_tk REAL DEFAULT 0,
     representation_coverage REAL DEFAULT 0,
+    tick_oim REAL DEFAULT 0,
+    tick_velocity REAL DEFAULT 0,
+    tick_momentum REAL DEFAULT 0,
+    tick_sample_count INTEGER DEFAULT 0,
+    tick_flow_available INTEGER DEFAULT 0,
     profile_poc        REAL DEFAULT 0,
     profile_vah        REAL DEFAULT 0,
     profile_val        REAL DEFAULT 0,
@@ -382,6 +387,11 @@ class SignalLogger:
                     "ichimoku_position": "REAL DEFAULT 0",
                     "ichimoku_tk": "REAL DEFAULT 0",
                     "representation_coverage": "REAL DEFAULT 0",
+                    "tick_oim": "REAL DEFAULT 0",
+                    "tick_velocity": "REAL DEFAULT 0",
+                    "tick_momentum": "REAL DEFAULT 0",
+                    "tick_sample_count": "INTEGER DEFAULT 0",
+                    "tick_flow_available": "INTEGER DEFAULT 0",
                     "profile_poc": "REAL DEFAULT 0",
                     "profile_vah": "REAL DEFAULT 0",
                     "profile_val": "REAL DEFAULT 0",
@@ -522,6 +532,9 @@ class SignalLogger:
             )
             if not isinstance(representation_ctx, dict):
                 representation_ctx = {}
+            tick_flow_ctx = meta.get("tick_order_flow") or signal.get("tick_order_flow") or {}
+            if not isinstance(tick_flow_ctx, dict):
+                tick_flow_ctx = {}
 
             row = {
                 "signal_date":     now.strftime("%Y-%m-%d"),
@@ -613,6 +626,11 @@ class SignalLogger:
                     (market_quality.get("metrics") or {}).get("indicator_coverage", 0) or 0
                 ),
                 "candidate_confirmations": int(candidate_quality.get("confirmation_count", 0) or 0),
+                "tick_oim": float(tick_flow_ctx.get("oim", 0) or 0),
+                "tick_velocity": float(tick_flow_ctx.get("velocity", 0) or 0),
+                "tick_momentum": float(tick_flow_ctx.get("momentum", 0) or 0),
+                "tick_sample_count": int(tick_flow_ctx.get("total", 0) or 0),
+                "tick_flow_available": 1 if int(tick_flow_ctx.get("total", 0) or 0) > 0 else 0,
                 "bar_return_1_atr": float(representation_ctx.get("bar_return_1_atr", 0) or 0),
                 "line_slope_atr": float(representation_ctx.get("line_slope_atr", 0) or 0),
                 "line_turn": float(representation_ctx.get("line_turn", 0) or 0),

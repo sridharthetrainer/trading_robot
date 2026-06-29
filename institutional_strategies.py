@@ -21,6 +21,11 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
+# The directional signal engine must not execute these functions. A long
+# straddle/strangle and a delta-neutral short-vol position require multiple
+# option legs, portfolio Greeks, atomic rollback and hedge lifecycle management.
+MULTILEG_RESEARCH_ONLY = {"delta_neutral_theta", "gamma_scalp"}
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. VOLUME SPREAD ANALYSIS (VSA) — Tom Williams / Richard Wyckoff

@@ -35,8 +35,8 @@ Implements three critical mechanisms:
 4. Full Transaction Cost Model
    Every P&L calculation deducts ALL real NSE costs:
    - Brokerage:       ₹20 per leg (both sides) = ₹40 per round trip
-   - STT:             0.05% of sell-side premium (options)
-   - Exchange charge: 0.053% of turnover (NSE options)
+   - STT:             0.15% of sell-side premium (options, from Apr 2026)
+   - Exchange charge: 0.0355299% of turnover (NSE options)
    - SEBI levy:       0.0001% of turnover
    - GST:             18% on (brokerage + exchange + SEBI)
    - Stamp duty:      0.003% of buy-side premium (options buy)
@@ -55,16 +55,16 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 # ─── NSE Options full cost model ────────────────────────────────────────────
-# All rates verified against NSE/SEBI circulars (2024-2025)
+# Rates verified against the NSE/Angel schedules on 29 June 2026.
 
-NSE_EXCHANGE_CHARGE_RATE = 0.0003553  # ₹3553/cr options premium turnover (post Oct-2024 NSE revision; both sides)
+NSE_EXCHANGE_CHARGE_RATE = 0.0003553  # ₹3552.99/cr, rounded to broker billing precision
 SEBI_LEVY_RATE           = 0.000001   # 0.0001% of turnover
 GST_RATE                 = 0.18       # 18% GST on brokerage+exchange+SEBI
 STAMP_DUTY_RATE          = 0.00003    # 0.003% of buy-side premium (buyer only)
 STT_OPTIONS_SELL         = 0.0015  # Budget 2026: raised 0.10%→0.15% from Apr 1 2026     # 0.05% of sell premium (seller/exit)
 
 # ─── Equity (cash) cost model — segment-specific (intraday vs delivery) ──────
-EQ_EXCHANGE_CHARGE_RATE  = 0.0000297  # ₹297/cr NSE cash turnover (both sides)
+EQ_EXCHANGE_CHARGE_RATE  = 0.000030699  # ₹306.99/cr NSE cash turnover (both sides)
 EQ_STT_DELIVERY          = 0.001      # 0.1% on BOTH buy + sell (delivery)
 EQ_STT_INTRADAY_SELL     = 0.00025    # 0.025% on sell side only (intraday)
 EQ_STAMP_DELIVERY        = 0.00015    # 0.015% buy side (delivery)
@@ -154,8 +154,8 @@ class TierParams:
 class TransactionCosts:
     """Full breakdown of all NSE options transaction costs."""
     brokerage:       float = 0.0   # ₹20 × 2 legs
-    stt:             float = 0.0   # 0.05% sell side
-    exchange_charge: float = 0.0   # 0.053% turnover
+    stt:             float = 0.0   # 0.15% sell-side option premium
+    exchange_charge: float = 0.0   # 0.0355299% turnover
     sebi_levy:       float = 0.0   # 0.0001% turnover
     gst:             float = 0.0   # 18% on (brokerage+exchange+sebi)
     stamp_duty:      float = 0.0   # 0.003% buy side

@@ -95,6 +95,8 @@ _DB_COLS = [
     "pnf_direction", "pnf_boxes", "pnf_reversal", "range_direction",
     "range_run", "range_event", "footprint_delta_proxy", "footprint_available",
     "ichimoku_position", "ichimoku_tk", "representation_coverage",
+    "tick_oim", "tick_velocity", "tick_momentum", "tick_sample_count",
+    "tick_flow_available",
 ]
 _ENCODE_COLS = {
     "regime":        _REGIME_ENC,

@@ -205,7 +205,8 @@ def run_autonomous_param_training(
         _win_ok, _win = in_ml_training_window()
     except Exception:
         _win_ok, _win = True, "07:00-21:00"
-    if not force and not _win_ok:
+    # Planning is read-only and cheap; only actual optimization is windowed.
+    if not dry_run and not force and not _win_ok:
         import time as _t
         logger.warning("Outside ML training window %s — skipping param training. Use force=True.", _win)
         return {"ok": False, "error": "outside_training_window", "window": _win,

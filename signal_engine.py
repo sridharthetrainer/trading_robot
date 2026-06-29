@@ -2329,8 +2329,7 @@ STRATEGIES = [
     *([run_hero_zero_strategy]         if _HEROZERO_AVAIL  else []),
     *([run_holy_grail_strategy]        if _HOLYG_AVAIL     else []),
     *([run_vsa_strategy, run_anchored_vwap_strategy,
-       run_parabolic_sar_strategy, run_delta_neutral_theta,
-       run_gamma_scalp_strategy, run_event_driven_filter]
+       run_parabolic_sar_strategy, run_event_driven_filter]
                                        if _INST_AVAIL      else []),
     *([run_order_flow_strategy]        if _ORDERFLOW_AVAIL else []),
     *([run_pivot_boss_strategy]        if _PIVBOSS_AVAIL   else []),
@@ -2358,6 +2357,13 @@ STRATEGIES = [
     # ── NEW STRATEGIES (gap analysis v1.2.6) ─────────────────────────────────
     *(_NEW_STRATEGIES),
 ]
+
+# These are portfolio structures, not directional one-leg signals. Keep them
+# callable for research, but never pass them through the CE/PE selector until a
+# validated atomic multi-leg executor and delta-hedge lifecycle exist.
+RESEARCH_ONLY_MULTILEG_STRATEGIES = (
+    [run_delta_neutral_theta, run_gamma_scalp_strategy] if _INST_AVAIL else []
+)
 
 
 # ---------------------------------------------------------------------------
@@ -2813,6 +2819,14 @@ def generate_signal(
     _sig_meta: dict = {}    # per-signal metadata collected during scoring (for narrative + SHAP)
     if _market_quality:
         _sig_meta["market_quality"] = _market_quality
+    try:
+        from tick_order_flow import get_global_tick_bias
+
+        _tick_flow = get_global_tick_bias(symbol)
+        if int(_tick_flow.get("total", 0) or 0) > 0:
+            _sig_meta["tick_order_flow"] = _tick_flow
+    except Exception:
+        pass
 
     # ── Compute PDH/PDL/PWH/PWL/PMH/PML S/R levels ─────────────────────
     _sr_levels = {}

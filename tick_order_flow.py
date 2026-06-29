@@ -46,11 +46,13 @@ class TickOrderFlow:
         self._prices: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self._lock    = threading.Lock()
 
-    def on_tick(self, symbol: str, ltp: float) -> None:
+    def on_tick(self, symbol: str, ltp: float, tick: Optional[Dict[str, Any]] = None) -> None:
         """WebSocket tick callback. Must be fast, must not raise."""
         try:
+            tick = tick or {}
+            quantity = max(1.0, float(tick.get("last_traded_quantity", 1) or 1))
             with self._lock:
-                self._prices[symbol].append((time.monotonic(), ltp))
+                self._prices[symbol].append((time.monotonic(), ltp, quantity))
         except Exception:
             pass
 
@@ -64,30 +66,33 @@ class TickOrderFlow:
         cutoff = time.monotonic() - win
 
         with self._lock:
-            raw = [(ts, p) for ts, p in self._prices.get(symbol, [])
-                   if ts >= cutoff]
+            raw = [item for item in self._prices.get(symbol, []) if item[0] >= cutoff]
 
         if len(raw) < 2:
             return self._empty(symbol)
 
-        up = dn = 0
+        up = dn = 0.0
         for i in range(1, len(raw)):
             delta = raw[i][1] - raw[i - 1][1]
+            quantity = raw[i][2] if len(raw[i]) > 2 else 1.0
             if delta > 0:
-                up += 1
+                up += quantity
             elif delta < 0:
-                dn += 1
+                dn += quantity
 
         total = up + dn
-        if total < MIN_TICKS:
+        directional_ticks = sum(
+            1 for i in range(1, len(raw)) if raw[i][1] != raw[i - 1][1]
+        )
+        if directional_ticks < MIN_TICKS:
             return self._empty(symbol)
 
         oim = (up - dn) / total
 
         span = raw[-1][0] - raw[0][0]
-        velocity = round(total / max(span, 1e-9), 2)
+        velocity = round(directional_ticks / max(span, 1e-9), 2)
 
-        prices   = [p for _, p in raw]
+        prices   = [item[1] for item in raw]
         momentum = round((prices[-1] - prices[0]) / max(prices[0], 1e-9) * 100, 4)
 
         pressure  = "BULLISH" if oim > STRONG_OIM else ("BEARISH" if oim < -STRONG_OIM else "NEUTRAL")
@@ -96,9 +101,11 @@ class TickOrderFlow:
         return {
             "symbol":     symbol,
             "oim":        round(oim, 4),
-            "up_ticks":   up,
-            "dn_ticks":   dn,
-            "total":      total,
+            "up_ticks":   sum(1 for i in range(1, len(raw)) if raw[i][1] > raw[i - 1][1]),
+            "dn_ticks":   sum(1 for i in range(1, len(raw)) if raw[i][1] < raw[i - 1][1]),
+            "up_quantity": round(up, 2),
+            "down_quantity": round(dn, 2),
+            "total":      directional_ticks,
             "velocity":   velocity,
             "momentum":   momentum,
             "pressure":   pressure,

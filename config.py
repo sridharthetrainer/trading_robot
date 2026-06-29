@@ -79,6 +79,9 @@ TOTP_SECRET = os.getenv("TOTP_SECRET")
 # Optional secondary / future broker support
 DHAN_CLIENT_CODE = os.getenv("DHAN_CLIENT_CODE")
 DHAN_TOKEN_ID = os.getenv("DHAN_TOKEN_ID")
+UPSTOX_ANALYTICS_TOKEN = os.getenv("UPSTOX_ANALYTICS_TOKEN")
+UPSTOX_ACCESS_TOKEN = os.getenv("UPSTOX_ACCESS_TOKEN")
+OPTION_CHAIN_PROVIDER_ORDER = os.getenv("OPTION_CHAIN_PROVIDER_ORDER", "upstox,dhan")
 
 PRIMARY_BROKER = os.getenv("PRIMARY_BROKER", "angel").lower()
 SECONDARY_BROKER = os.getenv("SECONDARY_BROKER", "").lower().strip() or None
@@ -245,6 +248,7 @@ PROFIT_LOCK_PCT            = _fenv("PROFIT_LOCK_PCT", 0.3)
 # ── WebSocket (GA-9) ──────────────────────────────────────────────────────────
 WS_RECONNECT_DELAY         = _ienv("WS_RECONNECT_DELAY", 5)
 WS_MAX_RECONNECT           = _ienv("WS_MAX_RECONNECT", 10)
+WS_SUBSCRIBE_SIGNAL_UNIVERSE = _env("WS_SUBSCRIBE_SIGNAL_UNIVERSE", "true").lower() == "true"
 
 
 # =============================================================================

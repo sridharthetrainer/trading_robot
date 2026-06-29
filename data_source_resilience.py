@@ -185,6 +185,13 @@ def fetch_option_chain(symbol: str = "NIFTY",
             if r.status_code == 200:
                 data = r.json()
                 if data.get("records"):
+                    from option_chain_providers import mark_provider
+                    request_id = ""
+                    for key in ("x-request-id", "x-correlation-id", "request-id", "cf-ray"):
+                        if r.headers.get(key):
+                            request_id = f"nse:{r.headers[key]}"
+                            break
+                    mark_provider(data, "nse_live", is_live=True, request_id=request_id)
                     _CACHE[cache_key] = {"v": data, "ts": time.time()}
                     return data
         except Exception as e:
@@ -204,6 +211,8 @@ def fetch_option_chain(symbol: str = "NIFTY",
         from option_chain_fetcher import NSEOptionChainFetcher
         data = NSEOptionChainFetcher(underlying=symbol)._fetch_from_angel()
         if data:
+            from option_chain_providers import mark_provider
+            mark_provider(data, "angel", is_live=True)
             _CACHE[cache_key] = {"v": data, "ts": time.time()}
             return data
     except Exception as e:
@@ -215,13 +224,19 @@ def fetch_option_chain(symbol: str = "NIFTY",
             from bse_option_chain import fetch_bse_option_chain
             data = fetch_bse_option_chain(symbol)
             if data:
+                from option_chain_providers import mark_provider
+                mark_provider(data, "bse", is_live=True)
                 _CACHE[cache_key] = {"v": data, "ts": time.time()}
                 return data
         except Exception as e:
             logger.debug("BSE OC %s: %s", symbol, e)
 
     logger.warning("Option chain unavailable for %s — skipping PCR/OI", symbol)
-    return cached.get("v")  # stale data better than nothing
+    stale = cached.get("v")
+    if isinstance(stale, dict):
+        from option_chain_providers import mark_provider
+        mark_provider(stale, "resilience_cache", is_live=False)
+    return stale
 
 
 def compute_pcr(symbol: str = "NIFTY", angel_obj=None) -> float:

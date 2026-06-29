@@ -23,9 +23,18 @@ def test_window_is_env_configurable(monkeypatch):
     assert in_ml_training_window(datetime(2026, 6, 28, 12, 0))[0] is True
 
 
+def _force_window_closed(monkeypatch):
+    """Deterministically force the ML window CLOSED — stub the shared helper so the
+    test is independent of wall-clock time, weekday, and env pollution from other
+    tests (the entry points re-import in_ml_training_window from trading_calendar
+    at call time, so patching the module attribute takes effect)."""
+    import trading_calendar
+    monkeypatch.setattr(trading_calendar, "in_ml_training_window",
+                        lambda *a, **k: (False, "00:00-00:01"))
+
+
 def test_post_market_ml_skips_outside_window(monkeypatch):
-    monkeypatch.setenv("ML_TRAINING_WINDOW_START", "00:00")
-    monkeypatch.setenv("ML_TRAINING_WINDOW_END", "00:01")
+    _force_window_closed(monkeypatch)
     import post_market_ml
     # The post-market (after-15:30) guard runs before the window guard; bypass it
     # so this test isolates the WINDOW behaviour regardless of wall-clock time.
@@ -35,16 +44,14 @@ def test_post_market_ml_skips_outside_window(monkeypatch):
 
 
 def test_param_trainer_skips_outside_window(monkeypatch):
-    monkeypatch.setenv("ML_TRAINING_WINDOW_START", "00:00")
-    monkeypatch.setenv("ML_TRAINING_WINDOW_END", "00:01")
+    _force_window_closed(monkeypatch)
     import autonomous_param_trainer as apt
     out = apt.run_autonomous_param_training(force=False)
     assert out.get("error") == "outside_training_window"
 
 
 def test_self_learning_skips_outside_window(monkeypatch):
-    monkeypatch.setenv("ML_TRAINING_WINDOW_START", "00:00")
-    monkeypatch.setenv("ML_TRAINING_WINDOW_END", "00:01")
+    _force_window_closed(monkeypatch)
     import self_learning_engine
     eng = self_learning_engine.SelfLearningEngine.__new__(self_learning_engine.SelfLearningEngine)
     out = eng.run(force=False)

@@ -1,11 +1,11 @@
 """
-dhan_client.py — Dhan API client (free, permanent token, no daily login)
+dhan_client.py — optional Dhan API client
 
 Dhan provides:
   - NSE/BSE intraday candles (1m, 5m, 15m, 1h, 1d)
   - Live market data via WebSocket
   - Order placement
-  - Permanent access token (never expires)
+  - Access token authentication (ordinary web-generated tokens last 24 hours)
 
 Setup (5 minutes):
   1. Login to dhan.co
@@ -15,7 +15,7 @@ Setup (5 minutes):
        DHAN_CLIENT_CODE=your_client_code
        DHAN_TOKEN_ID=your_access_token
 
-Cost: FREE (just needs a Dhan demat account)
+Trading APIs are free for Dhan users; Data APIs may require a paid data plan.
 """
 from __future__ import annotations
 import logging, os

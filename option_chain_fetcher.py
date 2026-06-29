@@ -124,10 +124,13 @@ class NSEOptionChainFetcher:
             return True
 
     def fetch(self, expiry: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Fetch option chain: NSE → Sensibull → Angel."""
+        """Fetch option chain with authenticated sources before public fallbacks."""
         if self.underlying in {"SENSEX", "BANKEX"}:
             bse_data = self._fetch_from_bse()
             if bse_data and self._spot_ok(bse_data):
+                from option_chain_providers import mark_provider
+                mark_provider(bse_data, "bse", is_live=True)
+                self._accept_provider_metadata(bse_data)
                 self._save_cache(bse_data)
                 if expiry:
                     bse_data = self._filter_by_expiry(bse_data, expiry)
@@ -145,15 +148,34 @@ class NSEOptionChainFetcher:
             )
             return None
 
+        # Prefer authenticated APIs when configured. They provide explicit
+        # request provenance and are less fragile than the public NSE website.
+        try:
+            from option_chain_providers import fetch_authenticated_option_chain
+
+            provider_data = fetch_authenticated_option_chain(self.underlying)
+            if provider_data and self._spot_ok(provider_data):
+                self._accept_provider_metadata(provider_data)
+                logger.info(
+                    "Option-chain source=%s | underlying=%s",
+                    self.last_source,
+                    self.underlying,
+                )
+                self._save_cache(provider_data)
+                return self._filter_by_expiry(provider_data, expiry) if expiry else provider_data
+        except Exception as exc:
+            logger.debug("Authenticated option-chain providers failed: %s", exc)
+
         # Try resilience module first (NSE with retry). last_source records
         # which provider actually served the chain (observability: lets a live
         # caller / diagnostic confirm real-vs-stale data per the audit gap).
         try:
             from data_source_resilience import fetch_option_chain
             _data = fetch_option_chain(self.underlying)
-            if _data and self._spot_ok(_data):
-                self.last_source = "resilience_nse"
-                logger.info("Option-chain source=resilience_nse | underlying=%s", self.underlying)
+            if (_data and self._spot_ok(_data)
+                    and bool(_data.get("_provider_is_live", False))):
+                self._accept_provider_metadata(_data)
+                logger.info("Option-chain source=%s | underlying=%s", self.last_source, self.underlying)
                 return _data
         except Exception: pass
         # Sensibull fallback (when NSE IP is blocked)
@@ -168,6 +190,7 @@ class NSEOptionChainFetcher:
         raw = self._fetch_live()
         if raw and self._spot_ok(raw):
             self.last_source = "nse_live"
+            self.last_request_id = str(raw.get("_provider_request_id", "") or "")
             logger.info("Option-chain source=nse_live | underlying=%s", self.underlying)
             self._save_cache(raw)
             if expiry:
@@ -180,6 +203,7 @@ class NSEOptionChainFetcher:
         angel_data = self._fetch_from_angel()
         if angel_data and self._spot_ok(angel_data):
             self.last_source = "angel"
+            self.last_request_id = str(angel_data.get("_provider_request_id", "") or "")
             logger.info("Option-chain source=angel | underlying=%s", self.underlying)
             self._save_cache(angel_data)
             return angel_data
@@ -196,6 +220,10 @@ class NSEOptionChainFetcher:
 
         self.last_source = None
         return None
+
+    def _accept_provider_metadata(self, data: Dict[str, Any]) -> None:
+        self.last_source = str(data.get("_provider_source", "") or "")
+        self.last_request_id = str(data.get("_provider_request_id", "") or "")
 
     @staticmethod
     def _first_present(row: Dict[str, Any], names: List[str], default: Any = 0) -> Any:
@@ -328,10 +356,12 @@ class NSEOptionChainFetcher:
                 })
             logger.info("Angel OC fallback OK: %s strikes for %s (expiry %s)",
                         len(data), self.underlying, exp_str)
-            return {"records": {"data": data, "expiryDates": [exp_str],
-                                "underlyingValue": spot},
-                    "filtered": {"data": data},
-                    "source": "angel_fallback"}
+            payload = {"records": {"data": data, "expiryDates": [exp_str],
+                                   "underlyingValue": spot},
+                       "filtered": {"data": data},
+                       "source": "angel_fallback"}
+            from option_chain_providers import mark_provider
+            return mark_provider(payload, "angel", is_live=True)
         except Exception as e:
             logger.warning("Angel OC fallback failed: %s", e)
             return None
@@ -366,6 +396,14 @@ class NSEOptionChainFetcher:
                     continue
 
                 if "records" in data and isinstance(data["records"], dict):
+                    from option_chain_providers import mark_provider
+
+                    request_id = ""
+                    for key in ("x-request-id", "x-correlation-id", "request-id", "cf-ray"):
+                        if resp.headers.get(key):
+                            request_id = f"nse:{resp.headers[key]}"
+                            break
+                    mark_provider(data, "nse_live", is_live=True, request_id=request_id)
                     return data
 
                 logger.warning("Unexpected NSE payload keys: %s", list(data.keys())[:20])
@@ -473,6 +511,18 @@ class NSEOptionChainFetcher:
                     "PE_lastPrice": self._to_float(pe.get("lastPrice")),
                     "CE_impliedVolatility": self._to_float(ce.get("impliedVolatility")),
                     "PE_impliedVolatility": self._to_float(pe.get("impliedVolatility")),
+                    "CE_bidPrice": self._to_float(ce.get("bidprice", ce.get("bidPrice"))),
+                    "PE_bidPrice": self._to_float(pe.get("bidprice", pe.get("bidPrice"))),
+                    "CE_bidQty": self._to_float(ce.get("bidQty")),
+                    "PE_bidQty": self._to_float(pe.get("bidQty")),
+                    "CE_askPrice": self._to_float(ce.get("askPrice")),
+                    "PE_askPrice": self._to_float(pe.get("askPrice")),
+                    "CE_askQty": self._to_float(ce.get("askQty")),
+                    "PE_askQty": self._to_float(pe.get("askQty")),
+                    "CE_delta": self._to_float(ce.get("delta")),
+                    "PE_delta": self._to_float(pe.get("delta")),
+                    "CE_theta": self._to_float(ce.get("theta")),
+                    "PE_theta": self._to_float(pe.get("theta")),
                 }
             )
 

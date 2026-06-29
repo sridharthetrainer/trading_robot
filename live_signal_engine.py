@@ -615,6 +615,13 @@ def _build_signal_ml_features(signal: Dict[str, Any]) -> Dict[str, float]:
         )
         for key, value in representation.items():
             row.setdefault(str(key), value)
+        tick_flow = meta.get("tick_order_flow") if isinstance(meta.get("tick_order_flow"), dict) else {}
+        if tick_flow:
+            row.setdefault("tick_oim", tick_flow.get("oim", 0.0))
+            row.setdefault("tick_velocity", tick_flow.get("velocity", 0.0))
+            row.setdefault("tick_momentum", tick_flow.get("momentum", 0.0))
+            row.setdefault("tick_sample_count", tick_flow.get("total", 0))
+            row.setdefault("tick_flow_available", 1 if tick_flow.get("total", 0) else 0)
         profile = (
             meta.get("market_profile")
             if isinstance(meta.get("market_profile"), dict)
@@ -927,6 +934,12 @@ class LiveSignalEngine:
                 )
                 # Wire trailing_manager (created above)
                 self.ws_engine.trailing = self.trailing_manager
+                try:
+                    from tick_order_flow import get_global_instance as _tick_flow
+                    self.ws_engine.register_tick_callback(_tick_flow().on_tick)
+                    logger.info('Tick order-flow callback registered')
+                except Exception as exc:
+                    logger.warning('Tick order-flow callback unavailable: %s', exc)
                 logger.info('WebSocketEngine initialised (trailing wired)')
                 # Wire broker into option chain engine
                 if self._option_chain_engine and angel_obj:
@@ -1044,6 +1057,12 @@ class LiveSignalEngine:
             started = self.ws_engine.start()
             if started:
                 logger.info('WebSocket streaming started — trailing stops now real-time')
+                if bool(getattr(cfg, "WS_SUBSCRIBE_SIGNAL_UNIVERSE", True)):
+                    self.ws_engine.subscribe(self._symbols, exchange="NSE")
+                    logger.info(
+                        'WebSocket signal universe requested: %d NSE symbols',
+                        len(self._symbols),
+                    )
             else:
                 logger.warning('WebSocket not started — using 30s REST polling fallback')
         sleep_sec = int(getattr(cfg, "MAIN_LOOP_SLEEP_SEC", 30))
