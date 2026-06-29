@@ -114,7 +114,12 @@ THRESHOLDS = {
 STARTUP_GRACE_SEC  = 120    # never take action on process younger than this
 CPU_CHECK_WAIT_SEC = 5      # seconds between CPU tick readings
 STALE_COUNT_KILL   = 3      # consecutive stale checks before kill
-MEMORY_MAX_MB      = 950    # kill on memory leak
+# Memory kill threshold. 950MB was FAR too low for a pandas/sklearn/ML trading bot
+# (normal baseline is ~1GB; ML training spikes higher) on this 7.8GB box, causing
+# mid-session restart churn (→ "no signals" gaps). 2500MB still leaves ~5GB free
+# and only fires on a genuine runaway leak. Env-tunable.
+import os as _os_wd
+MEMORY_MAX_MB      = int(_os_wd.getenv("WATCHDOG_MEMORY_MAX_MB", "2500"))
 
 # ── Cooldowns (prevent Telegram spam) ─────────────────────────────────────────
 COOLDOWN = {

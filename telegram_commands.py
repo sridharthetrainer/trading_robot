@@ -790,13 +790,20 @@ class TelegramCommandHandler:
                         "  Signals appear when score ≥ 5.5\n\n"
                         "  📱 /health to check data feed")
             lines_out = ["📡 <b>RECENT SIGNALS</b>", ""]
+            _seen = set()
             for r in rows:
                 sym = str(r[0])
                 strat = str(r[1])[:18]
                 score = float(r[2] or 0)
                 dirn = str(r[3] or "")
+                _k = (sym, strat, dirn)
+                if _k in _seen:          # collapse duplicate (symbol,strategy,dir) rows
+                    continue
+                _seen.add(_k)
                 icon = "🟢" if dirn.upper() in ("BUY","BULLISH") else "🔴" if dirn.upper() in ("SELL","BEARISH") else "⚪"
                 lines_out.append(f"  {icon} {sym:12} {strat:18} {score:.1f} {dirn}")
+                if len(_seen) >= 6:      # cap display to 6 distinct (less noise)
+                    break
             lines_out += ["", "  📱 /today · /positions · /pnl"]
             return "\n".join(lines_out)
         except Exception as e:
@@ -1592,7 +1599,7 @@ class TelegramCommandHandler:
             tokens = [t.strip() for t in str(args or "").split() if t.strip()]
             valid = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX"}
             sym = "NIFTY"
-            top_n = 5
+            top_n = 3   # trimmed display (was 5) — less strike noise; pass N to widen
             prefer_live = True
             for token in tokens:
                 up = token.upper()

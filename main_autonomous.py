@@ -2117,32 +2117,42 @@ class AutonomousTradingSystem:
                             bot_token=_opt_token, chat_id=_opt_chat, bot_ref=self)
 
                         def _cmd_opt_signals(_=""):
-                            """Recent LIVE option selections (excludes replay research)."""
+                            """Recent DISTINCT live option selections — deduped (the journal
+                            re-records the same setup across scans) + most recent first."""
                             try:
                                 import json as _oj
                                 from option_decision_journal import (
                                     _is_research_strategy, DEFAULT_JOURNAL_FILE)
-                                hits = []
+                                seen, distinct, dupes = set(), [], 0
                                 try:
                                     with open(DEFAULT_JOURNAL_FILE) as _f:
                                         for _ln in _f:
                                             try: _d = _oj.loads(_ln)
                                             except Exception: continue
-                                            if (str(_d.get("decision", "")).startswith("selected")
+                                            if not (str(_d.get("decision", "")).startswith("selected")
                                                     and not _is_research_strategy(_d.get("strategy"))):
-                                                hits.append(_d)
+                                                continue
+                                            _s = _d.get("selected") or {}
+                                            key = (str(_d.get("time", ""))[:16], _d.get("symbol"),
+                                                   _d.get("side"), _s.get("strike"), _s.get("option_type"))
+                                            if key in seen:
+                                                dupes += 1
+                                                continue
+                                            seen.add(key); distinct.append(_d)
                                 except FileNotFoundError:
                                     return "No option journal yet."
-                                hits = hits[-5:]
-                                if not hits:
+                                if not distinct:
                                     return "No live option selections yet."
-                                out = ["🎯 <b>Recent live option selections</b>"]
-                                for _d in hits:
+                                recent = distinct[-5:][::-1]   # newest first
+                                out = [f"🎯 <b>Recent option selections</b> ({len(distinct)} distinct)"]
+                                for _d in recent:
                                     _s = _d.get("selected") or {}
                                     out.append(
                                         f"  {str(_d.get('time',''))[:16]} {_d.get('symbol')} "
                                         f"{_d.get('side')} {_s.get('strike','')}{(_s.get('option_type') or '')} "
                                         f"({_d.get('strategy')})")
+                                if dupes:
+                                    out.append(f"  <i>({dupes} duplicate records collapsed)</i>")
                                 return "\n".join(out)
                             except Exception as _se:
                                 return f"option /signals error: {_se}"
