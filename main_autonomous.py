@@ -2306,7 +2306,7 @@ class AutonomousTradingSystem:
                         _OPT_ALLOWED = {
                             "help", "start", "status", "version", "health", "mode", "log", "restart",
                             "signals", "optedge", "edge", "worthiness", "optpositions", "positions",
-                            "optlots", "lots", "setlots",
+                            "optlots", "lots", "setlots", "optdata", "ocdiag",
                             "oisr", "chainsignals", "chains", "strikeflow", "pcr",
                             "oi", "oib", "oitrend", "strikes", "maxpain", "oichart",
                             "vix", "regime", "brief", "morning", "premarket", "fii",

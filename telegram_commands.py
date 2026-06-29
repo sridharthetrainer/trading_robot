@@ -385,6 +385,8 @@ class TelegramCommandHandler:
         self.register("optlots",     self._cmd_optlots)
         self.register("lots",        self._cmd_optlots)
         self.register("setlots",     self._cmd_optlots)
+        self.register("optdata",     self._cmd_optdata)
+        self.register("ocdiag",      self._cmd_optdata)
         self.register("heat",        self._cmd_heat)
         self.register("symbols",     self._cmd_symbols)
         # ── Morning / Market Context ──────────────────────────────────────────
@@ -2367,6 +2369,32 @@ class TelegramCommandHandler:
             return get_todays_signals()
         except Exception as e:
             return f"❌ Today's signals: {e}"
+
+    def _cmd_optdata(self, args="") -> str:
+        """Diagnose the option-chain data pipeline — shows each source's result so
+        you can see exactly where data drops. /optdata [SYMBOL] (default NIFTY)."""
+        try:
+            from option_chain_fetcher import diagnose_option_data
+            parts = str(args or "").strip().upper().split()
+            sym = parts[1] if len(parts) > 1 else "NIFTY"
+            r = diagnose_option_data(sym)
+            lines = [f"🔧 <b>Option data diagnostic — {r.get('underlying')}</b>  {r.get('ts','')}",
+                     f"  market_open: {r.get('market_open')}"]
+            for stage, val in (r.get("stages") or {}).items():
+                if isinstance(val, dict):
+                    lines.append(f"  {stage}: spot={val.get('spot')} rows={val.get('rows')} "
+                                 f"CE_oi={val.get('sample_CE_oi')} src={val.get('source')}")
+                else:
+                    lines.append(f"  {stage}: {val}")
+            fin = r.get("final")
+            if isinstance(fin, dict):
+                lines.append(f"  ➡️ final: spot={fin.get('spot')} rows={fin.get('rows')} "
+                             f"(source={r.get('final_source')})")
+            else:
+                lines.append(f"  ➡️ final: {fin}")
+            return "\n".join(lines)
+        except Exception as e:
+            return f"⚠️ /optdata error: {e}"
 
     def _cmd_optlots(self, args="") -> str:
         """Set the option lot ceiling for today (live, no restart).

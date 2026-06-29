@@ -280,24 +280,14 @@ def fetch_option_chain_intelligence(symbol: str = "NIFTY") -> Dict:
     - Key support/resistance from OI
     """
     try:
-        import requests as _rq
-        s = _rq.Session()
-        s.headers.update({
-            "User-Agent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-            "Referer":     "https://www.nseindia.com",
-            "Accept":      "application/json",
-        })
-        s.get("https://www.nseindia.com/", timeout=5)
-
-        url = f"https://www.nseindia.com/api/option-chain-indices?symbol={symbol}"
-        if symbol not in ("NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"):
-            url = f"https://www.nseindia.com/api/option-chain-equities?symbol={symbol}"
-
-        r = s.get(url, timeout=12)
-        if r.status_code != 200:
+        # Use the ROBUST source (NSE retry → Angel fallback → cache) instead of a
+        # bare NSE call. NSE 404s in market hours and is unreachable after close;
+        # this delegate returns Angel's last-snapshot chain in those cases, so
+        # PCR/max-pain/GEX stay populated (was returning {} → blank /maxpain).
+        from data_source_resilience import fetch_option_chain as _robust_oc
+        data = _robust_oc(symbol)
+        if not data:
             return {}
-
-        data   = r.json()
         chain  = data.get("records", {}).get("data", [])
         expiry = data.get("records", {}).get("expiryDates", [""])[0]
         spot   = float(data.get("records", {}).get("underlyingValue", 0) or 0)

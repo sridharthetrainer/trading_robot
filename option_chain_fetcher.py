@@ -142,6 +142,18 @@ class NSEOptionChainFetcher:
                 if expiry:
                     cached = self._filter_by_expiry(cached, expiry)
                 return cached
+            # Angel SmartAPI still serves the last-traded chain after hours/pre-open.
+            # Use it so post-market option commands + cards show REAL last-snapshot
+            # data (spot/OI/premium) instead of None — previously the option bot was
+            # blank whenever checked outside 08:45–16:30 (the user-reported issue).
+            try:
+                angel_data = self._fetch_from_angel()
+                if angel_data and self._spot_ok(angel_data):
+                    self.last_source = "angel_eod"
+                    self._save_cache(angel_data)
+                    return self._filter_by_expiry(angel_data, expiry) if expiry else angel_data
+            except Exception as exc:
+                logger.debug("off-hours Angel option-chain fallback failed: %s", exc)
             logger.info(
                 "Option-chain live fetch skipped outside market hours | underlying=%s",
                 self.underlying,
@@ -647,3 +659,60 @@ class NSEOptionChainFetcher:
         premium_factor = max(premium, 0.5)
         gamma = math.exp(-(moneyness * 18.0)) / (vol_factor * premium_factor)
         return float(max(gamma, 0.0))
+
+
+def _oc_stage_summary(data) -> Any:
+    """Compact summary of an option-chain payload for diagnostics."""
+    if not data:
+        return "none"
+    try:
+        from option_quality import extract_chain_rows, extract_spot
+        rows = extract_chain_rows(data)
+        spot = extract_spot(data)
+        ce_oi = None
+        if rows:
+            ce = rows[0].get("CE") if isinstance(rows[0].get("CE"), dict) else rows[0]
+            ce_oi = (ce or {}).get("openInterest") or rows[0].get("CE_openInterest")
+        return {"spot": round(float(spot or 0), 1), "rows": len(rows),
+                "sample_CE_oi": ce_oi, "source": str(data.get("source", "") or "")}
+    except Exception as exc:
+        return f"summary_err: {str(exc)[:50]}"
+
+
+def diagnose_option_data(underlying: str = "NIFTY") -> Dict[str, Any]:
+    """Probe each option-chain source INDEPENDENTLY to pinpoint where data drops.
+    Run during MARKET HOURS — off-market live sources are skipped by design.
+    Read-only, best-effort (each stage isolated)."""
+    from datetime import datetime as _dt
+    f = NSEOptionChainFetcher(underlying=underlying)
+    rep: Dict[str, Any] = {
+        "underlying": underlying.upper(),
+        "ts": _dt.now().strftime("%H:%M:%S"),
+        "market_open": f._market_open(),
+        "stages": {},
+    }
+    # 1) authenticated providers (Upstox/Dhan/etc. if configured)
+    try:
+        from option_chain_providers import fetch_authenticated_option_chain
+        rep["stages"]["authenticated"] = _oc_stage_summary(fetch_authenticated_option_chain(underlying))
+    except Exception as exc:
+        rep["stages"]["authenticated"] = f"err: {str(exc)[:60]}"
+    # 2) resilience (NSE retry + Angel fallback)
+    try:
+        from data_source_resilience import fetch_option_chain as _r
+        rep["stages"]["resilience(NSE+Angel)"] = _oc_stage_summary(_r(underlying))
+    except Exception as exc:
+        rep["stages"]["resilience(NSE+Angel)"] = f"err: {str(exc)[:60]}"
+    # 3) Angel direct (the key fallback when NSE 404s)
+    try:
+        rep["stages"]["angel_direct"] = _oc_stage_summary(f._fetch_from_angel())
+    except Exception as exc:
+        rep["stages"]["angel_direct"] = f"err: {str(exc)[:60]}"
+    # 4) full fetch() — what consumers actually get + which source won
+    try:
+        final = f.fetch()
+        rep["final"] = _oc_stage_summary(final)
+        rep["final_source"] = str(getattr(f, "last_source", "") or "?")
+    except Exception as exc:
+        rep["final"] = f"err: {str(exc)[:60]}"
+    return rep
