@@ -880,6 +880,11 @@ class SignalLogger:
 
         labelled = 0
         try:
+            from signal_quality import quarantine_signal_log
+            quarantine_signal_log(self.db_path)
+        except Exception as exc:
+            logger.warning("Pre-label signal quality quarantine failed: %s", exc)
+        try:
             with self._conn() as conn:
                 pending = conn.execute(
                     f"SELECT id, symbol, side, entry_price, signal_time, "
@@ -998,6 +1003,41 @@ class SignalLogger:
                     # Net-of-cost directional R (corrected cost model + slippage):
                     # removes the PRE-COST / asymmetric-barrier positive bias.
                     tb_r_net = cost_aware_r_multiple(ep, outcome_price, side, tb_stop)
+
+                    # Never persist a decided training label when entry and
+                    # outcome are from different price scales/instruments.
+                    # Keep the row for auditability, but quarantine it from all
+                    # learners that honor training_eligible.
+                    try:
+                        from signal_quality import price_row_ok
+                        price_ok, price_reason = price_row_ok(ep, outcome_price)
+                    except Exception:
+                        price_ok, price_reason = True, ""
+                    if not price_ok:
+                        with self._conn() as conn:
+                            old_reason = conn.execute(
+                                f"SELECT training_exclusion_reason FROM {_TBL} WHERE id=?",
+                                (sig_id,),
+                            ).fetchone()
+                            reason = _append_reason(
+                                old_reason[0] if old_reason else "",
+                                f"data_quality_{price_reason}",
+                            )
+                            conn.execute(
+                                f"UPDATE {_TBL} SET tb_label=-2, outcome_price=?, "
+                                f"outcome_time=?, tb_target=?, tb_stop=?, tb_rr=?, "
+                                f"tb_r_multiple=0, tb_r_multiple_net=0, "
+                                f"training_eligible=0, training_exclusion_reason=? "
+                                f"WHERE id=?",
+                                (round(outcome_price, 4), outcome_time,
+                                 round(tb_target, 4), round(tb_stop, 4), round(tb_rr, 4),
+                                 reason, sig_id),
+                            )
+                        logger.error(
+                            "Quarantined corrupt TB label id=%s %s: entry=%.4f outcome=%.4f (%s)",
+                            sig_id, sym, ep, outcome_price, price_reason,
+                        )
+                        continue
 
                     with self._conn() as conn:
                         conn.execute(

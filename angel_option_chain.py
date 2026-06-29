@@ -334,6 +334,50 @@ class AngelOptionChainEngine:
                 break
         return oi, chg_oi
 
+    def _extract_liquidity_fields_from_quote(self, quote: dict) -> dict:
+        """Extract volume and top-of-book from one SmartAPI FULL quote."""
+        if not isinstance(quote, dict):
+            return {"volume": 0.0, "bid": 0.0, "ask": 0.0,
+                    "bid_qty": 0.0, "ask_qty": 0.0}
+
+        def first(keys):
+            for key in keys:
+                value = self._safe_float(quote.get(key))
+                if value > 0:
+                    return value
+            return 0.0
+
+        def top(side_keys):
+            depth = None
+            for key in side_keys:
+                candidate = quote.get(key)
+                if candidate:
+                    depth = candidate
+                    break
+            if not depth and isinstance(quote.get("depth"), dict):
+                depth = quote["depth"].get("buy" if "Buy" in side_keys[0] else "sell")
+            item = depth[0] if isinstance(depth, list) and depth else {}
+            return (
+                self._safe_float(item.get("price") if isinstance(item, dict) else 0),
+                self._safe_float(
+                    (item.get("quantity", item.get("qty", 0))) if isinstance(item, dict) else 0
+                ),
+            )
+
+        bid, bid_qty = top(["bestFiveBuy", "best5Buy"])
+        ask, ask_qty = top(["bestFiveSell", "best5Sell"])
+        bid = bid or first(["bestBidPrice", "bidPrice", "bidprice"])
+        ask = ask or first(["bestAskPrice", "askPrice", "askprice"])
+        bid_qty = bid_qty or first(["bestBidQty", "bidQty", "bidQuantity"])
+        ask_qty = ask_qty or first(["bestAskQty", "askQty", "askQuantity"])
+        return {
+            "volume": first(["tradeVolume", "totalTradedVolume", "volume", "totTradedQty"]),
+            "bid": bid,
+            "ask": ask,
+            "bid_qty": bid_qty,
+            "ask_qty": ask_qty,
+        }
+
     def _get_quote_data(self, symbol: str) -> dict:
         try:
             if hasattr(self.broker, "get_quote"):
@@ -377,6 +421,8 @@ class AngelOptionChainEngine:
             pe_symbol = pe_row.iloc[0]["symbol_exact"] if not pe_row.empty else None
 
             ce_ltp = pe_ltp = ce_oi = pe_oi = ce_chg_oi = pe_chg_oi = 0.0
+            ce_liq = self._extract_liquidity_fields_from_quote({})
+            pe_liq = self._extract_liquidity_fields_from_quote({})
 
             if ce_symbol:
                 try:
@@ -386,6 +432,7 @@ class AngelOptionChainEngine:
                 try:
                     ce_quote = self._get_quote_data(ce_symbol)
                     ce_oi, ce_chg_oi = self._extract_oi_fields_from_quote(ce_quote)
+                    ce_liq = self._extract_liquidity_fields_from_quote(ce_quote)
                 except Exception:
                     logger.debug("CE OI extraction failed for %s", ce_symbol, exc_info=True)
 
@@ -397,6 +444,7 @@ class AngelOptionChainEngine:
                 try:
                     pe_quote = self._get_quote_data(pe_symbol)
                     pe_oi, pe_chg_oi = self._extract_oi_fields_from_quote(pe_quote)
+                    pe_liq = self._extract_liquidity_fields_from_quote(pe_quote)
                 except Exception:
                     logger.debug("PE OI extraction failed for %s", pe_symbol, exc_info=True)
 
@@ -417,6 +465,16 @@ class AngelOptionChainEngine:
                 "PE_OI":      pe_oi,
                 "CE_CHG_OI":  ce_chg_oi,
                 "PE_CHG_OI":  pe_chg_oi,
+                "CE_VOLUME":  ce_liq["volume"],
+                "PE_VOLUME":  pe_liq["volume"],
+                "CE_bidPrice": ce_liq["bid"],
+                "PE_bidPrice": pe_liq["bid"],
+                "CE_bidQty": ce_liq["bid_qty"],
+                "PE_bidQty": pe_liq["bid_qty"],
+                "CE_askPrice": ce_liq["ask"],
+                "PE_askPrice": pe_liq["ask"],
+                "CE_askQty": ce_liq["ask_qty"],
+                "PE_askQty": pe_liq["ask_qty"],
             })
 
         return spot, atm, expiry, chain
@@ -802,4 +860,3 @@ def compute_pcr_and_maxpain(option_chain_data: dict) -> dict:
         logging.getLogger(__name__).debug("PCR calc error: %s", e)
 
     return result
-

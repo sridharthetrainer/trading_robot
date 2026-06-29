@@ -760,6 +760,34 @@ class DataFetcher:
                 symbol, interval, source,
             )
             return None
+        # Symbol-resolution guard. Some fallback vendors silently resolve an
+        # index alias to an ETF (MIDCPNIFTY was returned near 880 while the
+        # index traded near 14,300). Such bars have valid OHLC/spacing, so the
+        # ordinary shape checks cannot detect them.
+        index_floors = {
+            "NIFTY": 5_000.0,
+            "BANKNIFTY": 10_000.0,
+            "FINNIFTY": 5_000.0,
+            "MIDCPNIFTY": 3_000.0,
+            "NIFTYNEXT50": 10_000.0,
+            "SENSEX": 10_000.0,
+            "BANKEX": 10_000.0,
+        }
+        floor = index_floors.get(str(symbol or "").upper())
+        if floor is not None:
+            try:
+                cols = {str(c).lower(): c for c in df.columns}
+                close_col = cols.get("close")
+                latest = float(df[close_col].dropna().iloc[-1]) if close_col is not None else 0.0
+            except Exception:
+                latest = 0.0
+            if latest < floor:
+                logger.error(
+                    "Reject %s %s from %s: price %.2f below index floor %.2f "
+                    "(probable symbol/ETF mismatch)",
+                    symbol, interval, source, latest, floor,
+                )
+                return None
         return self._cache_market_data(cache_key, symbol, interval, df, source=source)
 
     # ------------------------------------------------------------------

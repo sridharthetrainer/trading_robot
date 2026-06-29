@@ -123,6 +123,23 @@ class NSEOptionChainFetcher:
         except Exception:
             return True
 
+    @staticmethod
+    def _has_liquidity_fields(data: Dict[str, Any]) -> bool:
+        """True when at least one contract has volume and a usable book."""
+        try:
+            rows = ((data or {}).get("records") or {}).get("data") or []
+            for row in rows:
+                for leg_name in ("CE", "PE"):
+                    leg = row.get(leg_name) or {}
+                    volume = float(leg.get("totalTradedVolume") or 0)
+                    bid = float(leg.get("bidprice", leg.get("bidPrice")) or 0)
+                    ask = float(leg.get("askPrice", leg.get("askprice")) or 0)
+                    if volume > 0 and bid > 0 and ask >= bid:
+                        return True
+        except Exception:
+            return False
+        return False
+
     def fetch(self, expiry: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Fetch option chain with authenticated sources before public fallbacks."""
         if self.underlying in {"SENSEX", "BANKEX"}:
@@ -138,7 +155,8 @@ class NSEOptionChainFetcher:
 
         if not self._market_open():
             cached = self._load_cache(warn_missing=False) if self.use_cache_fallback else None
-            if cached:
+            if cached and self._has_liquidity_fields(cached):
+                self.last_source = "cache_eod"
                 if expiry:
                     cached = self._filter_by_expiry(cached, expiry)
                 return cached
@@ -154,6 +172,10 @@ class NSEOptionChainFetcher:
                     return self._filter_by_expiry(angel_data, expiry) if expiry else angel_data
             except Exception as exc:
                 logger.debug("off-hours Angel option-chain fallback failed: %s", exc)
+            if cached:
+                self.last_source = "cache_sparse_eod"
+                logger.warning("Using sparse option cache after Angel EOD refresh failed")
+                return self._filter_by_expiry(cached, expiry) if expiry else cached
             logger.info(
                 "Option-chain live fetch skipped outside market hours | underlying=%s",
                 self.underlying,
@@ -359,11 +381,21 @@ class NSEOptionChainFetcher:
                     "expiryDate": exp_str,
                     "CE": {"openInterest": float(r.get("CE_OI") or 0),
                            "changeinOpenInterest": float(r.get("CE_CHG_OI") or 0),
+                           "totalTradedVolume": float(r.get("CE_VOLUME") or 0),
                            "lastPrice": float(r.get("CE_LTP") or 0),
+                           "bidprice": float(r.get("CE_bidPrice") or 0),
+                           "bidQty": float(r.get("CE_bidQty") or 0),
+                           "askPrice": float(r.get("CE_askPrice") or 0),
+                           "askQty": float(r.get("CE_askQty") or 0),
                            "impliedVolatility": 0.0},
                     "PE": {"openInterest": float(r.get("PE_OI") or 0),
                            "changeinOpenInterest": float(r.get("PE_CHG_OI") or 0),
+                           "totalTradedVolume": float(r.get("PE_VOLUME") or 0),
                            "lastPrice": float(r.get("PE_LTP") or 0),
+                           "bidprice": float(r.get("PE_bidPrice") or 0),
+                           "bidQty": float(r.get("PE_bidQty") or 0),
+                           "askPrice": float(r.get("PE_askPrice") or 0),
+                           "askQty": float(r.get("PE_askQty") or 0),
                            "impliedVolatility": 0.0},
                 })
             logger.info("Angel OC fallback OK: %s strikes for %s (expiry %s)",

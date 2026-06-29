@@ -121,6 +121,47 @@ def scan_signal_log(db_path: str = "signal_log.db",
     return report
 
 
+def quarantine_signal_log(db_path: str = "signal_log.db",
+                          table: str = "signal_log") -> Dict[str, Any]:
+    """Exclude already-labelled price-scale corruption from all learners.
+
+    Rows remain in place for forensic/audit use. Their original outcome price is
+    retained, while the decision label and derived R values are retired.
+    """
+    import sqlite3
+
+    con = sqlite3.connect(db_path)
+    con.row_factory = sqlite3.Row
+    quarantined = []
+    try:
+        rows = con.execute(
+            f"SELECT id,entry_price,outcome_price,training_exclusion_reason "
+            f"FROM {table} WHERE tb_label IN (-1,0,1) "
+            f"AND entry_price>0 AND outcome_price>0"
+        ).fetchall()
+        for row in rows:
+            ok, reason = price_row_ok(row["entry_price"], row["outcome_price"])
+            if ok:
+                continue
+            existing = [x for x in str(row["training_exclusion_reason"] or "").split(",") if x]
+            tag = f"data_quality_{reason}"
+            if tag not in existing:
+                existing.append(tag)
+            con.execute(
+                f"UPDATE {table} SET tb_label=-2, tb_r_multiple=0, "
+                f"tb_r_multiple_net=0, training_eligible=0, "
+                f"training_exclusion_reason=? WHERE id=?",
+                (",".join(existing), row["id"]),
+            )
+            quarantined.append(int(row["id"]))
+        con.commit()
+    finally:
+        con.close()
+    if quarantined:
+        logger.error("Quarantined %d corrupt signal labels", len(quarantined))
+    return {"quarantined": len(quarantined), "ids": quarantined}
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
     rep = scan_signal_log()

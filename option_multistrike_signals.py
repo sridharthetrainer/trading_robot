@@ -289,7 +289,7 @@ def label_multistrike_outcomes(
     labelled = 0
     skipped = 0
     verified = 0
-    live_sources = {"nse_live", "resilience_nse", "angel", "angel_fallback", "sensibull", "bse", "bse_oc"}
+    live_sources = {"nse_live", "resilience_nse", "angel", "angel_eod", "angel_fallback", "sensibull", "bse", "bse_oc"}
     with sqlite3.connect(db_path) as conn:
         ensure_multistrike_schema(conn)
         conn.row_factory = sqlite3.Row
@@ -350,7 +350,7 @@ def build_multistrike_edge_model(
     min_samples: int = 30,
 ) -> Dict[str, Any]:
     """Learn bounded strike-flow weights from verified generated outcomes."""
-    live_sources = ("nse_live", "resilience_nse", "angel", "angel_fallback", "sensibull", "bse", "bse_oc")
+    live_sources = ("nse_live", "resilience_nse", "angel", "angel_eod", "angel_fallback", "sensibull", "bse", "bse_oc")
     groups: Dict[str, Dict[str, float]] = {}
     with sqlite3.connect(db_path) as conn:
         ensure_multistrike_schema(conn)

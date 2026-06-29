@@ -96,11 +96,19 @@ def _snapshot_stats(path: Path) -> Dict[str, Any]:
         strike_rows = 0
         strike_labelled = 0
         verified_strike_outcomes = 0
+        today_strike_rows = 0
+        today_strike_tradable = 0
+        today_strike_labelled = 0
         if conn.execute(
             "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='option_strike_signals'"
         ).fetchone()[0]:
             strike_cols = {r[1] for r in conn.execute("PRAGMA table_info(option_strike_signals)")}
             strike_rows = conn.execute("SELECT COUNT(*) FROM option_strike_signals").fetchone()[0]
+            today_prefix = datetime.now().strftime("%Y-%m-%d") + "%"
+            today_strike_rows, today_strike_tradable = conn.execute(
+                "SELECT COUNT(*),COALESCE(SUM(tradable),0) FROM option_strike_signals "
+                "WHERE snapshot_time LIKE ?", (today_prefix,)
+            ).fetchone()
             if "outcome_label" in strike_cols:
                 strike_labelled = conn.execute(
                     "SELECT COUNT(*) FROM option_strike_signals WHERE outcome_label IN (-1,0,1)"
@@ -109,6 +117,11 @@ def _snapshot_stats(path: Path) -> Dict[str, Any]:
                     "SELECT COUNT(*) FROM option_strike_signals WHERE outcome_label IN (-1,0,1) "
                     "AND lower(COALESCE(source,'')) IN "
                     "('nse_live','resilience_nse','angel','angel_fallback','sensibull','bse','bse_oc')"
+                ).fetchone()[0]
+                today_strike_labelled = conn.execute(
+                    "SELECT COUNT(*) FROM option_strike_signals "
+                    "WHERE snapshot_time LIKE ? AND outcome_label IN (-1,0,1)",
+                    (today_prefix,),
                 ).fetchone()[0]
     latest_ok_dt = _parse_dt(latest_ok)
     latest_ok_age_hours = None
@@ -130,6 +143,9 @@ def _snapshot_stats(path: Path) -> Dict[str, Any]:
         "strike_signal_rows": int(strike_rows or 0),
         "strike_signal_labelled": int(strike_labelled or 0),
         "verified_strike_outcomes": int(verified_strike_outcomes or 0),
+        "today_strike_rows": int(today_strike_rows or 0),
+        "today_strike_tradable": int(today_strike_tradable or 0),
+        "today_strike_labelled": int(today_strike_labelled or 0),
     }
 
 
@@ -482,7 +498,12 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
     sig = audit.get("signal_log", {}) or {}
     journal_today_rows = int((audit.get("decision_journal", {}) or {}).get("today_rows", 0) or 0)
     journal_today_chain = int((audit.get("decision_journal", {}) or {}).get("today_chain_signal", 0) or 0)
-    today_rows = max(int(sig.get("today_option_rows", 0) or 0), journal_today_rows)
+    today_strike_rows = int(snaps.get("today_strike_rows", 0) or 0)
+    today_rows = max(
+        int(sig.get("today_option_rows", 0) or 0),
+        journal_today_rows,
+        today_strike_rows,
+    )
     executed_rows = int(sig.get("today_executed_option_rows", 0) or 0)
     signal_score = 0.0
     signal_score += 4.0 if sig.get("exists") else 0.0
@@ -495,6 +516,7 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
         signal_detail = (
             f"today_option_rows={today_rows}, executed={executed_rows}, "
             f"journal_rows={journal_today_rows}, chain_rows={journal_today_chain}, "
+            f"strike_rows={today_strike_rows}, "
             f"signal_log_option_rows={sig.get('signal_log_option_rows', 0)}"
         )
     if _is_market_day() and today_rows == 0:
@@ -620,7 +642,11 @@ def _score_option_bot_autonomy(audit: Dict[str, Any]) -> Dict[str, Any]:
     evidence_blocks = []
     if int(snaps.get("verified_live_rows", 0) or 0) < 20:
         evidence_blocks.append("insufficient_verified_live_snapshots")
-    if int(journal.get("verified_generated_outcomes", 0) or 0) < 100:
+    verified_generated = max(
+        int(journal.get("verified_generated_outcomes", 0) or 0),
+        int(snaps.get("verified_strike_outcomes", 0) or 0),
+    )
+    if verified_generated < 100:
         evidence_blocks.append("insufficient_verified_option_signal_outcomes")
     total = min(raw_total, 59.0) if evidence_blocks else raw_total
     grade = "A" if total >= 90 else "B" if total >= 80 else "C" if total >= 70 else "D" if total >= 60 else "F"

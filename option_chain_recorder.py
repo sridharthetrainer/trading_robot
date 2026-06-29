@@ -268,7 +268,7 @@ def _in_market_hours(now: datetime | None = None) -> bool:
 
 # Only these sources are LIVE chain data — anything else (cache aliases, unknown
 # resilience tags) must NOT be persisted as a live snapshot.
-_LIVE_SOURCES = {"nse_live", "angel", "angel_fallback", "upstox_live",
+_LIVE_SOURCES = {"nse_live", "angel", "angel_eod", "angel_fallback", "upstox_live",
                  "dhan_live", "bse_oc", "bse"}
 
 

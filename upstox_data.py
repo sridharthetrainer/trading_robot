@@ -42,12 +42,31 @@ _ISIN_CACHE: dict = {}
 # ── Interval mapping ─────────────────────────────────────────────────────
 _INTERVAL_MAP_V2 = {
     "1m":  "1minute",
-    "5m":  "30minute",   # V2 only has 1minute and 30minute
-    "15m": "30minute",
+    "5m":  "1minute",    # derive exact bars from a supported base interval
+    "15m": "1minute",
     "30m": "30minute",
+    "1h":  "30minute",
     "1d":  "day",
     "day": "day",
 }
+
+
+def _resample_v2(df: pd.DataFrame, requested: str, source_interval: str) -> Optional[pd.DataFrame]:
+    """Convert a V2 base interval to the exact requested OHLCV interval."""
+    rules = {"5m": "5min", "15m": "15min", "1h": "60min"}
+    rule = rules.get(requested)
+    if not rule or requested in {"1m", "30m", "1d", "day"}:
+        return df
+    try:
+        out = df.resample(rule, origin="start_day", offset="15min").agg({
+            "open": "first", "high": "max", "low": "min", "close": "last",
+            "volume": "sum",
+        }).dropna(subset=["open", "high", "low", "close"])
+        return out if len(out) >= 2 else None
+    except Exception:
+        logger.debug("Upstox V2 resample failed %s from %s", requested, source_interval,
+                     exc_info=True)
+        return None
 
 _INTERVAL_MAP_V3 = {
     "1m":  ("minutes", "1"),
@@ -168,6 +187,7 @@ def get_candles(
         r = requests.get(url, headers=_HEADERS, timeout=10)
         if r.status_code == 200:
             df = _parse_candles(r.json())
+            df = _resample_v2(df, interval, v2_interval) if df is not None else None
             if df is not None and len(df) >= 2:
                 logger.info("Upstox V2 ✅ %s %s: %d bars", symbol, interval, len(df))
                 return df
@@ -181,11 +201,12 @@ def get_candles(
     # V2 intraday (today only, NO auth)
     if interval in ("1m", "5m", "15m", "30m"):
         try:
-            v2_intra = "1minute" if interval == "1m" else "30minute"
+            v2_intra = _INTERVAL_MAP_V2.get(interval, "1minute")
             url = f"{_BASE_V2}/intraday/{encoded_key}/{v2_intra}"
             r = requests.get(url, headers=_HEADERS, timeout=10)
             if r.status_code == 200:
                 df = _parse_candles(r.json())
+                df = _resample_v2(df, interval, v2_intra) if df is not None else None
                 if df is not None and len(df) >= 2:
                     logger.info("Upstox intraday ✅ %s: %d bars", symbol, len(df))
                     return df

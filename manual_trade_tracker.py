@@ -297,7 +297,12 @@ class ManualTradeTracker:
         elif isinstance(response, dict):
             code = str(response.get("errorCode", "") or "").upper()
             msg = str(response.get("message", "") or "").lower()
-            if code == "AG8001" or "invalid token" in msg:
+            auth_codes = {"AG8001", "AG8003"}
+            auth_messages = (
+                "invalid token", "token missing", "session expired",
+                "token expired", "unauthorised", "unauthorized",
+            )
+            if code in auth_codes or any(text in msg for text in auth_messages):
                 reason = code or msg or "invalid_token"
             else:
                 return False
