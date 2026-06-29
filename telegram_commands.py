@@ -382,6 +382,9 @@ class TelegramCommandHandler:
         self.register("edge",        self._cmd_edge)
         self.register("worthiness",  self._cmd_edge)
         self.register("netr",        self._cmd_edge)
+        self.register("optlots",     self._cmd_optlots)
+        self.register("lots",        self._cmd_optlots)
+        self.register("setlots",     self._cmd_optlots)
         self.register("heat",        self._cmd_heat)
         self.register("symbols",     self._cmd_symbols)
         # ── Morning / Market Context ──────────────────────────────────────────
@@ -632,7 +635,8 @@ class TelegramCommandHandler:
             "🔧 <b>Control</b>\n"
             "  /pause  /resume  /kill  /mode\n"
             "  /paper  /shadow  /pause_sym\n"
-            "  /pause_strategy  /buy  /sell  /exit\n\n"
+            "  /pause_strategy  /buy  /sell  /exit\n"
+            "  /optlots 1|2|3 — option lots for today 🆕\n\n"
             "🛠️ <b>Tools</b>\n"
             "  /calculate  /alert  /alerts\n"
             "  /watch  /voice  /video\n"
@@ -2356,6 +2360,28 @@ class TelegramCommandHandler:
             return get_todays_signals()
         except Exception as e:
             return f"❌ Today's signals: {e}"
+
+    def _cmd_optlots(self, args="") -> str:
+        """Set the option lot ceiling for today (live, no restart).
+        /optlots 2 → cap at 2 lots; /optlots auto (or 0) → clear; /optlots → show."""
+        try:
+            from option_lot_override import set_lots_override, clear_lots_override, status_text
+            parts = str(args or "").strip().split()
+            arg = parts[1] if len(parts) > 1 else ""
+            if not arg:
+                return status_text() + "\n  Usage: /optlots 1|2|3  ·  /optlots auto"
+            if arg.lower() in ("auto", "off", "clear", "0"):
+                clear_lots_override()
+                return "🎚️ Option lots → <b>AUTO</b> (capital/confidence sized)"
+            if not arg.lstrip("-").isdigit():
+                return "⚠️ Usage: /optlots 1|2|3  (or /optlots auto)"
+            st = set_lots_override(int(arg))
+            if not st.get("active"):
+                return "🎚️ Option lots → <b>AUTO</b>"
+            return (f"✅ Option lots set to <b>{st['lots']}</b> for today "
+                    f"(ceiling; still bounded by capital + MAX_LOTS). Auto-resets tomorrow.")
+        except Exception as e:
+            return f"⚠️ /optlots error: {e}"
 
     def _cmd_edge(self, args="") -> str:
         """Signal worthiness: GROSS vs NET-of-cost R from triple-barrier labels.

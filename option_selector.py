@@ -95,7 +95,10 @@ class OptionSelector:
             return 0
         one_lot_cost = premium * self.lot_size
         raw_lots     = int(trade_capital // one_lot_cost)
-        return max(0, min(raw_lots, self.max_lots_per_trade))
+        lots         = max(0, min(raw_lots, self.max_lots_per_trade))
+        # Telegram-settable runtime ceiling (/optlots N) — caps lots for today.
+        from option_lot_override import apply_override
+        return apply_override(lots)
 
     # ------------------------------------------------------------------
     # ATM strike

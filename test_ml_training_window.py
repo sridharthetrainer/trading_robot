@@ -27,6 +27,9 @@ def test_post_market_ml_skips_outside_window(monkeypatch):
     monkeypatch.setenv("ML_TRAINING_WINDOW_START", "00:00")
     monkeypatch.setenv("ML_TRAINING_WINDOW_END", "00:01")
     import post_market_ml
+    # The post-market (after-15:30) guard runs before the window guard; bypass it
+    # so this test isolates the WINDOW behaviour regardless of wall-clock time.
+    monkeypatch.setattr(post_market_ml, "_is_post_market", lambda: True)
     out = post_market_ml.run_pipeline(force=False)
     assert out.get("error") == "outside_training_window"
 

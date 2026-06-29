@@ -901,7 +901,10 @@ class OptionChainEngine:
         usable_capital = trade_capital * max_alloc_pct
         cost_per_lot   = premium * lot_size
         lots           = int(usable_capital // cost_per_lot)
-        return max(0, min(lots, max_lots))
+        lots           = max(0, min(lots, max_lots))
+        # Telegram-settable runtime ceiling (/optlots N) — caps lots for today.
+        from option_lot_override import apply_override
+        return apply_override(lots)
 
     # ─────────────────────────────────────────────────────────────────────────
     # UTILITY

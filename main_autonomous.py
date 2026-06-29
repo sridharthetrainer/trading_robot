@@ -2240,13 +2240,45 @@ class AutonomousTradingSystem:
                             try: self._tg_cmd_option.register(_a, _cmd_opt_positions)
                             except Exception: pass
 
+                        def _cmd_opt_lots(args=""):
+                            """Set option lot ceiling for today (live, no restart).
+                            /optlots 2 → cap at 2 lots; /optlots auto (or 0) → clear;
+                            /optlots → show current."""
+                            try:
+                                from option_lot_override import (
+                                    set_lots_override, clear_lots_override, status_text)
+                                a = str(args or "").strip().split()
+                                arg = a[1] if len(a) > 1 else ""
+                                if not arg:
+                                    return (status_text() +
+                                            "\n  Usage: /optlots 1|2|3  ·  /optlots auto")
+                                if arg.lower() in ("auto", "off", "clear", "0"):
+                                    clear_lots_override()
+                                    return "🎚️ Option lots → <b>AUTO</b> (capital/confidence sized)"
+                                if not arg.lstrip("-").isdigit():
+                                    return "⚠️ Usage: /optlots 1|2|3  (or /optlots auto)"
+                                st = set_lots_override(int(arg))
+                                if not st.get("active"):
+                                    return "🎚️ Option lots → <b>AUTO</b>"
+                                return (f"✅ Option lots set to <b>{st['lots']}</b> for today "
+                                        f"(ceiling; still bounded by capital + MAX_LOTS).\n"
+                                        f"Auto-resets tomorrow.")
+                            except Exception as _le:
+                                return f"⚠️ /optlots error: {_le}"
+                        for _a in ("optlots", "lots", "setlots"):
+                            try: self._tg_cmd_option.register(_a, _cmd_opt_lots)
+                            except Exception: pass
+
                         def _cmd_opt_help(_=""):
                             return (
                                 "🎯 <b>OPTION BOT — COMMANDS</b>\n\n"
                                 "📊 <b>Status</b>\n"
-                                "  /status  /optpositions  /optedge\n\n"
+                                "  /status  /optpositions  /optedge  /optlots\n\n"
                                 "🎯 <b>Signals</b>\n"
                                 "  /signals\n\n"
+                                "🎚️ <b>Sizing</b>\n"
+                                "  /optlots 1|2|3  — set lots for today (live)\n"
+                                "  /optlots auto   — back to capital-sized\n\n"
                                 "📈 <b>OI / Options</b>\n"
                                 "  /oisr  /chainsignals  /strikeflow\n"
                                 "  /pcr  /oi  /oitrend  /strikes  /maxpain\n\n"
@@ -2264,6 +2296,7 @@ class AutonomousTradingSystem:
                         _OPT_ALLOWED = {
                             "help", "start", "status", "version", "health", "mode", "log", "restart",
                             "signals", "optedge", "edge", "worthiness", "optpositions", "positions",
+                            "optlots", "lots", "setlots",
                             "oisr", "chainsignals", "chains", "strikeflow", "pcr",
                             "oi", "oib", "oitrend", "strikes", "maxpain", "oichart",
                             "vix", "regime", "brief", "morning", "premarket", "fii",
