@@ -67,6 +67,7 @@ class TelegramCommandHandler:
         self._running   = False
         self._thread:   Optional[threading.Thread] = None
         self._handlers: Dict[str, Callable] = {}
+        self._command_menu = []
         self._poll_failures = 0
         self._last_poll_ok_at = 0.0
         self._last_poll_error = ""
@@ -223,12 +224,23 @@ class TelegramCommandHandler:
         self._thread.start()
         logger.info("Telegram command handler started — listening for commands")
 
+        # Keep Telegram's slash-command picker in sync with the curated handler.
+        # Without this, commands removed in code remain visible from BotFather's
+        # old menu and make the option bot look much larger than it really is.
+        if self._command_menu:
+            menu_result = self._api("setMyCommands", commands=self._command_menu)
+            if not menu_result.get("ok"):
+                logger.warning("Telegram command-menu sync failed: %s",
+                               menu_result.get("description", "unknown error"))
+
         # Step 4: Send startup confirmation to owner
         try:
+            suggestions = [f"/{item['command']}" for item in self._command_menu[:3]]
+            try_text = " ".join(suggestions) if suggestions else "/health /status /signals"
             self.send(
                 "🤖 <b>Bot command handler online</b>\n"
                 "  Listening for your commands\n"
-                "  Try: /health /status /signals"
+                f"  Try: {try_text}"
             )
         except Exception: pass
 
@@ -358,6 +370,20 @@ class TelegramCommandHandler:
         keep = {str(c).lstrip("/").lower() for c in (allowed or [])}
         self._handlers = {k: v for k, v in self._handlers.items() if k.lower() in keep}
 
+    def set_command_menu(self, commands) -> None:
+        """Define the short command picker shown by Telegram.
+
+        ``commands`` is an iterable of ``(command, description)`` pairs.  The
+        picker is synced when :meth:`start` validates the bot token.
+        """
+        menu = []
+        for command, description in commands or []:
+            name = str(command).strip().lower().lstrip("/")[:32]
+            desc = str(description).strip()[:256]
+            if name and desc and name in self._handlers:
+                menu.append({"command": name, "description": desc})
+        self._command_menu = menu[:100]
+
     def _register_defaults(self) -> None:
         # ── Core ─────────────────────────────────────────────────────────────
         self.register("help",        self._cmd_help)
@@ -387,6 +413,8 @@ class TelegramCommandHandler:
         self.register("setlots",     self._cmd_optlots)
         self.register("optdata",     self._cmd_optdata)
         self.register("ocdiag",      self._cmd_optdata)
+        self.register("optscalp",    self._cmd_optscalp)
+        self.register("scalppnl",    self._cmd_optscalp)
         self.register("heat",        self._cmd_heat)
         self.register("symbols",     self._cmd_symbols)
         # ── Morning / Market Context ──────────────────────────────────────────
@@ -2369,6 +2397,17 @@ class TelegramCommandHandler:
             return get_todays_signals()
         except Exception as e:
             return f"❌ Today's signals: {e}"
+
+    def _cmd_optscalp(self, args="") -> str:
+        """Option SCALPING P&L from labelled outcomes — per strategy + today/live.
+        /optscalp [days] (default 400)."""
+        try:
+            from option_decision_journal import option_scalp_performance, format_scalp_performance
+            parts = str(args or "").strip().split()
+            days = int(parts[1]) if len(parts) > 1 and parts[1].lstrip("-").isdigit() else 400
+            return format_scalp_performance(option_scalp_performance(days=days))
+        except Exception as e:
+            return f"⚠️ /optscalp error: {e}"
 
     def _cmd_optdata(self, args="") -> str:
         """Diagnose the option-chain data pipeline — shows each source's result so

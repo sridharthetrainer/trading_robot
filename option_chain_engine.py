@@ -193,6 +193,10 @@ class OptionContract:
     momentum_override: bool = False  # True if chain was bypassed due to momentum
     autotune:        Dict[str, Any] = field(default_factory=dict)
     shadow_candidates: List[Dict[str, Any]] = field(default_factory=list)
+    oi: float = 0.0
+    volume: float = 0.0
+    spread_pct: Optional[float] = None
+    flow_confirmation: Dict[str, Any] = field(default_factory=dict)
 
 
 class OptionChainEngine:
@@ -219,6 +223,8 @@ class OptionChainEngine:
         option_chain_signal: Optional[str] = None,   # "BUY_CALL" or "BUY_PUT" from chain
         max_lots:       int   = 10,
         force_atm:      bool  = False,
+        market_bias:    str   = "UNKNOWN",
+        market_regime:  str   = "UNKNOWN",
     ) -> Optional[OptionContract]:
         """
         Select the correct option contract for a trade.
@@ -251,6 +257,20 @@ class OptionChainEngine:
             logger.info(
                 "option_type=None | %s %s chain=%s — blocked (conflicting signals)",
                 underlying, signal_side, option_chain_signal,
+            )
+            return None
+
+        resolved_bias = self._resolve_market_bias(underlying, market_bias)
+        option_direction = "BULLISH" if option_type == "CE" else "BEARISH"
+        directional_regime = str(market_regime or "").upper() in {
+            "TREND", "WEAK_TREND", "STRONG_TREND", "BREAKOUT",
+            "BULLISH_TREND", "BEARISH_TREND",
+        }
+        explicit_bias = self._normalise_bias(market_bias) != "UNKNOWN"
+        if resolved_bias != "UNKNOWN" and option_direction != resolved_bias and (directional_regime or explicit_bias):
+            logger.info(
+                "Option blocked by regime direction | %s option=%s bias=%s regime=%s",
+                underlying, option_type, resolved_bias, market_regime,
             )
             return None
 
@@ -356,6 +376,10 @@ class OptionChainEngine:
             momentum_override= momentum_override,
             autotune         = autotune,
             shadow_candidates= shadow_candidates,
+            oi                = float(tuned.get("oi", 0) or 0),
+            volume            = float(tuned.get("volume", 0) or 0),
+            spread_pct        = tuned.get("spread_pct"),
+            flow_confirmation = tuned.get("flow_confirmation", {}),
         )
 
         logger.info(
@@ -365,6 +389,26 @@ class OptionChainEngine:
             lots, qty, capital_required, momentum_override,
         )
         return contract
+
+    @staticmethod
+    def _normalise_bias(value: Any) -> str:
+        text = str(value or "").strip().upper()
+        if text in {"BUY", "BULL", "BULLISH", "UP", "UPTREND", "BULLISH_TREND"}:
+            return "BULLISH"
+        if text in {"SELL", "BEAR", "BEARISH", "DOWN", "DOWNTREND", "BEARISH_TREND"}:
+            return "BEARISH"
+        return "UNKNOWN"
+
+    def _resolve_market_bias(self, underlying: str, explicit: str) -> str:
+        bias = self._normalise_bias(explicit)
+        if bias != "UNKNOWN":
+            return bias
+        try:
+            from market_context import get_market_context
+            value = float(get_market_context().get_prev_day_bias(underlying) or 0.0)
+            return "BULLISH" if value > 0 else "BEARISH" if value < 0 else "UNKNOWN"
+        except Exception:
+            return "UNKNOWN"
 
     # ─────────────────────────────────────────────────────────────────────────
     # CE vs PE DECISION — THE CRITICAL LOGIC
@@ -633,6 +677,12 @@ class OptionChainEngine:
     ) -> Optional[Dict[str, Any]]:
         best: Optional[Dict[str, Any]] = None
         resolved: List[Dict[str, Any]] = []
+        flow_scores: Dict[float, Dict[str, Any]] = {}
+        try:
+            from option_multistrike_signals import latest_flow_scores
+            flow_scores = latest_flow_scores(underlying, option_type, max_age_sec=600)
+        except Exception:
+            flow_scores = {}
         try:
             from option_strike_autotune import score_candidate_with_autotune
         except Exception:
@@ -646,6 +696,9 @@ class OptionChainEngine:
             symbol, premium = self._resolve_symbol(symbols)
             if not symbol or premium <= 0:
                 continue
+            flow = flow_scores.get(float(strike))
+            if flow_scores and (not flow or not bool(flow.get("tradable"))):
+                continue
             candidate = {
                 "symbol": symbol,
                 "strike": strike,
@@ -655,6 +708,9 @@ class OptionChainEngine:
                 "otm_pct": round(abs(float(strike) - float(spot)) / max(float(spot), 1.0) * 100.0, 4),
                 "quality_score": max(0.0, min(1.0, float(confidence or 0.0))),
                 "strike_type": strike_type,
+                "oi": float((flow or {}).get("oi", 0) or 0),
+                "volume": float((flow or {}).get("volume", 0) or 0),
+                "spread_pct": (flow or {}).get("spread_pct"),
             }
             if score_candidate_with_autotune:
                 try:
@@ -668,13 +724,18 @@ class OptionChainEngine:
             else:
                 auto = {"multiplier": 1.0, "reason": "autotune_unavailable"}
             multiplier = float(auto.get("multiplier", 1.0) or 1.0)
-            score = float(base_score) * multiplier
+            flow_multiplier = 1.0
+            if flow:
+                flow_multiplier = 0.75 + 0.50 * max(0.0, min(100.0, float(flow.get("score", 0) or 0))) / 100.0
+            score = float(base_score) * multiplier * flow_multiplier
             item = {
                 **candidate,
                 "premium": float(premium),
                 "base_score": round(float(base_score), 4),
                 "autotune": auto,
                 "autotune_score": round(score, 4),
+                "flow_confirmation": flow or {"available": False},
+                "flow_multiplier": round(flow_multiplier, 4),
                 "shadow": True,
             }
             resolved.append(item)

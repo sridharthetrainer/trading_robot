@@ -34,7 +34,12 @@ def test_manifest_blocks_failed_and_missing_validation():
         _write(validation, {
             "results": {
                 "trend": {"verdict": "FAIL", "dev_avg_sharpe": 0.2},
-                "breakout": {"verdict": "PASS", "dev_avg_sharpe": 1.4},
+                "breakout": {
+                    "verdict": "PASS", "dev_avg_sharpe": 1.4,
+                    "dev_avg_pnl": 1000, "min_trade_ok": True,
+                    "stability_ok": True, "deflated_sharpe": 0.97,
+                    "dev_pct_profitable": 0.75, "dev_windows": 6,
+                },
                 "orb": {"verdict": "INSUFFICIENT_DATA"},
             }
         })
@@ -63,6 +68,22 @@ def test_manifest_blocks_failed_and_missing_validation():
             output.exists(),
         ]
         assert all(checks)
+
+
+def test_pass_verdict_without_evidence_is_still_blocked():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        validation = root / "validation_results.json"
+        edge = root / "strategy_validation_report.json"
+        output = root / "live_eligibility.json"
+        _write(validation, {"results": {"breakout": {"verdict": "PASS"}}})
+        _write(edge, {"strategies": {}})
+
+        manifest = build_manifest(str(validation), str(edge), str(output))
+        status = manifest["strategies"]["breakout"]
+
+        assert status["live_ready"] is False
+        assert status["block_reason"].startswith("validation_evidence_failed:")
 
 
 def test_strategy_status_unknown_blocks():

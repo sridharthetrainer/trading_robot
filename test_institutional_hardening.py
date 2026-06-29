@@ -190,3 +190,17 @@ def test_shadow_option_execution_is_after_cost():
     assert flat["estimated_costs"] > 0
     assert flat["net_pnl"] < flat["gross_pnl"]
     assert flat["label"] == -1
+    assert flat["capital_at_risk"] > 0
+    assert flat["net_r"] < 0
+    assert flat["execution_status"] == "FILLED"
+
+
+def test_shadow_option_execution_rejects_unexecutable_spread():
+    from shadow_execution import simulate_option_round_trip
+
+    rejected = simulate_option_round_trip(
+        100, 110, qty=65, entry_spread_pct=0.25, exit_spread_pct=0.25,
+    )
+    assert rejected["execution_status"] == "REJECTED"
+    assert rejected["label"] == -2
+    assert rejected["net_pnl"] == 0

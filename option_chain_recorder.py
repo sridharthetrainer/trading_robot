@@ -20,6 +20,22 @@ logger = logging.getLogger(__name__)
 DB_PATH = "option_chain_snapshots.db"
 
 
+def _direction_context(underlying: str) -> tuple[str, str]:
+    """Return persisted broad-market regime and bias without inventing data."""
+    regime = "UNKNOWN"
+    bias = "UNKNOWN"
+    try:
+        with open("market_context.json", encoding="utf-8") as handle:
+            context = json.load(handle)
+        row = (context.get("prev_day_bias") or {}).get(str(underlying).upper(), {})
+        if row:
+            bias = "BULLISH" if bool(row.get("bullish")) else "BEARISH"
+        regime = str(context.get("regime") or context.get("market_regime") or "UNKNOWN").upper()
+    except Exception:
+        pass
+    return regime, bias
+
+
 def _conn(db_path: str = DB_PATH):
     conn = sqlite3.connect(db_path)
     conn.execute("""
@@ -196,6 +212,7 @@ def record_option_chain_snapshot(
     if ok:
         try:
             from option_multistrike_signals import persist_multistrike_signals
+            market_regime, market_bias = _direction_context(underlying)
             persist_multistrike_signals(
                 conn=conn,
                 snapshot_time=snap_time,
@@ -203,6 +220,8 @@ def record_option_chain_snapshot(
                 expiry=payload["expiry"],
                 current_rows=rows,
                 source=_src or "nse_live",
+                market_regime=market_regime,
+                market_bias=market_bias,
             )
             conn.commit()
         except Exception as exc:

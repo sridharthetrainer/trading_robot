@@ -371,6 +371,95 @@ def format_option_summary(d: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def option_scalp_performance(days: int = 400, path: Optional[str] = None) -> Dict[str, Any]:
+    """Option SCALPING P&L from labelled journal outcomes (strategy contains
+    'scalp'). Splits LIVE vs replay-research so the live picture is honest, with
+    per-strategy + today breakdowns. Best-effort; never raises."""
+    import json as _json
+    from datetime import datetime as _dt, timedelta as _td
+    out: Dict[str, Any] = {"ok": False, "days": days}
+    try:
+        jpath = ensure_option_journal(path)
+        cutoff = (_dt.now() - _td(days=int(days))).strftime("%Y-%m-%d")
+        today = _dt.now().strftime("%Y-%m-%d")
+        rows = []
+        with open(jpath) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = _json.loads(line)
+                except Exception:
+                    continue
+                if d.get("outcome_label") not in (1, 0, -1):
+                    continue
+                if "scalp" not in str(d.get("strategy", "")).lower():
+                    continue
+                if str(d.get("time", ""))[:10] < cutoff:
+                    continue
+                rows.append(d)
+    except FileNotFoundError:
+        out["error"] = "no_option_journal"
+        return out
+    except Exception as exc:
+        out["error"] = str(exc)
+        return out
+
+    if not rows:
+        out.update({"ok": True, "n": 0})
+        return out
+
+    def _agg(items):
+        n = len(items)
+        wins = sum(1 for d in items if d.get("outcome_label") == 1)
+        losses = sum(1 for d in items if d.get("outcome_label") == -1)
+        pnls = [_safe_float(d.get("pnl")) for d in items if d.get("pnl") not in (None, "")]
+        med = 0.0
+        if pnls:
+            sp = sorted(pnls); m = len(sp)
+            med = sp[m // 2] if m % 2 else (sp[m // 2 - 1] + sp[m // 2]) / 2.0
+        return {"n": n, "wins": wins, "losses": losses,
+                "win_rate": round(100.0 * wins / n, 1) if n else 0.0,
+                "total_pnl": round(sum(pnls), 1),
+                "avg_pnl": round(sum(pnls) / len(pnls), 1) if pnls else 0.0,
+                "median_pnl": round(med, 1)}
+
+    live = [d for d in rows if not _is_research_strategy(d.get("strategy"))]
+    by: Dict[str, list] = {}
+    for d in rows:
+        by.setdefault(str(d.get("strategy") or "?"), []).append(d)
+    today_rows = [d for d in rows if str(d.get("time", ""))[:10] == today]
+
+    out.update({
+        "ok": True, "n": len(rows), "all": _agg(rows), "live": _agg(live),
+        "today": _agg(today_rows),
+        "by_strategy": {k: _agg(v) for k, v in sorted(by.items(), key=lambda x: -len(x[1]))},
+    })
+    return out
+
+
+def format_scalp_performance(d: Dict[str, Any]) -> str:
+    """Render option_scalp_performance() as a Telegram P&L digest."""
+    if not d.get("ok"):
+        return f"📊 Scalp P&L unavailable ({d.get('error', '-')})"
+    if not d.get("n"):
+        return f"⚡ <b>Option Scalp P&L</b> — last {d['days']}d\n  no labelled scalp outcomes yet"
+    a, lv, td = d["all"], d["live"], d["today"]
+    flag = "✅" if a["median_pnl"] > 0 else "🔴"
+    lines = [
+        f"⚡ <b>Option Scalp P&L</b> — last {d['days']}d",
+        f"all: {a['n']} · W/L {a['wins']}/{a['losses']} · win {a['win_rate']}%",
+        f"P&L: {flag} median ₹{a['median_pnl']:+.0f} · avg ₹{a['avg_pnl']:+.0f} · total ₹{a['total_pnl']:+.0f}",
+        f"today: {td['n']} scalps · ₹{td['total_pnl']:+.0f}  |  live: {lv['n']} · ₹{lv['total_pnl']:+.0f}",
+        "<i>incl. replay-labelled; option scalping is measured net-negative</i>",
+    ]
+    lines.append("\nby strategy:")
+    for k, v in list(d.get("by_strategy", {}).items())[:6]:
+        lines.append(f"  {k[:26]}: n={v['n']} win {v['win_rate']}% ₹{v['avg_pnl']:+.0f}/trade")
+    return "\n".join(lines)
+
+
 def _alert_option_selection(payload: Dict[str, Any]) -> None:
     try:
         if not str(payload.get("decision") or "").startswith("selected"):

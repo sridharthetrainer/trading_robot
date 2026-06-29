@@ -25,6 +25,9 @@ DEFAULT_EDGE_FILE = "strategy_validation_report.json"
 PASS_VERDICTS = {"PASS", "POSITIVE"}
 BLOCK_VERDICTS = {"FAIL", "INSUFFICIENT_DATA", "NEGATIVE_EDGE"}
 DEFAULT_MAX_VALIDATION_AGE_DAYS = 14
+DEFAULT_MIN_DEFLATED_SHARPE = 0.95
+DEFAULT_MIN_PROFITABLE_WINDOWS = 0.60
+DEFAULT_MIN_VALIDATION_WINDOWS = 4
 
 
 def _load_json(path: str) -> Dict[str, Any]:
@@ -103,6 +106,9 @@ def build_manifest(
     output_file: str = DEFAULT_MANIFEST_FILE,
     extra_strategies: Optional[Iterable[str]] = None,
     max_validation_age_days: int = DEFAULT_MAX_VALIDATION_AGE_DAYS,
+    min_deflated_sharpe: float = DEFAULT_MIN_DEFLATED_SHARPE,
+    min_profitable_windows: float = DEFAULT_MIN_PROFITABLE_WINDOWS,
+    min_validation_windows: int = DEFAULT_MIN_VALIDATION_WINDOWS,
 ) -> Dict[str, Any]:
     """
     Build a per-strategy live eligibility manifest.
@@ -163,6 +169,26 @@ def build_manifest(
             live_ready = False
             reason = "stale_validation_results"
 
+        # Re-check the evidence behind a PASS. This prevents a hand-edited or
+        # legacy verdict from bypassing after-cost, stability and multiple-test
+        # safeguards.
+        if live_ready:
+            evidence_checks = {
+                "positive_after_cost_pnl": float(v.get("dev_avg_pnl", 0) or 0) > 0,
+                "minimum_trades": bool(v.get("min_trade_ok", False)),
+                "parameter_stability": bool(v.get("stability_ok", False)),
+                "deflated_sharpe": float(v.get("deflated_sharpe", 0) or 0) >= float(min_deflated_sharpe),
+                "profitable_windows": float(v.get("dev_pct_profitable", 0) or 0) >= float(min_profitable_windows),
+                "validation_windows": int(v.get("dev_windows", 0) or 0) >= int(min_validation_windows),
+            }
+            failed_checks = [key for key, ok in evidence_checks.items() if not ok]
+            if failed_checks:
+                live_ready = False
+                reason = "validation_evidence_failed:" + ",".join(failed_checks)
+        else:
+            evidence_checks = {}
+            failed_checks = []
+
         if edge in BLOCK_VERDICTS:
             live_ready = False
             reason = f"edge_{edge.lower()}"
@@ -182,6 +208,10 @@ def build_manifest(
             "deflated_sharpe": v.get("deflated_sharpe"),
             "min_trade_ok": v.get("min_trade_ok"),
             "stability_ok": v.get("stability_ok"),
+            "dev_pct_profitable": v.get("dev_pct_profitable"),
+            "dev_windows": v.get("dev_windows"),
+            "evidence_checks": evidence_checks,
+            "failed_evidence_checks": failed_checks,
         }
 
     manifest = {
@@ -190,6 +220,14 @@ def build_manifest(
         "validation_file": validation_file,
         "edge_file": edge_file,
         "max_validation_age_days": max_validation_age_days,
+        "minimum_evidence": {
+            "deflated_sharpe": float(min_deflated_sharpe),
+            "profitable_windows": float(min_profitable_windows),
+            "validation_windows": int(min_validation_windows),
+            "positive_after_cost_pnl": True,
+            "minimum_trades": True,
+            "parameter_stability": True,
+        },
         "warnings": warnings,
         "source_files": {
             "validation": validation_info,

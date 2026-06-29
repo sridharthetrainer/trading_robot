@@ -72,7 +72,40 @@ def test_directional_signal_remains_shadow_when_liquidity_is_missing():
 
     assert ce.signal == "BUY_CE"
     assert ce.tradable is False
-    assert ce.score >= 60
+    assert ce.score < 60
+
+
+def test_regime_gate_blocks_countertrend_side_and_keeps_aligned_side():
+    previous = [_row(25000, 100, 1000, 1000, pe_price=100, pe_oi=1000, pe_volume=1000)]
+    current = [_row(25000, 112, 1300, 1700, pe_price=112, pe_oi=1300, pe_volume=1700)]
+
+    signals = build_multistrike_signals(
+        underlying="NIFTY", current_rows=current, previous_rows=previous,
+        market_regime="WEAK_TREND", market_bias="BEARISH",
+    )
+    ce = next(item for item in signals if item.option_type == "CE")
+    pe = next(item for item in signals if item.option_type == "PE")
+
+    assert ce.regime_aligned is False
+    assert ce.tradable is False
+    assert "counter_regime_direction" in ce.reason
+    assert pe.regime_aligned is True
+    assert pe.tradable is True
+
+
+def test_correlated_strikes_are_deduplicated_for_execution():
+    previous = [_row(25000, 100, 1000, 1000), _row(25050, 100, 1000, 1000)]
+    current = [_row(25000, 112, 1300, 1700), _row(25050, 111, 1250, 1600)]
+
+    signals = build_multistrike_signals(
+        underlying="NIFTY", current_rows=current, previous_rows=previous,
+        market_bias="BULLISH", max_tradable_per_snapshot=2,
+    )
+    ce_rows = [row for row in signals if row.option_type == "CE"]
+
+    assert sum(row.tradable for row in ce_rows) == 1
+    assert any("correlated_strike_deduplicated" in row.reason for row in ce_rows)
+    assert len({row.score for row in ce_rows}) > 1
 
 
 def test_persisted_flow_is_available_to_strike_ranker(tmp_path):

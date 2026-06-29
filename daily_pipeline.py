@@ -114,6 +114,19 @@ def run_pipeline(
 
     steps.append(_run_step("daily_performance_report", _step_daily_report))
 
+    # Publish the dedicated option dashboard early in the 15:45 post-market
+    # run, before slower training/backfill steps.  The sender is date-deduped;
+    # post_market_ml safely retries it later if this upload fails.
+    if telegram and not dry_run:
+        def _step_option_report():
+            from option_telegram_report import send_post_market_option_report
+            result = send_post_market_option_report()
+            if not result.get("ok"):
+                raise RuntimeError(result.get("skipped") or "option report send failed")
+            logger.info("  option_report: %s", result.get("skipped") or result.get("path"))
+            return result
+        steps.append(_run_step("option_telegram_report", _step_option_report))
+
     # ── Step 4: Candle coverage plan (offline/read-only) ─────────────────────
     def _step_candle_coverage_plan():
         from candle_coverage_backfill import build_candle_coverage_plan

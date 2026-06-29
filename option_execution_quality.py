@@ -11,6 +11,7 @@ because the overall chain looks healthy.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+import os
 from typing import Any, Dict, List, Optional
 
 
@@ -28,6 +29,10 @@ class OptionExecutionQuality:
     dte: int = 0
     strike_type: str = ""
     trap_score: float = 0.0
+    requested_quantity: int = 0
+    volume_participation_pct: float = 0.0
+    estimated_round_trip_friction_pct: float = 0.0
+    estimated_fill_probability: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -97,6 +102,9 @@ def evaluate_selected_option_execution(
     spread_pct = _spread(selected)
     dte = _i(selected.get("dte"), 0)
     strike_type = str(selected.get("strike_type") or "").upper()
+    requested_quantity = _i(selected.get("quantity"), 0)
+    lot_size = max(1, _i(selected.get("lot_size"), 1))
+    requested_contracts = (requested_quantity + lot_size - 1) // lot_size if requested_quantity > 0 else 0
 
     hard: List[str] = []
     warn: List[str] = []
@@ -153,6 +161,23 @@ def evaluate_selected_option_execution(
             warn.append("option_spike_risk")
             score -= 12.0
 
+    participation_pct = 0.0
+    if requested_contracts > 0 and volume > 0:
+        participation_pct = requested_contracts / volume * 100.0
+        if participation_pct > 25.0:
+            hard.append("order_too_large_for_observed_volume")
+        elif participation_pct > 10.0:
+            warn.append("high_volume_participation")
+            score -= 10.0
+
+    assumed_slippage = max(0.0, _f(os.getenv("SHADOW_OPTION_SLIPPAGE_PCT", "0.005"), 0.005))
+    friction_pct = (spread_pct or 0.0) + 2.0 * assumed_slippage + 0.002
+    spread_component = 0.0 if spread_pct is None else max(
+        0.0, 1.0 - spread_pct / max(max_spread_pct, 1e-9)
+    )
+    liquidity_component = min(1.0, volume / max(float(requested_contracts or 1) * 3.0, 1.0))
+    fill_probability = max(0.05, min(1.0, 0.50 + 0.35 * spread_component + 0.15 * liquidity_component))
+
     score = max(0.0, min(100.0, score))
     return OptionExecutionQuality(
         ok=not hard,
@@ -167,4 +192,8 @@ def evaluate_selected_option_execution(
         dte=dte,
         strike_type=strike_type,
         trap_score=round(trap_score, 4),
+        requested_quantity=requested_quantity,
+        volume_participation_pct=round(participation_pct, 4),
+        estimated_round_trip_friction_pct=round(friction_pct, 6),
+        estimated_fill_probability=round(fill_probability, 4),
     )

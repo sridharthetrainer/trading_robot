@@ -557,6 +557,16 @@ def run_pipeline(
     # ── Step 9: Autonomous monitoring (dashboard push + chaos check) ──────────
     _autonomous_monitoring()
 
+    # Dedicated option bot gets one chart-first report per session.  This call
+    # is post-market guarded and date-deduplicated because both daily-pipeline
+    # and the standalone ML timer may execute on the same weekday.
+    try:
+        from option_telegram_report import send_post_market_option_report
+        _option_report = send_post_market_option_report()
+        logger.info("  option Telegram report: %s", _option_report)
+    except Exception as _ore:
+        logger.debug("option Telegram report failed: %s", _ore)
+
     elapsed = round(time.time() - start, 1)
     summary  = autopsy.get("__summary", {})
     result = {

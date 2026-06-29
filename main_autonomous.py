@@ -2282,38 +2282,73 @@ class AutonomousTradingSystem:
                         def _cmd_opt_help(_=""):
                             return (
                                 "🎯 <b>OPTION BOT — COMMANDS</b>\n\n"
-                                "📊 <b>Status</b>\n"
-                                "  /status  /optpositions  /optedge  /optlots\n\n"
-                                "🎯 <b>Signals</b>\n"
-                                "  /signals\n\n"
-                                "🎚️ <b>Sizing</b>\n"
-                                "  /optlots 1|2|3  — set lots for today (live)\n"
-                                "  /optlots auto   — back to capital-sized\n\n"
-                                "📈 <b>OI / Options</b>\n"
-                                "  /oisr  /chainsignals  /strikeflow\n"
-                                "  /pcr  /oi  /oitrend  /strikes  /maxpain\n\n"
-                                "🌅 <b>Market</b>\n"
-                                "  /vix  /regime  /brief  /morning  /fii\n\n"
-                                "🔧 <b>Control</b>\n"
-                                "  /pause  /resume  /kill  /restart\n\n"
-                                "ℹ️ /health  /version  /mode  /log"
+                                "📊 <b>REPORTS</b>\n"
+                                "  /report — post-market visual dashboard\n"
+                                "  /status — today's option summary\n"
+                                "  /signals — recent option selections\n"
+                                "  /positions — open option positions\n"
+                                "  /edge — labelled option performance\n\n"
+                                "📈 <b>OI &amp; MARKET</b>\n"
+                                "  /oisr — support/resistance image\n"
+                                "  /oichart — intraday OI line chart\n"
+                                "  /strikeflow — active CE/PE strikes\n"
+                                "  /pcr — put/call ratio\n\n"
+                                "🎚️ <b>CONTROL</b>\n"
+                                "  /optlots 1|2|3 — today's lot ceiling\n"
+                                "  /optlots auto — automatic sizing\n"
+                                "  /pause  /resume\n\n"
+                                "Reports are automatically posted after 3:35 PM IST."
                             )
                         try: self._tg_cmd_option.register("help", _cmd_opt_help)
+                        except Exception: pass
+
+                        def _cmd_opt_report(_=""):
+                            """Chart-first EOD dashboard; intentionally unavailable intraday."""
+                            try:
+                                from option_telegram_report import (
+                                    generate_option_report, is_post_market)
+                                if not is_post_market():
+                                    return ("🕞 The option report is published after market close "
+                                            "(3:35 PM IST).\nUse /status for live monitoring.")
+                                _rep = generate_option_report()
+                                if self._tg_cmd_option.send_photo(
+                                        _rep["path"], _rep["caption"]):
+                                    return ""
+                                return "⚠️ Report generated, but the image upload failed."
+                            except Exception as _re:
+                                return f"⚠️ /report error: {str(_re)[:100]}"
+                        try: self._tg_cmd_option.register("report", _cmd_opt_report)
                         except Exception: pass
 
                         # Curate the option channel: keep only option/index-relevant
                         # commands so it stops inheriting the full equity menu.
                         _OPT_ALLOWED = {
-                            "help", "start", "status", "version", "health", "mode", "log", "restart",
-                            "signals", "optedge", "edge", "worthiness", "optpositions", "positions",
-                            "optlots", "lots", "setlots", "optdata", "ocdiag",
-                            "oisr", "chainsignals", "chains", "strikeflow", "pcr",
-                            "oi", "oib", "oitrend", "strikes", "maxpain", "oichart",
-                            "vix", "regime", "brief", "morning", "premarket", "fii",
-                            "pause", "resume", "kill",
+                            "help", "start", "status", "report", "signals",
+                            "optedge", "edge", "optpositions", "positions",
+                            "optlots", "oisr", "oichart", "strikeflow", "pcr",
+                            "pause", "resume",
                         }
                         try: self._tg_cmd_option.restrict_to(_OPT_ALLOWED)
                         except Exception: pass
+
+                        try:
+                            self._tg_cmd_option.set_command_menu([
+                                ("report", "Post-market visual dashboard"),
+                                ("status", "Today's option bot summary"),
+                                ("signals", "Recent option selections"),
+                                ("positions", "Open option positions"),
+                                ("edge", "Labelled option performance"),
+                                ("oisr", "OI support/resistance image"),
+                                ("oichart", "Intraday OI line chart"),
+                                ("strikeflow", "Active CE and PE strikes"),
+                                ("pcr", "Put/call ratio"),
+                                ("optlots", "Set today's option lot ceiling"),
+                                ("pause", "Pause new entries"),
+                                ("resume", "Resume new entries"),
+                                ("help", "Grouped option commands"),
+                            ])
+                        except Exception:
+                            pass
 
                         self._tg_cmd_option.start()
                         logger.info("Option Telegram command handler started (curated %d cmds)",

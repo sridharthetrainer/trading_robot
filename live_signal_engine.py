@@ -3911,6 +3911,13 @@ class LiveSignalEngine:
                         trade_capital       = trade_capital,
                         df                  = df,
                         option_chain_signal = _chain_sig,
+                        market_bias         = str(
+                            signal.get("htf_bias")
+                            or signal.get("market_bias")
+                            or signal.get("structure_direction")
+                            or "UNKNOWN"
+                        ),
+                        market_regime       = str(signal.get("regime") or "UNKNOWN"),
                         max_lots            = (
                             int(getattr(cfg, "PIVOT_SCALPING_MAX_LOTS", 2))
                             if str(signal.get("strategy", "")).lower() in {"pivot_scalping", "pivot_cpr_scalping", "cpr_pivot_scalping"}
@@ -4039,10 +4046,13 @@ class LiveSignalEngine:
                 "spot": round(float(getattr(contract, "spot_price", entry_price) or 0.0), 2) if contract else round(float(entry_price or 0.0), 2),
                 "dte": dte,
                 "lot_size": lot_size_opt,
-                "quantity": qty,
+                "quantity": requested_quantity,
                 "autotune": contract.autotune if contract else {},
                 "oi": getattr(contract, "oi", 0) if contract else 0,
                 "volume": getattr(contract, "volume", 0) if contract else 0,
+                "spread_pct": getattr(contract, "spread_pct", None) if contract else None,
+                "flow_confirmation": getattr(contract, "flow_confirmation", {}) if contract else {},
+                "capital_at_risk": round(float(option_entry) * int(requested_quantity), 2),
             }
             strike_ladder = contract.shadow_candidates if contract and isinstance(contract.shadow_candidates, list) else []
             self._record_option_decision_safe(

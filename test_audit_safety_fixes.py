@@ -11,13 +11,16 @@ def test_candle_cache_rejects_zero_ohlc(tmp_path, monkeypatch):
     monkeypatch.setattr(candle_cache, "_DB_PATH", db_path)
     monkeypatch.setattr(candle_cache, "_INIT_DONE", False)
 
+    # Use RECENT timestamps (relative to now) so the days=10 lookback always
+    # includes them — hardcoded dates make this test go stale as wall-clock passes.
+    _base = pd.Timestamp.now().normalize() + pd.Timedelta(hours=9, minutes=15)
     df = pd.DataFrame(
         [
             {"open": 0, "high": 0, "low": 0, "close": 0, "volume": 100},
             {"open": 100, "high": 103, "low": 99, "close": 102, "volume": 200},
             {"open": 102, "high": 104, "low": 101, "close": 103, "volume": 250},
         ],
-        index=pd.to_datetime(["2026-06-20 09:15", "2026-06-20 09:20", "2026-06-20 09:25"]),
+        index=[_base, _base + pd.Timedelta(minutes=5), _base + pd.Timedelta(minutes=10)],
     )
 
     assert candle_cache.save_candles("NIFTY", "5m", df) == 2

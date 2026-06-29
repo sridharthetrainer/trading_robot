@@ -6,7 +6,7 @@ import json
 import math
 import sqlite3
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -35,6 +35,10 @@ class StrikeFlowSignal:
     spread_pct: Optional[float]
     reason: str
     source: str = ""
+    market_regime: str = "UNKNOWN"
+    market_bias: str = "UNKNOWN"
+    regime_aligned: Optional[bool] = None
+    score_rank: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -75,6 +79,15 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
         "estimated_costs": "REAL DEFAULT 0",
         "net_pnl": "REAL DEFAULT 0",
         "labelled_at": "TEXT DEFAULT ''",
+        "market_regime": "TEXT DEFAULT 'UNKNOWN'",
+        "market_bias": "TEXT DEFAULT 'UNKNOWN'",
+        "regime_aligned": "INTEGER DEFAULT -1",
+        "score_rank": "INTEGER DEFAULT 0",
+        "execution_status": "TEXT DEFAULT ''",
+        "fill_latency_sec": "REAL DEFAULT 0",
+        "fill_probability": "REAL DEFAULT 0",
+        "capital_at_risk": "REAL DEFAULT 0",
+        "net_r": "REAL DEFAULT 0",
     }
     for name, declaration in migrations.items():
         if name not in columns:
@@ -141,6 +154,50 @@ def _classify(price_change_pct: float, oi_change_pct: float) -> tuple[str, str]:
     return "NEUTRAL", "WATCH"
 
 
+def _normalise_bias(value: Any) -> str:
+    text = str(value or "").strip().upper()
+    if text in {"BUY", "BULL", "BULLISH", "UP", "UPTREND", "BULLISH_TREND"}:
+        return "BULLISH"
+    if text in {"SELL", "BEAR", "BEARISH", "DOWN", "DOWNTREND", "BEARISH_TREND"}:
+        return "BEARISH"
+    return "UNKNOWN"
+
+
+def _calibrated_score(
+    *,
+    price_change_pct: float,
+    oi_change_pct: float,
+    volume_change_pct: float,
+    oi: float,
+    volume: float,
+    spread_pct: Optional[float],
+    min_oi: float,
+    min_volume: float,
+    max_spread_pct: float,
+    flow: str,
+    regime_aligned: Optional[bool],
+) -> float:
+    """Continuous 0-100 score that does not saturate on ordinary moves."""
+    momentum = 28.0 * math.tanh(abs(price_change_pct) / 12.0)
+    oi_strength = 18.0 * math.tanh(abs(oi_change_pct) / 25.0)
+    volume_strength = 10.0 * math.tanh(max(0.0, volume_change_pct) / 60.0)
+    oi_quality = 8.0 * min(1.0, math.log1p(max(0.0, oi) / max(min_oi, 1.0)) / math.log(4.0))
+    volume_quality = 8.0 * min(1.0, math.log1p(max(0.0, volume) / max(min_volume, 1.0)) / math.log(4.0))
+    if spread_pct is None or max_spread_pct <= 0:
+        spread_quality = 0.0
+    else:
+        spread_quality = 12.0 * max(0.0, 1.0 - float(spread_pct) / max_spread_pct)
+    flow_quality = {
+        "SHORT_COVERING": 12.0,
+        "LONG_BUILDUP": 10.0,
+        "SHORT_BUILDUP": 4.0,
+        "LONG_UNWINDING": 2.0,
+    }.get(flow, 0.0)
+    alignment = 4.0 if regime_aligned is True else -28.0 if regime_aligned is False else 0.0
+    return max(0.0, min(100.0, momentum + oi_strength + volume_strength + oi_quality
+                        + volume_quality + spread_quality + flow_quality + alignment))
+
+
 def build_multistrike_signals(
     *,
     underlying: str,
@@ -152,11 +209,15 @@ def build_multistrike_signals(
     max_spread_pct: float = 0.03,
     min_score: float = 60.0,
     top_n_per_side: int = 5,
+    market_regime: str = "UNKNOWN",
+    market_bias: str = "UNKNOWN",
+    max_tradable_per_snapshot: int = 2,
 ) -> List[StrikeFlowSignal]:
     previous_rows = previous_rows or []
     current_data = {"chain": current_rows, "source": source}
     previous_data = {"chain": previous_rows}
     ranked: List[StrikeFlowSignal] = []
+    normalised_bias = _normalise_bias(market_bias)
     for strike in _strikes(current_rows):
         for option_type in ("CE", "PE"):
             current = extract_contract_liquidity(
@@ -174,19 +235,22 @@ def build_multistrike_signals(
             volume_change = _pct(volume, _f(previous.get("volume")))
             flow, action = _classify(price_change, oi_change)
             direction = "BULLISH" if option_type == "CE" else "BEARISH"
+            regime_aligned = None if normalised_bias == "UNKNOWN" else direction == normalised_bias
 
             liquidity_ok = oi >= min_oi and volume >= min_volume
             spread_ok = spread is not None and 0 <= float(spread) <= max_spread_pct
             history_ok = bool(previous_rows and _f(previous.get("last_price")) > 0)
-            momentum = min(35.0, abs(price_change) * 4.0)
-            oi_strength = min(35.0, abs(oi_change) * 2.0)
-            volume_strength = min(15.0, max(0.0, volume_change) * 0.3)
-            liquidity_score = 7.5 if liquidity_ok else 0.0
-            spread_score = 7.5 if spread_ok else 0.0
-            score = min(100.0, momentum + oi_strength + volume_strength + liquidity_score + spread_score)
+            score = _calibrated_score(
+                price_change_pct=price_change, oi_change_pct=oi_change,
+                volume_change_pct=volume_change, oi=oi, volume=volume,
+                spread_pct=None if spread is None else float(spread),
+                min_oi=min_oi, min_volume=min_volume, max_spread_pct=max_spread_pct,
+                flow=flow, regime_aligned=regime_aligned,
+            )
             tradable = bool(
                 history_ok and liquidity_ok and spread_ok
                 and action == "BUY" and score >= min_score
+                and regime_aligned is not False
             )
             reason_parts = [flow.lower()]
             if not history_ok:
@@ -197,6 +261,10 @@ def build_multistrike_signals(
                 reason_parts.append("spread_missing_or_wide")
             if action != "BUY":
                 reason_parts.append("flow_not_buyable")
+            if regime_aligned is False:
+                reason_parts.append("counter_regime_direction")
+            elif regime_aligned is True:
+                reason_parts.append("regime_aligned")
             if score < min_score:
                 reason_parts.append("score_below_minimum")
             signal = f"BUY_{option_type}" if action == "BUY" else "WATCH"
@@ -209,6 +277,8 @@ def build_multistrike_signals(
                 volume=round(volume, 4), volume_change_pct=round(volume_change, 4),
                 spread_pct=None if spread is None else round(float(spread), 6),
                 reason=",".join(reason_parts), source=str(source or ""),
+                market_regime=str(market_regime or "UNKNOWN").upper(),
+                market_bias=normalised_bias, regime_aligned=regime_aligned,
             ))
 
     output: List[StrikeFlowSignal] = []
@@ -217,7 +287,23 @@ def build_multistrike_signals(
         side_rows = [row for row in ranked if row.option_type == option_type]
         side_rows.sort(key=lambda row: (row.tradable, row.score), reverse=True)
         output.extend(side_rows[:limit])
-    return output
+
+    # Keep all research candidates, but permit at most one live candidate for a
+    # correlated (direction, flow) cluster and cap the whole snapshot.
+    tradable_seen = set()
+    tradable_count = 0
+    final: List[StrikeFlowSignal] = []
+    for rank, row in enumerate(sorted(output, key=lambda item: item.score, reverse=True), start=1):
+        cluster = (row.direction, row.flow)
+        allow = row.tradable and cluster not in tradable_seen and tradable_count < max(1, int(max_tradable_per_snapshot))
+        reason = row.reason
+        if row.tradable and not allow:
+            reason = f"{reason},correlated_strike_deduplicated"
+        if allow:
+            tradable_seen.add(cluster)
+            tradable_count += 1
+        final.append(replace(row, tradable=allow, reason=reason, score_rank=rank))
+    return sorted(final, key=lambda item: (item.option_type, item.score_rank))
 
 
 def persist_multistrike_signals(
@@ -229,6 +315,8 @@ def persist_multistrike_signals(
     current_rows: List[Dict[str, Any]],
     source: str,
     top_n_per_side: int = 5,
+    market_regime: str = "UNKNOWN",
+    market_bias: str = "UNKNOWN",
 ) -> Dict[str, Any]:
     ensure_multistrike_schema(conn)
     previous = conn.execute(
@@ -249,6 +337,8 @@ def persist_multistrike_signals(
         previous_rows=previous_rows,
         source=source,
         top_n_per_side=top_n_per_side,
+        market_regime=market_regime,
+        market_bias=market_bias,
     )
     snapshot_ts = _snapshot_epoch(snapshot_time)
     for item in signals:
@@ -258,8 +348,9 @@ def persist_multistrike_signals(
             INSERT OR REPLACE INTO option_strike_signals
             (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,
              direction,score,tradable,price,price_change_pct,oi,oi_change_pct,
-             volume,volume_change_pct,spread_pct,reason,source)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             volume,volume_change_pct,spread_pct,reason,source,market_regime,
+             market_bias,regime_aligned,score_rank)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 snapshot_ts, snapshot_time, underlying, expiry, row["strike"], row["option_type"],
@@ -267,6 +358,9 @@ def persist_multistrike_signals(
                 1 if row["tradable"] else 0, row["price"], row["price_change_pct"],
                 row["oi"], row["oi_change_pct"], row["volume"],
                 row["volume_change_pct"], row["spread_pct"], row["reason"], source,
+                row["market_regime"], row["market_bias"],
+                -1 if row["regime_aligned"] is None else int(row["regime_aligned"]),
+                row["score_rank"],
             ),
         )
     return {
@@ -301,7 +395,7 @@ def label_multistrike_outcomes(
         for row in pending:
             future = conn.execute(
                 """
-                SELECT price,ts FROM option_strike_signals
+                SELECT price,ts,spread_pct,volume FROM option_strike_signals
                  WHERE upper(underlying)=upper(?) AND expiry=? AND strike=?
                    AND upper(option_type)=upper(?) AND price>0
                    AND ts>=? AND ts<=?
@@ -316,18 +410,25 @@ def label_multistrike_outcomes(
             if not future:
                 skipped += 1
                 continue
-            execution = simulate_option_round_trip(row["price"], future["price"], side="BUY")
+            execution = simulate_option_round_trip(
+                row["price"], future["price"], side="BUY",
+                entry_spread_pct=row["spread_pct"], exit_spread_pct=future["spread_pct"],
+                observed_volume=row["volume"],
+            )
             conn.execute(
                 """
                 UPDATE option_strike_signals
                    SET outcome_label=?,exit_price=?,gross_pnl=?,estimated_costs=?,
-                       net_pnl=?,labelled_at=?
+                       net_pnl=?,labelled_at=?,execution_status=?,fill_latency_sec=?,
+                       fill_probability=?,capital_at_risk=?,net_r=?
                  WHERE rowid=?
                 """,
                 (
                     execution["label"], execution["fill_exit_price"], execution["gross_pnl"],
                     execution["estimated_costs"], execution["net_pnl"],
-                    time.strftime("%Y-%m-%dT%H:%M:%S%z"), row["rowid"],
+                    time.strftime("%Y-%m-%dT%H:%M:%S%z"), execution["execution_status"],
+                    execution["fill_latency_sec"], execution["fill_probability"],
+                    execution["capital_at_risk"], execution["net_r"], row["rowid"],
                 ),
             )
             labelled += 1
@@ -347,7 +448,8 @@ def build_multistrike_edge_model(
     *,
     db_path: str = "option_chain_snapshots.db",
     output_file: str = EDGE_MODEL_FILE,
-    min_samples: int = 30,
+    min_samples: int = 100,
+    min_days: int = 15,
 ) -> Dict[str, Any]:
     """Learn bounded strike-flow weights from verified generated outcomes."""
     live_sources = ("nse_live", "resilience_nse", "angel", "angel_eod", "angel_fallback", "sensibull", "bse", "bse_oc")
@@ -356,43 +458,60 @@ def build_multistrike_edge_model(
         ensure_multistrike_schema(conn)
         placeholders = ",".join("?" for _ in live_sources)
         rows = conn.execute(
-            f"SELECT option_type,flow,score,outcome_label,net_pnl FROM option_strike_signals "
+            f"SELECT underlying,option_type,flow,score,outcome_label,net_pnl,net_r,substr(snapshot_time,1,10) "
+            f"FROM option_strike_signals "
             f"WHERE outcome_label IN (-1,0,1) AND lower(COALESCE(source,'')) IN ({placeholders})",
             live_sources,
         ).fetchall()
-    for option_type, flow, score, label, net_pnl in rows:
+    for underlying, option_type, flow, score, label, net_pnl, net_r, signal_day in rows:
         bucket = "high" if float(score or 0) >= 75 else "mid" if float(score or 0) >= 60 else "low"
-        key = f"{str(option_type).upper()}:{str(flow).upper()}:{bucket}"
-        stat = groups.setdefault(key, {"samples": 0, "wins": 0, "net_pnl": 0.0, "abs_pnl": 0.0})
+        key = f"{str(underlying).upper()}:{str(option_type).upper()}:{str(flow).upper()}:{bucket}"
+        stat = groups.setdefault(key, {"samples": 0, "wins": 0, "net_pnl": 0.0,
+                                       "net_r": 0.0, "abs_r": 0.0, "days": set()})
         stat["samples"] += 1
         stat["wins"] += 1 if int(label) > 0 else 0
         stat["net_pnl"] += float(net_pnl or 0)
-        stat["abs_pnl"] += abs(float(net_pnl or 0))
+        stat["net_r"] += float(net_r or 0)
+        stat["abs_r"] += abs(float(net_r or 0))
+        if signal_day:
+            stat["days"].add(str(signal_day))
     weights = {}
     for key, stat in groups.items():
         n = int(stat["samples"])
-        if n < max(1, int(min_samples)):
+        day_count = len(stat["days"])
+        if n < max(1, int(min_samples)) or day_count < max(1, int(min_days)):
             weights[key] = 1.0
             continue
         win_rate = stat["wins"] / n
-        expectancy = stat["net_pnl"] / max(stat["abs_pnl"], 1.0)
+        expectancy = stat["net_r"] / max(stat["abs_r"], 1e-9)
         confidence = min(1.0, n / max(2 * min_samples, 1))
         weights[key] = round(max(0.75, min(1.25, 1 + confidence * (0.25 * (win_rate - 0.5) * 2 + 0.15 * math.tanh(expectancy)))), 4)
+    serializable_groups = {
+        key: {**stat, "days": len(stat["days"])} for key, stat in groups.items()
+    }
     payload = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "verified_outcomes": len(rows), "min_samples": int(min_samples),
-        "weights": weights, "groups": groups,
+        "min_days": int(min_days), "weights": weights, "groups": serializable_groups,
     }
     with open(output_file, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
     return payload
 
 
-def _learned_flow_multiplier(option_type: str, flow: str, score: float) -> float:
+def _learned_flow_multiplier(underlying: str, option_type: str, flow: str, score: float) -> float:
     try:
         payload = json.loads(open(EDGE_MODEL_FILE, encoding="utf-8").read())
+        # Never consume a legacy/single-session weight file. Such a model is a
+        # description of yesterday, not evidence of repeatable edge.
+        if int(payload.get("min_samples", 0) or 0) < 100 or int(payload.get("min_days", 0) or 0) < 15:
+            return 1.0
         bucket = "high" if score >= 75 else "mid" if score >= 60 else "low"
-        return float((payload.get("weights") or {}).get(f"{option_type.upper()}:{flow.upper()}:{bucket}", 1.0))
+        key = f"{underlying.upper()}:{option_type.upper()}:{flow.upper()}:{bucket}"
+        group = (payload.get("groups") or {}).get(key, {})
+        if int(group.get("samples", 0) or 0) < 100 or int(group.get("days", 0) or 0) < 15:
+            return 1.0
+        return float((payload.get("weights") or {}).get(key, 1.0))
     except Exception:
         return 1.0
 
@@ -409,7 +528,7 @@ def latest_flow_scores(
             ensure_multistrike_schema(conn)
             rows = conn.execute(
                 """
-                SELECT strike,score,tradable,flow,signal,ts,reason
+                SELECT strike,score,tradable,flow,signal,ts,reason,oi,volume,spread_pct,price
                   FROM option_strike_signals
                  WHERE upper(underlying)=upper(?) AND upper(option_type)=upper(?)
                    AND ts >= ?
@@ -420,17 +539,20 @@ def latest_flow_scores(
     except Exception:
         return {}
     output: Dict[float, Dict[str, Any]] = {}
-    for strike, score, tradable, flow, signal, ts, reason in rows:
+    for strike, score, tradable, flow, signal, ts, reason, oi, volume, spread_pct, price in rows:
         key = float(strike)
         if key not in output:
             raw_score = float(score or 0)
-            multiplier = _learned_flow_multiplier(option_type, str(flow or ""), raw_score)
+            multiplier = _learned_flow_multiplier(underlying, option_type, str(flow or ""), raw_score)
             output[key] = {
                 "score": round(max(0.0, min(100.0, raw_score * multiplier)), 4),
                 "raw_score": raw_score, "learned_multiplier": multiplier,
                 "tradable": bool(tradable),
                 "flow": flow, "signal": signal, "ts": float(ts or 0),
                 "reason": reason,
+                "oi": float(oi or 0), "volume": float(volume or 0),
+                "spread_pct": None if spread_pct is None else float(spread_pct),
+                "observed_price": float(price or 0),
             }
     return output
 
