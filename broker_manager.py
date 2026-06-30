@@ -383,8 +383,8 @@ class BrokerManager:
             self._mark_failure(broker, str(exc))
             try:
                 record_order_result(symbol=symbol, order_id=None, broker=self._broker_name(broker), error=str(exc))
-            except Exception:
-                pass
+            except Exception as _rr_exc:
+                logger.debug("record_order_result (failure path) failed: %s", _rr_exc)
             logger.error("Order failed on %s: %s", self._broker_name(broker), exc)
             return None, None
 

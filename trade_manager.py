@@ -1493,8 +1493,9 @@ class TradeManager:
                     "trade_manager_cost_gate_block", symbol=symbol,
                     strategy=strategy, **economics,
                 )
-            except Exception:
-                pass
+            except Exception as _ae_exc:
+                logger.debug("assurance event (cost-gate block) failed: %s",
+                             _ae_exc, exc_info=True)
             return None
 
         # ── PAPER-FIRST MODE ─────────────────────────────────────────────
