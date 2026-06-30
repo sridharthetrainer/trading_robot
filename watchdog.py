@@ -156,7 +156,13 @@ COOLDOWN = {
     "burst":       3600,    # 1 hr between burst-limit alerts
     "memory":       600,    # 10 min between memory alerts
     "duplicate":    300,    # 5 min between duplicate-instance alerts
+    "scan_stall":  1800,    # 30 min between scan-stall auto-repair restarts
 }
+
+# Scan-stall auto-repair: if the bot is ALIVE (fresh heartbeat) but hasn't run a
+# scan for this long during market hours, the scan loop is stuck — restart to
+# recover. Env-tunable; 0 disables. (Scans normally run every ~5 min in-hours.)
+SCAN_STALL_MAX_SEC = int(_os_wd.getenv("WATCHDOG_SCAN_STALL_MAX_SEC", "1500"))
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID",   "")
@@ -730,6 +736,48 @@ def run() -> None:
                                 f"NOT killing — {positions} open positions\n"
                                 f"Will restart after positions close"
                             )
+
+            # ── 2b. SCAN-STALL AUTO-REPAIR ────────────────────────────────────
+            # Bot is ALIVE (fresh heartbeat) but hasn't scanned during market
+            # hours → scan loop stuck (the 'alive but not scanning' gap the stale/
+            # memory triggers miss, e.g. the 12-min-only day). Auto-restart to
+            # recover — graceful, no manual action needed. Guards: market hours,
+            # bot genuinely alive, NO open positions (don't disrupt live trades),
+            # and a cooldown so it can't restart-loop.
+            if SCAN_STALL_MAX_SEC > 0 and phase == "LIVE" and 0 <= age < 300:
+                try:
+                    from runtime_telemetry import seconds_since_last_scan
+                    scan_age = seconds_since_last_scan()
+                except Exception:
+                    scan_age = 0.0
+                # Require a FINITE stale age (scans WERE happening, then stopped).
+                # inf = no scans recorded yet (cold start / first scan pending) →
+                # don't restart, or it would loop before the first scan completes.
+                if (scan_age != float("inf") and scan_age > SCAN_STALL_MAX_SEC
+                        and (t - ts.get("scan_stall", 0)) > COOLDOWN["scan_stall"]):
+                    positions = open_positions()
+                    if positions == 0:
+                        ts["scan_stall"] = t
+                        logger.warning(
+                            "SCAN-STALL: alive but no scan for %.0fs during LIVE — auto-repair restart",
+                            scan_age,
+                        )
+                        _tg(
+                            f"🔧 <b>WATCHDOG: scan-stall auto-repair</b>\n"
+                            f"Bot alive but no scan for {scan_age/60:.0f} min in market hours.\n"
+                            f"Restarting to recover the scan loop (no open positions)."
+                        )
+                        try:
+                            _persist_crash("scan_stall", pid, scan_age=scan_age, phase=phase)
+                        except Exception:
+                            pass
+                        restart_svc()
+                    elif (t - ts.get("stale_warn", 0)) > COOLDOWN["stale_warn"]:
+                        ts["stale_warn"] = t
+                        _tg(
+                            f"⚠️ <b>WATCHDOG: scan-stall, {positions} open position(s)</b>\n"
+                            f"No scan for {scan_age/60:.0f} min — NOT restarting (protecting trades)."
+                        )
 
             # ── 3. SYSTEMD BURST LIMIT ────────────────────────────────────────
             if now.minute % 5 == 0 and now.second < CHECK_INTERVAL:

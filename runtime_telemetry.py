@@ -188,6 +188,22 @@ def finish_scan(cycle_id: int, *, signals: int, qualified: int, rejected: int,
                   duration_ms=round(duration_ms,1))
 
 
+def seconds_since_last_scan() -> float:
+    """Seconds since the most recent scan cycle BEGAN. inf if none/unavailable.
+
+    Lets the watchdog auto-repair an 'alive but not scanning' bot (fresh heartbeat
+    yet no scans during market hours — the gap the stale/memory triggers miss)."""
+    try:
+        con = _connect()
+        row = con.execute("SELECT MAX(started_at) FROM scan_cycles").fetchone()
+        con.close()
+        if row and row[0]:
+            return max(0.0, time.time() - float(row[0]))
+    except Exception:
+        pass
+    return float("inf")
+
+
 def record_api_failure(provider: str, endpoint: str, error: Any,
                        status_code: int = 0, attempt: int = 0, **details: Any) -> None:
     try:
