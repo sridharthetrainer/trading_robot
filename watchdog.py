@@ -61,6 +61,28 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger("watchdog")
+_LAST_CRASH_ID = 0
+
+
+def _persist_crash(reason: str, pid: int = 0, **details) -> int:
+    global _LAST_CRASH_ID
+    try:
+        from runtime_telemetry import record_crash
+        _LAST_CRASH_ID = record_crash("trading_bot", reason, pid=pid,
+                                      recovery_action="auto_restart", **details)
+    except Exception as exc:
+        logger.debug("crash persistence failed: %s", exc)
+    return _LAST_CRASH_ID
+
+
+def _persist_recovery(method: str, pid: int) -> None:
+    global _LAST_CRASH_ID
+    try:
+        from runtime_telemetry import mark_recovered, heartbeat
+        if _LAST_CRASH_ID: mark_recovered(_LAST_CRASH_ID)
+        heartbeat("system", recovery_method=method, pid=pid)
+    except Exception: pass
+    _tg(f"✅ <b>WATCHDOG RECOVERY COMPLETE</b>\nMethod: {method}\nPID: {pid}")
 
 
 def _disarm_live_on_kill() -> None:
@@ -89,6 +111,10 @@ BOT_SERVICE      = "trading-bot"
 CHECK_INTERVAL   = 30       # seconds between watchdog checks
 BOT_DIR          = Path(__file__).resolve().parent
 BOT_SCRIPT       = (BOT_DIR / "main_autonomous.py").resolve()
+RECOVERABLE_SERVICES = tuple(x.strip() for x in os.getenv(
+    "WATCHDOG_RECOVER_SERVICES",
+    "trading-bot,manual-tracker,trade_guardian"
+).split(",") if x.strip())
 
 # ── Phase thresholds (seconds before considering action) ───────────────────────
 THRESHOLDS = {
@@ -362,6 +388,22 @@ def svc_failed() -> bool:
         return False
 
 
+def recover_failed_services() -> list[str]:
+    recovered=[]
+    for service in RECOVERABLE_SERVICES:
+        try:
+            failed=subprocess.run(["systemctl","is-failed","--quiet",service],timeout=5).returncode==0
+            if not failed: continue
+            _persist_crash("service_failed",0,service=service)
+            subprocess.run(["sudo","-n","systemctl","reset-failed",service],timeout=8,capture_output=True)
+            result=subprocess.run(["sudo","-n","systemctl","restart",service],timeout=15,capture_output=True)
+            if result.returncode==0: recovered.append(service)
+        except Exception as exc: logger.debug("service recovery %s: %s",service,exc)
+    if recovered:
+        _tg("✅ <b>Services recovered</b>\n"+", ".join(recovered))
+    return recovered
+
+
 def restart_svc() -> None:
     """
     Restart the bot. Tries multiple methods so it works whether or not
@@ -390,6 +432,7 @@ def restart_svc() -> None:
         )
         if r2.returncode == 0:
             logger.info("Restarted via sudo systemctl")
+            _persist_recovery("systemd", bot_pid())
             return
     except Exception as e:
         logger.debug("sudo systemctl restart failed: %s", e)
@@ -404,6 +447,7 @@ def restart_svc() -> None:
             new_pid = bot_pid()
             if new_pid and new_pid != old_pid:
                 logger.info("systemd auto-restarted bot (new pid %d)", new_pid)
+                _persist_recovery("systemd-auto", new_pid)
                 return
     except Exception as e:
         logger.debug("SIGKILL+systemd method failed: %s", e)
@@ -429,6 +473,7 @@ def restart_svc() -> None:
         logger.warning("nohup launched bot pid=%d (NOT systemd-tracked)", proc.pid)
         time.sleep(10)
         if bot_pid():
+            _persist_recovery("nohup", bot_pid())
             _tg(
                 "🐕 <b>WATCHDOG: Bot revived via nohup</b>\n"
                 f"PID: {bot_pid()}\n"
@@ -628,6 +673,10 @@ def run() -> None:
                                     f"systemd will restart in ~30s"
                                 )
                                 try:
+                                    _persist_crash("stale_heartbeat_cpu_idle", pid,
+                                                   heartbeat_age=age, phase=phase,
+                                                   last_scanned_symbol=(read_status().get("last_scanned_symbol") or ""),
+                                                   last_executed_strategy=(read_status().get("last_strategy") or ""))
                                     os.kill(pid, signal.SIGKILL)
                                     logger.info("SIGKILL sent to PID=%d", pid)
                                 except ProcessLookupError:
@@ -645,6 +694,7 @@ def run() -> None:
                                 f"No process found. Triggering restart..."
                             )
                         if (t - ts["restart"]) > COOLDOWN["restart"]:
+                            _persist_crash("process_missing", 0, phase=phase)
                             restart_svc()
                             ts["restart"] = t
                             stale_count = 0
@@ -668,6 +718,7 @@ def run() -> None:
                                 f"Restarting..."
                             )
                             try:
+                                _persist_crash("memory_limit", pid, memory_mb=mb, phase=phase)
                                 os.kill(pid, signal.SIGKILL)
                             except Exception:
                                 pass
@@ -681,6 +732,8 @@ def run() -> None:
                             )
 
             # ── 3. SYSTEMD BURST LIMIT ────────────────────────────────────────
+            if now.minute % 5 == 0 and now.second < CHECK_INTERVAL:
+                recover_failed_services()
             if svc_failed() and (t - ts["burst"]) > COOLDOWN["burst"]:
                 ts["burst"] = t
                 logger.critical("systemd: bot in FAILED state (burst limit hit)")

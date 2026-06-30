@@ -1127,6 +1127,16 @@ class AutonomousTradingSystem:
         self._write_health_snapshot()
         self._write_live_status()    # real-time monitoring file
         self._save_runtime_state()
+        try:
+            from runtime_telemetry import heartbeat
+            heartbeat("system", phase=phase,
+                      last_executed_strategy=self.runtime_state.current_strategy or "")
+            heartbeat("strategy_engine", phase=phase)
+            heartbeat("data_feed", phase=phase)
+            heartbeat("trade_manager", open_trades=self.runtime_state.open_trade_count)
+            heartbeat("dashboard_updater", phase=phase)
+        except Exception:
+            pass
 
     def _start_watchdog_heartbeat(self) -> None:
         """Keep watchdog live_status fresh even while long jobs block the loop."""
@@ -2084,6 +2094,23 @@ class AutonomousTradingSystem:
                     chat_id   = _tg_chat_id,
                     bot_ref   = self,
                 )
+                self._tg_cmd.set_command_menu([
+                    ("menu", "Open interactive navigation"),
+                    ("dashboard", "Live executive dashboard"),
+                    ("status", "Bot, scanner and position status"),
+                    ("signals", "Recent qualified signals"),
+                    ("positions", "Open positions"),
+                    ("pnl", "Gross, charges and net P&L"),
+                    ("direction", "Combined index trade direction"),
+                    ("nexttrade", "Best qualified index candidate"),
+                    ("optionhealth", "Option-chain diagnostics"),
+                    ("optionedge", "Cumulative option evidence"),
+                    ("scanner", "Persisted scanner diagnostics"),
+                    ("performance", "Strategy leaderboard"),
+                    ("journal", "Signal decision journal"),
+                    ("health", "System health"),
+                    ("help", "All command groups"),
+                ])
                 self._tg_cmd.start()
                 if _CONN_MON and self._conn_monitor:
                     _m = self._conn_monitor
@@ -2323,9 +2350,10 @@ class AutonomousTradingSystem:
                         # Curate the option channel: keep only option/index-relevant
                         # commands so it stops inheriting the full equity menu.
                         _OPT_ALLOWED = {
-                            "help", "start", "status", "report", "signals",
+                            "help", "menu", "start", "status", "report", "signals",
                             "optedge", "edge", "optpositions", "positions",
-                            "optlots", "oisr", "oichart", "strikeflow", "pcr",
+                            "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr",
+                            "direction", "tradeview", "view", "nexttrade",
                             "pause", "resume",
                         }
                         try: self._tg_cmd_option.restrict_to(_OPT_ALLOWED)
@@ -2334,6 +2362,8 @@ class AutonomousTradingSystem:
                         try:
                             self._tg_cmd_option.set_command_menu([
                                 ("report", "Post-market visual dashboard"),
+                                ("direction", "Combined option trade direction"),
+                                ("optionhealth", "Option-chain source diagnostics"),
                                 ("status", "Today's option bot summary"),
                                 ("signals", "Recent option selections"),
                                 ("positions", "Open option positions"),
@@ -5259,15 +5289,8 @@ class AutonomousTradingSystem:
             except Exception as _ie:
                 logger.debug("IdleEngine: %s", _ie)
         from datetime import time as _dtoih
-        # Start Google Drive sync watcher (no-op unless ENABLE_GDRIVE_SYNC=true —
-        # gated at the source in gdrive_sync; disabled because we edit via Claude
-        # Code/VS Code + git, and the bidirectional Drive pull can overwrite edits).
-        if _DRIVE_SYNC_AVAIL:
-            try:
-                _ds = _get_drive_sync(alerts=self.alerts)
-                _ds.start()
-            except Exception as _dse:
-                logger.debug("Drive sync: %s", _dse)
+        # Google Drive pull/auto-deploy is intentionally disabled. Backups may
+        # still push to Drive, but deployment is manual to prevent code overwrite.
         if _OI_TRACKER_AVAIL and _dtoih(8,45) <= datetime.now().time() <= _dtoih(15,45):
             try:
                 _oit = _get_oi_tracker(alerts=self.alerts)

@@ -408,6 +408,10 @@ class NSEOptionChainFetcher:
             return mark_provider(payload, "angel", is_live=True)
         except Exception as e:
             logger.warning("Angel OC fallback failed: %s", e)
+            try:
+                from runtime_telemetry import record_api_failure
+                record_api_failure("angel_option_chain", self.underlying, e)
+            except Exception: pass
             return None
 
     def _fetch_live(self) -> Optional[Dict[str, Any]]:
@@ -455,6 +459,12 @@ class NSEOptionChainFetcher:
 
             except Exception as e:
                 logger.warning("Live option-chain fetch failed attempt=%d error=%s", attempt, e)
+                try:
+                    from runtime_telemetry import record_api_failure
+                    record_api_failure("nse_option_chain", self.API_URL.format(symbol=self.underlying), e,
+                                       status_code=getattr(locals().get("resp", None), "status_code", 0),
+                                       attempt=attempt, underlying=self.underlying)
+                except Exception: pass
                 time.sleep(attempt)
 
         return None
@@ -504,7 +514,17 @@ class NSEOptionChainFetcher:
             "activity_sentiment": summary_obj.activity_sentiment,
             "most_active_call_strikes": summary_obj.most_active_call_strikes,
             "most_active_put_strikes": summary_obj.most_active_put_strikes,
+            "rows": len(df),
         }
+
+        try:
+            from option_metrics_cache import compute_max_pain, update
+            summary["max_pain"] = compute_max_pain(df)
+            update(self.underlying, summary,
+                   source=str(getattr(self, "last_source", "") or ""),
+                   expiry=str(expiry or ""))
+        except Exception:
+            pass
 
         return OptionChainFetchResult(
             underlying=self.underlying,
@@ -608,8 +628,17 @@ class NSEOptionChainFetcher:
         try:
             with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(data, f)
+            try:
+                from runtime_telemetry import heartbeat
+                heartbeat("option_chain_fetcher", underlying=self.underlying,
+                          source=getattr(self, "last_source", ""), cache=self.cache_file)
+            except Exception: pass
         except Exception as e:
             logger.warning("Could not save option-chain cache: %s", e)
+            try:
+                from runtime_telemetry import record_api_failure
+                record_api_failure("option_chain", self.cache_file, e)
+            except Exception: pass
 
     def _load_cache(self, warn_missing: bool = True) -> Optional[Dict[str, Any]]:
         if not os.path.exists(self.cache_file):

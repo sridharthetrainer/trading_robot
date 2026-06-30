@@ -346,10 +346,21 @@ class StrategyScanner:
         Returns candidates sorted by final_score (highest first).
         Priority symbols are guaranteed to be evaluated first.
         """
+        scan_started = time.time()
+        cycle_id = 0
+        try:
+            from runtime_telemetry import begin_scan
+            cycle_id = begin_scan(len(market_data or {}))
+        except Exception:
+            pass
         # Fetch data if not provided
         if market_data is None:
             if self.data_fetcher is None:
                 logger.warning("No data_fetcher and no market_data — cannot scan")
+                if cycle_id:
+                    from runtime_telemetry import finish_scan
+                    finish_scan(cycle_id, signals=0, qualified=0, rejected=1,
+                                started_at=scan_started, error="no_market_data_source")
                 return []
             try:
                 if hasattr(self.data_fetcher, "get_latest_data_three_tf"):
@@ -361,9 +372,17 @@ class StrategyScanner:
                     market_data = {s: {"df": d, "df_htf": d} for s, d in raw.items()}
             except Exception as exc:
                 logger.exception("market_data fetch failed: %s", exc)
+                if cycle_id:
+                    from runtime_telemetry import finish_scan
+                    finish_scan(cycle_id, signals=0, qualified=0, rejected=1,
+                                started_at=scan_started, error=str(exc))
                 return []
 
         if not market_data:
+            if cycle_id:
+                from runtime_telemetry import finish_scan
+                finish_scan(cycle_id, signals=0, qualified=0, rejected=1,
+                            started_at=scan_started, error="empty_market_data")
             return []
 
         # Split into tier-1 and tier-2
@@ -380,17 +399,48 @@ class StrategyScanner:
                 df_htf = entry.get("df_htf", df) if isinstance(entry, dict) else df
                 df_1h  = entry.get("df_1h")      if isinstance(entry, dict) else None
                 if df is None or len(df) < 50:
+                    if cycle_id:
+                        try:
+                            from runtime_telemetry import log_signal, scan_progress
+                            scan_progress(cycle_id, sym, result="REJECTED")
+                            log_signal("rejected", cycle_id,
+                                       {"symbol":sym,"strategy":"data_gate","side":""},
+                                       "insufficient_bars")
+                        except Exception: pass
                     continue
                 futs[self.executor.submit(
                     self._evaluate_symbol, sym, df, df_htf, df_1h
-                )] = sym
+                )] = (sym, time.time())
             for fut in as_completed(futs):
+                sym, eval_started = futs[fut]
+                r = None
                 try:
                     r = fut.result()
                     if r is not None:
                         results.append(r)
-                except Exception:
-                    pass
+                        if cycle_id:
+                            from runtime_telemetry import log_signal
+                            log_signal("raw", cycle_id, r.to_dict())
+                            log_signal("qualified", cycle_id, r.to_dict())
+                    elif cycle_id:
+                        from runtime_telemetry import log_signal
+                        log_signal("rejected", cycle_id,
+                                   {"symbol":sym,"strategy":"all","side":""},
+                                   "no_strategy_signal")
+                except Exception as exc:
+                    if cycle_id:
+                        from runtime_telemetry import log_signal
+                        log_signal("rejected", cycle_id,
+                                   {"symbol":sym,"strategy":"scanner","side":""},
+                                   f"evaluation_error:{exc}")
+                if cycle_id:
+                    try:
+                        from runtime_telemetry import scan_progress
+                        scan_progress(cycle_id, sym,
+                                      duration_ms=(time.time()-eval_started)*1000,
+                                      strategy=(r.strategy if r is not None else "all"),
+                                      result="SIGNAL" if any(x.symbol == sym for x in results) else "NO_SIGNAL")
+                    except Exception: pass
                 _touch_heartbeat()   # keep watchdog informed during slow scans
             return results
 
@@ -425,6 +475,14 @@ class StrategyScanner:
             len(candidates), len(t1_results), len(t2_results),
             get_time_zone().value, is_expiry_day(),
         )
+        if cycle_id:
+            try:
+                from runtime_telemetry import finish_scan
+                rejected = max(0, len(market_data) - len(candidates))
+                finish_scan(cycle_id, signals=len(candidates), qualified=len(candidates),
+                            rejected=rejected, started_at=scan_started)
+            except Exception:
+                pass
         return candidates
 
     def get_scan_summary(

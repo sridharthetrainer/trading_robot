@@ -123,10 +123,12 @@ class TelegramCommandHandler:
         from datetime import datetime
         return datetime.now().strftime("%H:%M %d-%b")
 
-    def send(self, text: str, chat_id: str = None) -> bool:
+    def send(self, text: str, chat_id: str = None, reply_markup: dict = None) -> bool:
         target = str(chat_id) if chat_id else self.chat_id
-        r = self._api("sendMessage", chat_id=target,
-                      text=text[:4096], parse_mode="HTML")
+        params = {"chat_id": target, "text": text[:4096], "parse_mode": "HTML"}
+        if reply_markup:
+            params["reply_markup"] = reply_markup
+        r = self._api("sendMessage", **params)
         if r.get("ok", False):
             return True
 
@@ -267,7 +269,8 @@ class TelegramCommandHandler:
         while self._running:
             try:
                 resp = self._api("getUpdates", offset=self._offset,
-                                 timeout=_POLL_TIMEOUT, allowed_updates=["message"])
+                                 timeout=_POLL_TIMEOUT,
+                                 allowed_updates=["message", "callback_query"])
                 if not resp.get("ok", False):
                     self._poll_failures += 1
                     desc = str(resp.get("description") or
@@ -291,6 +294,11 @@ class TelegramCommandHandler:
                 self._poll_failures = 0
                 self._last_poll_ok_at = time.time()
                 self._last_poll_error = ""
+                try:
+                    from runtime_telemetry import heartbeat
+                    heartbeat("telegram_listener", offset=self._offset)
+                except Exception:
+                    pass
                 updates = resp.get("result", [])
                 if updates:
                     logger.info("Telegram poll received %d update(s)", len(updates))
@@ -308,6 +316,9 @@ class TelegramCommandHandler:
 
     def _handle_update(self, update: dict) -> None:
         self._last_update_at = time.time()
+        if update.get("callback_query"):
+            self._handle_callback(update["callback_query"])
+            return
         msg  = update.get("message", {})
         text = str(msg.get("text", "")).strip()
         from_id = str(msg.get("from", {}).get("id", ""))
@@ -344,7 +355,8 @@ class TelegramCommandHandler:
                 response = handler(text)
                 if response:
                     # Reply to the chat the command came from
-                    self.send(response, chat_id=chat_id)
+                    self.send(response, chat_id=chat_id,
+                              reply_markup=self._menu_keyboard("home") if cmd == "menu" else None)
             except Exception as e:
                 # UX-2: Friendly error messages
                 err = str(e)
@@ -357,6 +369,69 @@ class TelegramCommandHandler:
                     self.send(f"⚠️ /{cmd} error: {err[:80]}", chat_id=chat_id)
         elif text.startswith("/"):
             self.send(f"❓ Unknown: /{cmd} — try /help", chat_id=chat_id)
+
+    @staticmethod
+    def _menu_keyboard(section: str = "home") -> dict:
+        sections = {
+            "home": [[("📊 Monitor", "menu:monitor"), ("📈 Options", "menu:options")],
+                     [("🧭 Direction", "menu:direction"), ("📚 Reports", "menu:reports")],
+                     [("⚙️ Control", "menu:control"), ("🔄 Refresh", "menu:home")]],
+            "monitor": [[("Status", "cmd:status"), ("Positions", "cmd:positions")],
+                        [("Signals", "cmd:signals"), ("Health", "cmd:health")],
+                        [("P&L", "cmd:pnl"), ("⬅️ Back", "menu:home")]],
+            "options": [[("Option Health", "cmd:optionhealth"), ("Option Edge", "cmd:optionedge")],
+                        [("OI S/R", "cmd:oisr"), ("PCR", "cmd:pcr")],
+                        [("Strike Flow", "cmd:strikeflow"), ("⬅️ Back", "menu:home")]],
+            "direction": [[("NIFTY", "cmd:direction NIFTY"), ("BANKNIFTY", "cmd:direction BANKNIFTY")],
+                          [("FINNIFTY", "cmd:direction FINNIFTY"), ("Next Trade", "cmd:nexttrade")],
+                          [("⬅️ Back", "menu:home")]],
+            "reports": [[("Dashboard", "cmd:dashboard"), ("Performance", "cmd:performance")],
+                        [("Journal", "cmd:journal"), ("History", "cmd:history")],
+                        [("Charges", "cmd:charges"), ("⬅️ Back", "menu:home")]],
+            "control": [[("⏸ Pause", "confirm:pause"), ("▶️ Resume", "confirm:resume")],
+                        [("🛑 Kill", "confirm:kill"), ("Settings", "cmd:settings")],
+                        [("⬅️ Back", "menu:home")]],
+        }
+        rows = sections.get(section, sections["home"])
+        return {"inline_keyboard": [[{"text": text, "callback_data": data} for text, data in row]
+                                    for row in rows]}
+
+    def _handle_callback(self, query: dict) -> None:
+        callback_id = str(query.get("id", ""))
+        data = str(query.get("data", ""))[:128]
+        msg = query.get("message") or {}
+        chat_id = str((msg.get("chat") or {}).get("id", self.chat_id))
+        self._api("answerCallbackQuery", callback_query_id=callback_id)
+        if data.startswith("menu:"):
+            section = data.split(":", 1)[1]
+            labels = {"home":"Trading Bot Menu", "monitor":"Monitor", "options":"Options",
+                      "direction":"Trade Direction", "reports":"Reports", "control":"Control"}
+            self.send(f"📱 <b>{labels.get(section, 'Menu')}</b>\nChoose an action:",
+                      chat_id=chat_id, reply_markup=self._menu_keyboard(section))
+            return
+        if data.startswith("confirm:"):
+            command = data.split(":", 1)[1]
+            keyboard = {"inline_keyboard":[
+                [{"text":"✅ Confirm", "callback_data":f"cmd:{command}"},
+                 {"text":"Cancel", "callback_data":"menu:control"}]]}
+            self.send(f"⚠️ Confirm <b>/{command}</b>?", chat_id=chat_id, reply_markup=keyboard)
+            return
+        if data.startswith("cmd:"):
+            raw = data.split(":", 1)[1]
+            command, _, args = raw.partition(" ")
+            handler = self._handlers.get(command.lower())
+            if not handler:
+                self.send(f"⚠️ /{command} is unavailable.", chat_id=chat_id)
+                return
+            try:
+                response = handler(f"/{command}" + (f" {args}" if args else ""))
+                if response:
+                    self.send(response, chat_id=chat_id,
+                              reply_markup={"inline_keyboard":[
+                                  [{"text":"🔄 Refresh", "callback_data":data},
+                                   {"text":"⬅️ Menu", "callback_data":"menu:home"}]]})
+            except Exception as exc:
+                self.send(f"⚠️ /{command} error: {str(exc)[:100]}", chat_id=chat_id)
 
 
     # ── Handler registration ──────────────────────────────────────────────────
@@ -387,6 +462,7 @@ class TelegramCommandHandler:
     def _register_defaults(self) -> None:
         # ── Core ─────────────────────────────────────────────────────────────
         self.register("help",        self._cmd_help)
+        self.register("menu",        self._cmd_menu)
         self.register("start",       self._cmd_start)
         self.register("status",      self._cmd_status)
         self.register("health",      self._cmd_health)
@@ -402,6 +478,9 @@ class TelegramCommandHandler:
         self.register("live",        self._cmd_live_positions)
         self.register("live_pos",    self._cmd_live_positions)
         self.register("positions",   self._cmd_positions)
+        self.register("open",        self._cmd_positions)
+        self.register("trade",       self._cmd_positions)
+        self.register("closed",      self._cmd_closed_view)
         self.register("signals",     self._cmd_signals)
         self.register("today",       self._cmd_today)
         self.register("missed",      self._cmd_missed)
@@ -417,6 +496,7 @@ class TelegramCommandHandler:
         self.register("scalppnl",    self._cmd_optscalp)
         self.register("heat",        self._cmd_heat)
         self.register("symbols",     self._cmd_symbols)
+        self.register("scanner",     self._cmd_scanner_view)
         # ── Morning / Market Context ──────────────────────────────────────────
         self.register("morning",     self._cmd_morning)
         self.register("brief",       self._cmd_brief)
@@ -521,6 +601,12 @@ class TelegramCommandHandler:
         self.register("attr",        self._cmd_attribution)
         self.register("eod",         self._cmd_eod_summary)
         self.register("downloads",   self._cmd_downloads)
+        self.register("dashboard",   self._cmd_dashboard_view)
+        self.register("strategies",  self._cmd_strategies_view)
+        self.register("performance", self._cmd_performance_view)
+        self.register("journal",     self._cmd_journal_view)
+        self.register("history",     self._cmd_history_view)
+        self.register("stats",       self._cmd_performance_view)
         self.register("export",      self._cmd_export)
         self.register("download",    self._cmd_export_trades)
         self.register("schedule",    self._cmd_schedule)
@@ -536,7 +622,7 @@ class TelegramCommandHandler:
         self.register("var",         self._cmd_risk)
         self.register("stt",         self._cmd_stt)
         self.register("breakeven",   self._cmd_stt)
-        self.register("charges",     self._cmd_stt)
+        self.register("charges",     self._cmd_charges_view)
         self.register("rollover",    self._cmd_rollover)
         self.register("carry",       self._cmd_rollover)
         self.register("gaps",        self._cmd_gap_warning)
@@ -631,19 +717,113 @@ class TelegramCommandHandler:
         self.register("export_tax",  self._cmd_export_tax)
         self.register("tax",         self._cmd_export_tax)
         self.register("itr",         self._cmd_export_tax)
+        # ── Consolidated direction / option diagnostics ─────────────────────
+        self.register("direction",    self._cmd_direction)
+        self.register("tradeview",    self._cmd_direction)
+        self.register("view",         self._cmd_direction)
+        self.register("nexttrade",    self._cmd_next_trade)
+        self.register("optionhealth", self._cmd_option_health_view)
+        self.register("optionedge",   self._cmd_option_edge_view)
 
     # ── Command implementations ───────────────────────────────────────────────
+    def _cmd_menu(self, _="") -> str:
+        return "📱 <b>TRADING BOT MENU</b>\nChoose a section below."
+
+    def _cmd_dashboard_view(self, _="") -> str:
+        try:
+            from runtime_telemetry import heartbeat
+            heartbeat("dashboard_updater", source="telegram")
+            from telegram_views import dashboard
+            return dashboard()
+        except Exception as exc: return f"⚠️ Dashboard unavailable: {str(exc)[:100]}"
+
+    def _cmd_scanner_view(self, _="") -> str:
+        try:
+            from telegram_views import scanner_diagnostics
+            return scanner_diagnostics()
+        except Exception as exc: return f"⚠️ Scanner diagnostics unavailable: {str(exc)[:100]}"
+
+    def _cmd_strategies_view(self, _="") -> str:
+        try:
+            from telegram_views import strategies
+            return strategies()
+        except Exception as exc: return f"⚠️ Strategies unavailable: {str(exc)[:100]}"
+
+    def _cmd_performance_view(self, _="") -> str:
+        try:
+            from telegram_views import strategies
+            return strategies()+"\n\n"+self._cmd_weekly_perf()
+        except Exception as exc: return f"⚠️ Performance unavailable: {str(exc)[:100]}"
+
+    def _cmd_journal_view(self, _="") -> str:
+        from telegram_views import journal
+        return journal()
+
+    def _cmd_history_view(self, _="") -> str:
+        from telegram_views import history
+        return history()
+
+    def _cmd_closed_view(self, _="") -> str:
+        return self._cmd_history_view()
+
+    def _cmd_charges_view(self, _="") -> str:
+        try:
+            import sqlite3
+            con=sqlite3.connect("trades.db")
+            row=con.execute("SELECT COUNT(*),COALESCE(SUM(gross_pnl),0),COALESCE(SUM(total_charges),0),COALESCE(SUM(realized_pnl),0) FROM trades WHERE status='CLOSED'").fetchone(); con.close()
+            return ("💸 <b>CHARGES &amp; NET P&amp;L</b>\n"
+                    f"Closed trades: {row[0]}\nGross: ₹{row[1]:+,.2f}\n"
+                    f"Brokerage + taxes: ₹{row[2]:,.2f}\nNet: ₹{row[3]:+,.2f}")
+        except Exception as exc: return f"⚠️ Charges unavailable: {str(exc)[:100]}"
+
+    def _cmd_option_health_view(self, args="") -> str:
+        from telegram_views import option_health
+        toks=str(args or "").upper().split(); sym=next((x for x in toks if x in {"NIFTY","BANKNIFTY","FINNIFTY"}),"NIFTY")
+        return option_health(sym)
+
+    def _cmd_option_edge_view(self, _="") -> str:
+        try:
+            from option_decision_journal import option_performance_summary, format_option_summary
+            return format_option_summary(option_performance_summary(days=400))
+        except Exception as exc: return f"⚠️ Option edge unavailable: {str(exc)[:100]}"
+
+    def _cmd_direction(self, args="") -> str:
+        toks=str(args or "").upper().split(); sym=next((x for x in toks if x in {"NIFTY","BANKNIFTY","FINNIFTY"}),"NIFTY")
+        key=f"_direction_running_{sym}"
+        if getattr(self,key,False): return f"⏳ {sym} direction card is already rendering."
+        def _render():
+            setattr(self,key,True)
+            try:
+                from trade_direction_engine import build_direction, format_direction, generate_direction_card
+                result=build_direction(sym); path=generate_direction_card(result)
+                if not self.send_photo(path,format_direction(result)): self.send(format_direction(result))
+            except Exception as exc: self.send(f"⚠️ Direction unavailable: {str(exc)[:120]}")
+            finally: setattr(self,key,False)
+        threading.Thread(target=_render,daemon=True,name=f"Direction-{sym}").start()
+        return f"🧭 Building {sym} direction card from technical, OI, PCR and edge data…"
+
+    def _cmd_next_trade(self, _="") -> str:
+        try:
+            from trade_direction_engine import build_direction, format_direction
+            rows=[build_direction(s) for s in ("NIFTY","BANKNIFTY","FINNIFTY")]
+            actionable=[r for r in rows if r["action"] in {"BUY CALL","BUY PUT"}]
+            if not actionable: return "⏳ <b>NEXT TRADE: WAIT</b>\nNo index currently passes the combined confidence gate."
+            return "🎯 <b>NEXT TRADE CANDIDATE</b>\n"+format_direction(max(actionable,key=lambda r:r["confidence"]))
+        except Exception as exc: return f"⚠️ Next trade unavailable: {str(exc)[:120]}"
+
     def _cmd_help(self, _="") -> str:
         return (
             "📱 <b>TRADING BOT — ALL COMMANDS</b>\n\n"
             "📊 <b>Monitor</b>\n"
-            "  /status  /pnl  /live  /positions\n"
-            "  /signals  /today  /missed  /heat\n\n"
+            "  /menu  /dashboard  /status  /pnl\n"
+            "  /signals  /positions  /closed  /scanner\n\n"
             "🌅 <b>Morning / Market</b>\n"
             "  /morning  /brief  /vix  /regime\n"
             "  /sentiment  /sectors  /fii  /gift\n"
             "  /macro  /globalbias  /earnings  /score\n\n"
             "📈 <b>OI / Options</b>\n"
+            "  /direction NIFTY — combined trade view\n"
+            "  /optionhealth  /optionedge  /nexttrade\n"
             "  /oisr — OI support-resistance chart 🆕\n"
             "  /strikeflow — top strikes by OI change\n"
             "  /oi  /oitrend  /oichart  /pcr  /fnoban\n"
@@ -3068,7 +3248,8 @@ class TelegramCommandHandler:
         """Show rollover / cost of carry signal."""
         try:
             from market_intelligence_hub import get_rollover_signal
-            sym  = args.strip().upper() or "NIFTY"
+            tokens = str(args or "").upper().split()
+            sym = next((x for x in tokens if x in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}), "NIFTY")
             rl   = get_rollover_signal(sym)
             if not rl:
                 return f"⚠️ Rollover data not available for {sym}"
@@ -3754,8 +3935,17 @@ class TelegramCommandHandler:
             sym  = args.strip().upper() or "NIFTY"
             is_idx = sym in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}
             pcr  = compute_pcr(sym) if is_idx else get_stock_pcr(sym)
+            suffix = "\n  Source: live"
             if pcr == 0:
-                return f"⚠️ PCR data unavailable for {sym}"
+                try:
+                    from option_metrics_cache import get
+                    cached = get(sym); pcr = float(cached.get("pcr", 0) or 0)
+                    suffix = (f"\n  Source: cached · age {float(cached.get('freshness_sec',0))/60:.0f}m"
+                              f" · quality {float(cached.get('quality_score',0)):.0f}%")
+                except Exception:
+                    pass
+                if pcr == 0:
+                    return f"⚠️ PCR data unavailable for {sym}"
             icon  = "🐂" if pcr > 1.2 else "🐻" if pcr < 0.8 else "⚪"
             interp = ("BULLISH — puts >> calls (market hedged)"
                       if pcr > 1.3 else
@@ -3766,7 +3956,7 @@ class TelegramCommandHandler:
                     f"  PCR:   {pcr:.3f}\n"
                     f"  {icon} {interp}\n\n"
                     f"  >1.3 = Bearish sentiment (contrarian: bullish)\n"
-                    f"  <0.7 = Bullish sentiment (contrarian: bearish)")
+                    f"  <0.7 = Bullish sentiment (contrarian: bearish){suffix}")
         except Exception as e:
             return f"❌ PCR: {e}"
 

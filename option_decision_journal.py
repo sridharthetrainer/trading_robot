@@ -313,6 +313,7 @@ def option_performance_summary(days: int = 400, min_n: int = 10, top: int = 5,
     losses = sum(1 for d in rows if d.get("outcome_label") == -1)
     timeouts = sum(1 for d in rows if d.get("outcome_label") == 0)
     pnls = [_safe_float(d.get("pnl")) for d in rows if d.get("pnl") not in (None, "")]
+    live_rows = [d for d in rows if not _is_research_strategy(d.get("strategy"))]
     median_pnl = 0.0
     if pnls:
         _sp = sorted(pnls); _m = len(_sp)
@@ -333,10 +334,13 @@ def option_performance_summary(days: int = 400, min_n: int = 10, top: int = 5,
     n = len(rows)
     out.update({
         "ok": True, "n_labelled": n, "live_selected": live_sel,
+        "live_labelled": len(live_rows),
         "wins": wins, "losses": losses, "timeouts": timeouts,
         "win_rate": round(100.0*wins/n, 1) if n else 0.0,
         "total_pnl": round(sum(pnls), 1), "avg_pnl": round(sum(pnls)/len(pnls), 1) if pnls else 0.0,
         "median_pnl": round(median_pnl, 1),
+        "sample_quality": "ROBUST" if n >= 200 else "DEVELOPING" if n >= 50 else "LOW_SAMPLE",
+        "outlier_skew_warning": bool(pnls and abs(sum(pnls)/len(pnls)-median_pnl) > max(100.0, abs(median_pnl)*2)),
         "best": ranked[:top], "worst": ranked[-top:][::-1] if len(ranked) > top else [],
     })
     return out
@@ -356,10 +360,13 @@ def format_option_summary(d: Dict[str, Any]) -> str:
     lines = [
         f"📊 <b>Option Edge</b> — last {d['days']}d",
         f"labelled {d['n_labelled']} · live selections {d.get('live_selected', 0)}",
+        f"sample: <b>{d.get('sample_quality','LOW_SAMPLE')}</b> · verified live labels {d.get('live_labelled',0)}",
         f"W/L/T: {d['wins']}/{d['losses']}/{d['timeouts']} · win {d['win_rate']}%",
         f"P&L: {flag} median ₹{d.get('median_pnl', 0):+.0f} · avg ₹{d['avg_pnl']:+.0f} · total ₹{d['total_pnl']:+.0f}",
         "<i>shadow/replay-labelled — live N still small; avg is outlier-skewed</i>",
     ]
+    if d.get("outlier_skew_warning"):
+        lines.append("⚠️ Mean is skewed by outliers; prioritize median and verified-live results.")
     if d.get("best"):
         lines.append("\n🏆 <b>best</b> (n≥10):")
         for b in d["best"]:

@@ -1,5 +1,4 @@
-"""
-auto_deploy_watcher.py — Watches Google Drive for new zip, auto-deploys
+"""Legacy Google Drive deploy helper — automatic watching is disabled.
 
 Runs as a systemd service. Every 5 minutes checks if a new
 trading_robot_FRESH.zip exists on Google Drive. If newer than
@@ -111,26 +110,13 @@ def deploy():
 
 
 def main():
+    import sys
     load_env()
-    logger.info("Auto-deploy watcher started (check every %ds)", CHECK_INTERVAL)
-    send_tg("👁 <b>Auto-deploy watcher started</b>\n  Monitoring Google Drive for new zip files")
-    
-    while True:
-        try:
-            drive_time = get_drive_zip_time()
-            last_deploy = get_last_deploy_time()
-            
-            if drive_time > last_deploy + 60:  # 60s grace period
-                logger.info("New zip on Drive (mod=%s, last_deploy=%s)",
-                          datetime.fromtimestamp(drive_time).isoformat(),
-                          datetime.fromtimestamp(last_deploy).isoformat() if last_deploy else "never")
-                deploy()
-            else:
-                logger.debug("No new zip (drive=%s, last=%s)", drive_time, last_deploy)
-        except Exception as e:
-            logger.error("Watcher error: %s", e)
-        
-        time.sleep(CHECK_INTERVAL)
+    if "--manual-deploy" in sys.argv:
+        logger.warning("Manual Google Drive deployment explicitly requested")
+        deploy()
+        return
+    logger.warning("Google Drive auto-deploy is DISABLED. Use ./remote_deploy.sh manually.")
 
 
 if __name__ == "__main__":

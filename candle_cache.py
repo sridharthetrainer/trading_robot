@@ -153,7 +153,9 @@ def get_cached_candles(
     try:
         import pandas as pd
         conn = _get_conn()
-        cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+        # A `days=N` cache request means N calendar sessions/dates. Using the
+        # current wall-clock time dropped valid opening bars on the boundary day.
+        cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00")
         
         rows = conn.execute(
             "SELECT timestamp, open, high, low, close, volume "
@@ -226,7 +228,7 @@ def cleanup_old_data(days: int = 30) -> int:
     """Remove cached data older than N days."""
     try:
         conn = _get_conn()
-        cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+        cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00")
         cursor = conn.execute(
             "DELETE FROM candles WHERE timestamp < ?", (cutoff,)
         )

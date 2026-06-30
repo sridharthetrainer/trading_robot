@@ -114,6 +114,14 @@ def run_pipeline(
 
     steps.append(_run_step("daily_performance_report", _step_daily_report))
 
+    def _step_executive_report():
+        from executive_reporting import run
+        report = run(send_telegram=bool(telegram and not dry_run))
+        return {"session_date": report.get("session_date"),
+                "signals_400d": (report.get("windows") or {}).get("400", {}).get("signals", 0),
+                "chart_path": report.get("chart_path")}
+    steps.append(_run_step("executive_eod_report", _step_executive_report))
+
     # Publish the dedicated option dashboard early in the 15:45 post-market
     # run, before slower training/backfill steps.  The sender is date-deduped;
     # post_market_ml safely retries it later if this upload fails.

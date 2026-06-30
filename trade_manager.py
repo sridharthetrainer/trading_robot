@@ -883,6 +883,11 @@ class TradeManager:
     def __persist_trade_inner(self, trade: ManagedTrade) -> None:
         try:
             self.store.upsert_trade(trade)
+            try:
+                from runtime_telemetry import sync_trade_journal
+                sync_trade_journal(trade)
+            except Exception:
+                pass
         except Exception:
             logger.exception("Failed to persist trade | trade_id=%s", trade.trade_id)
 
@@ -1438,6 +1443,11 @@ class TradeManager:
         is actually honoured rather than silently overridden.
         """
         side = str(side).upper().strip()
+        try:
+            from runtime_telemetry import heartbeat
+            heartbeat("trade_manager", action="open_trade", symbol=symbol,
+                      last_executed_strategy=strategy)
+        except Exception: pass
         if side not in {"BUY", "SELL"}:
             logger.error("Invalid side: %s", side)
             return None
