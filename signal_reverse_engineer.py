@@ -23,6 +23,7 @@ from typing import Any, Dict, Iterable, List, Tuple
 
 REPORT_JSON = "signal_reverse_engineer_report.json"
 REPORT_MD = "SIGNAL_REVERSE_ENGINEER_REPORT.md"
+REVERSE_POLICY_JSON = "reverse_shadow_candidates.json"
 
 FEATURE_COLS = [
     "bhav_delivery",
@@ -85,6 +86,15 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
         return float(value)
     except Exception:
         return default
+
+
+def _label_value(row: Dict[str, Any]) -> int:
+    """Preserve timeout label 0 (``0 or -99`` incorrectly made it pending)."""
+    value = row.get("tb_label", -99)
+    try:
+        return -99 if value is None else int(value)
+    except (TypeError, ValueError):
+        return -99
 
 
 def _load_rows(db_path: str, days: int) -> Tuple[List[Dict[str, Any]], set]:
@@ -185,8 +195,110 @@ def _ranked_groups(
     return out[:limit]
 
 
+def _chronological_reverse_validation(
+    rows: List[Dict[str, Any]],
+    *,
+    min_samples: int = 100,
+    min_distinct_days: int = 20,
+    train_fraction: float = 0.70,
+    min_oos_return_pct: float = 0.03,
+    limit: int = 20,
+) -> Dict[str, Any]:
+    """Test opposite-direction shadows without touching execution.
+
+    Every labelled generated signal is used, including rejected/unexecuted
+    candidates.  The split is chronological by session (never random), and a
+    reverse is merely the negative of the observed underlying return.  That is
+    useful for discovering directional anti-edge, but it is *not* an option P&L
+    estimate, so this function can never authorize a live reversal.
+    """
+    usable = [
+        r for r in rows
+        if str(r.get("signal_date") or "").strip()
+        and _safe_float(r.get("entry_price")) > 0
+        and _safe_float(r.get("outcome_price")) > 0
+        and str(r.get("side") or "").upper() in {"BUY", "SELL"}
+    ]
+    days = sorted({str(r["signal_date"]) for r in usable})
+    if len(days) < 2:
+        return {
+            "status": "COLLECTING", "all_signals": len(usable),
+            "distinct_days": len(days), "candidates": [],
+            "live_reversal_allowed": False,
+            "reason": "need_at_least_2_sessions_for_chronological_split",
+        }
+
+    split_idx = max(1, min(len(days) - 1, int(len(days) * train_fraction)))
+    train_days, test_days = set(days[:split_idx]), set(days[split_idx:])
+    grouped: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for row in usable:
+        grouped[str(row.get("strategy") or "unknown")].append(row)
+
+    candidates = []
+    for strategy, items in grouped.items():
+        train = [r for r in items if str(r["signal_date"]) in train_days]
+        test = [r for r in items if str(r["signal_date"]) in test_days]
+        if len(items) < min_samples or len(train) < max(20, min_samples // 2) or len(test) < 20:
+            continue
+        train_returns = [_return_pct(r) for r in train]
+        test_returns = [_return_pct(r) for r in test]
+        original_train = sum(train_returns) / len(train_returns)
+        original_test = sum(test_returns) / len(test_returns)
+        if original_train >= 0 or original_test >= 0:
+            continue
+
+        by_test_day: Dict[str, List[float]] = defaultdict(list)
+        for row in test:
+            by_test_day[str(row["signal_date"])].append(-_return_pct(row))
+        positive_days = sum(1 for vals in by_test_day.values()
+                            if vals and sum(vals) / len(vals) > 0)
+        day_consistency = positive_days / max(len(by_test_day), 1)
+        reverse_test = -original_test
+        evidence_ready = (
+            len(days) >= min_distinct_days
+            and reverse_test >= min_oos_return_pct
+            and day_consistency >= 0.60
+        )
+        candidates.append({
+            "strategy": strategy,
+            "status": "SHADOW_VALIDATED" if evidence_ready else "SHADOW_COLLECTING",
+            "train_samples": len(train), "test_samples": len(test),
+            "train_days": len({str(r["signal_date"]) for r in train}),
+            "test_days": len(by_test_day),
+            "original_train_avg_return_pct": round(original_train, 4),
+            "original_test_avg_return_pct": round(original_test, 4),
+            "reverse_oos_avg_return_pct": round(reverse_test, 4),
+            "reverse_positive_test_day_rate": round(day_consistency, 4),
+            "meets_research_thresholds": evidence_ready,
+            "live_allowed": False,
+            "live_block_reason": "underlying_reverse_is_not_verified_option_pnl",
+        })
+
+    candidates.sort(
+        key=lambda r: (
+            bool(r["meets_research_thresholds"]),
+            r["reverse_oos_avg_return_pct"], r["test_samples"],
+        ),
+        reverse=True,
+    )
+    return {
+        "status": "SHADOW_ONLY",
+        "scope": "all_generated_labelled_signals",
+        "all_signals": len(usable),
+        "distinct_days": len(days),
+        "train_cutoff": days[split_idx - 1],
+        "train_days": len(train_days), "test_days": len(test_days),
+        "minimum_distinct_days": min_distinct_days,
+        "minimum_samples": min_samples,
+        "minimum_oos_return_pct": min_oos_return_pct,
+        "candidates": candidates[:limit],
+        "live_reversal_allowed": False,
+        "reason": "shadow_A_B_only_until_verified_option_outcomes_and_costs",
+    }
+
+
 def _pending_profile(rows: List[Dict[str, Any]], limit: int = 20) -> Dict[str, Any]:
-    pending = [r for r in rows if int(r.get("tb_label", -99) or -99) == -99]
+    pending = [r for r in rows if _label_value(r) == -99]
     by_reason: Dict[str, int] = defaultdict(int)
     by_strategy: Dict[str, int] = defaultdict(int)
     by_symbol: Dict[str, int] = defaultdict(int)
@@ -211,8 +323,8 @@ def build_reverse_engineering_report(
     limit: int = 20,
 ) -> Dict[str, Any]:
     rows, cols = _load_rows(db_path, days)
-    labelled = [r for r in rows if int(r.get("tb_label", -99) or -99) in (-1, 0, 1)]
-    pending = [r for r in rows if int(r.get("tb_label", -99) or -99) == -99]
+    labelled = [r for r in rows if _label_value(r) in (-1, 0, 1)]
+    pending = [r for r in rows if _label_value(r) == -99]
 
     context_report = {}
     for col in CONTEXT_COLS:
@@ -313,6 +425,11 @@ def build_reverse_engineering_report(
         "context": context_report,
         "features": feature_report,
         "composites": composite_report,
+        "reverse_shadow": _chronological_reverse_validation(
+            labelled,
+            min_samples=max(100, min_samples),
+            limit=limit,
+        ),
         "ready": len(labelled) >= min_samples,
     }
     if not report["ready"]:
@@ -360,6 +477,23 @@ def render_markdown(report: Dict[str, Any]) -> str:
     if not report.get("feature_edges"):
         lines.append("- none yet")
 
+    reverse = report.get("reverse_shadow", {})
+    lines.extend(["", "## Reverse Shadow A/B (All Signals)", ""])
+    lines.append(
+        f"- Scope `{reverse.get('scope', 'all_generated_labelled_signals')}`; "
+        f"signals `{reverse.get('all_signals', 0)}`; days `{reverse.get('distinct_days', 0)}`; "
+        "live reversal `BLOCKED`"
+    )
+    for row in reverse.get("candidates", [])[:10]:
+        lines.append(
+            f"- `{row.get('strategy')}` {row.get('status')} train/test "
+            f"`{row.get('train_samples')}/{row.get('test_samples')}` reverse OOS "
+            f"`{row.get('reverse_oos_avg_return_pct')}%` positive test days "
+            f"`{row.get('reverse_positive_test_day_rate')}`"
+        )
+    if not reverse.get("candidates"):
+        lines.append("- no chronologically stable reverse candidates yet")
+
     pending = report.get("pending_profile", {})
     lines.extend(["", "## Pending Signal Profile", ""])
     for row in pending.get("top_rejection_reasons", [])[:10]:
@@ -389,6 +523,10 @@ def main(argv: Iterable[str] | None = None) -> int:
     if not args.no_write:
         Path(REPORT_JSON).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
         Path(REPORT_MD).write_text(text, encoding="utf-8")
+        Path(REVERSE_POLICY_JSON).write_text(
+            json.dumps(report.get("reverse_shadow", {}), indent=2, default=str),
+            encoding="utf-8",
+        )
     print(text)
     return 0
 

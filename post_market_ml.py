@@ -456,12 +456,10 @@ def run_pipeline(
     from ml_feature_builder import build_feature_matrix
     import pandas as pd
 
-    # executed_only=False: the system triple-barrier-tracks outcomes for EVERY
-    # signal, not just the handful actually filled, and the `executed` flag is
-    # currently never set (so executed_only=True returned 0 rows and aborted the
-    # whole nightly pipeline). Learn from all tracked outcomes. Override with
-    # POST_MARKET_EXECUTED_ONLY=true if real-fill-only learning is restored.
-    _exec_only = os.getenv("POST_MARKET_EXECUTED_ONLY", "false").lower() in ("true", "1", "yes")
+    # Always learn from every risk-valid generated signal.  Executed-only mode
+    # made the evidence set tiny and contradicted the shadow-labelling design.
+    # Real fills remain a separate execution-quality validation layer.
+    _exec_only = False
     df = build_feature_matrix(
         days            = days,
         executed_only   = _exec_only,
@@ -471,6 +469,27 @@ def run_pipeline(
     if df.empty:
         logger.error("Feature matrix is empty — aborting pipeline")
         return {"error": "empty_feature_matrix"}
+
+    logger.info("  all-signal scope: %d labelled candidates (executed filter OFF)", len(df))
+
+    # Research-only opposite-direction A/B report. It consumes ALL labelled
+    # signal outcomes (including legacy/unexecuted rows), uses a chronological
+    # split, and explicitly cannot enable live reversal.
+    try:
+        from signal_reverse_engineer import (
+            build_reverse_engineering_report, render_markdown,
+            REPORT_JSON, REPORT_MD, REVERSE_POLICY_JSON,
+        )
+        _reverse_report = build_reverse_engineering_report(days=max(days, 90))
+        Path(REPORT_JSON).write_text(json.dumps(_reverse_report, indent=2, default=str))
+        Path(REPORT_MD).write_text(render_markdown(_reverse_report))
+        Path(REVERSE_POLICY_JSON).write_text(json.dumps(
+            _reverse_report.get("reverse_shadow", {}), indent=2, default=str))
+        logger.info("  reverse shadow: all=%d candidates=%d live_allowed=False",
+                    _reverse_report.get("reverse_shadow", {}).get("all_signals", 0),
+                    len(_reverse_report.get("reverse_shadow", {}).get("candidates", [])))
+    except Exception as _rev_exc:
+        logger.debug("all-signal reverse shadow report failed: %s", _rev_exc)
 
     # ── Step 3: Failure autopsy ────────────────────────────────────────────────
     logger.info("[3/6] Running failure autopsy …")

@@ -42,8 +42,19 @@ def _get_fetcher():
     universe load) on every throttled scan."""
     global _FETCHER
     if _FETCHER is None:
+        angel = None
+        try:
+            from angel import AngelOne
+            angel = AngelOne(
+                api_key=os.getenv("API_KEY", ""),
+                client_id=os.getenv("CLIENT_ID", ""),
+                password=os.getenv("PASSWORD", ""),
+                totp_secret=os.getenv("TOTP_SECRET", ""),
+            )
+        except Exception as exc:
+            logger.debug("option scalper Angel data client unavailable: %s", exc)
         from data_fetcher import DataFetcher
-        _FETCHER = DataFetcher()
+        _FETCHER = DataFetcher(angel=angel, paper_trade=False)
     return _FETCHER
 
 

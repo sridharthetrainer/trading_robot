@@ -12,7 +12,11 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-from signal_reverse_engineer import build_reverse_engineering_report, render_markdown
+from signal_reverse_engineer import (
+    _chronological_reverse_validation,
+    build_reverse_engineering_report,
+    render_markdown,
+)
 
 
 def _make_db(tmp: str) -> str:
@@ -70,6 +74,24 @@ def test_report_builds_edges_and_pending_profile():
             and report["pending_profile"]["top_rejection_reasons"][0]["key"] == "ai_prob_below_live_min"
             and "Signal Reverse Engineering Report" in text
         )
+
+
+def test_reverse_shadow_uses_all_signals_and_never_enables_live():
+    rows = []
+    for i in range(100):
+        rows.append({
+            "signal_date": f"2026-06-{1 + (i // 10):02d}",
+            "strategy": "ANTI_EDGE", "side": "BUY",
+            "entry_price": 100.0, "outcome_price": 99.0,
+            "tb_label": -1, "executed": 0,
+        })
+    result = _chronological_reverse_validation(rows, min_samples=100)
+
+    assert result["scope"] == "all_generated_labelled_signals"
+    assert result["all_signals"] == 100
+    assert result["candidates"][0]["strategy"] == "ANTI_EDGE"
+    assert result["candidates"][0]["reverse_oos_avg_return_pct"] == 1.0
+    assert result["live_reversal_allowed"] is False
 
 
 def main() -> int:

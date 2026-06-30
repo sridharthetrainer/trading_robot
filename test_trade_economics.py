@@ -1,6 +1,6 @@
 from capital_compounder import calculate_full_costs
 from trade_economics import evaluate_trade_economics
-from trade_manager import ManagedTrade, TradeManager
+from trade_manager import ManagedTrade, TradeManager, evaluate_entry_cost_hurdle
 
 
 def test_2026_option_and_cash_cost_rates_are_segment_specific():
@@ -88,3 +88,20 @@ def test_eod_close_defers_when_quote_is_missing():
 
     assert closed == 0
     assert "T1" in manager.open_trades
+
+
+def test_trade_manager_boundary_blocks_uneconomic_tiny_trade():
+    result = evaluate_entry_cost_hurdle(
+        symbol="RELIANCE", entry_price=1000, target_price=1002,
+        stop_loss=998, qty=1, side="BUY", exchange="NSE",
+    )
+    assert result["allowed"] is False
+    assert result["reason"] == "target_does_not_cover_cost_hurdle"
+
+
+def test_trade_manager_boundary_allows_cost_covering_trade():
+    result = evaluate_entry_cost_hurdle(
+        symbol="RELIANCE", entry_price=1000, target_price=1020,
+        stop_loss=990, qty=20, side="BUY", exchange="NSE",
+    )
+    assert result["allowed"] is True

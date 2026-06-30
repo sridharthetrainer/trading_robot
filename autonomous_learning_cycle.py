@@ -186,10 +186,18 @@ def run_autonomous_learning_cycle(
     report["steps"]["signal_trade_reconcile"] = _step("signal_trade_reconcile", _signal_trade_reconcile)
 
     def _signal_reverse_engineering() -> Dict[str, Any]:
-        from signal_reverse_engineer import build_reverse_engineering_report
+        from signal_reverse_engineer import (
+            build_reverse_engineering_report, render_markdown,
+            REPORT_JSON, REPORT_MD, REVERSE_POLICY_JSON,
+        )
 
         result = build_reverse_engineering_report()
+        Path(REPORT_JSON).write_text(json.dumps(result, indent=2, default=str))
+        Path(REPORT_MD).write_text(render_markdown(result))
+        Path(REVERSE_POLICY_JSON).write_text(json.dumps(
+            result.get("reverse_shadow", {}), indent=2, default=str))
         totals = result.get("totals", {})
+        reverse = result.get("reverse_shadow", {})
         return {
             "ready": bool(result.get("ready")),
             "rows": totals.get("rows", 0),
@@ -197,6 +205,10 @@ def run_autonomous_learning_cycle(
             "pending_rows": totals.get("pending_rows", 0),
             "top_context_edges": len(result.get("top_context_edges", []) or []),
             "feature_edges": len(result.get("feature_edges", []) or []),
+            "reverse_scope": reverse.get("scope", ""),
+            "reverse_all_signals": reverse.get("all_signals", 0),
+            "reverse_candidates": len(reverse.get("candidates", []) or []),
+            "live_reversal_allowed": False,
             "next_action": result.get("next_action", ""),
         }
 

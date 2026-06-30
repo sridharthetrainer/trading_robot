@@ -66,6 +66,7 @@ except ImportError:
 import json
 import logging
 import os
+import re
 import sqlite3
 
 def _wal_connect(db_path: str, **kwargs):
@@ -97,6 +98,58 @@ try:
     _CC_AVAILABLE = True
 except Exception:
     _CC_AVAILABLE = False
+
+
+def evaluate_entry_cost_hurdle(
+    *,
+    symbol: str,
+    entry_price: float,
+    target_price: float,
+    stop_loss: float,
+    qty: int,
+    side: str,
+    exchange: str = "NSE",
+) -> Dict[str, Any]:
+    """Final net-of-cost gate shared by paper and live trade creation."""
+    entry, target, stop = float(entry_price or 0), float(target_price or 0), float(stop_loss or 0)
+    quantity = int(qty or 0)
+    direction = str(side or "").upper()
+    valid = entry > 0 and target > 0 and stop > 0 and quantity > 0
+    valid = valid and direction in {"BUY", "SELL"}
+    valid = valid and ((direction == "BUY" and stop < entry < target)
+                       or (direction == "SELL" and target < entry < stop))
+    if not valid:
+        return {"allowed": False, "reason": "invalid_risk_levels"}
+    if not _CC_AVAILABLE:
+        return {"allowed": False, "reason": "cost_model_unavailable"}
+
+    is_option = bool(
+        str(exchange or "").upper() in {"NFO", "BFO"}
+        or re.search(r"\d(?:CE|PE)$", str(symbol or "").upper())
+    )
+    brokerage = float(os.getenv("BROKERAGE_PER_ORDER", "20") or 20)
+    multiplier = max(1.0, float(os.getenv("COST_HURDLE_MULTIPLIER", "2.5") or 2.5))
+    minimum_net = float(os.getenv("MIN_EXPECTED_NET_PROFIT", "0") or 0)
+    target_gross, target_net, target_cost = calculate_net_pnl(
+        entry, target, quantity, direction, brokerage, is_option, "INTRADAY")
+    _flat_gross, _flat_net, flat_cost = calculate_net_pnl(
+        entry, entry, quantity, direction, brokerage, is_option, "INTRADAY")
+    required_gross = multiplier * float(flat_cost.total)
+    reason = ""
+    if float(target_gross) < required_gross:
+        reason = "target_does_not_cover_cost_hurdle"
+    elif float(target_net) < minimum_net:
+        reason = "target_net_below_minimum"
+    return {
+        "allowed": not reason,
+        "reason": reason or "cost_hurdle_pass",
+        "is_option": is_option,
+        "target_gross": round(float(target_gross), 2),
+        "target_net": round(float(target_net), 2),
+        "estimated_target_cost": round(float(target_cost.total), 2),
+        "required_target_gross": round(required_gross, 2),
+        "qty": quantity,
+    }
 
 
 
@@ -1416,6 +1469,32 @@ class TradeManager:
 
         if qty <= 0:
             logger.info("Rejected trade — zero quantity | reason=%s", sizing_reason)
+            return None
+
+        economics = evaluate_entry_cost_hurdle(
+            symbol=symbol,
+            entry_price=entry_price,
+            target_price=target_price,
+            stop_loss=stop_loss,
+            qty=qty,
+            side=side,
+            exchange=exchange,
+        )
+        if not economics.get("allowed"):
+            logger.warning(
+                "Rejected trade — economic gate | symbol=%s strategy=%s reason=%s "
+                "gross=%s required=%s qty=%s",
+                symbol, strategy, economics.get("reason"),
+                economics.get("target_gross"), economics.get("required_target_gross"), qty,
+            )
+            try:
+                from execution_compliance import record_assurance_event
+                record_assurance_event(
+                    "trade_manager_cost_gate_block", symbol=symbol,
+                    strategy=strategy, **economics,
+                )
+            except Exception:
+                pass
             return None
 
         # ── PAPER-FIRST MODE ─────────────────────────────────────────────

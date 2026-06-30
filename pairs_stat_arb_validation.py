@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -81,8 +82,19 @@ def _load_one(sym: str, days: int = 1500) -> Optional[pd.Series]:
         try:
             global _FETCHER
             if _FETCHER is None:
+                angel = None
+                try:
+                    from angel import AngelOne
+                    angel = AngelOne(
+                        api_key=os.getenv("API_KEY", ""),
+                        client_id=os.getenv("CLIENT_ID", ""),
+                        password=os.getenv("PASSWORD", ""),
+                        totp_secret=os.getenv("TOTP_SECRET", ""),
+                    )
+                except Exception as exc:
+                    logger.debug("pairs validation Angel data client unavailable: %s", exc)
                 from data_fetcher import DataFetcher
-                _FETCHER = DataFetcher()
+                _FETCHER = DataFetcher(angel=angel, paper_trade=False)
             df = _FETCHER.get_market_data(sym, "1d", days=days)
             if df is not None and len(df) >= 60:
                 df = df.copy(); df.columns = [c.lower() for c in df.columns]
