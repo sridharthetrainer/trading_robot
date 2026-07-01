@@ -37,6 +37,8 @@ RISK_PER_TRADE = 0.02
 MAX_CONCURRENT_TRADES = 5
 MAX_DAILY_LOSS_PCT = 0.06
 OI_EXIT_THRESHOLD = 0.10
+MAX_OPTION_SPREAD_PCT = 0.20
+MIN_INDEPENDENT_CONFIRMATIONS = 2
 
 
 @dataclass
@@ -148,6 +150,48 @@ def _recent_swing_high(df: pd.DataFrame, lookback: int = 5) -> float:
 
 def _score(parts: List[bool], base: float = 0.45, step: float = 0.08) -> float:
     return round(min(0.95, base + step * sum(bool(x) for x in parts)), 4)
+
+
+def _context_gate(
+    context: Optional[Dict[str, Any]], *, direction: str, option: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """Fail closed on market context and execution quality for SAHI entries."""
+    ctx = context or {}
+    if not ctx or not (ctx.get("market_context_ready") is True or ctx.get("research_proxy") is True):
+        return {"ok": False, "reason": "missing_market_context"}
+    if ctx.get("market_context_ready") is False or ctx.get("trade_allowed") is False:
+        return {"ok": False, "reason": "market_context_blocked"}
+    if ctx.get("expiry_transition") and not ctx.get("expiry_transition_liquid", False):
+        return {"ok": False, "reason": "expiry_transition_liquidity_risk"}
+
+    sector = str(ctx.get("sector_strength", ctx.get("sector_bias", "neutral"))).lower()
+    weak = sector in {"weak", "weakening", "bearish", "lagging"}
+    strong = sector in {"strong", "strengthening", "bullish", "leading"}
+    if direction == "bullish" and weak:
+        return {"ok": False, "reason": "weak_sector_for_long", "sector": sector}
+    if direction == "bearish" and strong:
+        return {"ok": False, "reason": "strong_sector_for_short", "sector": sector}
+
+    if option is not None:
+        bid = float(option.get("bid", option.get("bid_price", 0)) or 0)
+        ask = float(option.get("ask", option.get("ask_price", 0)) or 0)
+        mid = (bid + ask) / 2.0 if bid > 0 and ask > 0 else 0.0
+        spread = (ask - bid) / mid if mid > 0 else float(option.get("spread_pct", 999) or 999)
+        oi = float(option.get("oi", option.get("open_interest", 0)) or 0)
+        volume = float(option.get("volume", option.get("traded_volume", 0)) or 0)
+        allow_missing = bool(ctx.get("allow_missing_option_liquidity", False))
+        if not allow_missing and (mid <= 0 or spread > float(ctx.get("max_option_spread_pct", MAX_OPTION_SPREAD_PCT))):
+            return {"ok": False, "reason": "option_spread_or_quote_unacceptable", "spread_pct": spread}
+        if not allow_missing and (oi <= 0 or volume <= 0):
+            return {"ok": False, "reason": "option_participation_weak"}
+    return {"ok": True, "reason": "context_confirmed", "sector": sector, "sector_strong": strong}
+
+
+def _with_context(signal: Dict[str, Any], gate: Dict[str, Any]) -> Dict[str, Any]:
+    signal.setdefault("indicators", {})["behavioral_context"] = gate
+    if gate.get("sector_strong") and signal.get("confidence"):
+        signal["confidence"] = round(min(0.95, float(signal["confidence"]) + 0.04), 4)
+    return signal
 
 
 def calculate_indicators(data: pd.DataFrame, timeframe: str = "") -> pd.DataFrame:
@@ -340,6 +384,9 @@ def check_equity_long(data: pd.DataFrame, symbol: str = "", context: Optional[Di
     df = calculate_indicators(data)
     if not _is_entry_time_allowed(df):
         return _empty_signal("equity_long", "blocked_0900_0915")
+    gate = _context_gate(context, direction="bullish")
+    if not gate["ok"]:
+        return _empty_signal("equity_long", gate["reason"])
 
     c = _equity_context(df)
     allow_missing_volume = bool((context or {}).get("allow_missing_volume", False))
@@ -368,7 +415,7 @@ def check_equity_long(data: pd.DataFrame, symbol: str = "", context: Optional[Di
     target = entry * 1.05
     partial = entry + 0.5 * (target - entry)
     trail_after = entry + 0.75 * (target - entry)
-    return SahiSignal(
+    return _with_context(SahiSignal(
         action="BUY",
         trade_type="equity_long",
         side="LONG",
@@ -382,7 +429,7 @@ def check_equity_long(data: pd.DataFrame, symbol: str = "", context: Optional[Di
         reason=";".join([k for k, v in {**triggers, **confirmations}.items() if v]),
         indicators=c,
         management={"partial_qty_pct": 0.5, "move_sl_to": "breakeven", "never_widen_sl": True},
-    ).to_dict()
+    ).to_dict(), gate)
 
 
 def check_equity_short(data: pd.DataFrame, symbol: str = "", context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -391,6 +438,9 @@ def check_equity_short(data: pd.DataFrame, symbol: str = "", context: Optional[D
     df = calculate_indicators(data)
     if not _is_entry_time_allowed(df):
         return _empty_signal("equity_short", "blocked_0900_0915")
+    gate = _context_gate(context, direction="bearish")
+    if not gate["ok"]:
+        return _empty_signal("equity_short", gate["reason"])
 
     c = _equity_context(df)
     allow_missing_volume = bool((context or {}).get("allow_missing_volume", False))
@@ -420,7 +470,7 @@ def check_equity_short(data: pd.DataFrame, symbol: str = "", context: Optional[D
     target = entry * (1.0 - target_pct)
     partial = entry - 0.5 * (entry - target)
     trail_after = entry - 0.75 * (entry - target)
-    return SahiSignal(
+    return _with_context(SahiSignal(
         action="SELL",
         trade_type="equity_short",
         side="SHORT",
@@ -434,7 +484,7 @@ def check_equity_short(data: pd.DataFrame, symbol: str = "", context: Optional[D
         reason=";".join([k for k, v in {**triggers, **confirmations}.items() if v]),
         indicators=c,
         management={"partial_qty_pct": 0.5, "move_sl_to": "breakeven", "never_widen_sl": True},
-    ).to_dict()
+    ).to_dict(), gate)
 
 
 def _option_ok(option: Optional[Dict[str, Any]], delta_min: float, delta_max: float) -> Tuple[bool, str]:
@@ -469,6 +519,7 @@ def check_long_call(
     underlying_data: pd.DataFrame,
     option: Optional[Dict[str, Any]] = None,
     symbol: str = "",
+    context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     if underlying_data is None or len(underlying_data) < 30:
         return _empty_signal("long_call", "insufficient_underlying_data")
@@ -478,6 +529,9 @@ def check_long_call(
     ok, reason = _option_ok(option, 0.40, 0.60)
     if not ok:
         return _empty_signal("long_call", reason)
+    gate = _context_gate(context, direction="bullish", option=option)
+    if not gate["ok"]:
+        return _empty_signal("long_call", gate["reason"])
 
     c = _equity_context(df)
     premium = float(option.get("premium", option.get("ltp", option.get("close", 0))))
@@ -500,7 +554,7 @@ def check_long_call(
         return _empty_signal("long_call", "conditions_not_met")
 
     stop, target, partial, trail_after = _option_signal_prices(premium, 0.22, 0.50)
-    return SahiSignal(
+    return _with_context(SahiSignal(
         action="BUY",
         trade_type="long_call",
         side="LONG",
@@ -514,13 +568,14 @@ def check_long_call(
         reason=";".join([k for k, v in {**triggers, **confirmations}.items() if v]),
         indicators={**c, "oi_change_30m_pct": oi_change, "vwap_slope_5m_per_min": vwap_slope},
         management={"partial_qty_pct": 0.5, "move_sl_to": "breakeven", "lock_half_profit_after_20pct": True},
-    ).to_dict()
+    ).to_dict(), gate)
 
 
 def check_long_put(
     underlying_data: pd.DataFrame,
     option: Optional[Dict[str, Any]] = None,
     symbol: str = "",
+    context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     if underlying_data is None or len(underlying_data) < 30:
         return _empty_signal("long_put", "insufficient_underlying_data")
@@ -530,6 +585,9 @@ def check_long_put(
     ok, reason = _option_ok(option, 0.40, 0.50)
     if not ok:
         return _empty_signal("long_put", reason)
+    gate = _context_gate(context, direction="bearish", option=option)
+    if not gate["ok"]:
+        return _empty_signal("long_put", gate["reason"])
 
     c = _equity_context(df)
     premium = float(option.get("premium", option.get("ltp", option.get("close", 0))))
@@ -541,37 +599,47 @@ def check_long_put(
         "downtrend_put": c["price"] < c["dema20"] and c["price"] < c["dema50"] and c["rsi_prev"] >= 50 and c["rsi"] < 50,
         "mean_reversion_put": ten_day_return > 0.15 and c["rsi"] > 70 and c["volume_ratio"] < 1.0,
     }
-    if not any(triggers.values()):
+    confirmations = {
+        "rsi_bearish": c["rsi"] < 50 or c["rsi"] > 70,
+        "macd_bearish": macd_bearish,
+        "price_below_trend": c["price"] < c["dema20"] and c["price"] < c["dema50"],
+        "volume_active": np.isfinite(c["volume_ratio"]) and c["volume_ratio"] >= 1.0,
+    }
+    if not any(triggers.values()) or sum(bool(v) for v in confirmations.values()) < MIN_INDEPENDENT_CONFIRMATIONS:
         return _empty_signal("long_put", "conditions_not_met")
 
     stop, target, partial, trail_after = _option_signal_prices(premium, 0.28, 0.50)
-    return SahiSignal(
+    return _with_context(SahiSignal(
         action="BUY",
         trade_type="long_put",
         side="LONG",
         strategy="sahi_long_put",
-        confidence=_score(list(triggers.values()), base=0.50, step=0.12),
+        confidence=_score(list(triggers.values()) + list(confirmations.values()), base=0.50, step=0.08),
         limit_price=_round_price(premium),
         stop_loss=_round_price(stop),
         target=_round_price(target),
         partial_exit_at=_round_price(partial),
         trail_after=_round_price(trail_after),
-        reason=";".join([k for k, v in triggers.items() if v]),
+        reason=";".join([k for k, v in {**triggers, **confirmations}.items() if v]),
         indicators={**c, "ten_day_return": round(ten_day_return, 4), "macd_bearish": macd_bearish},
         management={"partial_qty_pct": 0.5, "move_sl_to": "breakeven", "lock_half_profit_after_20pct": True},
-    ).to_dict()
+    ).to_dict(), gate)
 
 
 def check_bull_call_spread(
     underlying_data: pd.DataFrame,
     option_chain: Optional[Dict[str, Any]] = None,
     symbol: str = "",
+    context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     if underlying_data is None or len(underlying_data) < 30:
         return _empty_signal("bull_call_spread", "insufficient_underlying_data")
     if not option_chain:
         return _empty_signal("bull_call_spread", "missing_option_chain")
     df = calculate_indicators(underlying_data)
+    gate = _context_gate(context, direction="bullish")
+    if not gate["ok"]:
+        return _empty_signal("bull_call_spread", gate["reason"])
     c = _equity_context(df)
     macd_bullish = _last(_num(df["macd_hist"])) > 0
     support_bounce = c["low"] <= c["ema20"] <= c["price"]
@@ -581,6 +649,10 @@ def check_bull_call_spread(
 
     buy_call = dict(option_chain.get("buy_atm_call", {}))
     sell_call = dict(option_chain.get("sell_otm_call", {}))
+    for leg in (buy_call, sell_call):
+        leg_gate = _context_gate(context, direction="bullish", option=leg)
+        if not leg_gate["ok"]:
+            return _empty_signal("bull_call_spread", leg_gate["reason"])
     debit = float(buy_call.get("premium", 0)) - float(sell_call.get("premium", 0))
     width = abs(float(sell_call.get("strike", c["price"] * 1.05)) - float(buy_call.get("strike", c["price"])))
     if debit <= 0 or width <= debit:
@@ -588,7 +660,7 @@ def check_bull_call_spread(
     max_profit = width - debit
     stop = debit * 0.45
     target1 = debit + 0.50 * max_profit
-    return SahiSignal(
+    return _with_context(SahiSignal(
         action="BUY_SPREAD",
         trade_type="bull_call_spread",
         side="BULLISH",
@@ -606,10 +678,63 @@ def check_bull_call_spread(
             {"action": "SELL", "option_type": "CE", **sell_call},
         ],
         management={"partial_qty_pct": 0.5, "move_sl_to": "net_debit"},
-    ).to_dict()
+    ).to_dict(), gate)
 
 
-def check_short_put(underlying_data: pd.DataFrame, option: Optional[Dict[str, Any]] = None, symbol: str = "") -> Dict[str, Any]:
+def check_bear_put_spread(
+    underlying_data: pd.DataFrame,
+    option_chain: Optional[Dict[str, Any]] = None,
+    symbol: str = "",
+    context: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Confirmed bearish structure expressed as a defined-risk debit spread."""
+    if underlying_data is None or len(underlying_data) < 30:
+        return _empty_signal("bear_put_spread", "insufficient_underlying_data")
+    if not option_chain:
+        return _empty_signal("bear_put_spread", "missing_option_chain")
+    df = calculate_indicators(underlying_data)
+    gate = _context_gate(context, direction="bearish")
+    if not gate["ok"]:
+        return _empty_signal("bear_put_spread", gate["reason"])
+    c = _equity_context(df)
+    close = _num(df[_ohlcv_cols(df)[3]])
+    confirmations = {
+        "bearish_structure": c["price"] < c["dema20"] and c["price"] < c["dema50"],
+        "rsi_weak": c["rsi"] < 50 and c["rsi"] < c["rsi_prev"],
+        "macd_bearish": _last(_num(df["macd_hist"])) < 0,
+        "breakdown_confirmed": _crossed_below(close, _num(df["bb_mid"])) or (
+            np.isfinite(c["donchian_low"]) and c["price"] < c["donchian_low"]
+        ),
+    }
+    if not all(confirmations.values()):
+        return _empty_signal("bear_put_spread", "conditions_not_met")
+    buy_put = dict(option_chain.get("buy_atm_put", {}))
+    sell_put = dict(option_chain.get("sell_otm_put", {}))
+    for leg in (buy_put, sell_put):
+        leg_gate = _context_gate(context, direction="bearish", option=leg)
+        if not leg_gate["ok"]:
+            return _empty_signal("bear_put_spread", leg_gate["reason"])
+    debit = float(buy_put.get("premium", 0) or 0) - float(sell_put.get("premium", 0) or 0)
+    width = abs(float(buy_put.get("strike", c["price"])) - float(sell_put.get("strike", c["price"] * 0.95)))
+    if debit <= 0 or width <= debit:
+        return _empty_signal("bear_put_spread", "invalid_spread_prices")
+    max_profit = width - debit
+    target1 = debit + 0.50 * max_profit
+    return _with_context(SahiSignal(
+        action="BUY_SPREAD", trade_type="bear_put_spread", side="BEARISH",
+        strategy="sahi_bear_put_spread", confidence=0.72,
+        limit_price=_round_price(debit), stop_loss=_round_price(debit * 0.45),
+        target=_round_price(debit + 0.75 * max_profit),
+        partial_exit_at=_round_price(target1), trail_after=_round_price(target1),
+        reason=";".join(k for k, v in confirmations.items() if v),
+        indicators={**c, "net_debit": debit, "max_profit": max_profit},
+        legs=[{"action": "BUY", "option_type": "PE", **buy_put},
+              {"action": "SELL", "option_type": "PE", **sell_put}],
+        management={"partial_qty_pct": 0.5, "move_sl_to": "net_debit", "never_widen_sl": True},
+    ).to_dict(), gate)
+
+
+def check_short_put(underlying_data: pd.DataFrame, option: Optional[Dict[str, Any]] = None, symbol: str = "", context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     if underlying_data is None or len(underlying_data) < 30:
         return _empty_signal("short_put", "insufficient_underlying_data")
     df = calculate_indicators(underlying_data)
@@ -617,13 +742,16 @@ def check_short_put(underlying_data: pd.DataFrame, option: Optional[Dict[str, An
     ok, reason = _option_ok(option, 0.0, 0.30)
     if not ok:
         return _empty_signal("short_put", reason)
+    gate = _context_gate(context, direction="bullish", option=option)
+    if not gate["ok"]:
+        return _empty_signal("short_put", gate["reason"])
     premium = float(option.get("premium", option.get("ltp", option.get("close", 0))))
     macd_bullish = _last(_num(df["macd_hist"])) > 0
     close = _num(df[_ohlcv_cols(df)[3]])
     trigger = _crossed_above(close, _num(df["bb_mid"])) and c["rsi"] > 40 and c["rsi"] > c["rsi_prev"] and macd_bullish
     if not trigger:
         return _empty_signal("short_put", "conditions_not_met")
-    return SahiSignal(
+    return _with_context(SahiSignal(
         action="SELL",
         trade_type="short_put",
         side="SHORT_PREMIUM",
@@ -637,10 +765,10 @@ def check_short_put(underlying_data: pd.DataFrame, option: Optional[Dict[str, An
         reason="bb_mid_breakout;rsi_rising;macd_bullish;delta_lte_0_3",
         indicators=c,
         management={"partial_qty_pct": 0.5, "trail_sl_to": "entry_credit"},
-    ).to_dict()
+    ).to_dict(), gate)
 
 
-def check_short_call(underlying_data: pd.DataFrame, option: Optional[Dict[str, Any]] = None, symbol: str = "") -> Dict[str, Any]:
+def check_short_call(underlying_data: pd.DataFrame, option: Optional[Dict[str, Any]] = None, symbol: str = "", context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     if underlying_data is None or len(underlying_data) < 30:
         return _empty_signal("short_call", "insufficient_underlying_data")
     df = calculate_indicators(underlying_data)
@@ -648,6 +776,9 @@ def check_short_call(underlying_data: pd.DataFrame, option: Optional[Dict[str, A
     ok, reason = _option_ok(option, 0.0, 0.30)
     if not ok:
         return _empty_signal("short_call", reason)
+    gate = _context_gate(context, direction="bearish", option=option)
+    if not gate["ok"]:
+        return _empty_signal("short_call", gate["reason"])
     premium = float(option.get("premium", option.get("ltp", option.get("close", 0))))
     macd_bearish = _last(_num(df["macd_hist"])) < 0
     call_writing = float(option.get("oi_change_30m_pct", option.get("oi_change_pct", 0)) or 0) >= 0.10
@@ -655,7 +786,7 @@ def check_short_call(underlying_data: pd.DataFrame, option: Optional[Dict[str, A
     trigger = _crossed_below(close, _num(df["bb_mid"])) and c["rsi"] < 50 and c["rsi"] < c["rsi_prev"] and macd_bearish and call_writing
     if not trigger:
         return _empty_signal("short_call", "conditions_not_met")
-    return SahiSignal(
+    return _with_context(SahiSignal(
         action="SELL",
         trade_type="short_call",
         side="SHORT_PREMIUM",
@@ -669,7 +800,7 @@ def check_short_call(underlying_data: pd.DataFrame, option: Optional[Dict[str, A
         reason="bb_mid_breakdown;rsi_falling;macd_bearish;call_writing",
         indicators=c,
         management={"partial_qty_pct": 0.5, "trail_sl_to": "entry_credit"},
-    ).to_dict()
+    ).to_dict(), gate)
 
 
 def check_oi_buildup(

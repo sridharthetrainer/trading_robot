@@ -10,7 +10,6 @@ import logging
 import os
 import re
 import sqlite3
-import tempfile
 from collections import Counter, defaultdict
 from datetime import date, datetime, time
 from pathlib import Path
@@ -18,11 +17,18 @@ from typing import Any, Dict, Iterable, List, Optional
 
 logger = logging.getLogger(__name__)
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except Exception as exc:
+    logger.debug("Could not load option bot .env: %s", exc)
+
 JOURNAL_FILE = Path(os.getenv("OPTION_DECISION_JOURNAL", "option_decision_journal.jsonl"))
 TRADES_DB = Path(os.getenv("TRADES_DB", "trades.db"))
 STATE_FILE = Path(os.getenv("OPTION_REPORT_STATE", "option_telegram_report_state.json"))
-REPORT_DIR = Path(os.getenv("OPTION_REPORT_DIR", tempfile.gettempdir()))
+REPORT_DIR = Path(os.getenv("OPTION_REPORT_DIR", "reports"))
 OPTION_SYMBOL = re.compile(r"[0-9](?:CE|PE)$", re.I)
+STRIKE_DB = Path(os.getenv("OPTION_STRIKE_DB", "option_chain_snapshots.db"))
 
 
 def _parse_time(value: Any) -> Optional[datetime]:
@@ -57,12 +63,18 @@ def _option_trades(day: str) -> List[dict]:
     out: List[dict] = []
     try:
         con = sqlite3.connect(f"file:{TRADES_DB}?mode=ro", uri=True, timeout=5)
+        cols = {row[1] for row in con.execute("PRAGMA table_info(trades)")}
+        gross_expr = (
+            "CASE WHEN COALESCE(gross_pnl,0)!=0 THEN gross_pnl "
+            "ELSE COALESCE(realized_pnl,0)+COALESCE(total_charges,0) END"
+            if "gross_pnl" in cols else "COALESCE(realized_pnl,0)+COALESCE(total_charges,0)"
+        )
         rows = con.execute(
-            "SELECT symbol,status,entry_time,exit_time,realized_pnl,total_charges "
+            f"SELECT symbol,status,entry_time,exit_time,realized_pnl,total_charges,{gross_expr} "
             "FROM trades ORDER BY COALESCE(exit_time,entry_time)"
         ).fetchall()
         con.close()
-        for symbol, status, entry_ts, exit_ts, pnl, charges in rows:
+        for symbol, status, entry_ts, exit_ts, pnl, charges, gross_pnl in rows:
             if not OPTION_SYMBOL.search(str(symbol or "")):
                 continue
             ts = exit_ts or entry_ts
@@ -73,11 +85,36 @@ def _option_trades(day: str) -> List[dict]:
             if dt.date().isoformat() == day:
                 out.append({
                     "symbol": symbol, "status": status, "time": dt,
-                    "pnl": float(pnl or 0), "charges": float(charges or 0),
+                    "pnl": float(pnl or 0), "gross_pnl": float(gross_pnl or 0),
+                    "charges": float(charges or 0),
                 })
     except (sqlite3.Error, OSError) as exc:
         logger.warning("option report trade load failed: %s", exc)
     return out
+
+
+def _all_option_signals(day: str) -> List[dict]:
+    """Load every generated strike signal, including WATCH and unexecuted rows."""
+    if not STRIKE_DB.exists():
+        return []
+    try:
+        con = sqlite3.connect(STRIKE_DB)
+        from option_multistrike_signals import ensure_multistrike_schema
+        ensure_multistrike_schema(con)
+        con.row_factory = sqlite3.Row
+        rows = con.execute(
+            """SELECT snapshot_time,underlying,expiry,strike,option_type,signal,tradable,
+                      entry_price,stop_loss,target_1,target_2,outcome_label,exit_price,
+                      gross_pnl,estimated_costs,net_pnl,net_r,execution_status
+                 FROM option_strike_signals WHERE snapshot_time LIKE ?
+                 ORDER BY ts,strike,option_type""", (day + "%",),
+        ).fetchall()
+        con.commit()
+        con.close()
+        return [dict(row) for row in rows]
+    except (sqlite3.Error, OSError) as exc:
+        logger.warning("all option signal load failed: %s", exc)
+        return []
 
 
 def _dedupe_selections(rows: Iterable[dict]) -> List[dict]:
@@ -105,6 +142,7 @@ def collect_report_data(day: Optional[str] = None) -> Dict[str, Any]:
     rows = _journal_rows(report_day)
     selections = _dedupe_selections(rows)
     trades = _option_trades(report_day)
+    all_signals = _all_option_signals(report_day)
 
     spots: Dict[str, List[tuple]] = defaultdict(list)
     for row in rows:
@@ -136,6 +174,11 @@ def collect_report_data(day: Optional[str] = None) -> Dict[str, Any]:
                            for r in selections)
     option_types.pop("", None)
     closed = [t for t in trades if str(t["status"]).upper() == "CLOSED"]
+    open_trades = [t for t in trades if str(t["status"]).upper() != "CLOSED"]
+    labelled_signals = [r for r in all_signals if int(r.get("outcome_label", -99)) in (-1, 0, 1)]
+    actionable_labelled = [r for r in labelled_signals if bool(r.get("tradable"))]
+    pending_signals = [r for r in all_signals if int(r.get("outcome_label", -99)) == -99]
+    unfilled_signals = [r for r in all_signals if int(r.get("outcome_label", -99)) == -2]
     return {
         "day": report_day, "spots": collapsed, "latest_spots": latest_spots,
         "selections": selections,
@@ -143,6 +186,27 @@ def collect_report_data(day: Optional[str] = None) -> Dict[str, Any]:
         "closed": closed, "realized_pnl": sum(t["pnl"] for t in closed),
         "charges": sum(t["charges"] for t in trades),
         "wins": sum(1 for t in closed if t["pnl"] > 0),
+        "open_trades": open_trades,
+        "traded_gross_pnl": sum(t["gross_pnl"] for t in closed),
+        "traded_net_pnl": sum(t["pnl"] for t in closed),
+        "all_signals": all_signals,
+        "labelled_signals": labelled_signals,
+        "pending_signals": pending_signals,
+        "unfilled_signals": unfilled_signals,
+        "all_signal_gross_pnl": sum(float(r.get("gross_pnl") or 0) for r in labelled_signals),
+        "all_signal_costs": sum(float(r.get("estimated_costs") or 0) for r in labelled_signals),
+        "all_signal_net_pnl": sum(float(r.get("net_pnl") or 0) for r in labelled_signals),
+        "all_signal_wins": sum(1 for r in labelled_signals if int(r.get("outcome_label", 0)) == 1),
+        "ideal_avg_net_pnl": (
+            sum(float(r.get("net_pnl") or 0) for r in labelled_signals) / len(labelled_signals)
+            if labelled_signals else 0.0
+        ),
+        "ideal_avg_net_r": (
+            sum(float(r.get("net_r") or 0) for r in labelled_signals) / len(labelled_signals)
+            if labelled_signals else 0.0
+        ),
+        "actionable_labelled": actionable_labelled,
+        "actionable_ideal_net_pnl": sum(float(r.get("net_pnl") or 0) for r in actionable_labelled),
     }
 
 
@@ -232,7 +296,21 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
 
     ax = axes[1, 1]
     closed = sorted(data["closed"], key=lambda x: x["time"])
-    if closed:
+    labelled_signals = data["labelled_signals"]
+    if labelled_signals:
+        values = [float(row.get("net_pnl") or 0) for row in labelled_signals]
+        cumulative = []
+        total = 0.0
+        for value in values:
+            total += value
+            cumulative.append(total)
+        color = "#51cf66" if total >= 0 else "#ff6b6b"
+        ax.plot(range(1, len(cumulative) + 1), cumulative, color=color, linewidth=2.2,
+                label=f"Ideal signal net ₹{total:+,.0f}")
+        ax.axhline(0, color="#8394a5", linewidth=.8)
+        ax.legend(facecolor=panel, labelcolor=fg, fontsize=8)
+        ax.set_xlabel("Labelled generated signals", color="#aebdca")
+    elif closed:
         cumulative, total = [], 0.0
         for trade in closed:
             total += trade["pnl"]
@@ -249,17 +327,20 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     else:
         ax.text(.5, .5, "No closed option trades", transform=ax.transAxes,
                 color="#8394a5", ha="center", va="center")
-    ax.set_title("REALIZED OPTION P&L", color=fg, fontweight="bold")
+    ax.set_title("IDEAL SIGNAL AFTER-COST P&L", color=fg, fontweight="bold")
     ax.set_ylabel("₹ cumulative", color="#aebdca")
 
     closed_n = len(closed)
     win_rate = (100 * data["wins"] / closed_n) if closed_n else 0
+    signal_n = len(data["all_signals"])
+    labelled_n = len(data["labelled_signals"])
+    signal_wr = 100 * data["all_signal_wins"] / labelled_n if labelled_n else 0
+    traded_wr = 100 * data["wins"] / closed_n if closed_n else 0
     fig.suptitle(f"OPTION BOT • POST-MARKET REPORT • {data['day']}", color="white",
                  fontsize=17, fontweight="bold", y=.985)
     fig.text(.5, .946,
-             f"Selections {len(data['selections'])}   |   Closed {closed_n}   |   "
-             f"Win rate {win_rate:.0f}%   |   Realized ₹{data['realized_pnl']:+,.0f}   |   "
-             f"Charges ₹{data['charges']:,.0f}",
+             f"All signals {signal_n}   |   Labelled {labelled_n}   |   Unfilled {len(data['unfilled_signals'])}   |   Pending {len(data['pending_signals'])}   |   "
+             f"Signal WR {signal_wr:.0f}%   |   Net ₹{data['all_signal_net_pnl']:+,.0f}",
              color="#b8c7d9", fontsize=10, ha="center")
     fig.autofmt_xdate(rotation=25)
     plt.tight_layout(rect=(0, .01, 1, .92))
@@ -271,9 +352,20 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     plt.close(fig)
     caption = (
         f"📊 Option post-market • {data['day']}\n"
-        f"Selected {len(data['selections'])} | Closed {closed_n} | WR {win_rate:.0f}%\n"
-        f"Realized ₹{data['realized_pnl']:+,.0f} | Charges ₹{data['charges']:,.0f}"
+        f"ALL signals {signal_n} | Labelled {labelled_n} | Unfilled {len(data['unfilled_signals'])} | Pending {len(data['pending_signals'])}\n"
+        f"IDEAL SIGNAL P&L: Gross ₹{data['all_signal_gross_pnl']:+,.0f} | Costs ₹{data['all_signal_costs']:,.0f} | "
+        f"Net ₹{data['all_signal_net_pnl']:+,.0f} | WR {signal_wr:.0f}%\n"
+        f"Avg/signal ₹{data['ideal_avg_net_pnl']:+,.0f} | Avg R {data['ideal_avg_net_r']:+.2f} | "
+        f"Actionable-only net ₹{data['actionable_ideal_net_pnl']:+,.0f}\n"
+        f"TRADES TAKEN {len(data['trades'])} | Closed {closed_n} | Open {len(data['open_trades'])} | WR {traded_wr:.0f}%\n"
+        f"Traded gross ₹{data['traded_gross_pnl']:+,.0f} | Charges ₹{data['charges']:,.0f} | "
+        f"Net realized ₹{data['traded_net_pnl']:+,.0f}"
     )
+    if closed:
+        caption += "\n" + "\n".join(
+            f"• {trade['symbol']} ₹{trade['pnl']:+,.0f} ({trade['status']})"
+            for trade in closed[:8]
+        )
     return {"ok": True, "path": str(path), "caption": caption, **data}
 
 

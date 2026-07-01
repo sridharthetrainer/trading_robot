@@ -1,0 +1,15 @@
+{
+  "policy": "forward_test_only_until_evidence_gates_pass",
+  "live_enabled": false,
+  "strategies": [
+    "heikin_ashi",
+    "td_sequential",
+    "weinstein_stage",
+    "candlestick_bearish_engulfing",
+    "cpr"
+  ],
+  "frozen_at": "2026-07-01T19:30:00+05:30",
+  "review_after_clean_days": 15,
+  "evidence_window": "2026-06-29..2026-07-01",
+  "selection_note": "Top five positive/least-negative after-cost paper candidates from three clean sessions. Small samples remain unproven; membership does not imply profitability or live approval."
+}

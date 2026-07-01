@@ -39,6 +39,10 @@ class StrikeFlowSignal:
     market_bias: str = "UNKNOWN"
     regime_aligned: Optional[bool] = None
     score_rank: int = 0
+    entry_price: float = 0.0
+    stop_loss: float = 0.0
+    target_1: float = 0.0
+    target_2: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -88,10 +92,22 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
         "fill_probability": "REAL DEFAULT 0",
         "capital_at_risk": "REAL DEFAULT 0",
         "net_r": "REAL DEFAULT 0",
+        "entry_price": "REAL DEFAULT 0",
+        "stop_loss": "REAL DEFAULT 0",
+        "target_1": "REAL DEFAULT 0",
+        "target_2": "REAL DEFAULT 0",
     }
     for name, declaration in migrations.items():
         if name not in columns:
             conn.execute(f"ALTER TABLE option_strike_signals ADD COLUMN {name} {declaration}")
+    conn.execute(
+        """UPDATE option_strike_signals
+              SET entry_price=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2),2),
+                  stop_loss=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2)*0.85,2),
+                  target_1=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2)*1.20,2),
+                  target_2=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2)*1.35,2)
+            WHERE price>0 AND COALESCE(entry_price,0)<=0"""
+    )
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_strike_signal_lookup "
         "ON option_strike_signals(underlying, option_type, ts DESC, score DESC)"
@@ -268,6 +284,13 @@ def build_multistrike_signals(
             if score < min_score:
                 reason_parts.append("score_below_minimum")
             signal = f"BUY_{option_type}" if action == "BUY" else "WATCH"
+            # Premium-risk plan shown with every generated signal. Execution
+            # still requires the tradable gate; these levels are not a fill.
+            half_spread = max(0.0, float(spread or 0.0)) / 2.0
+            entry_price = price * (1.0 + half_spread)
+            stop_loss = entry_price * 0.85
+            target_1 = entry_price * 1.20
+            target_2 = entry_price * 1.35
             ranked.append(StrikeFlowSignal(
                 underlying=str(underlying).upper(), strike=strike,
                 option_type=option_type, flow=flow, signal=signal,
@@ -279,6 +302,8 @@ def build_multistrike_signals(
                 reason=",".join(reason_parts), source=str(source or ""),
                 market_regime=str(market_regime or "UNKNOWN").upper(),
                 market_bias=normalised_bias, regime_aligned=regime_aligned,
+                entry_price=round(entry_price, 2), stop_loss=round(stop_loss, 2),
+                target_1=round(target_1, 2), target_2=round(target_2, 2),
             ))
 
     output: List[StrikeFlowSignal] = []
@@ -349,8 +374,8 @@ def persist_multistrike_signals(
             (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,
              direction,score,tradable,price,price_change_pct,oi,oi_change_pct,
              volume,volume_change_pct,spread_pct,reason,source,market_regime,
-             market_bias,regime_aligned,score_rank)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             market_bias,regime_aligned,score_rank,entry_price,stop_loss,target_1,target_2)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 snapshot_ts, snapshot_time, underlying, expiry, row["strike"], row["option_type"],
@@ -361,6 +386,7 @@ def persist_multistrike_signals(
                 row["market_regime"], row["market_bias"],
                 -1 if row["regime_aligned"] is None else int(row["regime_aligned"]),
                 row["score_rank"],
+                row["entry_price"], row["stop_loss"], row["target_1"], row["target_2"],
             ),
         )
     return {

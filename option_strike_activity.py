@@ -55,6 +55,32 @@ def _normalise_symbol(symbol: str) -> str:
     return sym if sym in SUPPORTED_UNDERLYINGS else "NIFTY"
 
 
+def _latest_actionable_signals(underlying: str, db_path: str = DB_PATH) -> List[Dict[str, Any]]:
+    if not Path(db_path).exists():
+        return []
+    try:
+        with sqlite3.connect(db_path) as conn:
+            from option_multistrike_signals import ensure_multistrike_schema
+            ensure_multistrike_schema(conn)
+            conn.row_factory = sqlite3.Row
+            latest = conn.execute(
+                "SELECT MAX(snapshot_time) FROM option_strike_signals WHERE upper(underlying)=?",
+                (underlying.upper(),),
+            ).fetchone()[0]
+            if not latest:
+                return []
+            rows = conn.execute(
+                """SELECT strike,option_type,signal,score,tradable,entry_price,stop_loss,target_1,target_2,reason
+                     FROM option_strike_signals
+                    WHERE upper(underlying)=? AND snapshot_time=? AND signal LIKE 'BUY_%'
+                    ORDER BY tradable DESC,score DESC LIMIT 4""",
+                (underlying.upper(), latest),
+            ).fetchall()
+        return [dict(row) for row in rows]
+    except sqlite3.Error:
+        return []
+
+
 def _latest_snapshot_dataframe(
     *,
     underlying: str,
@@ -250,6 +276,17 @@ def build_strike_activity_report(
         lines.append(f"🎯 Signal: {signal.get('signal')} | Confidence {_safe_float(signal.get('confidence')):.2f}")
         if signal.get("reason"):
             lines.append(f"  {str(signal.get('reason'))[:140]}")
+    actionable = _latest_actionable_signals(symbol, db_path)
+    if actionable:
+        lines.extend(["", "🎯 <b>Premium entry plans</b>"])
+        for row in actionable:
+            status = "ACTIONABLE" if row.get("tradable") else "WATCH"
+            lines.append(
+                f"  {status} {row['option_type']} {_fmt_strike(row['strike'])} | "
+                f"Entry ₹{_safe_float(row['entry_price']):.2f} | SL ₹{_safe_float(row['stop_loss']):.2f} | "
+                f"T1 ₹{_safe_float(row['target_1']):.2f} | T2 ₹{_safe_float(row['target_2']):.2f}"
+            )
+        lines.append("  <i>Levels are premium plans; ACTIONABLE still requires liquidity/regime gates.</i>")
     lines.append(f"🕐 {datetime.now().strftime('%H:%M')}")
     return StrikeActivityReport(ok=True, text="\n".join(lines), source=source)
 

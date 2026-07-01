@@ -247,7 +247,12 @@ def backtest_sahi_strategy(
         history = features.iloc[: i + 1].copy()
         gap = gap_adjustment(nifty.iloc[: i + 1] if not nifty.empty and len(nifty) > i else None)
         volume_missing = "Volume" in history.columns and float(history["Volume"].tail(20).sum()) <= 0
-        context = {"gap_adjustment": gap, "allow_missing_volume": volume_missing}
+        context = {
+            "gap_adjustment": gap,
+            "allow_missing_volume": volume_missing,
+            "research_proxy": True,
+            "sector_strength": "neutral",
+        }
         signal = _signal_for_day(history, context)
         if signal.get("action") not in ("BUY", "SELL"):
             equity.append(capital)
