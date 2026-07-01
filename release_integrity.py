@@ -44,11 +44,15 @@ def _git_head() -> str:
 
 def build_manifest(*, write: bool = True) -> Dict[str, Any]:
     files = {str(path): _sha256(path) for path in _files()}
+    content_digest = hashlib.sha256(
+        json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
     payload = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "git_head": _git_head(),
         "algorithm": "sha256",
         "file_count": len(files),
+        "content_digest": content_digest,
         "files": files,
     }
     if write:
@@ -68,12 +72,14 @@ def verify_manifest(path: Path = MANIFEST) -> Dict[str, Any]:
     added = sorted(set(new_files) - set(old_files))
     changed = sorted(name for name in set(old_files) & set(new_files) if old_files[name] != new_files[name])
     git_head_matches = bool(expected.get("git_head")) and expected.get("git_head") == current.get("git_head")
+    content_digest_matches = bool(expected.get("content_digest")) and expected.get("content_digest") == current.get("content_digest")
     return {
         "ok": not missing and not added and not changed,
         "reason": "verified" if not missing and not added and not changed else "release_files_changed",
         "manifest_git_head": expected.get("git_head", ""),
         "current_git_head": current.get("git_head", ""),
         "git_head_matches": git_head_matches,
+        "content_digest_matches": content_digest_matches,
         "file_count": len(new_files),
         "missing": missing[:25], "added": added[:25], "changed": changed[:25],
     }

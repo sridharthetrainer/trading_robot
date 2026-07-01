@@ -234,7 +234,10 @@ def fetch_dhan_option_chain(
 
 def fetch_authenticated_option_chain(underlying: str) -> Optional[Dict[str, Any]]:
     """Try configured low-cost authenticated sources in explicit priority order."""
-    order = os.getenv("OPTION_CHAIN_PROVIDER_ORDER", "upstox,dhan").split(",")
+    # Dhan is the primary authenticated source for this deployment; Upstox is
+    # retained as an authenticated failover. Public HTML is never promoted to
+    # verified-live evidence.
+    order = os.getenv("OPTION_CHAIN_PROVIDER_ORDER", "dhan,upstox").split(",")
     for provider in (name.strip().lower() for name in order):
         try:
             if provider == "upstox":

@@ -19,6 +19,37 @@ from trading_calendar import session_lag
 REPORT_JSON = "data_quality_watchdog_report.json"
 
 
+def quarantine_invalid_candles(db_path: str = "candle_cache.db") -> Dict[str, Any]:
+    """Quarantine structurally impossible bars; never erase merely stale data."""
+    if not Path(db_path).exists():
+        return {"ok": False, "reason": "candle_cache_missing", "quarantined": 0}
+    predicate = """
+        open IS NULL OR high IS NULL OR low IS NULL OR close IS NULL
+        OR open <= 0 OR high <= 0 OR low <= 0 OR close <= 0
+        OR high < open OR high < close OR high < low
+        OR low > open OR low > close OR low > high
+        OR volume IS NULL OR volume < 0
+    """
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS candle_quarantine (
+                symbol TEXT, interval TEXT, timestamp TEXT, open REAL, high REAL,
+                low REAL, close REAL, volume INTEGER, reason TEXT,
+                quarantined_at TEXT
+            )
+        """)
+        count = int(conn.execute(f"SELECT COUNT(*) FROM candles WHERE {predicate}").fetchone()[0])
+        if count:
+            conn.execute(
+                f"""INSERT INTO candle_quarantine
+                    SELECT symbol, interval, timestamp, open, high, low, close,
+                           volume, 'invalid_ohlcv', datetime('now')
+                      FROM candles WHERE {predicate}"""
+            )
+            conn.execute(f"DELETE FROM candles WHERE {predicate}")
+    return {"ok": True, "quarantined": count, "stale_rows_deleted": 0}
+
+
 def _expected(interval: str) -> float:
     return {"1m": 1, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "1d": 1440}.get(interval, 0)
 
@@ -105,8 +136,12 @@ def audit_candle_cache(
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-write", action="store_true")
+    parser.add_argument("--repair", action="store_true", help="quarantine invalid OHLCV rows before auditing")
     args = parser.parse_args(list(argv) if argv is not None else None)
+    repair = quarantine_invalid_candles() if args.repair else None
     report = audit_candle_cache()
+    if repair is not None:
+        report["repair"] = repair
     if not args.no_write:
         Path(REPORT_JSON).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
     print(json.dumps({

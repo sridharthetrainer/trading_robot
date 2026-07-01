@@ -155,6 +155,9 @@ def build_system_readiness_report(
     # Execution count remains infrastructure telemetry and never trains edge.
     if int(fill.get("paper", 0) or 0) < 10:
         warnings.append("paper_execution_telemetry_below_10")
+    paired_fills = fill.get("paired_fill_comparison", {}) if isinstance(fill, dict) else {}
+    if int(paired_fills.get("paired_fills", 0) or 0) < int(paired_fills.get("target_paired_fills", 100) or 100):
+        blocks.append("paper_live_fill_comparisons_below_100")
     broker_status = health.get("broker_status", []) if isinstance(health.get("broker_status"), list) else []
     broker_connected = any(bool(row.get("connected")) for row in broker_status if isinstance(row, dict))
     if not broker_connected:
@@ -166,8 +169,8 @@ def build_system_readiness_report(
         blocks.append("no_setup_specific_barrier_labels")
     if not release_integrity.get("ok"):
         blocks.append("release_integrity_unverified")
-    elif not release_integrity.get("git_head_matches", False):
-        warnings.append("release_manifest_commit_mismatch")
+    elif not release_integrity.get("content_digest_matches", False):
+        blocks.append("release_content_digest_unverified")
     label_detail = (
         data_audit.get("checks", [{}]) if isinstance(data_audit.get("checks"), list) else []
     )
@@ -223,6 +226,8 @@ def build_system_readiness_report(
             "institutional_raw_capability": raw_inst_score,
             "option_bot": option_score.get("total"),
             "option_bot_grade": option_score.get("grade"),
+            "option_bot_capability": option_score.get("capability_score", option_score.get("raw_capability_score")),
+            "option_bot_evidence": option_score.get("evidence_score", option_score.get("total")),
         },
         "data": {
             "candle_1m_symbols": int(candles_1m or 0),
@@ -242,6 +247,7 @@ def build_system_readiness_report(
             "fill_latency_coverage_pct": fill.get("fill_latency_coverage_pct"),
             "entry_slippage_coverage_pct": fill.get("entry_slippage_coverage_pct"),
             "avg_entry_slippage_pct": fill.get("avg_entry_slippage_pct"),
+            "paired_fill_comparison": paired_fills,
             "gross_pnl": round(float(gross_pnl or 0), 2),
             "net_pnl": round(float(net_pnl or 0), 2),
             "profitable_trades": int(profitable or 0),

@@ -555,15 +555,17 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
     evidence_blocks = []
     if verified_live_rows < 20:
         evidence_blocks.append("insufficient_verified_live_snapshots")
-    if verified_generated < 100:
+    if verified_generated < 100:   # consistent with _score_option_bot_autonomy
         evidence_blocks.append("insufficient_verified_option_signal_outcomes")
-    total = min(raw_total, 59.0) if evidence_blocks else raw_total
-    grade = "A" if total >= 90 else "B" if total >= 80 else "C" if total >= 70 else "D" if total >= 60 else "F"
+    evidence_score = min(raw_total, 59.0) if evidence_blocks else raw_total
+    grade = "A" if evidence_score >= 90 else "B" if evidence_score >= 80 else "C" if evidence_score >= 70 else "D" if evidence_score >= 60 else "F"
     readiness = (
-        "LIVE_READY"
-        if total >= 85 and verified_live_rows >= 20 and verified_generated >= 100
+        "EVIDENCE_READY"
+        if evidence_score >= 85 and not evidence_blocks
+        else "CAPABILITY_READY_EVIDENCE_PENDING"
+        if raw_total >= 85
         else "PAPER_OR_SHADOW"
-        if total >= 60
+        if raw_total >= 60
         else "FIX_BEFORE_LIVE"
     )
     dedup = []
@@ -573,12 +575,15 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
             dedup.append(item)
             seen.add(item)
     return {
-        "total": total,
+        "total": evidence_score,
+        "capability_score": raw_total,
+        "evidence_score": evidence_score,
         "max": sum(weights.values()),
         "grade": grade,
         "readiness": readiness,
         "autonomous_score": _score_option_bot_autonomy(audit),
         "raw_capability_score": raw_total,
+        "minimum_verified_outcomes": 500,
         "evidence_blocks": evidence_blocks,
         "parts": parts,
         "top_improvements": dedup[:8],

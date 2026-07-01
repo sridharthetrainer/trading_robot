@@ -155,6 +155,24 @@ def _summarise_by(rows: Iterable[Dict[str, Any]], key: str) -> Dict[str, Dict[st
     return out
 
 
+def _paired_fill_comparison(rows: Iterable[Dict[str, Any]], target: int = 100) -> Dict[str, Any]:
+    """Measure paper-vs-live fill drift only when both fills are recorded."""
+    pairs = []
+    for row in rows:
+        meta = row.get("_metadata", {}) or {}
+        paper_price = _safe_float(meta.get("paper_fill_price"))
+        live_price = _safe_float(meta.get("live_fill_price"))
+        if paper_price > 0 and live_price > 0:
+            pairs.append(abs(live_price - paper_price) / paper_price * 100.0)
+    return {
+        "paired_fills": len(pairs),
+        "target_paired_fills": int(target),
+        "ready": len(pairs) >= int(target),
+        "avg_absolute_deviation_pct": round(sum(pairs) / len(pairs), 4) if pairs else None,
+        "max_absolute_deviation_pct": round(max(pairs), 4) if pairs else None,
+    }
+
+
 def build_execution_fill_telemetry(
     *,
     db_path: str = TRADES_DB,
@@ -182,6 +200,7 @@ def build_execution_fill_telemetry(
         if "reject" in str(t.get("exit_reason") or "").lower()
         or str(t.get("status") or "").upper() == "REJECTED"
     ]
+    paired = _paired_fill_comparison(trades)
     report = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "db_path": db_path,
@@ -203,6 +222,7 @@ def build_execution_fill_telemetry(
         "fill_latency_coverage_pct": round(100.0 * len(with_fill_latency) / max(1, len(trades)), 2),
         "fill_avg_price_coverage_pct": round(100.0 * len(with_fill_avg) / max(1, len(trades)), 2),
         "entry_slippage_coverage_pct": round(100.0 * len(with_slippage) / max(1, len(trades)), 2),
+        "paired_fill_comparison": paired,
         "avg_entry_slippage_pct": (
             round(sum(float(t["entry_slippage_pct"]) for t in with_slippage) / len(with_slippage), 4)
             if with_slippage else None

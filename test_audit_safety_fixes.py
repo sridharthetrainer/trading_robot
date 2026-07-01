@@ -38,20 +38,20 @@ def test_candle_cache_read_ignores_existing_zero_ohlc(tmp_path, monkeypatch):
     monkeypatch.setattr(candle_cache, "_DB_PATH", db_path)
     monkeypatch.setattr(candle_cache, "_INIT_DONE", False)
 
+    # RECENT timestamps (relative to now) so the days=10 lookback always includes
+    # them — hardcoded dates make this test go stale as wall-clock time passes.
+    import pandas as pd
+    base = (pd.Timestamp.now().normalize() + pd.Timedelta(hours=9, minutes=15))
+    ts = [(base + pd.Timedelta(minutes=5 * k)).strftime("%Y-%m-%dT%H:%M:%S") for k in range(3)]
+
     conn = sqlite3.connect(db_path)
     candle_cache._get_conn().close()
-    conn.execute(
-        "INSERT OR REPLACE INTO candles VALUES (?,?,?,?,?,?,?,?)",
-        ("NIFTY", "5m", "2026-06-20T09:15:00", 0, 0, 0, 0, 100),
-    )
-    conn.execute(
-        "INSERT OR REPLACE INTO candles VALUES (?,?,?,?,?,?,?,?)",
-        ("NIFTY", "5m", "2026-06-20T09:20:00", 100, 102, 99, 101, 200),
-    )
-    conn.execute(
-        "INSERT OR REPLACE INTO candles VALUES (?,?,?,?,?,?,?,?)",
-        ("NIFTY", "5m", "2026-06-20T09:25:00", 101, 103, 100, 102, 250),
-    )
+    conn.execute("INSERT OR REPLACE INTO candles VALUES (?,?,?,?,?,?,?,?)",
+                 ("NIFTY", "5m", ts[0], 0, 0, 0, 0, 100))
+    conn.execute("INSERT OR REPLACE INTO candles VALUES (?,?,?,?,?,?,?,?)",
+                 ("NIFTY", "5m", ts[1], 100, 102, 99, 101, 200))
+    conn.execute("INSERT OR REPLACE INTO candles VALUES (?,?,?,?,?,?,?,?)",
+                 ("NIFTY", "5m", ts[2], 101, 103, 100, 102, 250))
     conn.commit()
     conn.close()
 

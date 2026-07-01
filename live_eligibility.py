@@ -21,6 +21,8 @@ from typing import Any, Dict, Iterable, Optional
 DEFAULT_MANIFEST_FILE = "live_eligibility.json"
 DEFAULT_VALIDATION_FILE = "validation_results.json"
 DEFAULT_EDGE_FILE = "strategy_validation_report.json"
+DEFAULT_COHORT_FILE = "frozen_strategy_cohort.json"
+MAX_COHORT_SIZE = 5
 
 PASS_VERDICTS = {"PASS", "POSITIVE"}
 BLOCK_VERDICTS = {"FAIL", "INSUFFICIENT_DATA", "NEGATIVE_EDGE"}
@@ -109,6 +111,7 @@ def build_manifest(
     min_deflated_sharpe: float = DEFAULT_MIN_DEFLATED_SHARPE,
     min_profitable_windows: float = DEFAULT_MIN_PROFITABLE_WINDOWS,
     min_validation_windows: int = DEFAULT_MIN_VALIDATION_WINDOWS,
+    cohort_file: str = DEFAULT_COHORT_FILE,
 ) -> Dict[str, Any]:
     """
     Build a per-strategy live eligibility manifest.
@@ -126,6 +129,13 @@ def build_manifest(
     edge_status = _edge_statuses(edge_raw)
     validation_info = _file_info(validation_file)
     edge_info = _file_info(edge_file)
+    cohort_raw = _load_json(cohort_file)
+    cohort_names = {
+        _normalize_name(item)
+        for item in (cohort_raw.get("strategies", []) or [])[:MAX_COHORT_SIZE]
+        if _normalize_name(item)
+    }
+    cohort_live_enabled = bool(cohort_raw.get("live_enabled", False))
 
     warnings = []
     if not validation_info["exists"]:
@@ -141,6 +151,10 @@ def build_manifest(
     )
     if validation_stale:
         warnings.append("validation_file_stale")
+    if not cohort_names:
+        warnings.append("frozen_strategy_cohort_missing_or_empty")
+    if len(cohort_raw.get("strategies", []) or []) > MAX_COHORT_SIZE:
+        warnings.append("frozen_strategy_cohort_exceeds_five")
 
     names = set(edge_status)
     names.update(_normalize_name(k) for k in validation.keys())
@@ -193,11 +207,20 @@ def build_manifest(
             live_ready = False
             reason = f"edge_{edge.lower()}"
 
+        cohort_member = name in cohort_names
+        if live_ready and not cohort_member:
+            live_ready = False
+            reason = "outside_frozen_strategy_cohort"
+        if live_ready and not cohort_live_enabled:
+            live_ready = False
+            reason = "frozen_cohort_live_not_approved"
+
         if live_ready:
             live_ready_count += 1
 
         strategies[name] = {
             "live_ready": bool(live_ready),
+            "cohort_member": cohort_member,
             "paper_training_only": not bool(live_ready),
             "block_reason": reason,
             "validation_verdict": verdict,
@@ -217,6 +240,10 @@ def build_manifest(
     manifest = {
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(),
         "policy": "validation_pass_required",
+        "cohort_file": cohort_file,
+        "cohort_size": len(cohort_names),
+        "cohort_max_size": MAX_COHORT_SIZE,
+        "cohort_live_enabled": cohort_live_enabled,
         "validation_file": validation_file,
         "edge_file": edge_file,
         "max_validation_age_days": max_validation_age_days,

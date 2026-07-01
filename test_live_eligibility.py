@@ -30,6 +30,7 @@ def test_manifest_blocks_failed_and_missing_validation():
         validation = root / "validation_results.json"
         edge = root / "strategy_validation_report.json"
         output = root / "live_eligibility.json"
+        cohort = root / "frozen_strategy_cohort.json"
 
         _write(validation, {
             "results": {
@@ -51,11 +52,13 @@ def test_manifest_blocks_failed_and_missing_validation():
                 "fallback": {"status": "NEGATIVE_EDGE"},
             },
         })
+        _write(cohort, {"live_enabled": True, "strategies": ["breakout"]})
 
         manifest = build_manifest(
             validation_file=str(validation),
             edge_file=str(edge),
             output_file=str(output),
+            cohort_file=str(cohort),
         )
 
         checks = [
