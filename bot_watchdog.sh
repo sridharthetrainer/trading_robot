@@ -9,7 +9,6 @@
 BOT_DIR="/home/sridhar/Desktop/trading_robot"
 BOT_CTL="$BOT_DIR/bot.sh"
 MANUAL_TRACKER="$BOT_DIR/manual_trade_tracker.py"
-AUTO_DEPLOY="$BOT_DIR/auto_deploy_watcher.py"
 # Match the ACTUAL running cmdline (launched with a relative path via bot.sh),
 # not the full path — the full-path pgrep never matched, causing a false
 # "DEAD" + restart every cycle. "--loop" keeps it specific to the recorder.
@@ -56,14 +55,9 @@ seconds_since_last() {
 # Is the bot running?
 BOT_PID=$(pgrep -f "python3.*main_autonomous" 2>/dev/null | head -1)
 if [ -n "$BOT_PID" ]; then
-    # Keep companion services alive too.  Manual option protection and
-    # auto-deploy are part of the autonomous runtime, not optional extras.
+    # Keep operational companion services alive. Deployment stays manual.
     if ! pgrep -f "$MANUAL_TRACKER" >/dev/null 2>&1; then
         log "Manual tracker is DEAD — starting via bot.sh"
-        bash "$BOT_CTL" start >> "$LOG" 2>&1 || true
-    fi
-    if ! pgrep -f "$AUTO_DEPLOY" >/dev/null 2>&1; then
-        log "Auto-deploy watcher is DEAD — starting via bot.sh"
         bash "$BOT_CTL" start >> "$LOG" 2>&1 || true
     fi
     if ! pgrep -f "$OPTION_RECORDER" >/dev/null 2>&1; then

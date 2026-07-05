@@ -100,18 +100,8 @@ stop_manual_tracker() {
 }
 
 start_auto_deploy() {
-    cd "$BOT_DIR"
-    PYTHON="$(pick_python)"
-    if [ -n "$(pid_for_script "auto_deploy_watcher.py")" ]; then
-        return 0
-    fi
-    if ! system_service_enabled "auto-deploy"; then
-        systemctl --user start auto-deploy 2>/dev/null || true
-        sleep 1
-        [ -n "$(pid_for_script "auto_deploy_watcher.py")" ] && return 0
-    fi
-    nohup "$PYTHON" "$AUTO_DEPLOY" >> "$BOT_DIR/auto_deploy.log" 2>&1 &
-    echo "Auto-deploy PID: $!"
+    stop_auto_deploy
+    echo "Google Drive auto-deploy disabled — use remote_deploy.sh manually"
 }
 
 stop_auto_deploy() {
@@ -175,7 +165,6 @@ case "$1" in
         smoke_check || exit 1
         start_bot
         start_manual_tracker
-        start_auto_deploy
         start_option_recorder
         start_watchdog
         echo "✓ Bot started"
@@ -199,7 +188,6 @@ case "$1" in
         stop_option_recorder
         sleep 1
         start_manual_tracker
-        start_auto_deploy
         start_option_recorder
         start_watchdog
         echo "✓ Bot restarted successfully"
@@ -221,13 +209,12 @@ case "$1" in
 
         MAIN_PID="$(pid_for_script "main_autonomous.py")"
         MANUAL_PID="$(pid_for_script "manual_trade_tracker.py")"
-        DEPLOY_PID="$(pid_for_script "auto_deploy_watcher.py")"
         OPTION_REC_PID="$(pid_for_script "option_chain_recorder.py")"
         WATCHDOG_PID="$(pid_for_script "watchdog.py")"
 
         [ -n "$MAIN_PID" ] && echo "Bot: running (PID: $MAIN_PID)" || echo "Bot: NOT running"
         [ -n "$MANUAL_PID" ] && echo "Manual tracker: running (PID: $MANUAL_PID)" || echo "Manual tracker: NOT running"
-        [ -n "$DEPLOY_PID" ] && echo "Auto-deploy: running (PID: $DEPLOY_PID)" || echo "Auto-deploy: NOT running"
+        echo "Auto-deploy: DISABLED (manual deployment only)"
         [ -n "$OPTION_REC_PID" ] && echo "Option recorder: running (PID: $OPTION_REC_PID)" || echo "Option recorder: NOT running"
         [ -n "$WATCHDOG_PID" ] && echo "Watchdog: running (PID: $WATCHDOG_PID)" || echo "Watchdog: NOT running"
         ;;

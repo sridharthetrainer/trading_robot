@@ -1,18 +1,16 @@
 [Unit]
-Description=Trading Bot Auto-Deploy Watcher
+Description=DISABLED legacy Google Drive auto-deploy helper
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=simple
+Type=oneshot
 User=sridhar
 WorkingDirectory=/home/sridhar/Desktop/trading_robot
 ExecStart=/home/sridhar/Desktop/trading_robot/.venv/bin/python3 /home/sridhar/Desktop/trading_robot/auto_deploy_watcher.py
-Restart=always
-RestartSec=30
+RemainAfterExit=yes
 StandardOutput=journal
 StandardError=journal
 Environment=PYTHONUNBUFFERED=1
 
-[Install]
-WantedBy=multi-user.target
+# Deliberately no [Install] section: manual deployment only.

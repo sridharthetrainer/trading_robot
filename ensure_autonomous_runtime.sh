@@ -26,7 +26,7 @@ install_cron_fallback() {
 }
 
 system_runtime_ready=true
-for svc in trading-bot.service trading-bot-watchdog.service manual-tracker.service auto-deploy.service; do
+for svc in trading-bot.service trading-bot-watchdog.service manual-tracker.service; do
     if ! systemctl is-enabled "$svc" >/dev/null 2>&1; then
         system_runtime_ready=false
     fi
@@ -117,24 +117,6 @@ RestartSec=30
 [Install]
 WantedBy=default.target"
 
-write_unit "auto-deploy.service" "[Unit]
-Description=Trading Robot Auto Deploy Watcher
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-WorkingDirectory=${BOT_DIR}
-EnvironmentFile=-${BOT_DIR}/.env
-Environment=PYTHONUNBUFFERED=1
-ExecStartPre=-/usr/bin/pkill -f python.*auto_deploy_watcher.py
-ExecStart=${PYTHON} ${BOT_DIR}/auto_deploy_watcher.py
-Restart=always
-RestartSec=30
-
-[Install]
-WantedBy=default.target"
-
 write_unit "daily-pipeline.service" "[Unit]
 Description=Trading Robot Daily Data Pipeline
 
@@ -176,7 +158,8 @@ Persistent=true
 WantedBy=timers.target"
 
 systemctl --user daemon-reload || true
-systemctl --user enable --now trading-bot.service manual-tracker.service trading-bot-watchdog.service auto-deploy.service || true
+systemctl --user disable --now auto-deploy.service >/dev/null 2>&1 || true
+systemctl --user enable --now trading-bot.service manual-tracker.service trading-bot-watchdog.service || true
 systemctl --user enable --now daily-pipeline.timer post-market-ml.timer || true
 
 # Linger lets user services start at boot before graphical login. It may be

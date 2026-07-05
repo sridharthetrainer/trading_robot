@@ -23,7 +23,6 @@ install_unit() {
 install_unit trading-bot.service
 install_unit trading-bot-watchdog.service
 install_unit manual-tracker.service
-install_unit auto-deploy.service
 install_unit daily-pipeline.service
 install_unit daily-pipeline.timer
 install_unit post-market-ml.service
@@ -31,9 +30,10 @@ install_unit post-market-ml.timer
 install_unit trade_guardian.service
 
 sudo systemctl daemon-reload
-sudo systemctl enable trading-bot.service trading-bot-watchdog.service manual-tracker.service auto-deploy.service
+sudo systemctl disable --now auto-deploy.service 2>/dev/null || true
+sudo systemctl enable trading-bot.service trading-bot-watchdog.service manual-tracker.service
 sudo systemctl enable daily-pipeline.timer post-market-ml.timer
-sudo systemctl restart trading-bot.service trading-bot-watchdog.service manual-tracker.service auto-deploy.service
+sudo systemctl restart trading-bot.service trading-bot-watchdog.service manual-tracker.service
 sudo systemctl restart daily-pipeline.timer post-market-ml.timer
 
 echo
