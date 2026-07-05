@@ -20,6 +20,12 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except Exception as exc:
+    logger.debug("option journal .env load failed: %s", exc)
+
 
 DEFAULT_JOURNAL_FILE = "option_decision_journal.jsonl"
 MAX_FIELD_CHARS = 2000
@@ -485,6 +491,65 @@ def _alert_option_selection(payload: Dict[str, Any]) -> None:
                 dedup_key=f"optsel_{key}", dedup_cooldown_override=3600)
     except Exception as exc:
         logger.debug("option selection alert: %s", exc)
+
+
+def alert_generated_option_signals(
+    *, underlying: str, snapshot_time: str, expiry: str, signals: list[Dict[str, Any]]
+) -> int:
+    """Route persisted actionable strike-flow signals to the option channel."""
+    actionable = [row for row in (signals or []) if bool(row.get("tradable"))]
+    rows_to_send = actionable
+    if not rows_to_send:
+        watches = [row for row in (signals or []) if str(row.get("signal") or "").startswith("BUY_")]
+        rows_to_send = sorted(watches, key=lambda row: _safe_float(row.get("score")), reverse=True)[:1]
+    if not rows_to_send:
+        return 0
+    am = _option_alerts()
+    if am is None:
+        return 0
+    sent = 0
+    for row in rows_to_send:
+        strike = _safe_float(row.get("strike"))
+        otype = str(row.get("option_type") or "").upper()
+        signal = str(row.get("signal") or f"BUY_{otype}").upper()
+        status = "ACTIONABLE" if row.get("tradable") else "WATCH — NOT ACTIONABLE"
+        lines = [
+            f"🎯 <b>{underlying} OPTION SIGNAL</b> · {status}",
+            f"<b>{signal} {strike:.0f}{otype}</b> · Score {_safe_float(row.get('score')):.1f}",
+            f"Entry ₹{_safe_float(row.get('entry_price')):.2f} | SL ₹{_safe_float(row.get('stop_loss')):.2f}",
+            f"T1 ₹{_safe_float(row.get('target_1')):.2f} | T2 ₹{_safe_float(row.get('target_2')):.2f}",
+            f"Expiry {expiry or '-'} | Flow {row.get('flow','-')} | Source {row.get('source','-')}",
+            f"Edge {row.get('edge_policy','VALIDATING')} | n={int(_safe_float(row.get('edge_outcomes')))} | PF {_safe_float(row.get('edge_profit_factor')):.2f}",
+            f"Snapshot {str(snapshot_time)[11:19]}",
+            f"<i>{str(row.get('reason') or '')[:180]}</i>",
+        ]
+        key = f"optflow_{snapshot_time}_{underlying}_{strike:.0f}_{otype}"
+        if am.send("\n".join(lines), dedup_key=key, dedup_cooldown_override=86_400):
+            sent += 1
+    return sent
+
+
+def alert_option_lifecycle_events(events: list[Dict[str, Any]]) -> int:
+    """Send target/stop updates produced by later verified option snapshots."""
+    am = _option_alerts()
+    if am is None:
+        return 0
+    sent = 0
+    icons = {"TARGET1_HIT": "✅", "TARGET2_HIT": "🏆", "STOP_LOSS_HIT": "🛑", "EXIT_AFTER_T1": "🔒"}
+    for event in events or []:
+        status = str(event.get("status") or "UPDATED")
+        leg = f"{event.get('underlying')} {float(event.get('strike') or 0):.0f}{event.get('option_type')}"
+        lines = [
+            f"{icons.get(status, '🔔')} <b>{status.replace('_', ' ')} — {leg}</b>",
+            f"Current ₹{_safe_float(event.get('current_price')):.2f} | Entry ₹{_safe_float(event.get('entry_price')):.2f}",
+            f"SL ₹{_safe_float(event.get('stop_loss')):.2f} | T1 ₹{_safe_float(event.get('target_1')):.2f} | T2 ₹{_safe_float(event.get('target_2')):.2f}",
+        ]
+        if status == "TARGET1_HIT":
+            lines.append("SL revised to cost-to-cost after T1.")
+        key = f"optlife_{event.get('signal_time')}_{leg}_{status}"
+        if am.send("\n".join(lines), dedup_key=key, dedup_cooldown_override=172_800):
+            sent += 1
+    return sent
 
 
 def _alert_option_result(payload: Dict[str, Any]) -> None:

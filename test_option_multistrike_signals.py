@@ -184,3 +184,37 @@ def test_generated_strike_signals_receive_after_cost_outcomes(tmp_path):
     )
     assert model["verified_outcomes"] >= 1
     assert model["weights"]
+
+
+def test_lifecycle_marks_target_and_moves_stop_to_entry(tmp_path):
+    db = tmp_path / "snapshots.db"
+    first = [_row(25000, 100, 1000, 1000)]
+    second = [_row(25000, 110, 1200, 1500)]
+    target_hit = [_row(25000, 140, 1500, 2200)]
+    with sqlite3.connect(db) as conn:
+        conn.execute(
+            "CREATE TABLE option_chain_snapshots "
+            "(ts REAL,snapshot_time TEXT,underlying TEXT,expiry TEXT,ok INTEGER,rows_json TEXT)"
+        )
+        conn.execute("INSERT INTO option_chain_snapshots VALUES (?,?,?,?,?,?)", (
+            1, "2026-06-25T10:00:00+05:30", "NIFTY", "2026-06-30", 1, json.dumps(first),
+        ))
+        persist_multistrike_signals(
+            conn=conn, snapshot_time="2026-06-25T10:05:00+05:30",
+            underlying="NIFTY", expiry="2026-06-30", current_rows=second, source="angel",
+        )
+        conn.execute("INSERT INTO option_chain_snapshots VALUES (?,?,?,?,?,?)", (
+            2, "2026-06-25T10:05:00+05:30", "NIFTY", "2026-06-30", 1, json.dumps(second),
+        ))
+        result = persist_multistrike_signals(
+            conn=conn, snapshot_time="2026-06-25T10:10:00+05:30",
+            underlying="NIFTY", expiry="2026-06-30", current_rows=target_hit, source="angel",
+        )
+        event = next(e for e in result["lifecycle_events"] if e["option_type"] == "CE")
+        stored = conn.execute(
+            "SELECT lifecycle_status,entry_price,stop_loss FROM option_strike_signals "
+            "WHERE snapshot_time='2026-06-25T10:05:00+05:30' AND option_type='CE'"
+        ).fetchone()
+    assert event["status"] in {"TARGET1_HIT", "TARGET2_HIT"}
+    if event["status"] == "TARGET1_HIT":
+        assert stored[2] == stored[1]

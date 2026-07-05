@@ -213,7 +213,7 @@ def record_option_chain_snapshot(
         try:
             from option_multistrike_signals import persist_multistrike_signals
             market_regime, market_bias = _direction_context(underlying)
-            persist_multistrike_signals(
+            flow_result = persist_multistrike_signals(
                 conn=conn,
                 snapshot_time=snap_time,
                 underlying=underlying,
@@ -224,6 +224,15 @@ def record_option_chain_snapshot(
                 market_bias=market_bias,
             )
             conn.commit()
+            from option_decision_journal import alert_generated_option_signals
+            alert_generated_option_signals(
+                underlying=underlying,
+                snapshot_time=snap_time,
+                expiry=payload["expiry"],
+                signals=flow_result.get("signals", []),
+            )
+            from option_decision_journal import alert_option_lifecycle_events
+            alert_option_lifecycle_events(flow_result.get("lifecycle_events", []))
         except Exception as exc:
             logger.debug("multistrike flow persist failed for %s: %s", underlying, exc, exc_info=True)
     conn.close()

@@ -50,43 +50,9 @@ logger = logging.getLogger("angel")
 # credentials into the systemd journal. This filter scrubs those values from any
 # log record before its handlers emit it. It does NOT touch credentials or .env;
 # it only redacts what would otherwise be written to logs.
-import re as _re
+from logging_security import install_secret_redaction
 
-_SECRET_PATTERNS = [
-    _re.compile(r"(['\"]?(?:password|totp|clientcode|api[_-]?key)['\"]?\s*[:=]\s*['\"]?)"
-                r"([^'\"\s,}]+)", _re.IGNORECASE),
-    _re.compile(r"(['\"]?X-PrivateKey['\"]?\s*[:=]\s*['\"]?)([^'\"\s,}]+)", _re.IGNORECASE),
-]
-
-
-class _SecretRedactingFilter(logging.Filter):
-    """Redact broker secrets from log records (mutates record before handlers)."""
-    _TRIGGERS = ("password", "totp", "privatekey", "clientcode", "apikey", "api_key", "api-key")
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        try:
-            msg = record.getMessage()
-            if any(t in msg.lower() for t in self._TRIGGERS):
-                for pat in _SECRET_PATTERNS:
-                    msg = pat.sub(r"\1***", msg)
-                record.msg = msg
-                record.args = ()
-        except Exception:
-            pass
-        return True
-
-
-def _install_secret_log_redaction() -> None:
-    flt = _SecretRedactingFilter()
-    logging.getLogger().addFilter(flt)          # our own loggers
-    try:                                          # logzero logger smartapi logs through
-        import logzero
-        logzero.logger.addFilter(flt)
-    except Exception:
-        pass
-
-
-_install_secret_log_redaction()
+install_secret_redaction()
 
 # NSE/BSE F&O prices must be in multiples of the ₹0.05 tick. round(p, 2) leaves
 # values like 28.67 that the exchange rejects ("price in multiples of 5 paise").
@@ -105,14 +71,21 @@ PAPER_SPREAD_PCT = 0.02
 MAX_CONNECT_RETRIES = 3
 CONNECT_BASE_DELAY = 2
 RECONNECT_MIN_INTERVAL = 60   # min seconds between reconnect attempts (anti-storm)
-RATELIMIT_COOLDOWN     = 60   # after a rate-limit, pause logins this long
+RATELIMIT_COOLDOWN     = int(os.getenv("ANGEL_RATELIMIT_COOLDOWN_SEC", "90"))
+API_MIN_INTERVAL_SEC   = float(os.getenv("ANGEL_API_MIN_INTERVAL_SEC", "0.4"))
 TOKEN_MISS_TTL         = 1800 # negative-cache unresolved tokens this long (anti-storm)
 
 
 def _is_rate_limited(err) -> bool:
     """True if an Angel error is the account-wide 'exceeding access rate' throttle."""
     s = str(err).lower()
-    return "exceeding access rate" in s or "access denied because of exceeding" in s
+    return any(marker in s for marker in (
+        "exceeding access rate",
+        "access denied because of exceeding",
+        "too many requests",
+        "ab1021",
+        "status code 429",
+    ))
 
 
 def _sanitize_order_tag(tag: str) -> str:
@@ -310,6 +283,8 @@ class AngelOne:
         self._paper_order_counter = 0
         self._last_connect_ts: float = 0.0      # anti-storm reconnect throttle
         self._rate_limited_until: float = 0.0   # circuit-breaker after a throttle
+        self._api_rate_lock = threading.Lock()
+        self._last_api_call_ts: float = 0.0
         self._balance_cache_value: float = 0.0
         self._balance_cache_ts: float = 0.0
         self._balance_cache_ttl: float = float(os.getenv("ANGEL_BALANCE_CACHE_TTL_SEC", "20"))
@@ -1373,6 +1348,8 @@ class AngelOne:
         exchange:  str = "NSE",
     ):
         """Fetch historical OHLCV candles from Angel One SmartAPI."""
+        if time.time() < self._rate_limited_until:
+            return None
         if not self._ensure_connected():
             return None
         try:
@@ -1401,14 +1378,31 @@ class AngelOne:
 
             def _fetch_chunk(_from: str, _to: str):
                 """One getCandleData request → DataFrame (or None)."""
-                resp = obj.getCandleData({
-                    "exchange":    exchange,
-                    "symboltoken": token,
-                    "interval":    iv,
-                    "fromdate":    _from,
-                    "todate":      _to,
-                })
+                if time.time() < self._rate_limited_until:
+                    return None
+                # SmartAPI applies the historical-candle limit account-wide.
+                # Serialize calls from scanner/backfill threads and pace them.
+                with self._api_rate_lock:
+                    wait = API_MIN_INTERVAL_SEC - (time.monotonic() - self._last_api_call_ts)
+                    if wait > 0:
+                        time.sleep(wait)
+                    try:
+                        resp = obj.getCandleData({
+                            "exchange":    exchange,
+                            "symboltoken": token,
+                            "interval":    iv,
+                            "fromdate":    _from,
+                            "todate":      _to,
+                        })
+                    finally:
+                        self._last_api_call_ts = time.monotonic()
                 if not resp or resp.get("status") != True:
+                    if _is_rate_limited(resp):
+                        self._rate_limited_until = time.time() + RATELIMIT_COOLDOWN
+                        logger.warning(
+                            "Candle API throttled; pausing broker API calls for %ss",
+                            RATELIMIT_COOLDOWN,
+                        )
                     logger.debug("Candle data error for %s: %s", symbol, resp)
                     return None
                 candles = resp.get("data", [])
@@ -1470,6 +1464,12 @@ class AngelOne:
             logger.debug("Angel historical: %s %s %d bars", symbol, iv, len(df))
             return df
         except Exception as e:
+            if _is_rate_limited(e):
+                self._rate_limited_until = time.time() + RATELIMIT_COOLDOWN
+                logger.warning(
+                    "Candle API throttled; pausing broker API calls for %ss",
+                    RATELIMIT_COOLDOWN,
+                )
             logger.debug("get_historical_data %s: %s", symbol, e)
             return None
 

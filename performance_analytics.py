@@ -42,17 +42,28 @@ _DB = Path("trades.db")
 _RISK_FREE_RATE = 0.065  # India 10Y Gsec ~6.5%
 
 
+def _net_pnl(trade: dict) -> float:
+    """Canonical net P&L from the current trades schema."""
+    for key in ("realized_pnl", "net_pnl", "pnl", "gross_pnl"):
+        if trade.get(key) is not None:
+            try:
+                return float(trade[key])
+            except (TypeError, ValueError):
+                continue
+    return 0.0
+
+
 def _load_trades(days: int = 90) -> List[dict]:
     """Load closed trades from SQLite."""
     if not _DB.exists():
         return []
     try:
-        cutoff = (date.today() - timedelta(days=days)).isoformat()
         conn = sqlite3.connect(str(_DB))
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
-            "SELECT * FROM trades WHERE status='closed' AND exit_time >= ? ORDER BY exit_time",
-            (cutoff,)
+            """SELECT * FROM trades WHERE status='CLOSED'
+                 AND exit_time >= strftime('%s','now',?) ORDER BY exit_time""",
+            (f"-{max(1, int(days))} days",)
         ).fetchall()
         conn.close()
         return [dict(r) for r in rows]
@@ -66,8 +77,8 @@ def _daily_returns(trades: List[dict]) -> Dict[str, float]:
     daily = {}
     for t in trades:
         try:
-            day = str(t.get("exit_time", ""))[:10]
-            pnl = float(t.get("pnl") or t.get("pnl") or t.get("net_pnl") or 0)
+            day = __import__("datetime").datetime.fromtimestamp(float(t.get("exit_time") or 0)).date().isoformat()
+            pnl = _net_pnl(t)
             capital = float(t.get("capital_used") or t.get("entry_value") or t.get("capital") or 26964 or 26964)
             ret = pnl / capital if capital > 0 else 0
             daily[day] = daily.get(day, 0) + ret
@@ -204,7 +215,7 @@ def win_rate_expectancy(trades: List[dict]) -> dict:
     """Win rate, avg win, avg loss, expectancy."""
     if not trades:
         return {"win_rate": 0, "avg_win": 0, "avg_loss": 0, "expectancy": 0, "total": 0}
-    pnls = [float(t.get("pnl", 0) or 0) for t in trades]
+    pnls = [_net_pnl(t) for t in trades]
     wins  = [p for p in pnls if p > 0]
     losses = [p for p in pnls if p <= 0]
     total = len(pnls)
@@ -228,7 +239,7 @@ def strategy_attribution(trades: List[dict]) -> List[dict]:
     by_strat = {}
     for t in trades:
         strat = str(t.get("strategy") or t.get("strategy_name") or "unknown" or "unknown")
-        pnl = float(t.get("pnl") or t.get("pnl") or t.get("net_pnl") or 0)
+        pnl = _net_pnl(t)
         if strat not in by_strat:
             by_strat[strat] = {"pnl": 0, "trades": 0, "wins": 0}
         by_strat[strat]["pnl"] += pnl
@@ -253,7 +264,7 @@ def symbol_attribution(trades: List[dict]) -> List[dict]:
     by_sym = {}
     for t in trades:
         sym = str(t.get("symbol", "?") or "?")
-        pnl = float(t.get("pnl") or t.get("pnl") or t.get("net_pnl") or 0)
+        pnl = _net_pnl(t)
         if sym not in by_sym:
             by_sym[sym] = {"pnl": 0, "trades": 0, "wins": 0}
         by_sym[sym]["pnl"] += pnl
@@ -301,7 +312,7 @@ def get_full_report(days: int = 30) -> dict:
     daily  = _daily_returns(trades)
     rets   = list(daily.values())
 
-    total_pnl = sum(float(t.get("pnl", 0) or 0) for t in trades)
+    total_pnl = sum(_net_pnl(t) for t in trades)
     we = win_rate_expectancy(trades)
     mdd, rec = max_drawdown(rets)
 
@@ -404,7 +415,7 @@ def get_win_rate_by_hour(db_path: str = "trades.db") -> dict:
     try:
         conn = sqlite3.connect(db_path)
         rows = conn.execute(
-            "SELECT strftime('%H', entry_time) as hour, "
+            "SELECT strftime('%H', entry_time,'unixepoch','localtime') as hour, "
             "COUNT(*) as total, "
             "SUM(CASE WHEN realized_pnl > 0 THEN 1 ELSE 0 END) as wins, "
             "AVG(realized_pnl) as avg_pnl "

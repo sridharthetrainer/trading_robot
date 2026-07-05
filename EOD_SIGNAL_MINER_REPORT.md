@@ -1,83 +1,83 @@
 # EOD Signal Miner Report
 
-- Generated: `2026-06-24T21:30:50+0530`
-- Symbols ok: `193` / `194`
-- Candidates: `23353`
-- Target/loss/timeout: `7371` / `9425` / `6557`
-- Avg return pct: `0.0123`
+- Generated: `2026-07-05T21:31:50+0530`
+- Symbols ok: `192` / `194`
+- Candidates: `25182`
+- Target/loss/timeout: `7192` / `10441` / `7549`
+- Avg return pct: `-0.0774`
 
 ## Best Setups
 
-- `mtf_momentum` n `1405` target_rate `0.3452` avg_return `0.0582`
-- `range_break` n `1247` target_rate `0.3256` avg_return `0.0251`
-- `vwap_trend` n `18894` target_rate `0.3086` avg_return `0.0105`
-- `volume_breakout` n `1807` target_rate `0.3592` avg_return `-0.0131`
+- `vwap_trend` n `20559` target_rate `0.2865` avg_return `-0.0276`
+- `volume_breakout` n `1698` target_rate `0.3062` avg_return `-0.0978`
+- `mtf_momentum` n `1916` target_rate `0.2797` avg_return `-0.1644`
+- `range_break` n `1009` target_rate `0.2428` avg_return `-0.8929`
 
 ## Best Factors
 
-- `trend_1h_up` n `96` target_rate `0.2292` avg_return `0.1669`
-- `breakdown_20` n `1773` target_rate `0.3734` avg_return `0.0591`
-- `rsi_below_45` n `10664` target_rate `0.3229` avg_return `0.0542`
-- `micro_1m_down` n `11194` target_rate `0.3247` avg_return `0.0516`
-- `macd_negative` n `8843` target_rate `0.3272` avg_return `0.0502`
-- `ema9_lt_ema21` n `14290` target_rate `0.3207` avg_return `0.0494`
-- `below_vwap` n `14593` target_rate `0.318` avg_return `0.0465`
-- `ema21_lt_ema50` n `13825` target_rate `0.3136` avg_return `0.0409`
-- `trend_15m_down` n `13690` target_rate `0.3115` avg_return `0.0388`
-- `micro_volume_expansion` n `6122` target_rate `0.335` avg_return `0.0198`
-- `volume_expansion` n `6729` target_rate `0.3782` avg_return `0.0136`
-- `micro_1m_up` n `6535` target_rate `0.3206` avg_return `-0.0363`
-- `rsi_above_55` n `6570` target_rate `0.3161` avg_return `-0.0417`
-- `ema21_gt_ema50` n `7605` target_rate `0.312` avg_return `-0.0448`
-- `ema9_gt_ema21` n `8270` target_rate `0.3088` avg_return `-0.0474`
+- `above_vwap` n `14777` target_rate `0.3048` avg_return `0.0435`
+- `trend_15m_up` n `14821` target_rate `0.306` avg_return `0.0424`
+- `ema9_gt_ema21` n `14807` target_rate `0.3009` avg_return `0.036`
+- `ema21_gt_ema50` n `14623` target_rate `0.3019` avg_return `0.0352`
+- `micro_1m_up` n `11587` target_rate `0.3083` avg_return `0.0299`
+- `macd_positive` n `9802` target_rate `0.3053` avg_return `0.0256`
+- `rsi_above_55` n `11052` target_rate `0.2952` avg_return `0.0064`
+- `volume_expansion` n `7490` target_rate `0.3521` avg_return `-0.045`
+- `micro_volume_expansion` n `6629` target_rate `0.3111` avg_return `-0.0649`
+- `breakout_20` n `1536` target_rate `0.3203` avg_return `-0.2565`
+- `below_vwap` n `8033` target_rate `0.2513` avg_return `-0.2676`
+- `ema9_lt_ema21` n `9235` target_rate `0.2564` avg_return `-0.2833`
+- `trend_15m_down` n `7891` target_rate `0.2618` avg_return `-0.284`
+- `ema21_lt_ema50` n `8353` target_rate `0.2591` avg_return `-0.2852`
+- `micro_1m_down` n `7569` target_rate `0.2518` avg_return `-0.2951`
 
 ## Top Candidates
 
-- `NIACL` `2026-06-22 15:25:00+05:30` `SELL` `vwap_trend` label `1` return `5.9341` score `5`
-- `IRFC` `2026-06-23 15:20:00+05:30` `SELL` `vwap_trend` label `1` return `5.3865` score `7`
-- `NIACL` `2026-06-22 14:45:00+05:30` `SELL` `mtf_momentum` label `1` return `5.3096` score `5`
-- `NIACL` `2026-06-22 15:00:00+05:30` `SELL` `vwap_trend` label `1` return `5.2963` score `7`
-- `NIACL` `2026-06-22 15:20:00+05:30` `SELL` `vwap_trend` label `1` return `5.2406` score `8`
-- `IRFC` `2026-06-23 15:25:00+05:30` `SELL` `vwap_trend` label `1` return `5.1642` score `8`
-- `NIACL` `2026-06-22 15:10:00+05:30` `SELL` `vwap_trend` label `1` return `5.1511` score `5`
-- `NIACL` `2026-06-22 15:05:00+05:30` `SELL` `vwap_trend` label `1` return `5.1471` score `4`
-- `NIACL` `2026-06-22 14:55:00+05:30` `SELL` `vwap_trend` label `1` return `5.073` score `5`
-- `CREDITACC` `2026-06-24 12:00:00+05:30` `BUY` `vwap_trend` label `1` return `4.9747` score `7`
-- `NIACL` `2026-06-23 14:55:00+05:30` `SELL` `vwap_trend` label `1` return `4.9496` score `5`
-- `IIFL` `2026-06-23 15:10:00+05:30` `SELL` `vwap_trend` label `1` return `4.8457` score `5`
-- `NIACL` `2026-06-22 14:35:00+05:30` `SELL` `vwap_trend` label `1` return `4.7902` score `8`
-- `CARTRADE` `2026-06-23 09:20:00+05:30` `BUY` `vwap_trend` label `1` return `4.7837` score `9`
-- `IIFL` `2026-06-23 15:05:00+05:30` `SELL` `vwap_trend` label `1` return `4.7766` score `6`
+- `MRF` `2026-07-04 13:05:00+05:30` `BUY` `vwap_trend` label `1` return `19.5611` score `7`
+- `MRF` `2026-07-04 13:10:00+05:30` `BUY` `vwap_trend` label `1` return `18.2613` score `8`
+- `KOTAKBANK` `2026-07-04 13:45:00+05:30` `BUY` `vwap_trend` label `1` return `18.0822` score `5`
+- `MRF` `2026-07-03 15:25:00+05:30` `BUY` `vwap_trend` label `1` return `17.6503` score `6`
+- `HDFCBANK` `2026-07-04 13:10:00+05:30` `BUY` `vwap_trend` label `1` return `14.9847` score `8`
+- `PNB` `2026-07-04 13:30:00+05:30` `SELL` `vwap_trend` label `1` return `14.3062` score `6`
+- `KOTAKBANK` `2026-07-04 13:20:00+05:30` `BUY` `vwap_trend` label `1` return `13.9503` score `6`
+- `KOTAKBANK` `2026-07-04 13:25:00+05:30` `BUY` `vwap_trend` label `1` return `13.943` score `5`
+- `PNB` `2026-07-04 13:45:00+05:30` `SELL` `vwap_trend` label `1` return `13.6368` score `5`
+- `RELIANCE` `2026-07-04 13:15:00+05:30` `BUY` `mtf_momentum` label `1` return `13.473` score `8`
+- `KOTAKBANK` `2026-07-04 13:35:00+05:30` `BUY` `vwap_trend` label `1` return `12.5795` score `5`
+- `KOTAKBANK` `2026-07-04 13:40:00+05:30` `BUY` `vwap_trend` label `1` return `12.4533` score `6`
+- `SUMICHEM` `2026-07-03 14:35:00+05:30` `BUY` `volume_breakout` label `1` return `11.1692` score `9`
+- `IGL` `2026-07-04 13:20:00+05:30` `SELL` `vwap_trend` label `1` return `10.3072` score `5`
+- `ONGC` `2026-07-04 13:50:00+05:30` `BUY` `vwap_trend` label `1` return `10.1094` score `5`
 
 ## Data Coverage
 
-- `NIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1121` source `candle_cache` candidates `108`
-- `BANKNIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1121` source `candle_cache` candidates `115`
-- `FINNIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1121` source `candle_cache` candidates `117`
-- `MIDCPNIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1114` source `candle_cache` candidates `120`
-- `NIFTYNEXT50` ok `True` reason `ok` 5m `197` source `candle_cache` 1m `750` source `candle_cache` candidates `98`
-- `SENSEX` ok `True` reason `ok` 5m `199` source `candle_cache` 1m `750` source `candle_cache` candidates `103`
-- `RELIANCE` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1121` source `candle_cache` candidates `127`
-- `TCS` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1121` source `candle_cache` candidates `131`
-- `HDFCBANK` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1121` source `candle_cache` candidates `134`
-- `INFY` ok `True` reason `ok` 5m `219` source `candle_cache` 1m `1122` source `candle_cache` candidates `122`
-- `ICICIBANK` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `135`
-- `HINDUNILVR` ok `True` reason `ok` 5m `219` source `candle_cache` 1m `1122` source `candle_cache` candidates `135`
-- `SBIN` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `137`
-- `BAJFINANCE` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `140`
-- `BHARTIARTL` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `117`
-- `ITC` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `104`
-- `KOTAKBANK` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `122`
-- `LT` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `120`
-- `AXISBANK` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `127`
-- `ASIANPAINT` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `116`
-- `MARUTI` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `130`
-- `SUNPHARMA` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `114`
-- `TITAN` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `110`
-- `ULTRACEMCO` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `117`
-- `WIPRO` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `140`
-- `HCLTECH` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `117`
-- `NESTLEIND` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `108`
-- `TECHM` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `111`
-- `M&M` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `119`
-- `NTPC` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1122` source `candle_cache` candidates `112`
+- `NIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1125` source `candle_cache` candidates `105`
+- `BANKNIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1125` source `candle_cache` candidates `126`
+- `FINNIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1125` source `candle_cache` candidates `103`
+- `MIDCPNIFTY` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1125` source `candle_cache` candidates `126`
+- `SENSEX` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1125` source `candle_cache` candidates `100`
+- `NIFTYNEXT50` ok `True` reason `ok` 5m `225` source `candle_cache` 1m `1125` source `candle_cache` candidates `126`
+- `RELIANCE` ok `True` reason `ok` 5m `255` source `candle_cache` 1m `1262` source `candle_cache` candidates `154`
+- `TCS` ok `True` reason `ok` 5m `255` source `candle_cache` 1m `1258` source `candle_cache` candidates `157`
+- `HDFCBANK` ok `True` reason `ok` 5m `254` source `candle_cache` 1m `1241` source `candle_cache` candidates `146`
+- `INFY` ok `True` reason `ok` 5m `253` source `candle_cache` 1m `1248` source `candle_cache` candidates `145`
+- `ICICIBANK` ok `True` reason `ok` 5m `250` source `candle_cache` 1m `1210` source `candle_cache` candidates `136`
+- `HINDUNILVR` ok `True` reason `ok` 5m `244` source `candle_cache` 1m `1177` source `candle_cache` candidates `135`
+- `SBIN` ok `True` reason `ok` 5m `254` source `candle_cache` 1m `1245` source `candle_cache` candidates `143`
+- `BAJFINANCE` ok `True` reason `ok` 5m `250` source `candle_cache` 1m `1192` source `candle_cache` candidates `122`
+- `BHARTIARTL` ok `True` reason `ok` 5m `249` source `candle_cache` 1m `1192` source `candle_cache` candidates `141`
+- `ITC` ok `True` reason `ok` 5m `254` source `candle_cache` 1m `1247` source `candle_cache` candidates `137`
+- `KOTAKBANK` ok `True` reason `ok` 5m `250` source `candle_cache` 1m `1224` source `candle_cache` candidates `148`
+- `LT` ok `True` reason `ok` 5m `251` source `candle_cache` 1m `1206` source `candle_cache` candidates `152`
+- `AXISBANK` ok `True` reason `ok` 5m `252` source `candle_cache` 1m `1204` source `candle_cache` candidates `148`
+- `ASIANPAINT` ok `True` reason `ok` 5m `248` source `candle_cache` 1m `1179` source `candle_cache` candidates `137`
+- `MARUTI` ok `True` reason `ok` 5m `247` source `candle_cache` 1m `1186` source `candle_cache` candidates `140`
+- `SUNPHARMA` ok `True` reason `ok` 5m `246` source `candle_cache` 1m `1181` source `candle_cache` candidates `130`
+- `TITAN` ok `True` reason `ok` 5m `249` source `candle_cache` 1m `1196` source `candle_cache` candidates `128`
+- `ULTRACEMCO` ok `True` reason `ok` 5m `248` source `candle_cache` 1m `1180` source `candle_cache` candidates `155`
+- `WIPRO` ok `True` reason `ok` 5m `255` source `candle_cache` 1m `1242` source `candle_cache` candidates `138`
+- `HCLTECH` ok `True` reason `ok` 5m `247` source `candle_cache` 1m `1203` source `candle_cache` candidates `127`
+- `NESTLEIND` ok `True` reason `ok` 5m `246` source `candle_cache` 1m `1182` source `candle_cache` candidates `140`
+- `TECHM` ok `True` reason `ok` 5m `246` source `candle_cache` 1m `1196` source `candle_cache` candidates `140`
+- `M&M` ok `True` reason `ok` 5m `248` source `candle_cache` 1m `1190` source `candle_cache` candidates `152`
+- `NTPC` ok `True` reason `ok` 5m `248` source `candle_cache` 1m `1199` source `candle_cache` candidates `133`

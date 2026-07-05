@@ -33,6 +33,18 @@ def get_intelligence_score_modifier() -> float:
     except Exception:
         return 0.0
 
+
+def _evidence_safe_context_modifier(value: float, cfg: dict) -> float:
+    """Do not let unvalidated context narratives promote a signal.
+
+    Negative values remain useful as risk vetoes. Positive boosts are restored
+    only after an explicit forward-validation switch is enabled.
+    """
+    value = float(value or 0.0)
+    if bool(cfg.get("allow_unvalidated_context_boosts", False)):
+        return value
+    return min(0.0, value)
+
 """
 signal_engine.py
 
@@ -3299,8 +3311,10 @@ def generate_signal(
             if _PART_AVAILABLE:
                 try:
                     _pm, _pn = _part_score(direction)
-                    adjusted_score += _pm
+                    _pm_applied = _evidence_safe_context_modifier(_pm, cfg)
+                    adjusted_score += _pm_applied
                     _cand_meta["participant_oi"] = round(float(_pm or 0), 4)
+                    _cand_meta["participant_oi_applied"] = round(float(_pm_applied), 4)
                     from participant_oi import get_cumulative_fii
                     _cum5 = get_cumulative_fii(5)
                     # Oversold bounce: 5d outflow > ₹10,000Cr
@@ -3485,11 +3499,13 @@ def generate_signal(
                         pwh=_sr_levels.get("PWH",0), pwl=_sr_levels.get("PWL",0),
                         pmh=_sr_levels.get("PMH",0), pml=_sr_levels.get("PML",0),
                     )
-                    adjusted_score += _sr_mod
+                    _sr_applied = _evidence_safe_context_modifier(_sr_mod, cfg)
+                    adjusted_score += _sr_applied
                     if _sr_mod != 0:
                         _sig_meta["sr_level_mod"] = _sr_mod
                         _sig_meta["sr_level_ctx"] = " | ".join(_sr_ctx[:2])
                         _cand_meta["sr_level_mod"] = _sr_mod
+                        _cand_meta["sr_level_mod_applied"] = _sr_applied
                         _cand_meta["sr_level_ctx"] = " | ".join(_sr_ctx[:2])
                         if _sr_mod > 0:
                             _cand_factors.add("SUPPORT_RESISTANCE")
@@ -3770,8 +3786,10 @@ def generate_signal(
                         weekly_levels  = _weekly_lvls or None,
                         monthly_levels = _monthly_lvls or None,
                     )
-                    adjusted_score += _mtf_mod
+                    _mtf_applied = _evidence_safe_context_modifier(_mtf_mod, cfg)
+                    adjusted_score += _mtf_applied
                     _cand_meta["mtf_pivot"] = round(float(_mtf_mod or 0), 3)
+                    _cand_meta["mtf_pivot_applied"] = round(float(_mtf_applied or 0), 3)
                     if abs(float(_mtf_mod or 0.0)) > 0.05:
                         _cand_meta["mtf_pivot_mod"] = round(float(_mtf_mod), 3)
                         _cand_meta["mtf_pivot_ctx"] = _mtf_ctx

@@ -182,6 +182,8 @@ logging.basicConfig(
     level=getattr(logging, str(getattr(cfg, "LOG_LEVEL", "INFO")).upper(), logging.INFO),
     format=LOG_FORMAT,
 )
+from logging_security import install_secret_redaction
+install_secret_redaction()
 
 logger = logging.getLogger("main_autonomous")
 
@@ -2146,6 +2148,11 @@ class AutonomousTradingSystem:
                         def _cmd_opt_signals(_=""):
                             """Recent DISTINCT live option selections — deduped (the journal
                             re-records the same setup across scans) + most recent first."""
+                            from option_bot_views import generated_signals_text
+                            return generated_signals_text()
+                            # Legacy journal-selection view retained below for
+                            # compatibility reference; generated signals are the
+                            # authoritative option-bot source.
                             try:
                                 import json as _oj
                                 from option_decision_journal import (
@@ -2186,6 +2193,16 @@ class AutonomousTradingSystem:
 
                         try: self._tg_cmd_option.register("signals", _cmd_opt_signals)
                         except Exception: pass
+
+                        def _cmd_opt_all(_=""):
+                            try:
+                                from option_bot_views import consolidated_eod_text
+                                return consolidated_eod_text()
+                            except Exception as _ae:
+                                return f"option /all error: {_ae}"
+                        for _a in ("all", "optionall", "eodall"):
+                            try: self._tg_cmd_option.register(_a, _cmd_opt_all)
+                            except Exception: pass
 
                         def _cmd_opt_status(_=""):
                             """Option-bot status: index scope + today's option activity
@@ -2311,6 +2328,7 @@ class AutonomousTradingSystem:
                                 "🎯 <b>OPTION BOT — COMMANDS</b>\n\n"
                                 "📊 <b>REPORTS</b>\n"
                                 "  /report — post-market visual dashboard\n"
+                                "  /all — generated, lifecycle, ideal and traded P&L\n"
                                 "  /status — today's option summary\n"
                                 "  /signals — recent option selections\n"
                                 "  /positions — open option positions\n"
@@ -2330,18 +2348,20 @@ class AutonomousTradingSystem:
                         except Exception: pass
 
                         def _cmd_opt_report(_=""):
-                            """Chart-first EOD dashboard; intentionally unavailable intraday."""
+                            """Anytime levels/status table, plus visual dashboard post-market."""
                             try:
+                                from option_bot_views import anytime_report_table
                                 from option_telegram_report import (
                                     generate_option_report, is_post_market)
                                 if not is_post_market():
-                                    return ("🕞 The option report is published after market close "
-                                            "(3:35 PM IST).\nUse /status for live monitoring.")
+                                    return anytime_report_table()
                                 _rep = generate_option_report()
-                                if self._tg_cmd_option.send_photo(
-                                        _rep["path"], _rep["caption"]):
-                                    return ""
-                                return "⚠️ Report generated, but the image upload failed."
+                                uploaded = self._tg_cmd_option.send_photo(
+                                    _rep["path"], _rep["caption"])
+                                table = anytime_report_table()
+                                return table if uploaded else (
+                                    table + "\n⚠️ Visual dashboard upload failed."
+                                )
                             except Exception as _re:
                                 return f"⚠️ /report error: {str(_re)[:100]}"
                         try: self._tg_cmd_option.register("report", _cmd_opt_report)
@@ -2350,7 +2370,7 @@ class AutonomousTradingSystem:
                         # Curate the option channel: keep only option/index-relevant
                         # commands so it stops inheriting the full equity menu.
                         _OPT_ALLOWED = {
-                            "help", "menu", "start", "status", "report", "signals",
+                            "help", "menu", "start", "status", "report", "signals", "all", "optionall", "eodall",
                             "optedge", "edge", "optpositions", "positions",
                             "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr",
                             "direction", "tradeview", "view", "nexttrade",
@@ -2361,11 +2381,12 @@ class AutonomousTradingSystem:
 
                         try:
                             self._tg_cmd_option.set_command_menu([
-                                ("report", "Post-market visual dashboard"),
+                                ("report", "Anytime option levels and status"),
+                                ("all", "All signals, lifecycle and P&L"),
                                 ("direction", "Combined option trade direction"),
                                 ("optionhealth", "Option-chain source diagnostics"),
                                 ("status", "Today's option bot summary"),
-                                ("signals", "Recent option selections"),
+                                ("signals", "All generated option signals"),
                                 ("positions", "Open option positions"),
                                 ("edge", "Labelled option performance"),
                                 ("oisr", "OI support/resistance image"),
@@ -5043,6 +5064,16 @@ class AutonomousTradingSystem:
             # Check theta decay on open option positions
             self._check_option_theta_exits()
 
+            # Track every qualified generated signal against cached 1-minute
+            # bars and publish target/SL lifecycle updates every ~5 minutes.
+            if self.runtime_state.heartbeat_count % 10 == 0:
+                try:
+                    from autonomous_signal_lifecycle import (
+                        update_generated_signal_lifecycle, send_lifecycle_digest)
+                    send_lifecycle_digest(update_generated_signal_lifecycle())
+                except Exception as _siglife_exc:
+                    logger.debug("generated signal lifecycle: %s", _siglife_exc)
+
             # SL hunt protection: detect wick stops
             self._run_sl_hunt_cycle()
 
@@ -5472,6 +5503,7 @@ def _setup_rotating_logger() -> None:
     ))
     root = logging.getLogger()
     root.addHandler(handler)
+    install_secret_redaction(root.handlers)
     root.setLevel(getattr(logging, os.getenv('LOG_LEVEL','INFO').upper(), logging.INFO))
     logging.getLogger(__name__).info('Rotating log: %s (50MB x 5)', log_file)
 

@@ -65,7 +65,8 @@ def _read_trades_today() -> list:
         rows  = conn.execute("""
             SELECT trade_id, symbol, side, qty, strategy, entry_price,
                    exit_price, realized_pnl, status, exit_reason,
-                   entry_time, exit_time, stop_loss, target_price
+                   entry_time, exit_time, stop_loss, target_price,
+                   gross_pnl,total_charges,metadata,signal_metadata
             FROM trades ORDER BY entry_time DESC LIMIT 50
         """).fetchall()
         conn.close()
@@ -85,6 +86,8 @@ def _read_trades_today() -> list:
 
 
 def _build_html(status: dict, trades: list) -> str:
+    from pnl_reporting import today_pnl_breakdown
+    split_pnl = today_pnl_breakdown()
     td      = status.get("trading", {}) or {}
     pnl     = td.get("daily_realized_pnl", 0)
     mode    = status.get("mode", "PAPER")
@@ -154,6 +157,8 @@ def _build_html(status: dict, trades: list) -> str:
 
 <div class="cards">
   <div class="card"><div class="card-label">Day P&L</div><div class="card-value pnl">₹{pnl:+.0f}</div></div>
+  <div class="card"><div class="card-label">Options P&L</div><div class="card-value" style="color:{'#27ae60' if split_pnl['options']['net'] >= 0 else '#e74c3c'}">₹{split_pnl['options']['net']:+.0f}</div></div>
+  <div class="card"><div class="card-label">Normal P&L</div><div class="card-value" style="color:{'#27ae60' if split_pnl['normal']['net'] >= 0 else '#e74c3c'}">₹{split_pnl['normal']['net']:+.0f}</div></div>
   <div class="card"><div class="card-label">Open</div><div class="card-value">{len(open_pos)}</div></div>
   <div class="card"><div class="card-label">Trades</div><div class="card-value">{len(closed_today)}</div></div>
   <div class="card"><div class="card-label">W/L</div><div class="card-value">{wins}/{losses}</div></div>
@@ -188,8 +193,13 @@ class _Handler(BaseHTTPRequestHandler):
             ct   = "application/json"
         elif self.path == "/pnl":
             td   = status.get("trading", {}) or {}
+            from pnl_reporting import today_pnl_breakdown
+            split = today_pnl_breakdown()
             body = json.dumps({
                 "daily_pnl": td.get("daily_realized_pnl", 0),
+                "options":   split["options"],
+                "normal":    split["normal"],
+                "total":     split["total"],
                 "open":      td.get("open_positions", 0),
                 "mode":      status.get("mode","PAPER"),
             }).encode()

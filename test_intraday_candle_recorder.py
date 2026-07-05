@@ -44,7 +44,8 @@ def test_save_verified_candles_normalizes_columns(tmp_path, monkeypatch):
 
     monkeypatch.setattr(candle_cache, "_DB_PATH", tmp_path / "candles.db")
     monkeypatch.setattr(candle_cache, "_INIT_DONE", False)
-    idx = pd.date_range("2026-06-22 09:15", periods=3, freq="min")
+    # relative to now so the days=10 lookback always includes them (stale-date class)
+    idx = pd.date_range(pd.Timestamp.now().normalize() + pd.Timedelta(hours=9, minutes=15), periods=3, freq="min")
     df = pd.DataFrame({
         "Open": [100, 101, 102],
         "High": [101, 102, 103],

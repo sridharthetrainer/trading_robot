@@ -121,6 +121,17 @@ def audit_candle_cache(
     conn.close()
     bad = [c for c in checks if not c.get("ok")]
     stale = [c for c in checks if not c.get("freshness_ok")]
+    zero_volume_by_interval = {}
+    with sqlite3.connect(db_path) as volume_conn:
+        for interval, zero_rows, total_rows in volume_conn.execute(
+            """SELECT interval, SUM(CASE WHEN volume=0 THEN 1 ELSE 0 END), COUNT(*)
+                 FROM candles GROUP BY interval"""
+        ):
+            zero_volume_by_interval[str(interval)] = {
+                "rows": int(zero_rows or 0),
+                "total": int(total_rows or 0),
+                "pct": round(100.0 * int(zero_rows or 0) / max(int(total_rows or 0), 1), 2),
+            }
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "ok": len(checks) > 0,
@@ -129,6 +140,10 @@ def audit_candle_cache(
         "stale_groups": len(stale),
         "max_intraday_age_days": max_intraday_age_days,
         "total_bars": sum(int(c.get("bars", 0)) for c in checks),
+        # Zero volume is valid for indices and occasional illiquid bars, so it
+        # is audited rather than deleted. Consumers can now distinguish it from
+        # structurally invalid OHLCV.
+        "zero_volume_by_interval": zero_volume_by_interval,
         "checks": checks,
     }
 

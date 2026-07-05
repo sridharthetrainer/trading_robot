@@ -32,7 +32,10 @@ def _run_bridge_check() -> bool:
     prob = LiveSignalEngine._get_ai_probability(engine, signal)
     if signal.get("ai_model_state") == "signal_log_model":
         return 0.0 <= float(prob) <= 1.0 and signal.get("ai_model_used") == "cross_symbol"
-    return signal.get("ai_model_state") == "rule_based_fallback" and 0.0 <= float(prob) <= 1.0
+    # 2026-07 rename: with no VALID model (legacy pickles are quarantined by the
+    # training-contract check) the fallback state is "unvalidated_rule_fallback".
+    return (signal.get("ai_model_state") in {"rule_based_fallback", "unvalidated_rule_fallback"}
+            and 0.0 <= float(prob) <= 1.0)
 
 
 def test_live_engine_uses_signal_log_model_when_self_learning_model_missing() -> None:

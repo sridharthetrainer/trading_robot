@@ -409,20 +409,39 @@ def fetch_r_distribution(days: int) -> Dict[str, Any]:
     try:
         conn = sqlite3.connect(str(trades_db))
         rows = conn.execute(
-            "SELECT r_multiple FROM trades WHERE status='CLOSED' AND exit_time >= ?",
+            "SELECT r_multiple, entry_price, exit_price, stop_loss, side "
+            "FROM trades WHERE status='CLOSED' AND exit_time >= ?",
             (cutoff_epoch,),
         ).fetchall()
         conn.close()
     except Exception:
         return {}
 
+    # RECOMPUTE R from prices (ground truth) instead of trusting the stored
+    # r_multiple column: a legacy-corrupt row (RELIANCE, entry==exit but stored
+    # R=+30.47) single-handedly turned a 12/12-losing sample into a reported
+    # "+2.425R/trade positive expectancy". Same formula as trade_manager's
+    # writer (gross per-unit move / planned risk); stored value is only a
+    # fallback when prices are missing.
     vals = []
-    for (r,) in rows:
+    for r, entry, exit_p, stop, side in rows:
+        recomputed = None
         try:
-            if r is not None:
-                vals.append(float(r))
+            entry, exit_p, stop = float(entry or 0), float(exit_p or 0), float(stop or 0)
+            planned_risk = abs(entry - stop)
+            if entry > 0 and exit_p > 0 and planned_risk > 0:
+                per_unit = (exit_p - entry) if str(side).upper() == "BUY" else (entry - exit_p)
+                recomputed = round(per_unit / planned_risk, 2)
         except (TypeError, ValueError):
             pass
+        if recomputed is not None:
+            vals.append(recomputed)
+        else:
+            try:
+                if r is not None:
+                    vals.append(float(r))
+            except (TypeError, ValueError):
+                pass
 
     if not vals:
         return {}

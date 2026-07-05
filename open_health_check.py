@@ -143,7 +143,8 @@ def send_telegram(text):
             timeout=15,
         )
     except Exception as e:
-        print("Telegram send failed: %s\n%s" % (e, text))
+        from logging_security import redact_secrets
+        print("Telegram send failed: %s\n%s" % (redact_secrets(e), text))
 
 
 def main():

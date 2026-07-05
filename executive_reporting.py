@@ -13,8 +13,25 @@ def _quality(n:int,days:int)->str:
 
 def build_report() -> Dict[str,Any]:
     out={"generated_at":datetime.now().isoformat(),"session_date":date.today().isoformat(),"windows":{},"strategies":{},"observations":[],"tomorrow":[]}
+    try:
+        from autonomous_signal_lifecycle import update_generated_signal_lifecycle
+        update_generated_signal_lifecycle(session_date=out["session_date"])
+    except Exception:
+        pass
     con=sqlite3.connect("signal_log.db"); con.row_factory=sqlite3.Row
-    all_rows=[dict(r) for r in con.execute("SELECT signal_date,strategy,tb_label,tb_r_multiple_net,tb_r_multiple,rejection_reason FROM signal_log WHERE tb_label IN (-1,0,1)")]; con.close()
+    all_rows=[dict(r) for r in con.execute("SELECT signal_date,strategy,tb_label,tb_r_multiple_net,tb_r_multiple,rejection_reason FROM signal_log WHERE tb_label IN (-1,0,1)")]
+    today_rows=[dict(r) for r in con.execute("SELECT strategy,executed,rejection_reason,tb_label,tb_r_multiple_net,lifecycle_status FROM signal_log WHERE signal_date=?",(out["session_date"],))]; con.close()
+    today_labelled=[r for r in today_rows if r["tb_label"] in (-1,0,1)]
+    out["today"]={
+        "generated":len(today_rows),
+        "qualified":sum(not str(r.get("rejection_reason") or "") for r in today_rows),
+        "executed":sum(int(r.get("executed") or 0) for r in today_rows),
+        "labelled":len(today_labelled),
+        "pending":sum(r.get("tb_label")==-99 for r in today_rows),
+        "wins":sum(r.get("tb_label")==1 for r in today_labelled),
+        "ideal_net_r":round(sum(float(r.get("tb_r_multiple_net") or 0) for r in today_labelled),3),
+        "lifecycle":dict(Counter(str(r.get("lifecycle_status") or "UNSET") for r in today_rows)),
+    }
     dates=sorted({str(r["signal_date"]) for r in all_rows if r.get("signal_date")})
     for w in WINDOWS:
         keep=set(dates[-w:]); rows=[r for r in all_rows if str(r.get("signal_date")) in keep]

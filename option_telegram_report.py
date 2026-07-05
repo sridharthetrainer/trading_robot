@@ -106,6 +106,7 @@ def _all_option_signals(day: str) -> List[dict]:
             """SELECT snapshot_time,underlying,expiry,strike,option_type,signal,tradable,
                       entry_price,stop_loss,target_1,target_2,outcome_label,exit_price,
                       gross_pnl,estimated_costs,net_pnl,net_r,execution_status
+                      ,lifecycle_status,status_updated_at
                  FROM option_strike_signals WHERE snapshot_time LIKE ?
                  ORDER BY ts,strike,option_type""", (day + "%",),
         ).fetchall()

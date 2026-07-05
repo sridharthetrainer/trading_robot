@@ -43,6 +43,10 @@ class StrikeFlowSignal:
     stop_loss: float = 0.0
     target_1: float = 0.0
     target_2: float = 0.0
+    edge_policy: str = "VALIDATING"
+    edge_outcomes: int = 0
+    edge_avg_r: float = 0.0
+    edge_profit_factor: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -96,10 +100,22 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
         "stop_loss": "REAL DEFAULT 0",
         "target_1": "REAL DEFAULT 0",
         "target_2": "REAL DEFAULT 0",
+        "lifecycle_status": "TEXT DEFAULT ''",
+        "status_updated_at": "TEXT DEFAULT ''",
+        "edge_policy": "TEXT DEFAULT 'VALIDATING'",
+        "edge_outcomes": "INTEGER DEFAULT 0",
+        "edge_avg_r": "REAL DEFAULT 0",
+        "edge_profit_factor": "REAL DEFAULT 0",
     }
     for name, declaration in migrations.items():
         if name not in columns:
             conn.execute(f"ALTER TABLE option_strike_signals ADD COLUMN {name} {declaration}")
+    conn.execute(
+        """UPDATE option_strike_signals
+              SET lifecycle_status=CASE WHEN tradable=1 THEN 'OPEN' ELSE 'WATCH' END,
+                  status_updated_at=snapshot_time
+            WHERE COALESCE(lifecycle_status,'')=''"""
+    )
     conn.execute(
         """UPDATE option_strike_signals
               SET entry_price=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2),2),
@@ -224,6 +240,7 @@ def build_multistrike_signals(
     min_volume: float = 100.0,
     max_spread_pct: float = 0.03,
     min_score: float = 60.0,
+    max_score: float = 85.0,
     top_n_per_side: int = 5,
     market_regime: str = "UNKNOWN",
     market_bias: str = "UNKNOWN",
@@ -265,7 +282,7 @@ def build_multistrike_signals(
             )
             tradable = bool(
                 history_ok and liquidity_ok and spread_ok
-                and action == "BUY" and score >= min_score
+                and action == "BUY" and min_score <= score < max_score
                 and regime_aligned is not False
             )
             reason_parts = [flow.lower()]
@@ -283,6 +300,8 @@ def build_multistrike_signals(
                 reason_parts.append("regime_aligned")
             if score < min_score:
                 reason_parts.append("score_below_minimum")
+            if score >= max_score:
+                reason_parts.append("score_exhaustion_cap")
             signal = f"BUY_{option_type}" if action == "BUY" else "WATCH"
             # Premium-risk plan shown with every generated signal. Execution
             # still requires the tradable gate; these levels are not a fill.
@@ -365,6 +384,23 @@ def persist_multistrike_signals(
         market_regime=market_regime,
         market_bias=market_bias,
     )
+    edge_gate = _execution_edge_gate(conn)
+    from option_live_edge_policy import cohort_policy
+    signals = [
+        replace(
+            item,
+            edge_policy=(policy := cohort_policy(conn, flow=item.flow, direction=item.direction, score=item.score))["status"],
+            edge_outcomes=policy["outcomes"], edge_avg_r=policy["avg_net_r"],
+            edge_profit_factor=policy["profit_factor"],
+        )
+        for item in signals
+    ]
+    if not edge_gate["allow_actionable"]:
+        signals = [
+            replace(item, tradable=False, reason=f"{item.reason},negative_forward_edge_circuit_breaker")
+            if item.tradable else item
+            for item in signals
+        ]
     snapshot_ts = _snapshot_epoch(snapshot_time)
     for item in signals:
         row = item.to_dict()
@@ -374,8 +410,9 @@ def persist_multistrike_signals(
             (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,
              direction,score,tradable,price,price_change_pct,oi,oi_change_pct,
              volume,volume_change_pct,spread_pct,reason,source,market_regime,
-             market_bias,regime_aligned,score_rank,entry_price,stop_loss,target_1,target_2)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             market_bias,regime_aligned,score_rank,entry_price,stop_loss,target_1,target_2,
+             lifecycle_status,status_updated_at,edge_policy,edge_outcomes,edge_avg_r,edge_profit_factor)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 snapshot_ts, snapshot_time, underlying, expiry, row["strike"], row["option_type"],
@@ -387,13 +424,92 @@ def persist_multistrike_signals(
                 -1 if row["regime_aligned"] is None else int(row["regime_aligned"]),
                 row["score_rank"],
                 row["entry_price"], row["stop_loss"], row["target_1"], row["target_2"],
+                "OPEN" if row["tradable"] else "WATCH", snapshot_time,
+                row["edge_policy"], row["edge_outcomes"], row["edge_avg_r"], row["edge_profit_factor"],
             ),
         )
+    lifecycle_events = update_signal_lifecycle(conn, underlying=underlying, snapshot_time=snapshot_time)
     return {
         "written": len(signals),
         "tradable": sum(1 for item in signals if item.tradable),
         "signals": [item.to_dict() for item in signals],
+        "lifecycle_events": lifecycle_events,
+        "execution_edge_gate": edge_gate,
     }
+
+
+def _execution_edge_gate(conn: sqlite3.Connection, min_outcomes: int = 20) -> Dict[str, Any]:
+    """Block new actionable signals after a sufficiently large negative live-source sample."""
+    ensure_multistrike_schema(conn)
+    live_sources = ("angel", "angel_eod", "angel_fallback", "nse_live", "resilience_nse", "sensibull", "bse", "bse_oc")
+    placeholders = ",".join("?" for _ in live_sources)
+    row = conn.execute(
+        f"""SELECT COUNT(*),AVG(net_r),AVG(CASE WHEN outcome_label=1 THEN 1.0 ELSE 0.0 END),AVG(net_pnl)
+               FROM option_strike_signals
+              WHERE tradable=1 AND source IN ({placeholders}) AND outcome_label IN (-1,0,1)""",
+        live_sources,
+    ).fetchone()
+    n = int(row[0] or 0)
+    avg_r = _f(row[1])
+    win_rate = _f(row[2])
+    avg_net = _f(row[3])
+    negative = n >= int(min_outcomes) and (avg_r <= 0 or avg_net <= 0)
+    return {
+        "allow_actionable": not negative,
+        "verified_outcomes": n,
+        "avg_net_r": round(avg_r, 4),
+        "win_rate": round(win_rate, 4),
+        "avg_net_pnl": round(avg_net, 2),
+        "reason": "negative_forward_edge" if negative else "insufficient_or_nonnegative_evidence",
+    }
+
+
+def update_signal_lifecycle(
+    conn: sqlite3.Connection, *, underlying: str, snapshot_time: str
+) -> List[Dict[str, Any]]:
+    """Update prior actionable signals from the newest observed option premiums."""
+    ensure_multistrike_schema(conn)
+    conn.row_factory = sqlite3.Row
+    prior = conn.execute(
+        """SELECT rowid,* FROM option_strike_signals
+             WHERE upper(underlying)=upper(?) AND snapshot_time<? AND tradable=1
+               AND lifecycle_status IN ('OPEN','TARGET1_HIT')
+             ORDER BY ts""", (underlying, snapshot_time),
+    ).fetchall()
+    events: List[Dict[str, Any]] = []
+    for row in prior:
+        latest = conn.execute(
+            """SELECT price FROM option_strike_signals
+                 WHERE upper(underlying)=upper(?) AND expiry=? AND strike=?
+                   AND option_type=? AND snapshot_time=? AND price>0 LIMIT 1""",
+            (underlying, row["expiry"], row["strike"], row["option_type"], snapshot_time),
+        ).fetchone()
+        if not latest:
+            continue
+        price = _f(latest["price"])
+        old = str(row["lifecycle_status"] or "OPEN")
+        status = ""
+        if price >= _f(row["target_2"]):
+            status = "TARGET2_HIT"
+        elif old == "OPEN" and price >= _f(row["target_1"]):
+            status = "TARGET1_HIT"
+        elif price <= _f(row["stop_loss"]):
+            status = "EXIT_AFTER_T1" if old == "TARGET1_HIT" else "STOP_LOSS_HIT"
+        if not status:
+            continue
+        new_stop = _f(row["entry_price"]) if status == "TARGET1_HIT" else _f(row["stop_loss"])
+        conn.execute(
+            "UPDATE option_strike_signals SET lifecycle_status=?,status_updated_at=?,stop_loss=? WHERE rowid=?",
+            (status, snapshot_time, new_stop, row["rowid"]),
+        )
+        events.append({
+            "underlying": row["underlying"], "strike": row["strike"],
+            "option_type": row["option_type"], "entry_price": row["entry_price"],
+            "stop_loss": new_stop, "target_1": row["target_1"], "target_2": row["target_2"],
+            "status": status, "current_price": price, "snapshot_time": snapshot_time,
+            "signal_time": row["snapshot_time"],
+        })
+    return events
 
 
 def label_multistrike_outcomes(

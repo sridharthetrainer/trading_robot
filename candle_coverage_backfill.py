@@ -128,7 +128,11 @@ def build_candle_coverage_plan(
     if batch_size is None:
         batch_size = max(1, int(os.getenv("CANDLE_COVERAGE_PLAN_BATCH_SIZE", "25") or 25))
 
+    from trading_calendar import latest_expected_session
+
+    expected_session = latest_expected_session().isoformat()
     present_by_interval: Dict[str, set[str]] = {interval: set() for interval in selected_intervals}
+    fresh_by_interval: Dict[str, set[str]] = {interval: set() for interval in selected_intervals}
     db_exists = Path(db_path).exists()
     if db_exists:
         try:
@@ -136,7 +140,7 @@ def build_candle_coverage_plan(
             with sqlite3.connect(db_path) as conn:
                 rows = conn.execute(
                     f"""
-                    SELECT interval, symbol
+                    SELECT interval, symbol, MAX(timestamp)
                       FROM candles
                      WHERE interval IN ({placeholders})
                        AND open > 0 AND high > 0 AND low > 0 AND close > 0
@@ -144,10 +148,12 @@ def build_candle_coverage_plan(
                     """,
                     selected_intervals,
                 ).fetchall()
-            for interval, symbol in rows:
+            for interval, symbol, last_ts in rows:
                 key = str(interval).lower()
                 if key in present_by_interval:
                     present_by_interval[key].add(str(symbol).upper())
+                    if str(last_ts or "")[:10] >= expected_session:
+                        fresh_by_interval[key].add(str(symbol).upper())
         except Exception:
             present_by_interval = {interval: set() for interval in selected_intervals}
 
@@ -156,18 +162,25 @@ def build_candle_coverage_plan(
     for interval in selected_intervals:
         present = present_by_interval.get(interval, set())
         missing = [symbol for symbol in selected_symbols if symbol not in present]
+        stale = [
+            symbol for symbol in selected_symbols
+            if symbol in present and symbol not in fresh_by_interval.get(interval, set())
+        ]
+        repair = missing + stale
         all_missing[interval] = missing
         interval_plans.append({
             "interval": interval,
             "target_symbols": len(selected_symbols),
             "present_symbols": len(present),
             "missing_symbols": len(missing),
+            "stale_symbols": len(stale),
+            "stale": stale,
             "coverage_pct": round(100.0 * (len(selected_symbols) - len(missing)) / max(len(selected_symbols), 1), 2),
             "priority_missing": missing[:batch_size],
             "recommended_command": (
                 ".venv/bin/python3 candle_coverage_backfill.py "
-                f"--intervals {interval} --symbols {','.join(missing[:batch_size])}"
-                if missing else ""
+                f"--intervals {interval} --symbols {','.join(repair[:batch_size])}"
+                if repair else ""
             ),
         })
 
@@ -178,6 +191,7 @@ def build_candle_coverage_plan(
         "target_symbols": len(selected_symbols),
         "intervals": selected_intervals,
         "batch_size": int(batch_size),
+        "latest_expected_session": expected_session,
         "interval_plans": interval_plans,
         "missing_by_interval": all_missing,
         "next_actions": [
@@ -188,7 +202,7 @@ def build_candle_coverage_plan(
                 "command": row["recommended_command"],
             }
             for row in interval_plans
-            if row["missing_symbols"] > 0
+            if row["missing_symbols"] > 0 or row["stale_symbols"] > 0
         ],
     }
     if write:

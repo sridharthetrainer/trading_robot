@@ -415,6 +415,9 @@ class SignalLogger:
                     "risk_level_source": "TEXT DEFAULT ''",
                     "training_eligible": "INTEGER DEFAULT 0",
                     "training_exclusion_reason": "TEXT DEFAULT ''",
+                    "lifecycle_status": "TEXT DEFAULT 'OPEN'",
+                    "lifecycle_updated_at": "TEXT DEFAULT ''",
+                    "lifecycle_price": "REAL DEFAULT 0",
                 }
                 for _c, _decl in _new_cols.items():
                     if _c not in cols:

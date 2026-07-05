@@ -495,6 +495,18 @@ def _apply_live_eligibility(signal: Dict[str, Any]) -> Dict[str, Any]:
         )
     return signal
 
+
+def _apply_generated_edge_policy(signal: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach clean generated-outcome evidence and quarantine weak cohorts."""
+    if not signal:
+        return signal
+    try:
+        from autonomous_edge_policy import apply_policy
+        return apply_policy(signal)
+    except Exception as exc:
+        logger.debug("autonomous edge policy unavailable: %s", exc)
+        return signal
+
 # ── Watchdog heartbeat (progress-coupled) ─────────────────────────────────────
 # Touch heartbeat.json as symbols finish evaluating so a slow-but-working scan
 # (Angel/NSE rate-limited) isn't mistaken for a hang and SIGKILL'd. Rate-limited;
@@ -1759,9 +1771,18 @@ class LiveSignalEngine:
                     _er = get_expiry_regime()
                     _er_ctx = {"expiry_dte": _er.get("days_to_expiry",5), "expiry_regime": _er.get("regime_label","NORMAL")}
                 except Exception: pass
+                try:
+                    from autonomous_signal_lifecycle import active_generated_symbols
+                    _active_generated = active_generated_symbols()
+                except Exception:
+                    _active_generated = set()
                 for _cand in candidates:
-                    _payload = self._candidate_signal_log_payload(_cand)
                     _sig = _cand.get("signal", {}) if isinstance(_cand, dict) else {}
+                    _symbol = str(_cand.get("symbol", _sig.get("symbol", "")) or "").upper()
+                    if _symbol in _active_generated and not str(_sig.get("live_block_reason", "") or ""):
+                        _sig["paper_training_mode"] = True
+                        _sig["live_block_reason"] = "duplicate_active_generated_signal"
+                    _payload = self._candidate_signal_log_payload(_cand)
                     _sl.log_candidate(
                         signal           = _payload,
                         executed         = False,  # updated later if executed
@@ -1771,6 +1792,14 @@ class LiveSignalEngine:
                         **_er_ctx,
                         trade_num_today  = self._rejection_stats.get("passed", 0),
                     )
+                    if _symbol and not str(_sig.get("live_block_reason", "") or ""):
+                        _active_generated.add(_symbol)
+                try:
+                    from autonomous_signal_lifecycle import (
+                        update_generated_signal_lifecycle, send_lifecycle_digest)
+                    send_lifecycle_digest(update_generated_signal_lifecycle(price_frames=market_data))
+                except Exception as _life_exc:
+                    logger.debug("in-memory generated signal lifecycle: %s", _life_exc)
             except Exception as _sle:
                 logger.debug("Signal log candidates: %s", _sle)
 
@@ -2019,6 +2048,7 @@ class LiveSignalEngine:
                 except Exception:
                     logger.debug("shadow logging failed for %s", symbol)
             signal = _apply_live_eligibility(signal)
+            signal = _apply_generated_edge_policy(signal)
             # Sector + vol adjustments
             if signal and signal.get("side"):
                 try:
@@ -2085,7 +2115,7 @@ class LiveSignalEngine:
             if float(signal.get("score", 0) or 0) < live_min_score:
                 live_quality_reasons.append("score_below_live_min")
             ai_state = str(signal.get("ai_model_state", "") or "")
-            if ai_state in {"missing_model", "inference_failed"}:
+            if ai_state in {"missing_model", "inference_failed", "unvalidated_rule_fallback"}:
                 live_quality_reasons.append(f"ai_{ai_state}")
             elif float(ai_prob or 0) < live_min_prob:
                 live_quality_reasons.append("ai_prob_below_live_min")
@@ -2199,6 +2229,7 @@ class LiveSignalEngine:
                     },
                 )
                 signal = _apply_live_eligibility(signal)
+                signal = _apply_generated_edge_policy(signal)
                 if signal and signal.get("side"):
                     strategy_lc = str(signal.get("strategy", "fallback")).lower().strip()
                     paper_only = _cfg_strategy_set("PAPER_ONLY_STRATEGIES")
@@ -2290,19 +2321,11 @@ class LiveSignalEngine:
         # Fall through to original shared-model path
         if (not bool(getattr(cfg, "ALLOW_LEGACY_TRADE_MODELS", False))
                 or not getattr(self.learning_engine, "model", None)):
-            score = _safe_float(signal.get("score"), 0.0)
-            n_agree = _safe_float(signal.get("n_agree"), 0.0)
-            n_conflict = _safe_float(signal.get("n_conflict"), 0.0)
-            confluence = str(signal.get("confluence", "") or "").upper()
+            # A score-derived heuristic is not an independent probability.
+            # Clean outcomes show the current score is inversely ordered, so
+            # treating it as AI confidence would amplify the same error twice.
             prob = 0.50
-            prob += min(max(score, 0.0), 30.0) / 120.0
-            prob += min(max(n_agree - n_conflict, 0.0), 12.0) / 100.0
-            if confluence == "VERY_STRONG":
-                prob += 0.04
-            elif confluence == "HIGH":
-                prob += 0.02
-            prob = max(0.50, min(0.78, prob))
-            signal["ai_model_state"] = "rule_based_fallback"
+            signal["ai_model_state"] = "unvalidated_rule_fallback"
             signal["ai_fallback_reason"] = "clean_generated_signal_model_missing"
             return prob
 

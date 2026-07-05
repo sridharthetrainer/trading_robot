@@ -600,6 +600,8 @@ class TelegramCommandHandler:
         self.register("attribution", self._cmd_attribution)
         self.register("attr",        self._cmd_attribution)
         self.register("eod",         self._cmd_eod_summary)
+        self.register("all",         self._cmd_autonomous_all)
+        self.register("eodall",      self._cmd_autonomous_all)
         self.register("downloads",   self._cmd_downloads)
         self.register("dashboard",   self._cmd_dashboard_view)
         self.register("strategies",  self._cmd_strategies_view)
@@ -905,11 +907,12 @@ class TelegramCommandHandler:
             return f"⚠️ Status error: {str(e)[:80]}"
 
     def _cmd_pnl(self, args="") -> str:
-        """Institutional P&L report."""
+        """Today's option/normal P&L followed by the requested history window."""
         try:
             from performance_analytics import format_telegram_report as _pa
+            from pnl_reporting import format_today_pnl
             days = int(args.strip()) if args.strip().isdigit() else 30
-            return _pa(days)
+            return format_today_pnl() + "\n\n" + _pa(days)
         except Exception as e:
             return f"❌ P&L: {e}"
 
@@ -979,6 +982,12 @@ class TelegramCommandHandler:
     def _cmd_signals(self, _="") -> str:
         """Show recent signals from strategy_scores or trades."""
         try:
+            from autonomous_signal_views import generated_signals_text
+            return generated_signals_text()
+        except Exception as exc:
+            return f"Signals: {exc}"
+        # Legacy fallback retained below for compatibility reference.
+        try:
             import sqlite3
             conn = sqlite3.connect("trades.db", check_same_thread=False)
             rows = []
@@ -1018,6 +1027,13 @@ class TelegramCommandHandler:
             return "\n".join(lines_out)
         except Exception as e:
             return f"Signals: {e}"
+
+    def _cmd_autonomous_all(self, _="") -> str:
+        try:
+            from autonomous_signal_views import all_eod_text
+            return all_eod_text()
+        except Exception as exc:
+            return f"Autonomous EOD summary: {exc}"
 
     def _cmd_pause(self, _="") -> str:
         try:
