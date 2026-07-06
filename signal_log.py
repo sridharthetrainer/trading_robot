@@ -1134,6 +1134,32 @@ def get_signal_logger(db_path: str = str(_DB_PATH)) -> SignalLogger:
     return _logger_instance
 
 
+# Confirmation gate: keep/prune verdicts need this many DISTINCT strict days.
+EDGE_GATE_DAYS = 8
+
+
+def usable_edge_days(db_path: str = str(_DB_PATH)) -> int:
+    """Canonical STRICT count of distinct trading days usable for edge
+    confirmation — the single source of truth for every status surface.
+
+    Strict = labelled + training_eligible + real risk levels (same basis as
+    nightly_edge_monitor's CONFIRMED gate). A looser count (tb_stop>0 only)
+    includes early rows that predate the risk-level columns and once overstated
+    readiness by 2 days (2026-07-06 review). Quote THIS number everywhere."""
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        n = conn.execute(
+            f"SELECT COUNT(DISTINCT signal_date) FROM {_TBL} "
+            "WHERE tb_label IN (-1,0,1) AND training_eligible=1 "
+            "AND stop_loss>0 AND target>0 AND rr>0"
+        ).fetchone()[0]
+        conn.close()
+        return int(n or 0)
+    except Exception as e:
+        logger.debug("usable_edge_days: %s", e)
+        return 0
+
+
 def worthiness_summary(db_path: str = str(_DB_PATH), days: int = 30,
                        min_n: int = 20, top: int = 5) -> dict:
     """
@@ -1197,8 +1223,13 @@ def worthiness_summary(db_path: str = str(_DB_PATH), days: int = 30,
         key=lambda x: x["avg_net_R"], reverse=True,
     )
     dd = len(days_seen)
+    strict_days = usable_edge_days(db_path)
     out.update({
         "ok": True, "n_scored": n, "distinct_days": dd,
+        # STRICT canonical day count — quote THIS for gate-readiness everywhere
+        "usable_days_strict": strict_days,
+        "edge_gate_days": EDGE_GATE_DAYS,
+        "edge_gate_ready": strict_days >= EDGE_GATE_DAYS,
         "win_rate": round(100.0*wins/n, 1),
         "avg_gross_R": round(g_sum/n, 3), "avg_net_R": round(nt_sum/n, 3),
         "pct_net_positive": round(100.0*net_pos/n, 1),

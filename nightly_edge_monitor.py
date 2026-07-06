@@ -32,7 +32,12 @@ PAIR_WATCHLIST = [
     ("SUNPHARMA", "DRREDDY"), ("TCS", "INFY"), ("HINDALCO", "JSWSTEEL"),
 ]
 MIN_N    = 150      # min labelled signals before a keep/prune verdict is "confirmed"
-MIN_DAYS = 8        # min DISTINCT trading days — 5 correlated days once faked a pocket
+# Canonical gate — same constant every status surface quotes (signal_log is the
+# source of truth; fallback keeps the monitor standalone-safe).
+try:
+    from signal_log import EDGE_GATE_DAYS as MIN_DAYS
+except Exception:
+    MIN_DAYS = 8    # min DISTINCT strict days — 5 correlated days once faked a pocket
 PRUNE_R  = -0.03    # NET-of-cost avg-R at/below this = prune candidate
 KEEP_R   = 0.10     # NET-of-cost avg-R at/above this = keep candidate
 PAIRS_REPORT = "pairs_validation_report.json"

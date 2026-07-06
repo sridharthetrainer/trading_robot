@@ -2666,11 +2666,16 @@ class TelegramCommandHandler:
                 return f"📊 Signal worthiness: no scored signals yet ({s.get('error', '-')})"
             flag = "✅" if s["avg_net_R"] > 0 else "🔴"
             ready = "yes ✅" if s["meta_labeler_ready"] else f"no ({s['distinct_days']}/10 days)"
+            gate_days = s.get("edge_gate_days", 8)
+            strict = s.get("usable_days_strict", 0)
+            gate = ("CROSSED ✅" if s.get("edge_gate_ready")
+                    else f"{strict}/{gate_days} strict days")
             lines = [
                 f"📊 <b>Signal Worthiness</b> — last {s['days']}d",
                 f"scored {s['n_scored']} signals · {s['distinct_days']} day(s) · win {s['win_rate']}%",
                 f"avg R: gross {s['avg_gross_R']:+.3f} → {flag} <b>net {s['avg_net_R']:+.3f}</b>",
                 f"net-positive: {s['pct_net_positive']}%  |  meta-labeler ready: {ready}",
+                f"🚦 edge-review gate: <b>{gate}</b> (strict basis — the only count that gates verdicts)",
             ]
             if s.get("best"):
                 lines.append("\n🏆 <b>best net-R</b> (n≥20):")
