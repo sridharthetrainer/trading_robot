@@ -59,12 +59,15 @@ def s_telegram_outage() -> Result:
         import alerts
         def _boom(*a, **k):
             raise ConnectionError("simulated telegram outage")
-        am = alerts.AlertManager(bot_token="0:test", chat_id="1")
-        # no-op sleep so the real retry/backoff (3× exponential) runs instantly
-        with _patched(alerts.requests, "post", _boom), \
-             _patched(alerts.time, "sleep", lambda *a, **k: None):
-            am.send("chaos test")          # must not raise
-            am.critical("chaos critical")  # must not raise
+        # The failure path spools to a CWD-relative telegram_spool.jsonl; run in
+        # a temp dir so the injected messages never enter the real retry spool.
+        with tempfile.TemporaryDirectory() as tmp, _chdir(tmp):
+            am = alerts.AlertManager(bot_token="0:test", chat_id="1")
+            # no-op sleep so the real retry/backoff (3× exponential) runs instantly
+            with _patched(alerts.requests, "post", _boom), \
+                 _patched(alerts.time, "sleep", lambda *a, **k: None):
+                am.send("chaos test")          # must not raise
+                am.critical("chaos critical")  # must not raise
         return ("telegram_outage", "ok", "send/critical swallowed the outage")
     except Exception as exc:
         return ("telegram_outage", "fail", f"propagated: {exc!r}")
