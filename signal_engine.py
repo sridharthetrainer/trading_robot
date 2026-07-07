@@ -4114,9 +4114,20 @@ def generate_signal(
             # Prune: subtract any gated-off ADDITIVE modifiers' captured contribution
             # from the final score (reversible; empty by default → no-op). Only numeric
             # modifier values are subtracted; operator disables additive-modifier keys.
+            # Analyzer/prune names differ from the meta keys, and clamped modifiers
+            # store RAW alongside the *_applied value actually added to the score —
+            # subtract the applied value, never the raw one.
             if _PRUNE_MODS:
+                _PRUNE_KEYS = {
+                    "cross_asset_mod": "cross_asset",
+                    "expiry_mod":      "expiry_regime",
+                    "mtf_pivot_mod":   "mtf_pivot_applied",
+                    "sr_level_mod":    "sr_level_mod_applied",
+                    "participant_mod": "participant_oi_applied",
+                }
                 for _mk in _PRUNE_MODS:
-                    _mv = _cand_meta.get(_mk)
+                    _kk = _PRUNE_KEYS.get(_mk, _mk)
+                    _mv = _cand_meta.get(_kk, _sig_meta.get(_kk))
                     if isinstance(_mv, (int, float)):
                         adjusted_score -= float(_mv)
 
@@ -4128,7 +4139,7 @@ def generate_signal(
                 "raw_score": round(raw_score, 4),
                 "entry_quality": _entry_quality,
                 "factor_confirmations": sorted(f for f in _cand_factors if f),
-                "signal_meta": dict(_cand_meta),
+                "signal_meta": {**_sig_meta, **_cand_meta},
                 "volume_ratio": _cand_meta.get("volume_ratio"),
                 "triggers":  _triggers,
             })
