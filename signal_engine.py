@@ -1789,6 +1789,27 @@ try:
 except ImportError:
     _WEINSTEIN_AVAILABLE = False
 
+# Weinstein stage analysis needs DAILY bars (MA_PRIMARY=150 sessions). The call
+# site used to pass df_htf (1h), so the filter hit its no-daily-data path on
+# nearly every stock (13 nonzero weinstein_mod across ~30k logged signals).
+# candle_cache holds ~1y of 1d bars per symbol; cache one frame per symbol/day.
+_WEINSTEIN_DAILY: dict = {}
+
+def _weinstein_daily_df(symbol: str):
+    from datetime import date as _wd_date
+    today = _wd_date.today()
+    hit = _WEINSTEIN_DAILY.get(symbol)
+    if hit is not None and hit[0] == today:
+        return hit[1]
+    df_daily = None
+    try:
+        from candle_cache import get_cached_candles
+        df_daily = get_cached_candles(symbol, "1d", days=400)
+    except Exception:
+        df_daily = None
+    _WEINSTEIN_DAILY[symbol] = (today, df_daily)
+    return df_daily
+
 try:
     from strategy_performance_matrix import get_strategy_matrix as _get_sm
     _SM_AVAILABLE = True
@@ -4063,10 +4084,12 @@ def generate_signal(
                     _cand_meta["htf_penalty"] = _htf_penalty
                     rejections.append(f"{strategy}: HTF_soft_penalty={_htf_penalty} ({htf_bias})")
 
-            # Weinstein Stage filter for stocks
+            # Weinstein Stage filter for stocks — needs DAILY bars, not df_htf
+            # (1h): with 1h the filter returned its no-daily-data default on
+            # nearly every stock. None is handled (allow, score_mod 0).
             if _WEINSTEIN_AVAILABLE and symbol:
                 try:
-                    _ws = _weinstein_filter(symbol, direction, df_htf)
+                    _ws = _weinstein_filter(symbol, direction, _weinstein_daily_df(symbol))
                     if not _ws.get("allow", True):
                         rejections.append(f"{strategy}: weinstein_{_ws.get('reason','blocked')}")
                         continue
