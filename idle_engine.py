@@ -892,7 +892,13 @@ class IdleEngine:
                 target = now.replace(hour=h, minute=m, second=0, microsecond=0)
                 late_sec = (now - target).total_seconds()
                 if 0 <= late_sec <= max_late_min * 60:
-                    self._ran[task_key] = True
+                    # Persist "started" (truthy, so this process never double-
+                    # fires) and only mark True once the task completes: a
+                    # restart mid-task drops the marker in _load_state so the
+                    # catch-up window re-fires it. (2026-07-06: a 21:38 restart
+                    # killed the 21:30 autolearn mid-run, and the pre-marked
+                    # True skipped it for the rest of the day.)
+                    self._ran[task_key] = "started"
                     self._save_state()
                     logger.info("IdleEngine: starting %s", desc)
                     self.alerts.send(
@@ -906,6 +912,8 @@ class IdleEngine:
                         fn(self.alerts)
                     except Exception as e:
                         logger.warning("IdleEngine task %s: %s", key, e)
+                    self._ran[task_key] = True
+                    self._save_state()
             self._stop.wait(60)  # check every minute
 
     def get_todays_schedule(self) -> str:
@@ -962,7 +970,16 @@ class IdleEngine:
     def _load_state(self) -> None:
         try:
             if _STATE_FILE.exists():
-                self._ran = json.loads(_STATE_FILE.read_text())
+                loaded = json.loads(_STATE_FILE.read_text())
+                # Keep only COMPLETED tasks (True): "started" markers belong to
+                # a process that died mid-task, and the catch-up window should
+                # re-fire those. Also drop entries older than 2 days so the
+                # state file stops growing forever (task keys embed the date).
+                cutoff = str(date.today() - timedelta(days=2))
+                self._ran = {
+                    k: v for k, v in loaded.items()
+                    if v is True and k.split(":", 1)[-1] >= cutoff
+                }
         except Exception:
             pass
 
