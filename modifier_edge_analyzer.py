@@ -51,6 +51,11 @@ _MOD_COLS: List[str] = [
     "mtf_pivot_mod", "ai_score", "rl_bias", "weinstein_mod",
     # widened instrumentation (2026-06-14) — populate after schema migration
     "gex_mod", "skew_mod", "whale_mod", "sr_level_mod", "pivot_boss_mod", "oi_mod",
+    # 2026-06-20 batch (logging fixed 2026-07-07: _sig_meta was dropped at the
+    # candidate build) + the structure/profile family that was logged but untested
+    "sector_mod", "crsi_mod", "nr_mod", "volume_mod",
+    "structure_mod", "market_quality_mod", "market_profile_mod",
+    "candidate_quality_mod",
 ]
 
 
@@ -102,6 +107,47 @@ def _lift_sign_stable(sub_endorsed, sub_silent) -> bool:
     return full != 0 and older == full and newer == full
 
 
+def _strong_vs_weak_block(block: Dict[str, Any], strong, weak,
+                          alpha_corrected: float) -> Dict[str, Any]:
+    """Quartile fallback for always-on modifiers: top quartile of the modifier's
+    value ("strong endorsement") vs bottom quartile ("weak"). Positive lift =
+    the modifier's strength ranks outcomes (informative); negative lift =
+    anti-predictive. Keys mirror the main test so downstream consumers
+    (format_report, pruning.suggest_from_analyzers) keep working."""
+    import numpy as np
+    from scipy import stats
+
+    s_ret, w_ret = strong["ret"].values, weak["ret"].values
+    s_mean, w_mean = float(np.mean(s_ret)), float(np.mean(w_ret))
+    lift = s_mean - w_mean
+    t_stat, p_value = stats.ttest_ind(s_ret, w_ret, equal_var=False)  # Welch
+    significant = bool(p_value < alpha_corrected)
+
+    block.update({
+        "basis": "quartile_strong_vs_weak",
+        "n_strong": int(len(strong)),
+        "n_weak": int(len(weak)),
+        "strong_mean": round(s_mean, 4),
+        "weak_mean": round(w_mean, 4),
+        "lift": round(lift, 4),
+        "strong_win_rate": round(float(np.mean(s_ret > 0)), 4),
+        "strong_net_of_cost": round(s_mean - COST_PCT, 4),
+        "t_stat": round(float(t_stat), 3),
+        "p_value": round(float(p_value), 6),
+        "significant": significant,
+    })
+    if not significant:
+        block["verdict"] = "NOISE"
+    elif lift > 0:
+        block["verdict"] = "HELPS"
+    else:
+        block["verdict"] = "HURTS"
+    if block["verdict"] in ("HELPS", "HURTS") and not _lift_sign_stable(strong, weak):
+        block["note"] = "lift sign not stable across time halves"
+        block["verdict"] = "UNSTABLE_OOS"
+    return block
+
+
 def _modifier_block(df, col: str, alpha_corrected: float) -> Dict[str, Any]:
     """Endorsed (mod>EPS) vs silent (|mod|<=EPS) two-sample test of mean return."""
     import numpy as np
@@ -125,6 +171,15 @@ def _modifier_block(df, col: str, alpha_corrected: float) -> Dict[str, Any]:
         block["verdict"] = "DEAD"
         return block
     if len(endorsed) < MIN_SAMPLES or len(silent) < MIN_SAMPLES:
+        # Always-on modifiers (participant_mod / ai_score / whale_mod fire on
+        # ~100% of signals) have no silent control group, so the endorsed-vs-
+        # silent test can never run. Fall back to strong-vs-weak: top value
+        # quartile vs bottom quartile. Same verdicts; basis flags the test.
+        if len(silent) < MIN_SAMPLES and df[col].nunique() > 3:
+            q1, q3 = float(df[col].quantile(0.25)), float(df[col].quantile(0.75))
+            strong, weak = df[df[col] >= q3], df[df[col] <= q1]
+            if q3 > q1 and len(strong) >= MIN_SAMPLES and len(weak) >= MIN_SAMPLES:
+                return _strong_vs_weak_block(block, strong, weak, alpha_corrected)
         block["verdict"] = "INSUFFICIENT"
         return block
 
