@@ -269,8 +269,8 @@ def _load_fo_tokens() -> dict:
                             lot = int(float(row.get("lotsize", 0) or 0))
                             if lot > 0:
                                 _FO_LOTSIZES[sym] = lot
-                        except (TypeError, ValueError):
-                            pass
+                        except (TypeError, ValueError) as e:
+                            log.debug("bad lotsize for %s in %s: %s", sym, mc, e)
             if added:
                 files_used.append(f"{mc}(+{added})")
         except Exception as e:
