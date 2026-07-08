@@ -221,6 +221,7 @@ def _load_nse_eq_tokens() -> dict:
 
 # ── F&O Token Cache (NFO + BFO options/futures) ────────────────────────────────
 _FO_TOKENS: dict = {}
+_FO_LOTSIZES: dict = {}
 _FO_LOADED: bool = False
 
 
@@ -242,7 +243,7 @@ def _load_fo_tokens() -> dict:
     stopping at the first non-empty one, so a stale snapshot in any one file
     can no longer shadow a fresher contract listed in another.
     """
-    global _FO_TOKENS, _FO_LOADED
+    global _FO_TOKENS, _FO_LOTSIZES, _FO_LOADED
     if _FO_LOADED:
         return _FO_TOKENS
     log = logging.getLogger(__name__)
@@ -263,6 +264,13 @@ def _load_fo_tokens() -> dict:
                     if sym and tok and tok.lower() != "nan" and sym not in _FO_TOKENS:
                         _FO_TOKENS[sym] = tok
                         added += 1
+                    if sym and sym not in _FO_LOTSIZES:
+                        try:
+                            lot = int(float(row.get("lotsize", 0) or 0))
+                            if lot > 0:
+                                _FO_LOTSIZES[sym] = lot
+                        except (TypeError, ValueError):
+                            pass
             if added:
                 files_used.append(f"{mc}(+{added})")
         except Exception as e:
@@ -271,6 +279,15 @@ def _load_fo_tokens() -> dict:
         log.info("F&O tokens loaded: %d total from %s", len(_FO_TOKENS), ", ".join(files_used))
     _FO_LOADED = True
     return _FO_TOKENS
+
+
+def get_fo_lot_size(symbol: str) -> Optional[int]:
+    """Exchange lot size for an F&O tradingsymbol, from the same master-contract
+    data _load_fo_tokens() already parses. None if the symbol isn't found —
+    callers must not guess a lot size, since ordering a non-lot-multiple
+    quantity gets rejected (or worse, silently mis-executed) at the broker."""
+    _load_fo_tokens()
+    return _FO_LOTSIZES.get(symbol.upper())
 
 
 class AngelOne:

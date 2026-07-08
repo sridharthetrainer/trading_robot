@@ -99,6 +99,12 @@ OPTION_SPIKE_WINDOW_SECS = float(os.getenv("MANUAL_OPTION_SPIKE_WINDOW_SECS", "3
 OPTION_SPIKE_PCT      = float(os.getenv("MANUAL_OPTION_SPIKE_PCT", "0.50"))
 OPTION_EXPIRY_TIGHTEN_DTE = int(os.getenv("MANUAL_OPTION_EXPIRY_TIGHTEN_DTE", "1"))
 OPTION_FLOW_WEAK_SCORE = float(os.getenv("MANUAL_OPTION_FLOW_WEAK_SCORE", "-1.0"))
+# Real partial profit-booking at T1 (2026-07-08): options only trade in whole
+# exchange lots, so this only fires when the position holds >= 2 lots — a
+# single-lot position (the common case) keeps the original alert-only T1
+# behaviour, since there is nothing to split.
+T1_PARTIAL_BOOK_ENABLED = os.getenv("MANUAL_T1_PARTIAL_BOOK", "true").lower() == "true"
+T1_PARTIAL_BOOK_PCT     = float(os.getenv("MANUAL_T1_PARTIAL_BOOK_PCT", "0.5"))
 # Hybrid option stop (review consensus): the broker GTT is a DEEP catastrophe
 # floor (crash/gap protection) so premium noise / IV-vega spikes don't shake you
 # out; the PRIMARY intraday stop is the underlying breaking structure (live loop).
@@ -161,6 +167,7 @@ class ManualTrade:
     pnl_pct: float = 0.0
     breakeven_activated: bool = False
     t1_hit: bool = False
+    realized_pnl: float = 0.0   # booked P&L from partial exits (qty already reduced)
     status: str = "OPEN"        # OPEN / CLOSED / TRACKING
     exit_price: float = 0.0
     exit_time: str = ""
@@ -364,7 +371,8 @@ class ManualTradeTracker:
         # Broker-protection columns (added idempotently for existing DBs)
         for col, typ in (("sl_gtt_id", "TEXT"), ("target_gtt_id", "TEXT"),
                          ("hwm", "REAL"), ("protected", "INTEGER"),
-                         ("current_price", "REAL"), ("pnl_pct", "REAL")):
+                         ("current_price", "REAL"), ("pnl_pct", "REAL"),
+                         ("realized_pnl", "REAL"), ("t1_hit", "INTEGER")):
             try:
                 conn.execute(f"ALTER TABLE manual_trades ADD COLUMN {col} {typ}")
             except Exception:
@@ -413,6 +421,10 @@ class ManualTradeTracker:
                 trade.target_gtt_id = d.get("target_gtt_id") or ""
                 trade.hwm           = float(d.get("hwm") or 0)
                 trade.protected     = bool(d.get("protected"))
+                trade.realized_pnl  = float(d.get("realized_pnl") or 0)
+                # Restore t1_hit so a restart after a partial book doesn't
+                # re-check T1 against the now-smaller qty and book again.
+                trade.t1_hit        = bool(d.get("t1_hit"))
                 self._active_trades[trade.order_id] = trade
             if rows:
                 logger.info("Resumed %d open manual trade(s) from DB", len(rows))
@@ -921,25 +933,32 @@ class ManualTradeTracker:
                             if new_trail < trade.trailing_sl:
                                 trade.trailing_sl = new_trail
 
-                    # Check SL hit (advisory close \u2014 no broker order exists)
+                    # Check SL hit
                     sl_hit = (is_long and ltp <= trade.trailing_sl) or (not is_long and ltp >= trade.trailing_sl)
                     if sl_hit and trade.breakeven_activated:
-                        trade.exit_price = ltp
-                        trade.exit_time = datetime.now().isoformat()
-                        trade.exit_reason = f"Trailing SL \u20b9{trade.trailing_sl:.2f}"
-                        trade.status = "CLOSED"
-                        self.send_exit(trade)
-                        self._save_trade(trade)
-                        del self._active_trades[oid]
+                        # 2026-07-08: this used to mark the trade CLOSED purely
+                        # from watching price cross trailing_sl \u2014 no real order
+                        # was ever placed, so the tracker could believe a
+                        # position was flat while it sat open and unprotected
+                        # at the broker. Route through the same _square_off()
+                        # the structural stop already uses so this is a REAL
+                        # market exit; if the order fails, the trade correctly
+                        # stays OPEN and tracked instead of being faked closed.
+                        if self._square_off(trade, f"Trailing SL \u20b9{trade.trailing_sl:.2f}"):
+                            continue
                 
-                # Check T1 hit
+                # Check T1 hit \u2014 try a real partial profit-book (options,
+                # >=2 lots); fall back to the original alert-only nudge
+                # (single-lot positions, equities, or a failed order) exactly
+                # as before.
                 if not trade.t1_hit:
                     t1_hit = (is_long and ltp >= trade.target_1) or (not is_long and ltp <= trade.target_1)
                     if t1_hit:
-                        trade.t1_hit = True
-                        self.send_channel(
-                            f"\U0001f4b0 <b>TARGET 1 HIT</b> {trade.symbol}\n"
-                            f"  \u20b9{trade.target_1:,.2f} reached! Book partial profits")
+                        if not self._book_partial_profit(trade, ltp):
+                            trade.t1_hit = True
+                            self.send_channel(
+                                f"\U0001f4b0 <b>TARGET 1 HIT</b> {trade.symbol}\n"
+                                f"  \u20b9{trade.target_1:,.2f} reached! Book partial profits")
 
                 # Persist live price/P&L so the Guardian bot's /manual command
                 # can render a current status card from the DB.
@@ -1539,6 +1558,70 @@ class ManualTradeTracker:
                 + "\n  GTT at broker — survives app restart/crash.")
         self._save_trade(trade)
 
+    def _book_partial_profit(self, trade: ManualTrade, ltp: float) -> bool:
+        """At T1, close part of the position with a REAL market order and
+        resize the remaining GTTs to match qty — 'take max profit, small
+        loss if wrong': lock in a chunk of the gain now at the broker, let
+        the rest keep riding the existing trailing stop / structural stop.
+
+        Options only trade in whole exchange lots, so this only applies once
+        the position holds >= 2 lots; a 1-lot position (the common case)
+        returns False and the caller falls back to the original alert-only
+        T1 nudge unchanged.
+        """
+        if not T1_PARTIAL_BOOK_ENABLED or not self._is_option(trade):
+            return False
+        if not self._angel or not self._angel.obj:
+            return False
+        try:
+            from angel import get_fo_lot_size
+            lot = get_fo_lot_size(trade.symbol)
+        except Exception:
+            lot = None
+        if not lot or lot <= 0:
+            return False
+        n_lots = trade.qty // lot
+        if n_lots < 2:
+            return False  # nothing to split off a single lot
+        book_lots = max(1, min(n_lots - 1, round(n_lots * T1_PARTIAL_BOOK_PCT)))
+        book_qty = book_lots * lot
+        is_long = trade.side == "BUY"
+        exit_side = "SELL" if is_long else "BUY"
+        _prod = (getattr(trade, "product", None) or "INTRADAY").upper()
+        try:
+            _res = self._angel.place_order(
+                trade.symbol, book_qty, exit_side,
+                order_type="MARKET", producttype=_prod)
+        except Exception as e:
+            logger.error("partial book %s: %s", trade.symbol, e)
+            return False
+        oid, fill_price = _res if isinstance(_res, (list, tuple)) else (_res, 0.0)
+        if not oid:
+            return False
+        fill_price = float(fill_price) or ltp
+        leg_pnl = ((fill_price - trade.entry_price) if is_long
+                   else (trade.entry_price - fill_price)) * book_qty
+        trade.realized_pnl += leg_pnl
+        trade.qty -= book_qty
+        trade.t1_hit = True
+        # Resize the remaining broker GTTs to the smaller qty at the SAME
+        # trigger levels (place-new-then-cancel-old — same mechanics
+        # _adjust_protection already uses to tighten a level).
+        if trade.sl_gtt_id:
+            self._replace_sl(trade, trade.stop_loss)
+        if trade.target_gtt_id:
+            self._replace_target(trade, trade.target_1)
+        self._save_trade(trade)
+        logger.info(
+            "PARTIAL BOOK %s: %d lot(s) (%d qty) @ %.2f, realized ₹%.2f, %d qty remains",
+            trade.symbol, book_lots, book_qty, fill_price, leg_pnl, trade.qty)
+        self.send_channel(
+            f"💰 <b>PARTIAL PROFIT BOOKED</b> — {trade.symbol}\n"
+            f"  Sold {book_qty} ({book_lots} lot{'s' if book_lots > 1 else ''}) @ ₹{fill_price:.2f}\n"
+            f"  Realized ₹{leg_pnl:,.0f} | {trade.qty} qty still running "
+            f"(T1 ₹{trade.target_1:.2f})")
+        return True
+
     def _replace_sl(self, trade: ManualTrade, new_sl: float) -> None:
         """Move the SL GTT to a tighter level (place new, then cancel old)."""
         is_long   = trade.side == "BUY"
@@ -1893,8 +1976,8 @@ class ManualTradeTracker:
         except Exception as e:
             logger.error("square_off %s: %s", trade.symbol, e)
             return False
-        # place_order returns (order_id, fill_price) — take the id.
-        oid = _res[0] if isinstance(_res, (list, tuple)) else _res
+        # place_order returns (order_id, fill_price).
+        oid, fill_price = _res if isinstance(_res, (list, tuple)) else (_res, 0.0)
         if not oid:
             return False
         self._cancel_protection(trade)
@@ -1903,6 +1986,12 @@ class ManualTradeTracker:
         # trade and fired ANOTHER close order every ~60s — a 200+ order re-sell
         # loop on the live account. _save_trade persists CLOSED so a restart
         # doesn't reload it as OPEN and resume the loop.
+        # 2026-07-08: exit_price was never captured here — every auto-close
+        # (structural stop or the fallback trailing-SL path below) recorded
+        # PnL against whatever exit_price happened to default to. Use the
+        # real fill price; fall back to the last known LTP, then entry, so a
+        # transient fill-lookup miss still records something plausible.
+        trade.exit_price  = float(fill_price) or trade.current_price or float(trade.entry_price)
         trade.exit_time   = datetime.now().isoformat()
         trade.exit_reason = reason
         trade.status      = "CLOSED"
@@ -1979,8 +2068,9 @@ class ManualTradeTracker:
                 "(order_id,symbol,exchange,side,qty,entry_price,product,order_time,"
                 "stop_loss,target_1,target_2,strategies_bullish,strategies_bearish,"
                 "regime,vix,wow_factors,status,exit_price,exit_time,exit_reason,pnl,"
-                "sl_gtt_id,target_gtt_id,hwm,protected,current_price,pnl_pct) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "sl_gtt_id,target_gtt_id,hwm,protected,current_price,pnl_pct,"
+                "realized_pnl,t1_hit) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (trade.order_id, trade.symbol, trade.exchange, trade.side,
                  trade.qty, trade.entry_price, trade.product, trade.order_time,
                  trade.stop_loss, trade.target_1, trade.target_2,
@@ -1991,7 +2081,8 @@ class ManualTradeTracker:
                  trade.exit_reason, trade.pnl,
                  trade.sl_gtt_id, trade.target_gtt_id, trade.hwm,
                  1 if trade.protected else 0,
-                 trade.current_price, trade.pnl_pct)
+                 trade.current_price, trade.pnl_pct,
+                 trade.realized_pnl, 1 if trade.t1_hit else 0)
             )
             conn.commit()
             conn.close()
