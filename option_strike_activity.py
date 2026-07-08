@@ -279,14 +279,31 @@ def build_strike_activity_report(
     actionable = _latest_actionable_signals(symbol, db_path)
     if actionable:
         lines.extend(["", "🎯 <b>Premium entry plans</b>"])
+        # 2026-07-08: this list is the top-4 BUY_% rows by score regardless of
+        # CE/PE side — on a day with zero tradable signals it can show a CE row
+        # for one index next to a PE row for another with nothing tying either
+        # back to the index's own stated bias above, reading as a directional
+        # call it isn't. CE implies BULLISH, PE implies BEARISH (same mapping
+        # option_multistrike_signals uses); tag each row's agreement with the
+        # bias already printed in this card so a WATCH flow flag can't be
+        # mistaken for a signal that agrees with the system's own view.
+        net_bias = str(summary_obj.net_bias or "NEUTRAL").upper()
         for row in actionable:
             status = "ACTIONABLE" if row.get("tradable") else "WATCH"
+            opt = row["option_type"]
+            row_dir = "BULLISH" if opt == "CE" else "BEARISH"
+            if net_bias in ("BULLISH", "BEARISH"):
+                agree_tag = " [agrees with bias]" if row_dir == net_bias else " [AGAINST bias]"
+            else:
+                agree_tag = ""
             lines.append(
-                f"  {status} {row['option_type']} {_fmt_strike(row['strike'])} | "
+                f"  {status} {opt} {_fmt_strike(row['strike'])} | "
                 f"Entry ₹{_safe_float(row['entry_price']):.2f} | SL ₹{_safe_float(row['stop_loss']):.2f} | "
                 f"T1 ₹{_safe_float(row['target_1']):.2f} | T2 ₹{_safe_float(row['target_2']):.2f}"
+                f"{agree_tag}"
             )
-        lines.append("  <i>Levels are premium plans; ACTIONABLE still requires liquidity/regime gates.</i>")
+        lines.append("  <i>Levels are premium plans; ACTIONABLE still requires liquidity/regime gates. "
+                      "WATCH = flow flag only, not a trade call.</i>")
     lines.append(f"🕐 {datetime.now().strftime('%H:%M')}")
     return StrikeActivityReport(ok=True, text="\n".join(lines), source=source)
 

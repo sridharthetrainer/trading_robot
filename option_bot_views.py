@@ -40,7 +40,14 @@ def generated_signals_text(day: str | None = None, limit: int = 15) -> str:
         conn.commit()
     if not rows:
         return f"No generated option signals for {report_day}."
-    out = [f"🎯 <b>GENERATED OPTION SIGNALS — {report_day}</b>"]
+    out = [f"🎯 <b>GENERATED OPTION SIGNALS — {report_day}</b>",
+           # 2026-07-08: each row is an independent per-strike flow flag (CE
+           # rising = BULLISH label, PE rising = BEARISH label) — it is NOT the
+           # system's index-level view. Different indices, or even the same
+           # index, can show 🟡 CE and 🟡 PE side by side on a quiet day; that's
+           # noise across strikes, not a directional call. Only 🟢 rows cleared
+           # the tradable gate (liquidity + spread + score + regime alignment).
+           "<i>Per-strike flow flags, not index calls — 🟡 rows are not trade signals.</i>"]
     for row in rows:
         state = str(row["lifecycle_status"] or ("OPEN" if row["tradable"] else "WATCH"))
         flag = "🟢" if row["tradable"] else "🟡"
@@ -52,7 +59,7 @@ def generated_signals_text(day: str | None = None, limit: int = 15) -> str:
             f"   Edge {row['edge_policy']} · n={int(row['edge_outcomes'] or 0)} · "
             f"PF {_f(row['edge_profit_factor']):.2f}"
         )
-    out.append("🟢 actionable · 🟡 watch/rejected by final gates")
+    out.append("🟢 actionable (tradable gate passed) · 🟡 watch/rejected by final gates — NOT a trade call")
     return "\n".join(out)
 
 
