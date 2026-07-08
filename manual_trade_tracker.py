@@ -1006,7 +1006,7 @@ class ManualTradeTracker:
             pass
         return syms
 
-    def sync_open_positions(self) -> List[ManualTrade]:
+    def sync_open_positions(self, extra_symbols: Optional[set] = None) -> List[ManualTrade]:
         """
         Sync any open broker position that isn't already tracked.
 
@@ -1015,6 +1015,14 @@ class ManualTradeTracker:
         outage) would never be picked up. This reconciles against the live
         position book every cycle, so an untracked manual position is adopted
         within a minute.
+
+        extra_symbols: symbols poll_order_book() JUST detected in this same
+        cycle (2026-07-08 fix). self._active_trades is only updated by the
+        caller's loop AFTER both detectors run, so without this, a fill
+        picked up by poll_order_book and by this position-reconcile in the
+        SAME tick raced past the active_syms guard below and got logged as
+        TWO rows for one physical position — each independently placing its
+        own broker-side SL/target GTT on the same quantity.
         """
         new_trades: List[ManualTrade] = []
         if not self._angel or not self._angel.obj:
@@ -1027,7 +1035,7 @@ class ManualTradeTracker:
             if not positions or not positions.get("data"):
                 return new_trades
             bot_syms     = self._bot_open_symbols()
-            active_syms  = {t.symbol for t in self._active_trades.values()}
+            active_syms  = {t.symbol for t in self._active_trades.values()} | (extra_symbols or set())
             for p in positions["data"]:
                 sym = str(p.get("tradingsymbol", "")).strip()
                 qty = int(p.get("netqty", 0) or 0)
@@ -1490,6 +1498,16 @@ class ManualTradeTracker:
             if gid:
                 trade.sl_gtt_id = str(gid)
                 placed.append(f"SL ₹{sl_trig:.2f}")
+            elif trade.order_id not in self._protect_warned:
+                # 2026-07-08: place_gtt_order returning None (broker/API reject)
+                # was previously SILENT — the ₹243.81 SL for a live NIFTY CE
+                # never got placed and nothing told the operator. That trade
+                # lost ~₹11k unprotected. Never let this fail quietly again.
+                self._protect_warned.add(trade.order_id)
+                self.send_channel(
+                    f"🚨 <b>{trade.symbol}</b>: broker REJECTED the SL order "
+                    f"(trigger ₹{sl_trig:.2f}) — position is UNPROTECTED. "
+                    f"Place the stop manually now.")
         elif trade.order_id not in self._protect_warned:
             self._protect_warned.add(trade.order_id)
             self.send_channel(
@@ -1506,6 +1524,11 @@ class ManualTradeTracker:
             if gid:
                 trade.target_gtt_id = str(gid)
                 placed.append(f"Target ₹{tgt_trig:.2f}")
+            elif f"{trade.order_id}:tgt" not in self._protect_warned:
+                self._protect_warned.add(f"{trade.order_id}:tgt")
+                self.send_channel(
+                    f"⚠️ <b>{trade.symbol}</b>: broker rejected the target order "
+                    f"(trigger ₹{tgt_trig:.2f}) — no auto-exit at target.")
 
         trade.protected = bool(trade.sl_gtt_id or trade.target_gtt_id)
         if placed:
@@ -2064,7 +2087,9 @@ class ManualTradeTracker:
 
                 # 1. Detect new trades — from the order book (fresh fills) AND by
                 #    reconciling open positions (catches fills missed while down).
-                new_trades = self.poll_order_book() + self.sync_open_positions()
+                polled_trades = self.poll_order_book()
+                new_trades = polled_trades + self.sync_open_positions(
+                    extra_symbols={t.symbol for t in polled_trades})
                 for trade in new_trades:
                     # 2. Immediate broker-side safety first. Do not wait for
                     #    candle/API-heavy analysis before placing SL + target.
