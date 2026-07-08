@@ -227,33 +227,48 @@ _FO_LOADED: bool = False
 def _load_fo_tokens() -> dict:
     """
     Load F&O option/future tradingsymbol → token for NFO and BFO from the master
-    contract on disk. angel only loads MasterContract_NFO.csv, so BSE F&O (BFO,
-    e.g. SENSEX/BANKEX options) tokens were never resolvable. Authoritative and
-    local; also cuts searchScrip calls (rate-limit relief). Loaded lazily once.
+    contract(s) on disk. Authoritative and local; also cuts searchScrip calls
+    (rate-limit relief). Loaded lazily once.
+
+    2026-07-08 incident: this used to stop at the FIRST file that yielded any
+    tokens at all. OpenAPIScripMaster.csv (stale, last refreshed 2026-06-04)
+    has 79k+ F&O rows so it always "succeeded" and the loop broke before ever
+    reading MasterContract_ALL.csv (refreshed 2026-07-06, 2 days old) — which
+    is the only one of the two that actually contained that week's NIFTY
+    21JUL2026 contract. Every GTT SL/target placement for that contract failed
+    with "token not found", leaving a live position unprotected. Now MERGES
+    every present file (first file to define a symbol wins — tokens are
+    assigned once per contract and don't change, so this is safe) instead of
+    stopping at the first non-empty one, so a stale snapshot in any one file
+    can no longer shadow a fresher contract listed in another.
     """
     global _FO_TOKENS, _FO_LOADED
     if _FO_LOADED:
         return _FO_TOKENS
     log = logging.getLogger(__name__)
     import csv as _csv, os as _os
+    files_used = []
     for mc in ("OpenAPIScripMaster.csv", "MasterContract_ALL.csv",
                "MasterContract_NFO.csv"):
         if not _os.path.exists(mc):
             continue
         try:
+            added = 0
             with open(mc, errors="replace") as fh:
                 for row in _csv.DictReader(fh):
                     if str(row.get("exch_seg", "")).upper() not in ("NFO", "BFO"):
                         continue
                     sym = str(row.get("symbol", "")).strip().upper()
                     tok = str(row.get("token", "")).strip()
-                    if sym and tok and tok.lower() != "nan":
+                    if sym and tok and tok.lower() != "nan" and sym not in _FO_TOKENS:
                         _FO_TOKENS[sym] = tok
-            if _FO_TOKENS:
-                log.info("F&O tokens loaded: %d from %s", len(_FO_TOKENS), mc)
-                break
+                        added += 1
+            if added:
+                files_used.append(f"{mc}(+{added})")
         except Exception as e:
             log.debug("_load_fo_tokens(%s): %s", mc, e)
+    if files_used:
+        log.info("F&O tokens loaded: %d total from %s", len(_FO_TOKENS), ", ".join(files_used))
     _FO_LOADED = True
     return _FO_TOKENS
 
