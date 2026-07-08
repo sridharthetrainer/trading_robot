@@ -75,6 +75,28 @@ RATELIMIT_COOLDOWN     = int(os.getenv("ANGEL_RATELIMIT_COOLDOWN_SEC", "90"))
 API_MIN_INTERVAL_SEC   = float(os.getenv("ANGEL_API_MIN_INTERVAL_SEC", "0.4"))
 TOKEN_MISS_TTL         = 1800 # negative-cache unresolved tokens this long (anti-storm)
 
+# 2026-07-08: smartapi-python 1.5.5 hardcodes GTT create/modify/cancel under a
+# "/gtt-service" URL prefix that Angel's gateway no longer routes ("no Route
+# matched with those values" on every call — verified against the live API,
+# unauthenticated, both forms). The unprefixed path (same one the SDK's own
+# gtt.details/gtt.list routes already use) is live. Every GTT stop-loss/target
+# placed since this SDK version shipped silently failed — positions ran
+# unprotected. Patch the INSTANCE's route dict (never the class dict shared
+# across instances) right after each SmartConnect() construction.
+_DEAD_GTT_ROUTE_PREFIX = "/gtt-service"
+
+
+def _patch_dead_gtt_routes(obj) -> None:
+    try:
+        routes = dict(obj._routes)
+        for key in ("api.gtt.create", "api.gtt.modify", "api.gtt.cancel"):
+            uri = routes.get(key, "")
+            if uri.startswith(_DEAD_GTT_ROUTE_PREFIX):
+                routes[key] = uri[len(_DEAD_GTT_ROUTE_PREFIX):]
+        obj._routes = routes
+    except Exception as e:
+        logger.warning("GTT route patch failed (SDK shape changed?): %s", e)
+
 
 def _is_rate_limited(err) -> bool:
     """True if an Angel error is the account-wide 'exceeding access rate' throttle."""
@@ -360,6 +382,7 @@ class AngelOne:
             try:
                 totp = pyotp.TOTP(self.totp_secret).now()
                 obj = SmartConnect(api_key=self.api_key)
+                _patch_dead_gtt_routes(obj)
                 data = obj.generateSession(
                     clientCode=self.client_id,
                     password=self.password,
