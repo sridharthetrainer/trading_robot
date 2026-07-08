@@ -37,6 +37,7 @@ MIN_SAMPLES = int(os.getenv("EDGE_ANALYZER_MIN_SAMPLES", "30"))
 COST_PCT    = float(os.getenv("EDGE_ANALYZER_COST_PCT", "0.12"))   # round-trip %
 ALPHA       = float(os.getenv("EDGE_ANALYZER_ALPHA", "0.05"))
 AUTO_ACT    = os.getenv("EDGE_ANALYZER_AUTOACT", "false").lower() in ("true", "1", "yes")
+HOLDOUT_FRAC = float(os.getenv("EDGE_ANALYZER_HOLDOUT_FRAC", "0.3"))  # fraction of DAYS reserved
 
 
 def _load_clean_returns(days: int = 400):
@@ -100,19 +101,69 @@ def _stat_block(ret, cost: float, alpha_corrected: float) -> Dict[str, Any]:
             "verdict": verdict}
 
 
-def _temporal_consistent(sub) -> bool:
-    """Edge sign must hold in BOTH the older and newer half of a strategy's
-    signals (a cheap out-of-time check). Conservative: if too few to split,
-    returns False so an in-sample-only pattern is NOT flagged as a candidate."""
+def _holdout_check(sub, cost: float, alpha_corrected: float) -> Dict[str, Any]:
+    """A would-be candidate must hold on a genuine forward holdout, not just
+    an in-sample sign check.
+
+    2026-07-08: the old version (`_temporal_consistent`) split by ROW COUNT
+    into two halves and only required both to share the full sample's sign —
+    it flagged elder_triple_screen as a KEEP_CANDIDATE (net +0.127R, p<0.001
+    on the whole sample). Manually re-running the SAME _stat_block on a true
+    chronological holdout — the most recent 30% of DISTINCT DAYS, reserved
+    entirely from the "discovery" period, mirroring what a live go/no-go
+    decision would actually face — showed the edge collapse from net +0.163%
+    (p=0.0008, discovery) to net +0.007% (p=0.22, NOT significant, holdout).
+    The row-median check would have passed something that doesn't survive
+    real scrutiny: a single very signal-dense day can dominate a row-based
+    half, and "same sign" is a much weaker bar than actual significance.
+
+    A first pass at this fix required only `holdout_net > 0` — but that
+    accepted the same +0.007% (p=0.22) as "stable" purely because it rounds
+    to a hair above zero, which defeats the whole point. Now reuses
+    _stat_block on the holdout slice itself and requires it to still be
+    BOTH sign-matching AND statistically significant on its own — the same
+    bar the discovery period had to clear, not a weaker one.
+
+    Split by DISTINCT DAYS (not rows, so one unusually signal-dense day can't
+    dominate a half), reserve the most recent HOLDOUT_FRAC of days. Too few
+    distinct days, or too few samples in either slice (below MIN_SAMPLES),
+    returns not-stable — same fail-safe posture as before. Returns a dict
+    (not just a bool) so the discovery/holdout numbers are visible in the
+    report, not just a pass/fail verdict.
+    """
     import numpy as np
+    out: Dict[str, Any] = {"stable": False}
     if len(sub) < 2 * MIN_SAMPLES:
-        return False
+        out["reason"] = "insufficient_total_samples"
+        return out
     s = sub.sort_values("signal_date")
-    mid = len(s) // 2
+    days = sorted(s["signal_date"].unique())
+    if len(days) < 4:
+        out["reason"] = "insufficient_distinct_days"
+        return out
+    split_idx = max(1, min(int(len(days) * (1 - HOLDOUT_FRAC)), len(days) - 1))
+    discovery_days = set(days[:split_idx])
+    holdout_days = set(days[split_idx:])
+    disc = s[s["signal_date"].isin(discovery_days)]
+    hold = s[s["signal_date"].isin(holdout_days)]
+    out.update({
+        "discovery_days": len(discovery_days), "discovery_n": int(len(disc)),
+        "holdout_days": len(holdout_days), "holdout_n": int(len(hold)),
+    })
+    if len(disc) < MIN_SAMPLES or len(hold) < MIN_SAMPLES:
+        out["reason"] = "insufficient_split_samples"
+        return out
     full = np.sign(s["ret"].mean())
-    older = np.sign(s["ret"].iloc[:mid].mean())
-    newer = np.sign(s["ret"].iloc[mid:].mean())
-    return full != 0 and older == full and newer == full
+    disc_sign = np.sign(disc["ret"].mean())
+    hold_block = _stat_block(hold["ret"].values, cost, alpha_corrected)
+    hold_sign = np.sign(hold["ret"].mean())
+    out["holdout_stat"] = hold_block
+    out["stable"] = bool(
+        full != 0 and disc_sign == full and hold_sign == full
+        and hold_block.get("significant") and hold_block.get("as_is_net", -1) > 0)
+    if not out["stable"]:
+        out["reason"] = "holdout_not_significant_or_wrong_sign"
+    return out
 
 
 def analyze(days: int = 400, cost: float = COST_PCT) -> Dict[str, Any]:
@@ -143,11 +194,14 @@ def analyze(days: int = 400, cost: float = COST_PCT) -> Dict[str, Any]:
     for s in strategies:
         sub = df[df["strategy"] == s]
         block = _stat_block(sub["ret"].values, cost, alpha_corrected)
-        # Out-of-time stability gate: a would-be candidate must hold across
-        # both time halves, else it is an in-sample-only artifact.
+        # Forward-holdout gate: a would-be candidate must still be net-of-cost
+        # positive on a genuinely reserved, most-recent slice of days, else it
+        # is a discovery-period-only artifact (see _holdout_check docstring).
         if block["verdict"] in ("FADE_CANDIDATE", "KEEP_CANDIDATE"):
-            if not _temporal_consistent(sub):
-                block["note"] = "edge not stable across time halves"
+            holdout = _holdout_check(sub, cost, alpha_corrected)
+            block["holdout"] = holdout
+            if not holdout["stable"]:
+                block["note"] = f"edge not stable on forward holdout ({holdout.get('reason', '')})"
                 block["verdict"] = "UNSTABLE_OOS"
         report["per_strategy"][s] = block
 
