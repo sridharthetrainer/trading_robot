@@ -804,10 +804,19 @@ class ManualTradeTracker:
         icon = "\U0001f7e2" if trade.pnl >= 0 else "\U0001f534"
         be = " \U0001f512 BE" if trade.breakeven_activated else ""
         t1 = " T1\u2713" if trade.t1_hit else ""
-        
+        # 2026-07-08: this update showed Trail SL but never the current
+        # target, and gave no indication whether SL/target are actually
+        # live broker orders (GTT) or just internal levels \u2014 the exact
+        # gap the operator flagged after a day GTT was silently failing.
+        protect = ("\U0001f6e1 GTT SL+T" if (trade.sl_gtt_id and trade.target_gtt_id)
+                   else "\U0001f6e1 GTT SL" if trade.sl_gtt_id
+                   else "\u26a0\ufe0f NOT broker-protected")
+
         msg = (f"\U0001f4ca <b>UPDATE</b> — {trade.symbol}{be}{t1}\n"
                f"  Now: \u20b9{trade.current_price:,.2f}  |  P&L: \u20b9{trade.pnl:+,.0f} ({trade.pnl_pct:+.1f}%)\n"
                f"  High: \u20b9{trade.highest_since_entry:,.2f}  |  Trail SL: \u20b9{trade.trailing_sl:,.2f}\n"
+               f"  Target 1: \u20b9{trade.target_1:,.2f}  |  Target 2: \u20b9{trade.target_2:,.2f}\n"
+               f"  Protection: {protect}\n"
                f"  Duration: {self._duration(trade.order_time)}")
 
         self.send_channel(msg)
