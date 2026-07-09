@@ -1597,8 +1597,8 @@ class ManualTradeTracker:
                 for x in unclaimed:
                     try:
                         self._angel.cancel_gtt_order(str(x.get("id")), trade.symbol)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug("cancel orphaned GTT %s: %s", x.get("id"), e)
                 logger.warning("Cancelled %d orphaned/unclaimed GTT(s) for %s",
                                len(unclaimed), trade.symbol)
             if trade.sl_gtt_id or trade.target_gtt_id:
