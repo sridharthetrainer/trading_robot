@@ -372,7 +372,15 @@ class ManualTradeTracker:
         for col, typ in (("sl_gtt_id", "TEXT"), ("target_gtt_id", "TEXT"),
                          ("hwm", "REAL"), ("protected", "INTEGER"),
                          ("current_price", "REAL"), ("pnl_pct", "REAL"),
-                         ("realized_pnl", "REAL"), ("t1_hit", "INTEGER")):
+                         ("realized_pnl", "REAL"), ("t1_hit", "INTEGER"),
+                         # 2026-07-09: these tracked in-memory the whole time
+                         # (highest/lowest premium since entry — the real MAE/
+                         # MFE for a trade) but were NEVER saved, so a stop-
+                         # sizing analysis against real excursion data was
+                         # impossible; only ~15-min update-snapshot rows
+                         # existed, too sparse for a real distribution.
+                         ("highest_since_entry", "REAL"),
+                         ("lowest_since_entry", "REAL")):
             try:
                 conn.execute(f"ALTER TABLE manual_trades ADD COLUMN {col} {typ}")
             except Exception:
@@ -425,6 +433,8 @@ class ManualTradeTracker:
                 # Restore t1_hit so a restart after a partial book doesn't
                 # re-check T1 against the now-smaller qty and book again.
                 trade.t1_hit        = bool(d.get("t1_hit"))
+                trade.highest_since_entry = float(d.get("highest_since_entry") or 0)
+                trade.lowest_since_entry  = float(d.get("lowest_since_entry") or 999999.0)
                 self._active_trades[trade.order_id] = trade
             if rows:
                 logger.info("Resumed %d open manual trade(s) from DB", len(rows))
@@ -2189,8 +2199,8 @@ class ManualTradeTracker:
                 "stop_loss,target_1,target_2,strategies_bullish,strategies_bearish,"
                 "regime,vix,wow_factors,status,exit_price,exit_time,exit_reason,pnl,"
                 "sl_gtt_id,target_gtt_id,hwm,protected,current_price,pnl_pct,"
-                "realized_pnl,t1_hit) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "realized_pnl,t1_hit,highest_since_entry,lowest_since_entry) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (trade.order_id, trade.symbol, trade.exchange, trade.side,
                  trade.qty, trade.entry_price, trade.product, trade.order_time,
                  trade.stop_loss, trade.target_1, trade.target_2,
@@ -2202,7 +2212,8 @@ class ManualTradeTracker:
                  trade.sl_gtt_id, trade.target_gtt_id, trade.hwm,
                  1 if trade.protected else 0,
                  trade.current_price, trade.pnl_pct,
-                 trade.realized_pnl, 1 if trade.t1_hit else 0)
+                 trade.realized_pnl, 1 if trade.t1_hit else 0,
+                 trade.highest_since_entry, trade.lowest_since_entry)
             )
             conn.commit()
             conn.close()
