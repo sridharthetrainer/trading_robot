@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 
 from option_chain_intelligence import OptionChainIntelligence
+from option_bot_views import score_gauge
 
 
 DB_PATH = "option_chain_snapshots.db"
@@ -300,7 +301,8 @@ def build_strike_activity_report(
                 f"  {status} {opt} {_fmt_strike(row['strike'])} | "
                 f"Entry ₹{_safe_float(row['entry_price']):.2f} | SL ₹{_safe_float(row['stop_loss']):.2f} | "
                 f"T1 ₹{_safe_float(row['target_1']):.2f} | T2 ₹{_safe_float(row['target_2']):.2f}"
-                f"{agree_tag}"
+                f"{agree_tag}\n"
+                f"    {score_gauge(row.get('score'))}"
             )
         lines.append("  <i>Levels are premium plans; ACTIONABLE still requires liquidity/regime gates. "
                       "WATCH = flow flag only, not a trade call.</i>")

@@ -19,6 +19,38 @@ def _f(value: Any) -> float:
         return 0.0
 
 
+# Tradable band from option_multistrike_signals._calibrated_score /
+# build_multistrike_signals: score is continuous 0-100, and a signal is only
+# ACTIONABLE for min_score <= score < max_score. A score above max_score is
+# the system's own "score_exhaustion_cap" rejection reason (overextended,
+# less trustworthy) — NOT a stronger signal than one in the tradable band.
+# A naive green-gets-greener-as-score-rises gauge would misrepresent that, so
+# this gauge colors by BAND, not by raw magnitude.
+SCORE_MIN_TRADABLE = 60.0
+SCORE_MAX_TRADABLE = 85.0
+
+
+def score_gauge(score: Any, width: int = 10) -> str:
+    """Render a 0-100 score as a colored block gauge reflecting the system's
+    own tradable band, not a plain magnitude scale. Bands:
+      < SCORE_MIN_TRADABLE           -> 🟥 WEAK (below the tradable floor)
+      SCORE_MIN_TRADABLE..MAX        -> 🟩 GOOD (the actionable zone)
+      >= SCORE_MAX_TRADABLE          -> 🟧 OVEREXTENDED (exhaustion-capped)
+    """
+    s = max(0.0, min(100.0, _f(score)))
+    filled = max(0, min(width, round(s / 100.0 * width)))
+    if s < SCORE_MIN_TRADABLE:
+        block, label = "🟥", "WEAK"
+    elif s < SCORE_MAX_TRADABLE:
+        block, label = "🟩", "GOOD"
+    else:
+        block, label = "🟧", "OVEREXTENDED"
+    bar = block * filled + "⬜" * (width - filled)
+    # 1 decimal, not 0: a raw 59.6 rounds to "60" at 0dp, reading as
+    # contradictory next to a WEAK label banded on the unrounded value.
+    return f"{bar} {s:.1f} ({label})"
+
+
 def generated_signals_text(day: str | None = None, limit: int = 15) -> str:
     report_day = day or date.today().isoformat()
     if not Path(DB_PATH).exists():
@@ -53,7 +85,8 @@ def generated_signals_text(day: str | None = None, limit: int = 15) -> str:
         flag = "🟢" if row["tradable"] else "🟡"
         out.append(
             f"{flag} <b>{row['underlying']} {row['strike']:.0f}{row['option_type']}</b> "
-            f"{row['signal']} · {state} · score {row['score']:.1f}\n"
+            f"{row['signal']} · {state}\n"
+            f"   {score_gauge(row['score'])}\n"
             f"   Entry ₹{_f(row['entry_price']):.2f} | SL ₹{_f(row['stop_loss']):.2f} | "
             f"T1 ₹{_f(row['target_1']):.2f} | T2 ₹{_f(row['target_2']):.2f}\n"
             f"   Edge {row['edge_policy']} · n={int(row['edge_outcomes'] or 0)} · "
