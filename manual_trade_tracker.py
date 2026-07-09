@@ -479,7 +479,25 @@ class ManualTradeTracker:
                 
                 if qty <= 0 or price <= 0:
                     continue
-                
+
+                # 2026-07-09: this order might be CLOSING an existing tracked
+                # position, not opening a new one. Every closing SELL used to
+                # spawn an independent phantom "trade" with its own freshly
+                # computed SL/target and its own protection cycle, racing
+                # against the real position's — up to 11 orphaned GTTs piled
+                # up on one symbol in a morning of round-tripping. Route a
+                # same-symbol, opposite-side fill through the EXISTING trade
+                # instead.
+                existing = self._find_open_trade(symbol, opposite_of_side=side)
+                if existing:
+                    self._known_orders.add(oid)
+                    qty = self._apply_closing_fill(existing, price, qty, oid)
+                    if qty <= 0:
+                        continue
+                    # Fill was larger than the open position: the excess
+                    # genuinely opens a new position in THIS order's
+                    # direction, tracked normally below with the remainder.
+
                 trade = ManualTrade(
                     order_id=oid,
                     symbol=symbol,
@@ -490,15 +508,73 @@ class ManualTradeTracker:
                     product=product,
                     order_time=order_time,
                 )
-                
+
                 new_trades.append(trade)
                 self._known_orders.add(oid)
                 logger.info("MANUAL TRADE DETECTED: %s %s %d @ %.2f", side, symbol, qty, price)
-        
+
         except Exception as e:
             logger.debug("Order book poll: %s", e)
-        
+
         return new_trades
+
+    def _find_open_trade(self, symbol: str, opposite_of_side: str) -> Optional["ManualTrade"]:
+        """Find an actively-tracked OPEN trade for `symbol` whose side is the
+        OPPOSITE of `opposite_of_side` — i.e. the position an order of that
+        side would actually close, not a new independent position."""
+        for t in self._active_trades.values():
+            if t.symbol == symbol and t.status == "OPEN" and t.side != opposite_of_side:
+                return t
+        return None
+
+    def _apply_closing_fill(self, trade: "ManualTrade", fill_price: float,
+                             fill_qty: int, order_id: str) -> int:
+        """Apply a REAL closing fill (detected via poll_order_book) to an
+        existing tracked position, instead of letting poll_order_book spawn
+        an independent phantom trade for it (see 2026-07-09 note there).
+        Returns qty NOT absorbed by this trade: 0 if the whole fill closed
+        it; positive if the fill was larger than the open qty, meaning the
+        excess genuinely opens a new position in the opposite direction and
+        the caller must track that remainder normally.
+        """
+        is_long = trade.side == "BUY"
+        close_qty = min(fill_qty, trade.qty)
+        leg_pnl = ((fill_price - trade.entry_price) if is_long
+                   else (trade.entry_price - fill_price)) * close_qty
+        trade.realized_pnl += leg_pnl
+        remaining = trade.qty - close_qty
+        if remaining <= 0:
+            self._cancel_protection(trade)
+            trade.qty = 0
+            trade.exit_price = fill_price
+            trade.exit_time = datetime.now().isoformat()
+            trade.exit_reason = f"Closed via opposite-side order {order_id}"
+            trade.status = "CLOSED"
+            trade.pnl = trade.realized_pnl
+            self._save_trade(trade)
+            self._active_trades.pop(trade.order_id, None)
+            logger.info("CLOSED %s via opposite order: qty=%d @ %.2f, realized=₹%.2f",
+                        trade.symbol, close_qty, fill_price, trade.realized_pnl)
+            self.send_exit(trade)
+        else:
+            # Partial close: position stays OPEN with reduced qty. GTTs must
+            # be resized to the smaller quantity at the SAME trigger levels
+            # (place-new-then-cancel-old, same as the T1 partial-book path).
+            trade.qty = remaining
+            trade.pnl = trade.realized_pnl
+            if trade.sl_gtt_id:
+                self._replace_sl(trade, trade.stop_loss)
+            if trade.target_gtt_id:
+                self._replace_target(trade, trade.target_1)
+            self._save_trade(trade)
+            logger.info(
+                "PARTIAL CLOSE %s via opposite order: qty=%d @ %.2f, realized=₹%.2f, %d qty remains",
+                trade.symbol, close_qty, fill_price, leg_pnl, trade.qty)
+            self.send_channel(
+                f"📉 <b>Partial close</b> — {trade.symbol}\n"
+                f"  {close_qty} qty closed @ ₹{fill_price:.2f} | Realized ₹{leg_pnl:+,.0f}\n"
+                f"  {trade.qty} qty still open")
+        return fill_qty - close_qty
     
     # ── AI Strategy Analysis ──────────────────────────────────────────────
     
@@ -1494,19 +1570,54 @@ class ManualTradeTracker:
         # storm if anything ever mis-parses a placement response).
         existing = self._active_gtts_for(trade.symbol)
         if existing:
+            claimed_ids = set()
             for x in existing:
                 trig = float(x.get("triggerprice") or 0)
                 gid  = str(x.get("id"))
                 is_sl = (trig < trade.entry_price) if is_long else (trig > trade.entry_price)
                 if is_sl and not trade.sl_gtt_id:
                     trade.sl_gtt_id = gid; trade.stop_loss = trig; trade.trailing_sl = trig
+                    claimed_ids.add(gid)
                 elif not is_sl and not trade.target_gtt_id:
                     trade.target_gtt_id = gid; trade.target_1 = trig
-            trade.protected = True
-            trade.hwm = trade.hwm or trade.current_price or self._ltp_for(trade) or float(trade.entry_price)
-            logger.info("Adopted %d existing GTT(s) for %s", len(existing), trade.symbol)
-            self._save_trade(trade)
-            return
+                    claimed_ids.add(gid)
+            # 2026-07-09: this used to set protected=True unconditionally
+            # whenever ANY existing GTT was found for the symbol, even if
+            # none of them could be cleanly classified against THIS trade's
+            # entry price (stale GTTs left over from a different trade's
+            # entry don't straddle this one cleanly) — leaving sl_gtt_id AND
+            # target_gtt_id both empty while protected=1, a false safety
+            # signal with zero alert. Up to 11 orphaned GTTs piled up on one
+            # symbol in a single morning because of this. Only mark
+            # protected when something was actually claimed; cancel any
+            # unclaimed leftovers instead of letting them sit live forever
+            # (or get "adopted" again by the next trade, unclaimed again).
+            unclaimed = [x for x in existing if str(x.get("id")) not in claimed_ids]
+            if unclaimed:
+                for x in unclaimed:
+                    try:
+                        self._angel.cancel_gtt_order(str(x.get("id")), trade.symbol)
+                    except Exception:
+                        pass
+                logger.warning("Cancelled %d orphaned/unclaimed GTT(s) for %s",
+                               len(unclaimed), trade.symbol)
+            if trade.sl_gtt_id or trade.target_gtt_id:
+                trade.protected = True
+                trade.hwm = trade.hwm or trade.current_price or self._ltp_for(trade) or float(trade.entry_price)
+                logger.info("Adopted %d existing GTT(s) for %s", len(claimed_ids), trade.symbol)
+                parts = []
+                if trade.sl_gtt_id:
+                    parts.append(f"SL ₹{trade.stop_loss:.2f}")
+                if trade.target_gtt_id:
+                    parts.append(f"Target ₹{trade.target_1:.2f}")
+                self.send_channel(
+                    f"🛡 <b>Protection adopted</b> — {trade.symbol}\n  "
+                    + "  |  ".join(parts)
+                    + "\n  Reused existing broker GTT.")
+                self._save_trade(trade)
+                return
+            # Nothing could be validly claimed — fall through to placing
+            # fresh GTTs below, same as if no existing GTTs had been found.
         exch      = str(trade.exchange).upper()
         sl_trig, tgt_trig = self._compute_levels(trade)
         trade.stop_loss   = sl_trig
