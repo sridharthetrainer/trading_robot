@@ -50,6 +50,80 @@ logger = logging.getLogger(__name__)
 _POLL_TIMEOUT = 20  # long-poll seconds
 _POLL_INTERVAL = 2
 
+# ── One-tap option execute (Telegram button) ────────────────────────────────
+# 2026-07-09: distinct from manual_trade_tracker.BOT_ORDER_TAG ("ALGO_BOT") —
+# this is a human tapping a button, not the autonomous strategy engine, so it
+# must NOT match that tag or poll_order_book() would skip it entirely and it
+# would never get picked up for protection/tracking. Still tagged (not
+# empty) for the SEBI algo-order audit trail, since the order is placed
+# programmatically via the API rather than typed by hand in the broker app.
+QUICK_EXEC_TAG = "TGQUICKEXEC"
+QUICK_EXEC_MAX_LOTS = int(os.getenv("TG_QUICK_EXEC_MAX_LOTS", "2"))
+# Don't let one tap spend more than this fraction of available capital —
+# sizing guard, not a confirmation step (operator explicitly declined a
+# confirm dialog); this only decides 1 vs 2 lots vs "insufficient funds".
+QUICK_EXEC_CAPITAL_FRACTION = float(os.getenv("TG_QUICK_EXEC_CAPITAL_FRACTION", "0.20"))
+
+
+def _quick_execute_option(symbol: str) -> str:
+    """One-tap execute: BUY 1-2 lots of `symbol` at MARKET, sized by
+    available capital, no confirmation step (per explicit operator choice).
+    Places via the SAME place_order() every other order in this system uses
+    — that function already respects paper_trade/PAPER_ORDERS_ONLY/
+    block_real_orders, so this button adds no separate safety gate of its
+    own; it reuses the existing, already-tested execution path rather than
+    a new unaudited one. manual_trade_tracker.py's poll_order_book() will
+    pick the resulting fill up as a manual trade (distinct tag, see above)
+    within its next ~30s cycle and apply the same GTT protection as any
+    other manual fill.
+    """
+    try:
+        from angel import AngelOne, get_fo_lot_size
+        ang = AngelOne(
+            api_key=os.getenv("API_KEY", ""), client_id=os.getenv("CLIENT_ID", ""),
+            password=os.getenv("PASSWORD", ""), totp_secret=os.getenv("TOTP_SECRET", ""))
+    except Exception as e:
+        return f"❌ Could not connect to broker for {symbol}: {str(e)[:100]}"
+
+    lot = get_fo_lot_size(symbol)
+    if not lot or lot <= 0:
+        return f"⚠️ Could not resolve lot size for {symbol} — not executed."
+
+    ltp = ang.get_ltp(symbol, "NFO")
+    if not ltp or ltp <= 0:
+        return f"⚠️ Could not fetch live price for {symbol} — not executed."
+
+    capital = ang.get_balance(force_real=True)
+    if capital <= 0:
+        return f"⚠️ Could not fetch available capital — not executed."
+
+    one_lot_cost = lot * ltp
+    if one_lot_cost <= 0:
+        return f"⚠️ Invalid cost calculation for {symbol} — not executed."
+
+    budget = capital * QUICK_EXEC_CAPITAL_FRACTION
+    lots = min(QUICK_EXEC_MAX_LOTS, int(budget // one_lot_cost))
+    if lots < 1:
+        return (f"⚠️ Insufficient funds for even 1 lot of {symbol}\n"
+                f"  1 lot ≈ ₹{one_lot_cost:,.0f} | budget ≈ ₹{budget:,.0f} "
+                f"({QUICK_EXEC_CAPITAL_FRACTION:.0%} of ₹{capital:,.0f} available)")
+
+    qty = lots * lot
+    try:
+        res = ang.place_order(symbol, qty, "BUY", order_type="MARKET",
+                               producttype="CARRYFORWARD", exchange="NFO",
+                               order_tag=QUICK_EXEC_TAG)
+    except Exception as e:
+        return f"❌ Order placement error for {symbol}: {str(e)[:100]}"
+    if not res or not res[0]:
+        return f"❌ Order failed for {symbol} — check broker app for details."
+
+    order_id, fill_price = res
+    return (
+        f"✅ <b>EXECUTED</b> — BUY {qty} ({lots} lot{'s' if lots > 1 else ''}) {symbol}\n"
+        f"  Fill ≈ ₹{float(fill_price or ltp):.2f} | Order ID {order_id}\n"
+        f"  Manual tracker will detect + protect within ~30s.")
+
 
 class TelegramCommandHandler:
     """Polls Telegram for incoming messages and responds."""
@@ -354,9 +428,16 @@ class TelegramCommandHandler:
             try:
                 response = handler(text)
                 if response:
+                    # A handler may return (text, keyboard) when it wants a
+                    # custom reply_markup (e.g. per-signal execute buttons);
+                    # plain-string handlers keep the existing behaviour.
+                    if isinstance(response, tuple):
+                        resp_text, resp_markup = response
+                    else:
+                        resp_text = response
+                        resp_markup = self._menu_keyboard("home") if cmd == "menu" else None
                     # Reply to the chat the command came from
-                    self.send(response, chat_id=chat_id,
-                              reply_markup=self._menu_keyboard("home") if cmd == "menu" else None)
+                    self.send(resp_text, chat_id=chat_id, reply_markup=resp_markup)
             except Exception as e:
                 # UX-2: Friendly error messages
                 err = str(e)
@@ -426,12 +507,28 @@ class TelegramCommandHandler:
             try:
                 response = handler(f"/{command}" + (f" {args}" if args else ""))
                 if response:
-                    self.send(response, chat_id=chat_id,
-                              reply_markup={"inline_keyboard":[
-                                  [{"text":"🔄 Refresh", "callback_data":data},
-                                   {"text":"⬅️ Menu", "callback_data":"menu:home"}]]})
+                    # (text, keyboard) lets a handler ship its own buttons
+                    # (e.g. per-signal execute) instead of the generic
+                    # Refresh/Menu row.
+                    if isinstance(response, tuple):
+                        resp_text, resp_markup = response
+                    else:
+                        resp_text = response
+                        resp_markup = {"inline_keyboard":[
+                            [{"text":"🔄 Refresh", "callback_data":data},
+                             {"text":"⬅️ Menu", "callback_data":"menu:home"}]]}
+                    self.send(resp_text, chat_id=chat_id, reply_markup=resp_markup)
             except Exception as exc:
                 self.send(f"⚠️ /{command} error: {str(exc)[:100]}", chat_id=chat_id)
+            return
+        if data.startswith("exec:"):
+            symbol = data.split(":", 1)[1]
+            try:
+                result = _quick_execute_option(symbol)
+            except Exception as exc:
+                result = f"❌ Execution error for {symbol}: {str(exc)[:100]}"
+            self.send(result, chat_id=chat_id)
+            return
 
 
     # ── Handler registration ──────────────────────────────────────────────────
@@ -1842,6 +1939,17 @@ class TelegramCommandHandler:
                 top_n=top_n,
                 prefer_live=prefer_live,
             )
+            # One-tap execute button per ACTIONABLE (tradable=1) row only —
+            # never on a WATCH row, which the message itself labels "not a
+            # trade call"; offering an execute shortcut there would
+            # contradict that in the same message.
+            buttons = [
+                [{"text": f"🚀 BUY {row['symbol']}", "callback_data": f"exec:{row['symbol']}"}]
+                for row in (result.actionable or [])
+                if row.get("tradable") and row.get("symbol")
+            ]
+            if buttons:
+                return result.text, {"inline_keyboard": buttons}
             return result.text
         except Exception as e:
             return f"❌ Strike flow error: {str(e)[:80]}"

@@ -26,6 +26,10 @@ class StrikeActivityReport:
     text: str
     source: str = ""
     reason: str = ""
+    # 2026-07-09: exposed so callers (the /strikeflow Telegram handler) can
+    # build one execute-button per ACTIONABLE row without a duplicate query
+    # against option_chain_snapshots.db.
+    actionable: List[Dict[str, Any]] = None  # type: ignore[assignment]
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -71,7 +75,7 @@ def _latest_actionable_signals(underlying: str, db_path: str = DB_PATH) -> List[
             if not latest:
                 return []
             rows = conn.execute(
-                """SELECT strike,option_type,signal,score,tradable,entry_price,stop_loss,target_1,target_2,reason
+                """SELECT strike,option_type,signal,score,tradable,entry_price,stop_loss,target_1,target_2,reason,expiry
                      FROM option_strike_signals
                     WHERE upper(underlying)=? AND snapshot_time=? AND signal LIKE 'BUY_%'
                     ORDER BY tradable DESC,score DESC LIMIT 4""",
@@ -80,6 +84,13 @@ def _latest_actionable_signals(underlying: str, db_path: str = DB_PATH) -> List[
         return [dict(row) for row in rows]
     except sqlite3.Error:
         return []
+
+
+def _build_tradingsymbol(underlying: str, expiry_str: str, strike: float, option_type: str) -> str:
+    """Angel NFO tradingsymbol: NIFTY21JUL2623800CE. expiry_str is the
+    ISO 'YYYY-MM-DD' stored in option_strike_signals.expiry."""
+    d = datetime.strptime(str(expiry_str), "%Y-%m-%d")
+    return f"{underlying.upper()}{d.strftime('%d%b%y').upper()}{int(strike)}{option_type.upper()}"
 
 
 def _latest_snapshot_dataframe(
@@ -292,6 +303,10 @@ def build_strike_activity_report(
         for row in actionable:
             status = "ACTIONABLE" if row.get("tradable") else "WATCH"
             opt = row["option_type"]
+            try:
+                row["symbol"] = _build_tradingsymbol(symbol, row.get("expiry"), row["strike"], opt)
+            except Exception:
+                row["symbol"] = ""
             row_dir = "BULLISH" if opt == "CE" else "BEARISH"
             if net_bias in ("BULLISH", "BEARISH"):
                 agree_tag = " [agrees with bias]" if row_dir == net_bias else " [AGAINST bias]"
@@ -307,7 +322,7 @@ def build_strike_activity_report(
         lines.append("  <i>Levels are premium plans; ACTIONABLE still requires liquidity/regime gates. "
                       "WATCH = flow flag only, not a trade call.</i>")
     lines.append(f"🕐 {datetime.now().strftime('%H:%M')}")
-    return StrikeActivityReport(ok=True, text="\n".join(lines), source=source)
+    return StrikeActivityReport(ok=True, text="\n".join(lines), source=source, actionable=actionable)
 
 
 if __name__ == "__main__":
