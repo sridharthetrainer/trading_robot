@@ -226,7 +226,18 @@ def _refresh_intel_cache() -> None:
     if _CA_AVAIL:
         try:
             _cb = _get_cross_asset()
-            _INTEL_CACHE["cross_asset_bias"] = _cb.get("bias","NEUTRAL")
+            # 2026-07-10: get_market_bias returns a FLOAT score; calling
+            # .get() on it raised AttributeError which the except swallowed —
+            # so this stayed "NEUTRAL" forever (constant in signal_log too).
+            # ±0.3 = at least one strong or two weak agreeing components in
+            # cross_asset's own scoring (increments are 0.2-0.4 each).
+            if isinstance(_cb, dict):
+                _INTEL_CACHE["cross_asset_bias"] = _cb.get("bias", "NEUTRAL")
+            else:
+                _cbs = float(_cb or 0.0)
+                _INTEL_CACHE["cross_asset_bias"] = (
+                    "BULLISH" if _cbs >= 0.3 else
+                    "BEARISH" if _cbs <= -0.3 else "NEUTRAL")
         except Exception: pass
     # News
     if _NEWS_AVAIL:
@@ -615,6 +626,15 @@ def _build_signal_ml_features(signal: Dict[str, Any]) -> Dict[str, float]:
                 "time_bucket": "time_bucket_wt",
                 "market_profile": "market_profile_mod",
                 "market_profile_mod": "market_profile_mod",
+                # 2026-07-10: was missing — producer stores "news", column is
+                # news_mod, so the value never landed even when nonzero.
+                "news": "news_mod",
+                "bhav_delivery": "bhav_delivery",
+                "sip_boost": "sip_boost",
+                "bulk_deal": "bulk_deal_mod",
+                "theta": "theta_mod",
+                "rebalancing": "rebal_mod",
+                "mtf_pivot": "mtf_pivot_mod",
             }.get(str(key), str(key))
             row.setdefault(mapped, value)
         decision_inputs = meta.get("decision_inputs") if isinstance(meta.get("decision_inputs"), dict) else {}
@@ -1771,6 +1791,13 @@ class LiveSignalEngine:
                     _er = get_expiry_regime()
                     _er_ctx = {"expiry_dte": _er.get("days_to_expiry",5), "expiry_regime": _er.get("regime_label","NORMAL")}
                 except Exception: pass
+                # 2026-07-10: iv_percentile / pcr_atm / cross_asset_bias /
+                # weekly+monthly pivots were NEVER passed here, so signal_log
+                # stored their schema defaults (50 / 1.0 / NEUTRAL / 0) on
+                # every row — dead-constant features feeding ML and autopsy.
+                _bias_ctx = {"cross_asset_bias":
+                             str(_INTEL_CACHE.get("cross_asset_bias", "NEUTRAL"))}
+                _ivp_log_cache: Dict[str, float] = {}
                 try:
                     from autonomous_signal_lifecycle import active_generated_symbols
                     _active_generated = active_generated_symbols()
@@ -1783,6 +1810,32 @@ class LiveSignalEngine:
                         _sig["paper_training_mode"] = True
                         _sig["live_block_reason"] = "duplicate_active_generated_signal"
                     _payload = self._candidate_signal_log_payload(_cand)
+                    # Per-candidate context (2026-07-10): IV percentile via the
+                    # gap-risk manager (cached per symbol per cycle), PCR and
+                    # W/M pivot levels from the signal's own meta when present.
+                    _cand_ctx: Dict[str, Any] = {}
+                    try:
+                        if _symbol and _symbol not in _ivp_log_cache:
+                            _grm = self._gap_risk_manager
+                            _ivp_log_cache[_symbol] = (
+                                float(_grm.get_iv_percentile(_symbol) or 0)
+                                if _grm and hasattr(_grm, "get_iv_percentile") else 0.0)
+                        if _ivp_log_cache.get(_symbol, 0) > 0:
+                            _cand_ctx["iv_percentile"] = _ivp_log_cache[_symbol]
+                    except Exception:
+                        pass
+                    _meta_sig = _sig.get("signal_meta") if isinstance(_sig.get("signal_meta"), dict) else {}
+                    for _src, _dst in (("pcr", "pcr_atm"), ("pcr_oi", "pcr_atm"),
+                                       ("weekly_pivot", "weekly_pivot"),
+                                       ("weekly_r1", "weekly_r1"),
+                                       ("monthly_pivot", "monthly_pivot"),
+                                       ("monthly_r1", "monthly_r1")):
+                        _v = _meta_sig.get(_src)
+                        if _dst not in _cand_ctx and _v not in (None, "", 0, 0.0):
+                            try:
+                                _cand_ctx[_dst] = float(_v)
+                            except (TypeError, ValueError):
+                                pass
                     _sl.log_candidate(
                         signal           = _payload,
                         executed         = False,  # updated later if executed
@@ -1790,6 +1843,8 @@ class LiveSignalEngine:
                         india_vix        = _vix_ctx,
                         **_fii_ctx,
                         **_er_ctx,
+                        **_bias_ctx,
+                        **_cand_ctx,
                         trade_num_today  = self._rejection_stats.get("passed", 0),
                     )
                     if _symbol and not str(_sig.get("live_block_reason", "") or ""):

@@ -2906,6 +2906,16 @@ def generate_signal(
                 _ochao_levels = build_ochao_levels(df, df_htf)
                 if _ochao_levels:
                     _sig_meta["ochao_levels"] = _ochao_levels
+                # 2026-07-10: expose W/M pivot levels for signal_log context —
+                # above_weekly_pvt / pct_from_w_r1 etc. logged constant 0 for
+                # every signal because these levels were computed here but
+                # never left this scope (the log call had nothing to pass).
+                if _weekly_lvls:
+                    _sig_meta["weekly_pivot"] = float(_weekly_lvls.get("W_P", 0) or 0)
+                    _sig_meta["weekly_r1"]    = float(_weekly_lvls.get("W_R1", 0) or 0)
+                if _monthly_lvls:
+                    _sig_meta["monthly_pivot"] = float(_monthly_lvls.get("M_P", 0) or 0)
+                    _sig_meta["monthly_r1"]    = float(_monthly_lvls.get("M_R1", 0) or 0)
     except Exception as _e:
         import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
 
@@ -3413,7 +3423,12 @@ def generate_signal(
                     _news_v = 0.0
                     try:
                         from omnisource_news_engine import get_symbol_specific_news as _osn
-                        _adj = float((_osn(symbol) or {}).get("score_adj", 0) or 0)
+                        # 2026-07-10: the producer returns "score_adjustment";
+                        # this read "score_adj" (key drift) so news was 0 on
+                        # every signal since the 06-14 omnisource rewire.
+                        _osn_r = _osn(symbol) or {}
+                        _adj = float(_osn_r.get("score_adjustment",
+                                                _osn_r.get("score_adj", 0)) or 0)
                         # bullish(+) helps BUY, hurts SELL; clamp to a nudge
                         _news_v = round(max(-1.0, min(1.0, _adj * 0.4)) * (1 if direction == "BUY" else -1), 3)
                     except Exception:
