@@ -13,6 +13,8 @@
   "modifiers": [
     "cross_asset_mod",
     "mtf_pivot_mod",
-    "sr_level_mod"
-  ]
+    "sr_level_mod",
+    "whale_mod"
+  ],
+  "whale_mod_note": "2026-07-10: constant -1.0 on all 10,717 signals over 10 days. Root cause: the FII-futures component signals BEARISH whenever fut_long/fut_short < 0.8, but FII index futures are chronically net short (hedging books) - live ratio 0.106, so the condition is true essentially every day. A permanent -1 offset carries zero information, and participant-OI signals were already measured to have NO daily edge (participant-oi-no-edge). Value still computed+logged for measurement; only its score contribution is removed."
 }
