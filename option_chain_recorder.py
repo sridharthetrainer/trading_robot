@@ -21,7 +21,23 @@ DB_PATH = "option_chain_snapshots.db"
 
 
 def _direction_context(underlying: str) -> tuple[str, str]:
-    """Return persisted broad-market regime and bias without inventing data."""
+    """Regime + bias for multistrike signal gating/scoring.
+
+    2026-07-10: previously read only market_context.json — the PREVIOUS DAY's
+    bias, static across the whole session — so every intraday strike signal
+    was regime-aligned against yesterday. Now prefers a LIVE 1-minute read of
+    the underlying (EMA 20/50/200 stack, MACD, session VWAP, accumulation/
+    distribution slope, breakout vs recent range — option_underlying_context),
+    cached ~1 min. Falls back to the previous-day file when 1m data is
+    unavailable, preserving the original never-invent-data behavior.
+    """
+    try:
+        from option_underlying_context import get_underlying_context
+        regime, bias, _detail = get_underlying_context(underlying)
+        if bias != "UNKNOWN" or regime != "UNKNOWN":
+            return regime, bias
+    except Exception:
+        pass
     regime = "UNKNOWN"
     bias = "UNKNOWN"
     try:

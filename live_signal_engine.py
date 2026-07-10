@@ -1822,8 +1822,8 @@ class LiveSignalEngine:
                                 if _grm and hasattr(_grm, "get_iv_percentile") else 0.0)
                         if _ivp_log_cache.get(_symbol, 0) > 0:
                             _cand_ctx["iv_percentile"] = _ivp_log_cache[_symbol]
-                    except Exception:
-                        pass
+                    except Exception as _ivpe:
+                        logger.debug("ivp log ctx %s: %s", _symbol, _ivpe)
                     _meta_sig = _sig.get("signal_meta") if isinstance(_sig.get("signal_meta"), dict) else {}
                     for _src, _dst in (("pcr", "pcr_atm"), ("pcr_oi", "pcr_atm"),
                                        ("weekly_pivot", "weekly_pivot"),
@@ -1834,8 +1834,8 @@ class LiveSignalEngine:
                         if _dst not in _cand_ctx and _v not in (None, "", 0, 0.0):
                             try:
                                 _cand_ctx[_dst] = float(_v)
-                            except (TypeError, ValueError):
-                                pass
+                            except (TypeError, ValueError) as _cve:
+                                logger.debug("log ctx %s=%r: %s", _src, _v, _cve)
                     _sl.log_candidate(
                         signal           = _payload,
                         executed         = False,  # updated later if executed
