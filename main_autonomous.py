@@ -5322,11 +5322,16 @@ class AutonomousTradingSystem:
         from datetime import time as _dtoih
         # Google Drive pull/auto-deploy is intentionally disabled. Backups may
         # still push to Drive, but deployment is manual to prevent code overwrite.
-        if _OI_TRACKER_AVAIL and _dtoih(8,45) <= datetime.now().time() <= _dtoih(15,45):
+        # 2026-07-10: this was gated on BOOT time being 08:45-15:45 — but the
+        # bot restarts in the evening, so the tracker never started and
+        # oi_tracker_state.json sat frozen for a month (last daytime boot,
+        # 06-09). The tracker's own loop already sleeps outside 09:14-15:32,
+        # so the boot-time gate was redundant and harmful. Start always.
+        if _OI_TRACKER_AVAIL:
             try:
                 _oit = _get_oi_tracker(alerts=self.alerts)
                 _oit.start()
-                logger.info("OITracker started (market hours)")
+                logger.info("OITracker started (sleeps until market hours)")
             except Exception as _oite:
                 logger.debug("OITracker: %s", _oite)
 
