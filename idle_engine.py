@@ -877,43 +877,110 @@ class IdleEngine:
     def stop(self) -> None:
         self._stop.set()
 
+    # 2026-07-10 (operator: "I may switch the system off at night — ensure
+    # skipped processes are carried out while the system is on, note which
+    # happened and which didn't, and re-execute on the next run"): a task's
+    # most recent slot (today's, or yesterday's if today's hasn't come yet)
+    # that never completed is CAUGHT UP within this window instead of being
+    # skipped for the day when the machine was off past max_late_min.
+    CATCHUP_WINDOW_H = float(os.getenv("IDLE_CATCHUP_WINDOW_HOURS", "26"))
+
+    @staticmethod
+    def _due_slot(item, now, ran) -> tuple:
+        """Decide what (if anything) is due for one schedule item.
+
+        Returns (task_key, mode) where mode is "on_time" (inside the task's
+        own max_late window), "catch_up" (missed slot within
+        CATCHUP_WINDOW_H — machine was off or the process was down), or
+        ("", "") when nothing is due. Checks today's slot first, then
+        yesterday's, so a multi-day gap drains newest-first across passes.
+        """
+        h, m, key, fn, desc = item[:5]
+        max_late_min = int(item[5]) if len(item) > 5 else 5
+        slot_today = now.replace(hour=h, minute=m, second=0, microsecond=0)
+        slots = ([slot_today] if now >= slot_today else []) + [slot_today - timedelta(days=1)]
+        for slot in slots:
+            task_key = f"{key}:{slot.date()}"
+            if ran.get(task_key):
+                continue
+            late = (now - slot).total_seconds()
+            if late < 0:
+                continue
+            if late <= max_late_min * 60:
+                return task_key, "on_time"
+            if late <= IdleEngine.CATCHUP_WINDOW_H * 3600:
+                return task_key, "catch_up"
+        return "", ""
+
+    @staticmethod
+    def _market_open_now(now) -> bool:
+        return now.weekday() < 5 and dtime(9, 10) <= now.time() <= dtime(15, 35)
+
+    def _record_run(self, key: str, task_key: str, scheduled: str, mode: str) -> None:
+        """Append to job_catchup_report.json — the operator-visible ledger of
+        which scheduled jobs ran on time, which were caught up, and when."""
+        try:
+            path = Path("job_catchup_report.json")
+            rep = json.loads(path.read_text()) if path.exists() else {}
+            day = task_key.rsplit(":", 1)[-1]
+            rep.setdefault(day, {})[key] = {
+                "scheduled": scheduled,
+                "ran_at": datetime.now().isoformat(timespec="seconds"),
+                "mode": mode,
+            }
+            # keep last 14 days
+            for old in sorted(rep)[:-14]:
+                rep.pop(old, None)
+            path.write_text(json.dumps(rep, indent=2))
+        except Exception as e:
+            logger.debug("catchup report: %s", e)
+
     def _loop(self) -> None:
         while not self._stop.is_set():
             now = datetime.now()
             for item in self.SCHEDULE:
                 h, m, key, fn, desc = item[:5]
-                max_late_min = int(item[5]) if len(item) > 5 else 5
                 if fn is None:
                     continue  # handled by main_autonomous
-                task_key = f"{key}:{date.today()}"
-                if self._ran.get(task_key):
+                task_key, mode = self._due_slot(item, now, self._ran)
+                if not task_key:
                     continue
-                # Fire when due, with catch-up after restarts.
-                target = now.replace(hour=h, minute=m, second=0, microsecond=0)
-                late_sec = (now - target).total_seconds()
-                if 0 <= late_sec <= max_late_min * 60:
-                    # Persist "started" (truthy, so this process never double-
-                    # fires) and only mark True once the task completes: a
-                    # restart mid-task drops the marker in _load_state so the
-                    # catch-up window re-fires it. (2026-07-06: a 21:38 restart
-                    # killed the 21:30 autolearn mid-run, and the pre-marked
-                    # True skipped it for the rest of the day.)
-                    self._ran[task_key] = "started"
-                    self._save_state()
-                    logger.info("IdleEngine: starting %s", desc)
-                    self.alerts.send(
-                        f"⚙️ <b>IDLE TASK: {desc.upper()}</b>\n"
-                        f"  Starting scheduled background task\n"
-                        f"🕐 {now.strftime('%H:%M')}",
-                        dedup_key=f"idle_start:{task_key}",
-                        dedup_cooldown_override=3600,
-                    ) if self.alerts else None
-                    try:
-                        fn(self.alerts)
-                    except Exception as e:
-                        logger.warning("IdleEngine task %s: %s", key, e)
-                    self._ran[task_key] = True
-                    self._save_state()
+                # Catch-up runs are heavy learning/report jobs — never let a
+                # backlog drain compete with live scanning. On-time runs keep
+                # their designed slots (which were already market-aware).
+                if mode == "catch_up" and self._market_open_now(now):
+                    continue
+                # Persist "started" (truthy, so this process never double-
+                # fires) and only mark True once the task completes: a
+                # restart mid-task drops the marker in _load_state so the
+                # catch-up window re-fires it. (2026-07-06: a 21:38 restart
+                # killed the 21:30 autolearn mid-run, and the pre-marked
+                # True skipped it for the rest of the day.)
+                self._ran[task_key] = "started"
+                self._save_state()
+                tag = "CATCH-UP (missed while off)" if mode == "catch_up" else "starting"
+                logger.info("IdleEngine: %s %s [%s]", tag, desc, task_key)
+                self.alerts.send(
+                    f"⚙️ <b>IDLE TASK: {desc.upper()}</b>\n"
+                    f"  {'♻️ Catch-up — was missed while the system was off' if mode == 'catch_up' else 'Starting scheduled background task'}\n"
+                    f"🕐 {now.strftime('%H:%M')}",
+                    dedup_key=f"idle_start:{task_key}",
+                    dedup_cooldown_override=3600,
+                ) if self.alerts else None
+                try:
+                    fn(self.alerts)
+                except Exception as e:
+                    logger.warning("IdleEngine task %s: %s", key, e)
+                self._ran[task_key] = True
+                self._save_state()
+                self._record_run(key, task_key, f"{h:02d}:{m:02d}", mode)
+            # External (cron) jobs missed while the machine was off —
+            # post-market ML and the condor forward test. Cheap file checks.
+            try:
+                from job_catchup import check_and_run_external
+                check_and_run_external(now)
+            except Exception as e:
+                logger.debug("external catchup: %s", e)
             self._stop.wait(60)  # check every minute
 
     def get_todays_schedule(self) -> str:
