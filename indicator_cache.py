@@ -179,6 +179,29 @@ def get_indicators(df: pd.DataFrame, symbol: str = "") -> dict:
             ind["minus_di"] = minus_di
         except Exception:
             pass
+
+        # Extended indicators (2026-07-10): connors_rsi, nr4/nr7, efficiency_
+        # ratio, choppiness_index. These were only produced by
+        # indicators.add_all_indicators(), which the LIVE path never calls —
+        # signal_engine's fallback to it only fires when CORE indicators are
+        # missing, and this cache always supplies those. Every consumer
+        # defaulted silently: crsi_mod and nr_mod logged 0 on all 10,717
+        # signals over 10 days, and the choppiness/efficiency regime gate
+        # (penalize trend strategies in chop, mean-reversion in trends) was a
+        # no-op since it was written. Reuses the canonical implementations
+        # from indicators.py — one source of truth, no reimplementation.
+        try:
+            from indicators import (
+                calculate_connors_rsi, detect_nr4, detect_nr7,
+                calculate_efficiency_ratio, calculate_choppiness_index,
+            )
+            ind["nr4"] = detect_nr4(df)
+            ind["nr7"] = detect_nr7(df)
+            ind["efficiency_ratio"] = calculate_efficiency_ratio(close, period=10)
+            ind["choppiness_index"] = calculate_choppiness_index(df, period=14)
+            ind["connors_rsi"] = calculate_connors_rsi(df)
+        except Exception as e:
+            logger.debug("extended indicators %s: %s", symbol, e)
         
         # Cache it
         if symbol:
