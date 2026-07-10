@@ -36,8 +36,8 @@ def _direction_context(underlying: str) -> tuple[str, str]:
         regime, bias, _detail = get_underlying_context(underlying)
         if bias != "UNKNOWN" or regime != "UNKNOWN":
             return regime, bias
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("live 1m context %s: %s", underlying, exc)
     regime = "UNKNOWN"
     bias = "UNKNOWN"
     try:
