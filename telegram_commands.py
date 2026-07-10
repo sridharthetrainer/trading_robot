@@ -63,6 +63,18 @@ QUICK_EXEC_MAX_LOTS = int(os.getenv("TG_QUICK_EXEC_MAX_LOTS", "2"))
 # sizing guard, not a confirmation step (operator explicitly declined a
 # confirm dialog); this only decides 1 vs 2 lots vs "insufficient funds".
 QUICK_EXEC_CAPITAL_FRACTION = float(os.getenv("TG_QUICK_EXEC_CAPITAL_FRACTION", "0.20"))
+# Kill-switch risk cap (2026-07-10, adapted from the operator's "V6" prompt —
+# the one part of it that survived validation review as plain sound risk
+# management): size lots so the expected loss IF THE STOP FIRES stays under
+# this fraction of live capital. Loss-given-stop for a long option follows
+# the manual tracker's own catastrophe GTT (MANUAL_CATASTROPHE_SL_PCT of
+# premium, default 60%) + per-lot friction, NOT the full premium — a 1%-of-
+# capital cap on full premium would silently reject every single tap at this
+# account size, recreating the never-fires-button problem. Sizes DOWN to 1
+# lot before rejecting outright.
+QUICK_EXEC_MAX_RISK_FRAC = float(os.getenv("TG_QUICK_EXEC_MAX_RISK_FRAC", "0.05"))
+QUICK_EXEC_SL_PCT = float(os.getenv("MANUAL_CATASTROPHE_SL_PCT", "0.60"))
+QUICK_EXEC_FRICTION_PER_LOT = float(os.getenv("TG_QUICK_EXEC_FRICTION_PER_LOT", "40"))
 
 
 def _quick_execute_option(symbol: str) -> str:
@@ -102,11 +114,21 @@ def _quick_execute_option(symbol: str) -> str:
         return f"⚠️ Invalid cost calculation for {symbol} — not executed."
 
     budget = capital * QUICK_EXEC_CAPITAL_FRACTION
-    lots = min(QUICK_EXEC_MAX_LOTS, int(budget // one_lot_cost))
+    budget_lots = int(budget // one_lot_cost)
+    # Kill-switch: expected loss per lot if the catastrophe stop fires.
+    risk_per_lot = one_lot_cost * QUICK_EXEC_SL_PCT + QUICK_EXEC_FRICTION_PER_LOT
+    max_risk = capital * QUICK_EXEC_MAX_RISK_FRAC
+    risk_lots = int(max_risk // risk_per_lot) if risk_per_lot > 0 else 0
+    lots = min(QUICK_EXEC_MAX_LOTS, budget_lots, risk_lots)
     if lots < 1:
-        return (f"⚠️ Insufficient funds for even 1 lot of {symbol}\n"
-                f"  1 lot ≈ ₹{one_lot_cost:,.0f} | budget ≈ ₹{budget:,.0f} "
-                f"({QUICK_EXEC_CAPITAL_FRACTION:.0%} of ₹{capital:,.0f} available)")
+        if budget_lots < 1:
+            return (f"⚠️ Insufficient funds for even 1 lot of {symbol}\n"
+                    f"  1 lot ≈ ₹{one_lot_cost:,.0f} | budget ≈ ₹{budget:,.0f} "
+                    f"({QUICK_EXEC_CAPITAL_FRACTION:.0%} of ₹{capital:,.0f} available)")
+        return (f"🛑 Kill-switch: 1 lot of {symbol} risks ≈ ₹{risk_per_lot:,.0f} "
+                f"at the {QUICK_EXEC_SL_PCT:.0%} stop — over the "
+                f"{QUICK_EXEC_MAX_RISK_FRAC:.0%} cap (₹{max_risk:,.0f} of "
+                f"₹{capital:,.0f}). Not executed.")
 
     qty = lots * lot
     try:
@@ -119,9 +141,11 @@ def _quick_execute_option(symbol: str) -> str:
         return f"❌ Order failed for {symbol} — check broker app for details."
 
     order_id, fill_price = res
+    est_risk = risk_per_lot * lots
     return (
         f"✅ <b>EXECUTED</b> — BUY {qty} ({lots} lot{'s' if lots > 1 else ''}) {symbol}\n"
         f"  Fill ≈ ₹{float(fill_price or ltp):.2f} | Order ID {order_id}\n"
+        f"  Est. risk at stop ≈ ₹{est_risk:,.0f} ({est_risk / capital:.1%} of capital)\n"
         f"  Manual tracker will detect + protect within ~30s.")
 
 
@@ -1939,15 +1963,25 @@ class TelegramCommandHandler:
                 top_n=top_n,
                 prefer_live=prefer_live,
             )
-            # One-tap execute button per ACTIONABLE (tradable=1) row only —
-            # never on a WATCH row, which the message itself labels "not a
-            # trade call"; offering an execute shortcut there would
-            # contradict that in the same message.
-            buttons = [
-                [{"text": f"🚀 BUY {row['symbol']}", "callback_data": f"exec:{row['symbol']}"}]
-                for row in (result.actionable or [])
-                if row.get("tradable") and row.get("symbol")
-            ]
+            # One-tap execute buttons: top-2 rows by the report's own ordering
+            # (tradable first, then score) regardless of the tradable flag.
+            # 2026-07-10 operator decision after seeing the data: the original
+            # ACTIONABLE-only gating meant the button never appeared — 0 of
+            # 1,120 signals passed tradable=1 that day (0 the day before), and
+            # historically that gate's picks LOST (-0.22R, 14% win rate, n=35),
+            # so it was both nearly-always-empty and anti-predictive when not.
+            # Each label carries the row's status + score so a WATCH tap is a
+            # visibly informed choice, and the kill-switch in
+            # _quick_execute_option still sizes/blocks the actual order.
+            rows_with_symbol = [r for r in (result.actionable or []) if r.get("symbol")]
+            buttons = []
+            for row in rows_with_symbol[:2]:
+                status = "ACTIONABLE" if row.get("tradable") else "WATCH"
+                score = float(row.get("score") or 0)
+                buttons.append([{
+                    "text": f"🚀 BUY {row['symbol']} ({status} {score:.0f})",
+                    "callback_data": f"exec:{row['symbol']}",
+                }])
             if buttons:
                 return result.text, {"inline_keyboard": buttons}
             return result.text
