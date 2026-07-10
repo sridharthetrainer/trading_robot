@@ -107,31 +107,44 @@ def get_sector_rotation_score(symbol: str, lookback_days: int = 5) -> Dict:
     if not sector:
         return {"score_mod": 0.0, "sector": "UNKNOWN", "rank": "N/A"}
 
-    sector_ticker = _SECTOR_TICKERS.get(sector)
-    nifty_ticker  = "^NSEI"
+    # 2026-07-10: this used yfinance — the project's own documented-broken
+    # data source — so every lookup came back empty and sector_mod logged 0
+    # on every signal, forever. Rewired to sector_history.csv, which
+    # eod_market_capture already saves nightly (real chg_1d per sector,
+    # fresh through the latest session). Relative strength = the sector's
+    # cumulative 1-day changes over the lookback vs the cross-sector mean
+    # (the file has no NIFTY row; cross-sector mean is the rotation
+    # benchmark). Same thresholds/labels as before.
+    _CSV_SECTOR = {"IT": "IT", "BANK": "Banking", "PHARMA": "Pharma",
+                   "AUTO": "Auto", "METAL": "Metal", "FMCG": "FMCG",
+                   "REALTY": "Realty", "ENERGY": "Energy", "INFRA": "Infra",
+                   "MEDIA": "Media"}
+    csv_name = _CSV_SECTOR.get(sector)
+    if not csv_name:
+        return {"score_mod": 0.0, "sector": sector, "rank": "N/A"}
 
     try:
-        import yf_compat as yf, json as _j
-        # Get sector vs Nifty relative performance
-        try:
-            sec_df = yf.download(sector_ticker, period=f"{lookback_days+2}d",
-                                  interval="1d", progress=False, auto_adjust=True)
-            nif_df = yf.download(nifty_ticker,  period=f"{lookback_days+2}d",
-                                  interval="1d", progress=False, auto_adjust=True)
-        except (_j.JSONDecodeError, Exception):
+        import csv as _csv
+        from collections import defaultdict
+        rows_by_sector = defaultdict(list)
+        with open("sector_history.csv", errors="replace") as _fh:
+            for _row in _csv.DictReader(_fh):
+                try:
+                    rows_by_sector[_row["sector"]].append(
+                        (_row["date"], float(_row.get("chg_1d", 0) or 0)))
+                except (KeyError, ValueError, TypeError):
+                    continue
+        if csv_name not in rows_by_sector:
             return {"score_mod": 0.0, "sector": sector, "rank": "N/A"}
 
-        if sec_df is None or len(sec_df) < 2 or nif_df is None or len(nif_df) < 2:
-            return {"score_mod": 0.0, "sector": sector, "rank": "N/A"}
+        def _cum(name: str) -> float:
+            recent = sorted(rows_by_sector[name])[-lookback_days:]
+            return sum(chg for _, chg in recent)
 
-        sec_c = sec_df["Close"] if "Close" in sec_df.columns else sec_df.iloc[:,0]
-        nif_c = nif_df["Close"] if "Close" in nif_df.columns else nif_df.iloc[:,0]
-        if hasattr(sec_c,"columns"): sec_c = sec_c.iloc[:,0]
-        if hasattr(nif_c,"columns"): nif_c = nif_c.iloc[:,0]
-
-        sec_ret  = (float(sec_c.iloc[-1]) / float(sec_c.iloc[0]) - 1) * 100
-        nif_ret  = (float(nif_c.iloc[-1]) / float(nif_c.iloc[0]) - 1) * 100
-        relative = sec_ret - nif_ret  # sector alpha vs Nifty
+        sec_ret  = _cum(csv_name)
+        all_rets = [_cum(name) for name in rows_by_sector]
+        nif_ret  = sum(all_rets) / len(all_rets) if all_rets else 0.0
+        relative = sec_ret - nif_ret  # sector alpha vs cross-sector mean
 
         # Score modifier
         if relative > 3.0:
