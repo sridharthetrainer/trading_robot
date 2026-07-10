@@ -46,6 +46,16 @@ logger = logging.getLogger(__name__)
 FILTERS_FILE    = Path(os.getenv("LEARNED_FILTERS_FILE", "learned_filters.json"))
 MAX_FILTERS     = int(os.getenv("LEARNED_FILTERS_MAX", "30"))   # cap to avoid noise
 MAX_BOOSTS      = int(os.getenv("LEARNED_BOOSTS_MAX",  "20"))
+# Forward-holdout promotion (2026-07-10): candidates are only ever promoted to
+# the live "filters"/"boosts" lists after holding up on signals from days
+# strictly AFTER their discovery date. Until this existed, the consumer's
+# rule_validation=="locked_forward_holdout" gate could never open — no code
+# produced that status, so every nightly discovery was parked forever.
+LEDGER_FILE      = Path(os.getenv("LEARNED_FILTER_LEDGER", "learned_filter_ledger.json"))
+FWD_MIN_DAYS     = int(os.getenv("LEARNED_FILTER_FWD_MIN_DAYS", "5"))
+FWD_MIN_N        = int(os.getenv("LEARNED_FILTER_FWD_MIN_N", "30"))
+FWD_ALPHA        = float(os.getenv("LEARNED_FILTER_FWD_ALPHA", "0.05"))
+LEDGER_MAX       = int(os.getenv("LEARNED_FILTER_LEDGER_MAX", "500"))
 # Conservative defaults until 90+ days of labeled data exist.
 # Unlock via .env: LEARNED_FILTER_MIN_MULT=0.20 LEARNED_FILTER_MAX_MULT=1.50
 FILTER_MIN_MULT = float(os.getenv("LEARNED_FILTER_MIN_MULT", "0.80"))
@@ -106,24 +116,57 @@ def apply_learned_filters(signal_context: Dict[str, Any]) -> Dict[str, Any]:
     reasons       = []
     filters_hit   = []
 
-    def _get(feat: str) -> float:
-        """Get feature from signal_context, trying both raw and encoded names."""
+    def _get_raw(feat: str):
         v = signal_context.get(feat)
         if v is None:
             v = signal_context.get(f"{feat}_enc")
+        if v is None and feat in ("strategy", "side"):
+            v = signal_context.get(f"__{feat}")
+        return v
+
+    def _get(feat: str) -> float:
+        """Get feature from signal_context, trying both raw and encoded names."""
+        v = _get_raw(feat)
         try:
             return float(v) if v is not None else 0.0
         except Exception:
             return 0.0
 
+    def _fmt_part(v) -> str:
+        # Match failure_autopsy's cross-bin key format: numeric parts render
+        # like str(float) ("-1.0"), strings as-is — so live composition
+        # compares equal with what discovery/validation saw in the matrix.
+        try:
+            return str(float(v))
+        except Exception:
+            return str(v).strip()
+
     def _match_condition(cond: Dict[str, Any]) -> bool:
         feat = cond.get("feature", "")
-        val  = _get(feat)
+        # Cross feature ("strategy×htf_bias_enc"): compose "a × b" the same
+        # way failure_autopsy builds its cross-bin keys, then string-compare.
+        if "×" in feat:
+            a, b = (p.strip() for p in feat.split("×", 1))
+            va, vb = _get_raw(a), _get_raw(b)
+            if va is None or vb is None:
+                return False
+            return f"{_fmt_part(va)} × {_fmt_part(vb)}" == str(cond.get("eq", "")).strip()
+        if "eq" in cond:
+            # 2026-07-10: this used to float-coerce BOTH sides, so a
+            # categorical rule (eq "vrvp_zone") compared 0.0 != "vrvp_zone"
+            # and could never match. Numeric compare when both sides are
+            # numeric; honest string compare otherwise.
+            raw = _get_raw(feat)
+            try:
+                if float(raw) != float(cond["eq"]):
+                    return False
+            except (TypeError, ValueError):
+                if str(raw).strip() != str(cond["eq"]).strip():
+                    return False
+        val = _get(feat)
         if "gt" in cond and val <= cond["gt"]:
             return False
         if "lt" in cond and val >= cond["lt"]:
-            return False
-        if "eq" in cond and val != cond["eq"]:
             return False
         if "gte" in cond and val < cond["gte"]:
             return False
@@ -286,7 +329,11 @@ def _bin_to_condition(feature: str, bin_name: str) -> Dict[str, Any]:
     into a structured condition dict for apply_learned_filters().
     """
     import re
-    clean_feat = feature.lstrip("flag_")
+    # 2026-07-10: was lstrip("flag_"), which strips a character SET, not a
+    # prefix — it mangled any feature starting with f/l/a/g/_ (ai_score →
+    # "i_score", fii_cum_5d → "ii_cum_5d"), so those rules referenced
+    # nonexistent features and could never match.
+    clean_feat = feature[5:] if feature.startswith("flag_") else feature
 
     # Boolean / categorical bin: "0" or "1"
     if bin_name in ("0", "1"):
@@ -304,3 +351,197 @@ def _bin_to_condition(feature: str, bin_name: str) -> Dict[str, Any]:
 
     # Categorical: strategy name, regime, etc.
     return {"feature": clean_feat, "eq": bin_name}
+
+
+# ── Forward-holdout validation & promotion (2026-07-10) ──────────────────────
+
+_META_COL = {"strategy": "__strategy", "side": "__side"}
+
+
+def _condition_mask(df, cond: Dict[str, Any]):
+    """Vectorized condition evaluation against the SAME feature matrix the
+    autopsy discovered the rule on (build_feature_matrix columns). Returns a
+    boolean Series, or None if the condition references unknown columns."""
+    import pandas as pd
+    feat = str(cond.get("feature", ""))
+    if "×" in feat:
+        a, b = (p.strip() for p in feat.split("×", 1))
+        col_a, col_b = _META_COL.get(a, a), _META_COL.get(b, b)
+        if col_a not in df.columns or col_b not in df.columns:
+            return None
+        composed = (df[col_a].astype(str).str.strip()
+                    + " × " + df[col_b].astype(str).str.strip())
+        return composed == str(cond.get("eq", "")).strip()
+    col = _META_COL.get(feat, feat)
+    if col not in df.columns:
+        return None
+    s = df[col]
+    mask = pd.Series(True, index=df.index)
+    if "eq" in cond:
+        num = pd.to_numeric(s, errors="coerce")
+        try:
+            target = float(cond["eq"])
+            mask &= num == target
+        except (TypeError, ValueError):
+            mask &= s.astype(str).str.strip() == str(cond["eq"]).strip()
+    num = pd.to_numeric(s, errors="coerce")
+    if "gt" in cond:
+        mask &= num > float(cond["gt"])
+    if "lt" in cond:
+        mask &= num < float(cond["lt"])
+    if "gte" in cond:
+        mask &= num >= float(cond["gte"])
+    if "lte" in cond:
+        mask &= num <= float(cond["lte"])
+    return mask
+
+
+def _load_ledger() -> Dict[str, Any]:
+    try:
+        if LEDGER_FILE.exists():
+            return json.loads(LEDGER_FILE.read_text())
+    except Exception as exc:
+        logger.debug("ledger load: %s", exc)
+    return {}
+
+
+def validate_and_promote(df) -> Dict[str, Any]:
+    """Forward-holdout validator — the missing half of the learned-filters
+    loop. Nightly candidates are merged into a persistent ledger (first_seen
+    per rule id); a rule is only evaluated on labelled signals from days
+    STRICTLY AFTER its first_seen (data it has never been discovered on), and
+    only promoted into the live "filters"/"boosts" lists when its forward
+    effect is in the claimed direction AND significant at a Bonferroni-
+    corrected one-sided alpha. Promotion is recomputed from scratch every
+    night, so a promoted rule that decays forward auto-demotes. Called by
+    post_market_ml right after generate_and_save() with the SAME feature
+    matrix the discovery ran on.
+    """
+    from datetime import date
+    from scipy import stats as _st
+
+    summary = {"validated": 0, "promoted_filters": 0, "promoted_boosts": 0,
+               "ledger_size": 0, "skipped": 0}
+    try:
+        data = json.loads(FILTERS_FILE.read_text())
+    except Exception as exc:
+        logger.debug("validate_and_promote: no filters file (%s)", exc)
+        return summary
+    if data.get("training_contract") != FILTER_TRAINING_CONTRACT:
+        return summary
+
+    today = date.today().isoformat()
+    ledger = _load_ledger()
+
+    # Merge tonight's candidates (first seen today unless already known).
+    for kind, key in (("filter", "candidate_filters"), ("boost", "candidate_boosts")):
+        for cand in data.get(key, []) or []:
+            cid = str(cand.get("id", ""))
+            if not cid:
+                continue
+            entry = ledger.get(cid) or {"first_seen": today, "kind": kind}
+            entry.update({
+                "kind": kind, "last_seen": today,
+                "condition": cand.get("condition", {}),
+                "mult": cand.get("mult", 1.0),
+                "description": cand.get("description", ""),
+                "evidence": cand.get("evidence", {}),
+            })
+            ledger[cid] = entry
+    # Cap ledger growth (keep newest first_seen).
+    if len(ledger) > LEDGER_MAX:
+        keep = sorted(ledger.items(), key=lambda kv: kv[1].get("first_seen", ""),
+                      reverse=True)[:LEDGER_MAX]
+        ledger = dict(keep)
+    summary["ledger_size"] = len(ledger)
+
+    promoted_filters: List[Dict[str, Any]] = []
+    promoted_boosts:  List[Dict[str, Any]] = []
+    if df is not None and len(df) and "tb_label" in df.columns and "__signal_date" in df.columns:
+        lab = df[df["tb_label"].isin([1, -1])].copy()
+        lab["__signal_date"] = lab["__signal_date"].astype(str)
+
+        # Which ledger entries have enough forward days to be judged at all?
+        due = []
+        for cid, entry in ledger.items():
+            fwd_days = lab.loc[lab["__signal_date"] > str(entry.get("first_seen", today)),
+                               "__signal_date"].nunique()
+            entry["forward_days"] = int(fwd_days)
+            if fwd_days >= FWD_MIN_DAYS:
+                due.append(cid)
+        alpha_corr = FWD_ALPHA / max(1, len(due))
+        summary["validated"] = len(due)
+        summary["alpha_corrected"] = round(alpha_corr, 6)
+
+        for cid in due:
+            entry = ledger[cid]
+            fwd = lab[lab["__signal_date"] > str(entry["first_seen"])]
+            mask = _condition_mask(fwd, entry.get("condition", {}))
+            if mask is None:
+                entry["forward"] = {"status": "unmatchable_condition"}
+                summary["skipped"] += 1
+                continue
+            matched, unmatched = fwd[mask], fwd[~mask]
+            fstat: Dict[str, Any] = {
+                "n_matched": int(len(matched)), "n_unmatched": int(len(unmatched)),
+                "checked": today,
+            }
+            if len(matched) < FWD_MIN_N or len(unmatched) < FWD_MIN_N:
+                fstat["status"] = "insufficient_forward_samples"
+                entry["forward"] = fstat
+                continue
+            m_wr = float(matched["tb_outcome"].mean())
+            u_wr = float(unmatched["tb_outcome"].mean())
+            t, p_two = _st.ttest_ind(matched["tb_outcome"], unmatched["tb_outcome"],
+                                     equal_var=False)
+            diff = m_wr - u_wr
+            p_one = float(p_two) / 2.0
+            fstat.update({"matched_wr": round(m_wr, 4), "unmatched_wr": round(u_wr, 4),
+                          "diff": round(diff, 4), "p_one_sided": round(p_one, 6)})
+            want_worse = entry.get("kind") == "filter"
+            direction_ok = (diff < 0) if want_worse else (diff > 0)
+            if direction_ok and p_one < alpha_corr:
+                fstat["status"] = "PROMOTED"
+                rule = {
+                    "id": cid,
+                    "description": entry.get("description", cid),
+                    "condition": entry.get("condition", {}),
+                    "mult": entry.get("mult", 1.0),
+                    "evidence": entry.get("evidence", {}),
+                    "forward": fstat,
+                    "first_seen": entry.get("first_seen"),
+                }
+                (promoted_filters if want_worse else promoted_boosts).append(rule)
+            else:
+                fstat["status"] = ("wrong_direction" if not direction_ok
+                                   else "not_significant")
+            entry["forward"] = fstat
+
+    promoted_filters = promoted_filters[:MAX_FILTERS]
+    promoted_boosts = promoted_boosts[:MAX_BOOSTS]
+    summary["promoted_filters"] = len(promoted_filters)
+    summary["promoted_boosts"] = len(promoted_boosts)
+
+    any_promoted = bool(promoted_filters or promoted_boosts)
+    data["filters"] = promoted_filters
+    data["boosts"] = promoted_boosts
+    data["active"] = any_promoted
+    data["rule_validation"] = ("locked_forward_holdout" if any_promoted
+                               else "in_sample_discovery_only")
+    data["activation_reason"] = (
+        f"{len(promoted_filters)}f+{len(promoted_boosts)}b passed forward holdout "
+        f"({FWD_MIN_DAYS}+ fwd days, one-sided alpha {summary.get('alpha_corrected', FWD_ALPHA)})"
+        if any_promoted else
+        "no candidate has passed the forward holdout yet")
+    data["forward_validation"] = summary
+
+    try:
+        FILTERS_FILE.write_text(json.dumps(data, indent=2))
+        LEDGER_FILE.write_text(json.dumps(ledger, indent=2))
+        _CACHE["mtime"] = 0.0
+    except Exception as exc:
+        logger.warning("validate_and_promote write failed: %s", exc)
+    logger.info("forward-holdout: %d validated, %d filter(s) + %d boost(s) promoted, "
+                "ledger=%d", summary["validated"], len(promoted_filters),
+                len(promoted_boosts), len(ledger))
+    return summary

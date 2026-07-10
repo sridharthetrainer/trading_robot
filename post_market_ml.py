@@ -545,9 +545,19 @@ def run_pipeline(
         filters_path = None
     else:
         logger.info("[5/6] Writing learned_filters.json …")
-        from learned_filters import generate_and_save
+        from learned_filters import generate_and_save, validate_and_promote
         filters_path = generate_and_save(autopsy, training)
         logger.info("  → %s", filters_path)
+        # Forward-holdout promotion (2026-07-10): judge every ledgered candidate
+        # ONLY on signals from days after its discovery, promote survivors into
+        # the live filters/boosts lists. Same feature matrix as discovery.
+        try:
+            _fwd = validate_and_promote(df)
+            logger.info("  forward-holdout: %d validated | %d filters + %d boosts promoted",
+                        _fwd.get("validated", 0), _fwd.get("promoted_filters", 0),
+                        _fwd.get("promoted_boosts", 0))
+        except Exception as _fv_exc:
+            logger.warning("  forward-holdout validation failed: %s", _fv_exc)
 
     # ── Step 6: Update strategy performance matrix ────────────────────────────
     logger.info("[6/7] Updating strategy_performance_matrix …")

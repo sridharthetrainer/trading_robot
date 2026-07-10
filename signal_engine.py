@@ -4483,6 +4483,9 @@ def generate_signal(
             from learned_filters    import apply_learned_filters as _lf
             _ctx    = _build_ctx(final_signal)
             _ctx["__symbol"] = symbol
+            # Raw strategy name so promoted cross rules (strategy×regime etc.)
+            # can match at trade time — the numeric context has no strategy.
+            _ctx["__strategy"] = str(final_signal.get("strategy", ""))
             _lf_res = _lf(_ctx)
             if _lf_res["mult"] != 1.0:
                 final_signal["score"] = round(final_signal["score"] * _lf_res["mult"], 4)
