@@ -80,6 +80,33 @@ def _is_main_chat(chat_id: str) -> bool:
     """True if chat_id is the automated bot's chat (which we must not post to)."""
     return bool(chat_id) and str(chat_id) == str(_MAIN_CHAT_ID) and not _ALLOW_MAIN_CHAT
 
+
+def todays_manual_stats(db_path: str = "manual_trades.db") -> dict:
+    """Module-level (no tracker instance needed — the one-tap execute lockout
+    in telegram_commands uses this too): today's realized manual P&L and
+    round-trip count. Realized = pnl of trades CLOSED today + realized_pnl
+    booked on still-open positions (partial closes)."""
+    import sqlite3 as _sq
+    from datetime import date as _d
+    today = _d.today().isoformat()
+    out = {"realized": 0.0, "closed_trades": 0, "open_trades": 0}
+    try:
+        conn = _sq.connect(db_path)
+        row = conn.execute(
+            "SELECT COALESCE(SUM(pnl),0), COUNT(*) FROM manual_trades "
+            "WHERE status='CLOSED' AND substr(exit_time,1,10)=?", (today,)).fetchone()
+        out["realized"] = float(row[0] or 0)
+        out["closed_trades"] = int(row[1] or 0)
+        row2 = conn.execute(
+            "SELECT COALESCE(SUM(realized_pnl),0), COUNT(*) FROM manual_trades "
+            "WHERE status='OPEN'").fetchone()
+        out["realized"] += float(row2[0] or 0)
+        out["open_trades"] = int(row2[1] or 0)
+        conn.close()
+    except Exception as e:
+        logger.debug("todays_manual_stats: %s", e)
+    return out
+
 # Broker-side protection (GTT SL + target that survive a tracker crash).
 AUTO_PROTECT        = os.getenv("MANUAL_AUTO_PROTECT",       "true").lower() == "true"
 OPTION_SL_PCT       = float(os.getenv("MANUAL_OPTION_SL_PCT",     "0.30"))  # 30% of premium
@@ -105,6 +132,14 @@ OPTION_FLOW_WEAK_SCORE = float(os.getenv("MANUAL_OPTION_FLOW_WEAK_SCORE", "-1.0"
 # behaviour, since there is nothing to split.
 T1_PARTIAL_BOOK_ENABLED = os.getenv("MANUAL_T1_PARTIAL_BOOK", "true").lower() == "true"
 T1_PARTIAL_BOOK_PCT     = float(os.getenv("MANUAL_T1_PARTIAL_BOOK_PCT", "0.5"))
+# Daily discipline guard (2026-07-11). Defaults sized from the operator's own
+# measured trading: worst audited days were -11.8k / -4.9k with up to 16
+# round-trips; the round-trips were coin-flips with symmetric outcomes, so
+# the only guaranteed loser was cost x frequency. Alerts, never blocks —
+# blocking manual trading isn't this tracker's job (the one-tap execute
+# button has its own hard lockout).
+DAILY_LOSS_ALERT_RS   = float(os.getenv("MANUAL_DAILY_LOSS_ALERT_RS", "5000"))
+DAILY_TRADES_ALERT_N  = int(os.getenv("MANUAL_DAILY_TRADES_ALERT_N", "8"))
 # Hybrid option stop (review consensus): the broker GTT is a DEEP catastrophe
 # floor (crash/gap protection) so premium noise / IV-vega spikes don't shake you
 # out; the PRIMARY intraday stop is the underlying breaking structure (live loop).
@@ -2135,6 +2170,41 @@ class ManualTradeTracker:
             f"🔴 <b>AUTO-CLOSED</b> {trade.symbol} {exit_side} {trade.qty}\n  {reason}")
         return True
 
+    def _check_daily_guard(self) -> None:
+        """Daily discipline alerts: realized loss and round-trip count.
+        Alert once per day per threshold; informational only (the one-tap
+        execute button carries the hard lockout)."""
+        try:
+            stats = todays_manual_stats()
+        except Exception as e:
+            logger.debug("daily guard: %s", e)
+            return
+        from datetime import date as _d
+        today = _d.today().isoformat()
+        if not hasattr(self, "_guard_alerted"):
+            self._guard_alerted: set = set()
+        loss_key, trades_key = f"loss:{today}", f"trades:{today}"
+        if (stats["realized"] <= -DAILY_LOSS_ALERT_RS
+                and loss_key not in self._guard_alerted):
+            self._guard_alerted.add(loss_key)
+            self.send_channel(
+                f"🛑 <b>DAILY LOSS GUARD</b>\n"
+                f"  Realized today: ₹{stats['realized']:+,.0f} "
+                f"(alert level −₹{DAILY_LOSS_ALERT_RS:,.0f})\n"
+                f"  One-tap execute is now locked for the day.\n"
+                f"  Historical pattern: continuing after a day like this is "
+                f"where the big drawdowns came from.")
+        if (stats["closed_trades"] >= DAILY_TRADES_ALERT_N
+                and trades_key not in self._guard_alerted):
+            self._guard_alerted.add(trades_key)
+            self.send_channel(
+                f"⚠️ <b>OVERTRADING GUARD</b>\n"
+                f"  {stats['closed_trades']} round-trips closed today "
+                f"(alert level {DAILY_TRADES_ALERT_N}).\n"
+                f"  Measured: your round-trips are ~coin-flips with symmetric "
+                f"outcomes — at this frequency only costs win. Consider "
+                f"stopping for the day.")
+
     def _run_eod_check(self) -> None:
         """Near the close, recommend HOLD / CLOSE / TIGHTEN per open trade."""
         if not EOD_CHECK_ENABLED or not self._active_trades:
@@ -2360,9 +2430,18 @@ class ManualTradeTracker:
                 # 6. Update prices for active trades
                 if self._active_trades:
                     self.update_prices()
-                    
+
                     # 7. Check for exits
                     self.check_exits()
+
+                # 6b. Daily discipline guard (2026-07-11): loss + overtrading
+                # alerts. The measured pattern behind the real losses was
+                # high-frequency coin-flip round-trips (16 in one session,
+                # symmetric ±4.8% outcomes) — costs win that game, nobody
+                # else. Throttled internally; alerts once per day per level.
+                if time.time() - getattr(self, "_guard_ts", 0) >= 300:
+                    self._guard_ts = time.time()
+                    self._check_daily_guard()
 
                     # 7b. End-of-day hold/close decision (once, ~3:10–3:25 PM)
                     if now.hour == 15 and 10 <= now.minute <= 25:

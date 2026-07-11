@@ -75,6 +75,12 @@ QUICK_EXEC_CAPITAL_FRACTION = float(os.getenv("TG_QUICK_EXEC_CAPITAL_FRACTION", 
 QUICK_EXEC_MAX_RISK_FRAC = float(os.getenv("TG_QUICK_EXEC_MAX_RISK_FRAC", "0.05"))
 QUICK_EXEC_SL_PCT = float(os.getenv("MANUAL_CATASTROPHE_SL_PCT", "0.60"))
 QUICK_EXEC_FRICTION_PER_LOT = float(os.getenv("TG_QUICK_EXEC_FRICTION_PER_LOT", "40"))
+# Day-level kill-switch (2026-07-11): once today's realized manual loss
+# crosses this, the button refuses new entries for the rest of the day.
+# The per-tap kill-switch caps single-trade risk; this caps the sequence —
+# the audited big losses were strings of small coin-flip round-trips, not
+# one bad trade.
+QUICK_EXEC_DAILY_LOSS_LOCK_RS = float(os.getenv("TG_QUICK_EXEC_DAILY_LOSS_LOCK_RS", "5000"))
 
 
 def _quick_execute_option(symbol: str) -> str:
@@ -89,6 +95,19 @@ def _quick_execute_option(symbol: str) -> str:
     within its next ~30s cycle and apply the same GTT protection as any
     other manual fill.
     """
+    # Day-level kill-switch: refuse new one-tap entries after the daily
+    # realized-loss cap, regardless of per-trade sizing.
+    try:
+        from manual_trade_tracker import todays_manual_stats
+        _day = todays_manual_stats()
+        if _day.get("realized", 0) <= -QUICK_EXEC_DAILY_LOSS_LOCK_RS:
+            return (f"🛑 <b>Daily-loss lockout</b> — realized "
+                    f"₹{_day['realized']:+,.0f} today (cap −₹{QUICK_EXEC_DAILY_LOSS_LOCK_RS:,.0f}).\n"
+                    f"  No more one-tap entries today. The audited drawdowns "
+                    f"came from continuing exactly here.")
+    except Exception as e:
+        logger.debug("daily lockout check: %s", e)
+
     try:
         from angel import AngelOne, get_fo_lot_size
         ang = AngelOne(
