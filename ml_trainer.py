@@ -317,7 +317,17 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             ys = sym_df["tb_outcome"].values.astype(int)
             if len(np.unique(ys)) < 2:
                 continue   # only one class — can't train
-            sym_result = _train_model(Xs, ys, feat_cols, label=symbol)
+            # 2026-07-11: a single sparse symbol (enough rows to pass
+            # MIN_SYMBOL_SAMPLES but too few distinct days for 2 valid purged
+            # folds) raised out of _train_model and killed the ENTIRE nightly
+            # pipeline (learned filters, forward-holdout, autopsy all lost for
+            # the day — caught by the job-catchup retry, rc=1 twice). Per-
+            # symbol models are optional extras; skip the symbol, keep going.
+            try:
+                sym_result = _train_model(Xs, ys, feat_cols, label=symbol)
+            except Exception as _sym_exc:
+                logger.warning("per-symbol model %s skipped: %s", symbol, _sym_exc)
+                continue
             sym_days = int(sym_df["__signal_date"].astype(str).nunique()) if "__signal_date" in sym_df else 0
             sym_result["distinct_days"] = sym_days
             sym_result["promoted"] = bool(
