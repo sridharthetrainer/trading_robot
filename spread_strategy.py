@@ -20,12 +20,19 @@ Usage in live_signal_engine:
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
+
+# Persistent store for one-tap spreads (2026-07-12): the legacy class below
+# keeps positions in memory only, which loses them on restart. The one-tap
+# Telegram path runs in transient handler calls, so open spreads live here.
+OPEN_SPREADS_FILE = Path("open_spreads.json")
 
 # ── Capital requirements ─────────────────────────────────────────────────────
 BULL_PUT_SPREAD_MARGIN_PER_LOT  = 35_000   # 100pt width
@@ -450,3 +457,136 @@ class SpreadStrategy:
             "min_for_iron_condor":  MIN_CAPITAL_FOR_IRON_CONDOR,
             "min_for_straddle":     MIN_CAPITAL_FOR_STRADDLE,
         }
+
+
+# ── One-tap defined-risk vertical (2026-07-12) ───────────────────────────────
+# First real consumer of this module (it was fully built and never imported
+# anywhere). These functions work with the AngelOne client directly (the
+# legacy class expects a broker_manager the one-tap path doesn't have), place
+# the LONG leg FIRST (a debit spread's short leg is margin-hedged only once
+# the long leg exists — sell-first would demand full naked-short margin), and
+# persist open spreads to disk so a restart doesn't orphan them.
+
+def _load_spread_store() -> Dict[str, Any]:
+    try:
+        if OPEN_SPREADS_FILE.exists():
+            return json.loads(OPEN_SPREADS_FILE.read_text())
+    except Exception as exc:
+        logger.debug("spread store load: %s", exc)
+    return {"open": {}, "closed": []}
+
+
+def _save_spread_store(store: Dict[str, Any]) -> None:
+    try:
+        store["closed"] = store.get("closed", [])[-50:]
+        OPEN_SPREADS_FILE.write_text(json.dumps(store, indent=2, default=str))
+    except Exception as exc:
+        logger.warning("spread store save: %s", exc)
+
+
+def enter_debit_vertical(
+    angel,
+    long_symbol: str,
+    short_symbol: str,
+    qty: int,
+    width_pts: float,
+    order_tag: str = "TGSPREAD",
+) -> Dict[str, Any]:
+    """BUY long_symbol, SELL short_symbol (same qty) as a defined-risk debit
+    vertical. Returns {"ok", "error"?, "spread"?}. On a failed short leg the
+    long leg is immediately sold back (rollback) so no naked position is left.
+    """
+    res_long = None
+    try:
+        res_long = angel.place_order(long_symbol, qty, "BUY", order_type="MARKET",
+                                     producttype="CARRYFORWARD", exchange="NFO",
+                                     order_tag=order_tag)
+    except Exception as exc:
+        return {"ok": False, "error": f"long leg error: {exc}"}
+    if not res_long or not res_long[0]:
+        return {"ok": False, "error": "long leg order failed"}
+    long_id, long_fill = res_long[0], float(res_long[1] or 0)
+
+    res_short = None
+    try:
+        res_short = angel.place_order(short_symbol, qty, "SELL", order_type="MARKET",
+                                      producttype="CARRYFORWARD", exchange="NFO",
+                                      order_tag=order_tag)
+    except Exception as exc:
+        res_short = None
+        logger.error("short leg error: %s", exc)
+    if not res_short or not res_short[0]:
+        # Rollback: sell the long leg back so nothing naked remains.
+        try:
+            angel.place_order(long_symbol, qty, "SELL", order_type="MARKET",
+                              producttype="CARRYFORWARD", exchange="NFO",
+                              order_tag=order_tag)
+            rolled = True
+        except Exception as exc:
+            rolled = False
+            logger.error("ROLLBACK FAILED — naked long %s x%d remains: %s",
+                         long_symbol, qty, exc)
+        return {"ok": False,
+                "error": ("short leg failed (likely margin); long leg "
+                          + ("rolled back cleanly" if rolled else
+                             "ROLLBACK FAILED — check broker app NOW"))}
+
+    short_id, short_fill = res_short[0], float(res_short[1] or 0)
+    debit = max(0.0, long_fill - short_fill)
+    spread_id = f"TGV_{int(time.time())}"
+    spread = {
+        "spread_id": spread_id,
+        "spread_type": "debit_vertical",
+        "long": {"symbol": long_symbol, "order_id": str(long_id), "fill": long_fill},
+        "short": {"symbol": short_symbol, "order_id": str(short_id), "fill": short_fill},
+        "qty": qty,
+        "width_pts": width_pts,
+        "net_debit_unit": round(debit, 2),
+        "max_loss": round(debit * qty, 2),
+        "max_profit": round(max(0.0, width_pts - debit) * qty, 2),
+        "entry_time": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "status": "OPEN",
+    }
+    store = _load_spread_store()
+    store.setdefault("open", {})[spread_id] = spread
+    _save_spread_store(store)
+    logger.info("Debit vertical opened %s: +%s / -%s x%d debit=%.2f",
+                spread_id, long_symbol, short_symbol, qty, debit)
+    return {"ok": True, "spread": spread}
+
+
+def close_spread_by_id(angel, spread_id: str) -> Dict[str, Any]:
+    """Market-close both legs of a persisted one-tap spread. Returns
+    {"ok", "pnl"?, "error"?}. A leg that fails to close is reported and the
+    spread stays OPEN (retryable) rather than being half-forgotten."""
+    store = _load_spread_store()
+    spread = (store.get("open") or {}).get(spread_id)
+    if not spread:
+        return {"ok": False, "error": f"unknown/closed spread {spread_id}"}
+    qty = int(spread["qty"])
+    try:
+        res_l = angel.place_order(spread["long"]["symbol"], qty, "SELL",
+                                  order_type="MARKET", producttype="CARRYFORWARD",
+                                  exchange="NFO", order_tag="TGSPREAD")
+        res_s = angel.place_order(spread["short"]["symbol"], qty, "BUY",
+                                  order_type="MARKET", producttype="CARRYFORWARD",
+                                  exchange="NFO", order_tag="TGSPREAD")
+    except Exception as exc:
+        return {"ok": False, "error": f"close error: {exc} — spread still OPEN"}
+    if not res_l or not res_l[0] or not res_s or not res_s[0]:
+        return {"ok": False, "error": "a close leg failed — spread still OPEN, retry"}
+    exit_long, exit_short = float(res_l[1] or 0), float(res_s[1] or 0)
+    pnl = ((exit_long - float(spread["long"]["fill"]))
+           + (float(spread["short"]["fill"]) - exit_short)) * qty
+    spread["status"] = "CLOSED"
+    spread["exit_time"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    spread["realized_pnl"] = round(pnl, 2)
+    store["open"].pop(spread_id, None)
+    store.setdefault("closed", []).append(spread)
+    _save_spread_store(store)
+    logger.info("Spread %s closed pnl=%.0f", spread_id, pnl)
+    return {"ok": True, "pnl": round(pnl, 2), "spread": spread}
+
+
+def list_open_spreads() -> List[Dict[str, Any]]:
+    return list((_load_spread_store().get("open") or {}).values())

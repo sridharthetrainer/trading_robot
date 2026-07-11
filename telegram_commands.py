@@ -81,6 +81,40 @@ QUICK_EXEC_FRICTION_PER_LOT = float(os.getenv("TG_QUICK_EXEC_FRICTION_PER_LOT", 
 # the audited big losses were strings of small coin-flip round-trips, not
 # one bad trade.
 QUICK_EXEC_DAILY_LOSS_LOCK_RS = float(os.getenv("TG_QUICK_EXEC_DAILY_LOSS_LOCK_RS", "5000"))
+# Execution mode (2026-07-12, operator-approved): "spread" (default) turns a
+# tap into a defined-risk DEBIT VERTICAL — buy the signalled strike, sell one
+# strike further OTM, same expiry. Same directional bet as the naked buy the
+# operator was placing by hand, but max loss = net debit (typically ~40-60%
+# of the naked premium) and theta bleed partially offset by the short leg.
+# "naked" restores the original single-leg buy.
+QUICK_EXEC_MODE = os.getenv("TG_QUICK_EXEC_MODE", "spread").strip().lower()
+
+import re as _re
+_OPT_SYM_RE = _re.compile(r"^([A-Z]+?)(\d{2}[A-Z]{3}\d{2})(\d+)(CE|PE)$")
+
+
+def _parse_option_symbol(symbol: str):
+    """NIFTY14JUL2624450PE -> (root, expiry, strike, opt_type) or None."""
+    m = _OPT_SYM_RE.match(str(symbol or "").upper().strip())
+    if not m:
+        return None
+    return m.group(1), m.group(2), int(m.group(3)), m.group(4)
+
+
+def _strike_step(root: str) -> int:
+    return 100 if root.upper() in ("BANKNIFTY", "SENSEX", "BANKEX") else 50
+
+
+def _spread_short_symbol(symbol: str):
+    """One strike further OTM, same expiry/type: the short leg of the debit
+    vertical. CE -> strike+step, PE -> strike-step. None if unparseable."""
+    parsed = _parse_option_symbol(symbol)
+    if not parsed:
+        return None, 0
+    root, expiry, strike, opt = parsed
+    step = _strike_step(root)
+    short_strike = strike + step if opt == "CE" else strike - step
+    return f"{root}{expiry}{short_strike}{opt}", step
 
 
 def _quick_execute_option(symbol: str) -> str:
@@ -132,6 +166,55 @@ def _quick_execute_option(symbol: str) -> str:
     if one_lot_cost <= 0:
         return f"⚠️ Invalid cost calculation for {symbol} — not executed."
 
+    # ── Defined-risk spread mode (default) ─────────────────────────────────
+    if QUICK_EXEC_MODE == "spread":
+        short_symbol, step = _spread_short_symbol(symbol)
+        short_ltp = ang.get_ltp(short_symbol, "NFO") if short_symbol else None
+        if short_symbol and short_ltp and short_ltp > 0:
+            debit_unit = max(0.05, float(ltp) - float(short_ltp))
+            # A vertical whose debit approaches the strike width can't pay:
+            # max profit = width - debit. Refuse rather than open a spread
+            # that needs a beyond-max move just to break even.
+            if debit_unit >= step * 0.90:
+                return (f"🛑 Spread not viable: est. debit ₹{debit_unit:.2f} vs "
+                        f"width {step} — max profit would be "
+                        f"₹{max(0.0, step - debit_unit) * lot:,.0f}/lot. Not executed.")
+            debit_lot = debit_unit * lot
+            # Kill-switch on the SPREAD's true max loss (the net debit) —
+            # structurally capped, no stop dependence.
+            risk_per_lot = debit_lot + 2 * QUICK_EXEC_FRICTION_PER_LOT
+            budget = capital * QUICK_EXEC_CAPITAL_FRACTION
+            max_risk = capital * QUICK_EXEC_MAX_RISK_FRAC
+            budget_lots = int(budget // max(debit_lot, 1))
+            risk_lots = int(max_risk // risk_per_lot) if risk_per_lot > 0 else 0
+            lots = min(QUICK_EXEC_MAX_LOTS, budget_lots, risk_lots)
+            if lots < 1:
+                return (f"🛑 Kill-switch (spread): 1 lot risks ≈ ₹{risk_per_lot:,.0f} "
+                        f"(net debit) — over the {QUICK_EXEC_MAX_RISK_FRAC:.0%} cap "
+                        f"(₹{max_risk:,.0f} of ₹{capital:,.0f}). Not executed.")
+            qty = lots * lot
+            from spread_strategy import enter_debit_vertical
+            r = enter_debit_vertical(ang, symbol, short_symbol, qty,
+                                     width_pts=step)
+            if not r.get("ok"):
+                return f"❌ Spread failed: {r.get('error', 'unknown')}"
+            sp = r["spread"]
+            return (
+                f"✅ <b>DEBIT SPREAD OPENED</b> — {sp['spread_id']}\n"
+                f"  +BUY {qty} {symbol} @ ₹{sp['long']['fill']:.2f}\n"
+                f"  −SELL {qty} {short_symbol} @ ₹{sp['short']['fill']:.2f}\n"
+                f"  Net debit ₹{sp['net_debit_unit']:.2f}/unit\n"
+                f"  Max loss ₹{sp['max_loss']:,.0f} ({sp['max_loss'] / capital:.1%} of capital, capped) | "
+                f"Max profit ₹{sp['max_profit']:,.0f}\n"
+                f"  Manage/close: /spreads")
+        # Short leg unresolvable/unpriced: fall through to the naked path
+        # BELOW with an explicit note — never silently change instruments.
+        naked_note = ("\n  ⚠️ Spread mode requested but the short leg "
+                      f"({short_symbol or 'unparseable symbol'}) has no live "
+                      "price — executed as NAKED long instead.")
+    else:
+        naked_note = ""
+
     budget = capital * QUICK_EXEC_CAPITAL_FRACTION
     budget_lots = int(budget // one_lot_cost)
     # Kill-switch: expected loss per lot if the catastrophe stop fires.
@@ -165,7 +248,8 @@ def _quick_execute_option(symbol: str) -> str:
         f"✅ <b>EXECUTED</b> — BUY {qty} ({lots} lot{'s' if lots > 1 else ''}) {symbol}\n"
         f"  Fill ≈ ₹{float(fill_price or ltp):.2f} | Order ID {order_id}\n"
         f"  Est. risk at stop ≈ ₹{est_risk:,.0f} ({est_risk / capital:.1%} of capital)\n"
-        f"  Manual tracker will detect + protect within ~30s.")
+        f"  Manual tracker will detect + protect within ~30s."
+        + naked_note)
 
 
 class TelegramCommandHandler:
@@ -572,6 +656,21 @@ class TelegramCommandHandler:
                 result = f"❌ Execution error for {symbol}: {str(exc)[:100]}"
             self.send(result, chat_id=chat_id)
             return
+        if data.startswith("spreadclose:"):
+            spread_id = data.split(":", 1)[1]
+            try:
+                from angel import AngelOne
+                from spread_strategy import close_spread_by_id
+                ang = AngelOne(
+                    api_key=os.getenv("API_KEY", ""), client_id=os.getenv("CLIENT_ID", ""),
+                    password=os.getenv("PASSWORD", ""), totp_secret=os.getenv("TOTP_SECRET", ""))
+                r = close_spread_by_id(ang, spread_id)
+                result = (f"✅ <b>SPREAD CLOSED</b> {spread_id} | P&L ₹{r['pnl']:+,.0f}"
+                          if r.get("ok") else f"❌ {r.get('error', 'close failed')}")
+            except Exception as exc:
+                result = f"❌ Spread close error: {str(exc)[:100]}"
+            self.send(result, chat_id=chat_id)
+            return
 
 
     # ── Handler registration ──────────────────────────────────────────────────
@@ -668,6 +767,7 @@ class TelegramCommandHandler:
         self.register("oiline",      self._cmd_oi_chart)
         self.register("oiday",       self._cmd_oi_chart)
         self.register("strikeflow",  self._cmd_strikeflow)
+        self.register("spreads",     self._cmd_spreads)
         self.register("flowstrikes", self._cmd_strikeflow)
         self.register("topstrikes",  self._cmd_strikeflow)
         # Wired orphan handlers (built but previously unregistered):
@@ -2006,6 +2106,47 @@ class TelegramCommandHandler:
             return result.text
         except Exception as e:
             return f"❌ Strike flow error: {str(e)[:80]}"
+
+    def _cmd_spreads(self, _args: str = ""):
+        """Open one-tap debit spreads: live MTM per spread + a close button."""
+        try:
+            from spread_strategy import list_open_spreads
+            spreads = list_open_spreads()
+            if not spreads:
+                return "No open one-tap spreads."
+            ang = None
+            try:
+                from angel import AngelOne
+                ang = AngelOne(
+                    api_key=os.getenv("API_KEY", ""), client_id=os.getenv("CLIENT_ID", ""),
+                    password=os.getenv("PASSWORD", ""), totp_secret=os.getenv("TOTP_SECRET", ""))
+            except Exception:
+                ang = None
+            lines = ["📐 <b>OPEN DEBIT SPREADS</b>"]
+            buttons = []
+            for sp in spreads:
+                mtm_txt = ""
+                if ang:
+                    try:
+                        l_now = float(ang.get_ltp(sp["long"]["symbol"], "NFO") or 0)
+                        s_now = float(ang.get_ltp(sp["short"]["symbol"], "NFO") or 0)
+                        if l_now > 0 and s_now > 0:
+                            mtm = ((l_now - sp["long"]["fill"])
+                                   + (sp["short"]["fill"] - s_now)) * sp["qty"]
+                            mtm_txt = f" | MTM ₹{mtm:+,.0f}"
+                    except Exception:
+                        pass
+                lines.append(
+                    f"  {sp['spread_id']}: +{sp['long']['symbol']} / "
+                    f"−{sp['short']['symbol']} x{sp['qty']}\n"
+                    f"    debit ₹{sp['net_debit_unit']:.2f} | max loss "
+                    f"₹{sp['max_loss']:,.0f} | max profit ₹{sp['max_profit']:,.0f}"
+                    f"{mtm_txt}")
+                buttons.append([{"text": f"❌ Close {sp['spread_id']}",
+                                 "callback_data": f"spreadclose:{sp['spread_id']}"}])
+            return "\n".join(lines), {"inline_keyboard": buttons}
+        except Exception as e:
+            return f"❌ Spreads error: {str(e)[:80]}"
 
 
 

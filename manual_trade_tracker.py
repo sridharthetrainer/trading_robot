@@ -512,6 +512,14 @@ class ManualTradeTracker:
                 if BOT_ORDER_TAG in tag.upper():
                     self._known_orders.add(oid)
                     continue
+                # Skip: legs of a one-tap defined-risk spread (2026-07-12).
+                # The spread store (spread_strategy / open_spreads.json + the
+                # /spreads command) owns that lifecycle as a UNIT — tracking
+                # the legs here would treat the short leg as an independent
+                # naked short and try to GTT-protect it.
+                if "TGSPREAD" in tag.upper():
+                    self._known_orders.add(oid)
+                    continue
                 
                 # NEW MANUAL TRADE detected!
                 symbol = order.get("tradingsymbol", "")

@@ -2373,6 +2373,7 @@ class AutonomousTradingSystem:
                             "help", "menu", "start", "status", "report", "signals", "all", "optionall", "eodall",
                             "optedge", "edge", "optpositions", "positions",
                             "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr",
+                            "spreads",
                             "direction", "tradeview", "view", "nexttrade",
                             "pause", "resume",
                         }
