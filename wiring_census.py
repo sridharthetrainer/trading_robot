@@ -73,8 +73,8 @@ def _entrypoint_names() -> Set[str]:
         cron = subprocess.run(["crontab", "-l"], capture_output=True, text=True,
                               timeout=5)
         hay.append(cron.stdout or "")
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("crontab read: %s", exc)
     blob = "\n".join(hay)
     for m in re.finditer(r"([A-Za-z0-9_]+)\.py\b", blob):
         names.add(m.group(1))
