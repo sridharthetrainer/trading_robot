@@ -2134,8 +2134,8 @@ class TelegramCommandHandler:
                             mtm = ((l_now - sp["long"]["fill"])
                                    + (sp["short"]["fill"] - s_now)) * sp["qty"]
                             mtm_txt = f" | MTM ₹{mtm:+,.0f}"
-                    except Exception:
-                        pass
+                    except Exception as _mtm_exc:
+                        logger.debug("spread MTM %s: %s", sp.get("spread_id"), _mtm_exc)
                 lines.append(
                     f"  {sp['spread_id']}: +{sp['long']['symbol']} / "
                     f"−{sp['short']['symbol']} x{sp['qty']}\n"
