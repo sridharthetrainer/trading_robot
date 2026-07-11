@@ -4,6 +4,7 @@ import sqlite3
 from option_multistrike_signals import (
     build_multistrike_signals,
     build_multistrike_edge_model,
+    ensure_multistrike_schema,
     label_multistrike_outcomes,
     latest_flow_scores,
     persist_multistrike_signals,
@@ -108,7 +109,8 @@ def test_correlated_strikes_are_deduplicated_for_execution():
     assert len({row.score for row in ce_rows}) > 1
 
 
-def test_persisted_flow_is_available_to_strike_ranker(tmp_path):
+def test_persisted_flow_is_available_to_strike_ranker(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPTION_EDGE_POLICY_REQUIRE_PROMISING", "false")
     db = tmp_path / "snapshots.db"
     previous = [_row(25000, 100, 1000, 1000)]
     current = [_row(25000, 110, 1200, 1500)]
@@ -140,6 +142,108 @@ def test_persisted_flow_is_available_to_strike_ranker(tmp_path):
     assert result["written"] == 2
     assert result["tradable"] >= 1
     assert scores[25000.0]["tradable"] is True
+
+
+def test_persist_requires_promising_edge_by_default(tmp_path, monkeypatch):
+    monkeypatch.delenv("OPTION_EDGE_POLICY_REQUIRE_PROMISING", raising=False)
+    import config
+    monkeypatch.setattr(config, "OPTION_EDGE_POLICY_REQUIRE_PROMISING", True)
+    db = tmp_path / "snapshots.db"
+    previous = [_row(25000, 100, 1000, 1000)]
+    current = [_row(25000, 110, 1200, 1500)]
+    with sqlite3.connect(db) as conn:
+        conn.execute(
+            """
+            CREATE TABLE option_chain_snapshots (
+                ts REAL, snapshot_time TEXT, underlying TEXT, expiry TEXT,
+                ok INTEGER, rows_json TEXT
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO option_chain_snapshots VALUES (?,?,?,?,?,?)",
+            (1, "2026-06-25T10:00:00+0530", "NIFTY", "2026-06-30", 1, json.dumps(previous)),
+        )
+        result = persist_multistrike_signals(
+            conn=conn,
+            snapshot_time="2026-06-25T10:05:00+0530",
+            underlying="NIFTY",
+            expiry="2026-06-30",
+            current_rows=current,
+            source="nse_live",
+        )
+        stored = conn.execute(
+            "SELECT tradable,edge_policy,reason FROM option_strike_signals "
+            "WHERE snapshot_time='2026-06-25T10:05:00+0530' AND option_type='CE'"
+        ).fetchone()
+
+    assert result["tradable"] == 0
+    assert stored[0] == 0
+    assert stored[1] == "VALIDATING"
+    assert "edge_still_validating" in stored[2]
+
+
+def test_persist_blocks_quarantined_negative_forward_edge(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPTION_EDGE_POLICY_BLOCK_QUARANTINED", "true")
+    db = tmp_path / "snapshots.db"
+    previous = [_row(25000, 100, 1000, 1000)]
+    current = [_row(25000, 110, 1200, 1500)]
+    with sqlite3.connect(db) as conn:
+        conn.execute(
+            """
+            CREATE TABLE option_chain_snapshots (
+                ts REAL, snapshot_time TEXT, underlying TEXT, expiry TEXT,
+                ok INTEGER, rows_json TEXT
+            )
+            """
+        )
+        ensure_multistrike_schema(conn)
+        for idx in range(30):
+            conn.execute(
+                """INSERT INTO option_strike_signals
+                   (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,direction,
+                    score,tradable,price,source,outcome_label,net_pnl,net_r)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    idx,
+                    f"2026-06-{25 + (idx % 3):02d}T10:00:00+05:30",
+                    "NIFTY",
+                    "2026-06-30",
+                    24000 + idx,
+                    "CE",
+                    "LONG_BUILDUP",
+                    "BUY_CE",
+                    "BULLISH",
+                    70,
+                    0,
+                    100,
+                    "angel",
+                    -1,
+                    -100,
+                    -0.2,
+                ),
+            )
+        conn.execute(
+            "INSERT INTO option_chain_snapshots VALUES (?,?,?,?,?,?)",
+            (1, "2026-06-29T10:00:00+0530", "NIFTY", "2026-06-30", 1, json.dumps(previous)),
+        )
+        result = persist_multistrike_signals(
+            conn=conn,
+            snapshot_time="2026-06-29T10:05:00+0530",
+            underlying="NIFTY",
+            expiry="2026-06-30",
+            current_rows=current,
+            source="nse_live",
+        )
+        stored = conn.execute(
+            "SELECT tradable,edge_policy,reason FROM option_strike_signals "
+            "WHERE snapshot_time='2026-06-29T10:05:00+0530' AND option_type='CE'"
+        ).fetchone()
+
+    assert result["tradable"] == 0
+    assert stored[0] == 0
+    assert stored[1] == "QUARANTINED"
+    assert "quarantined_negative_forward_edge" in stored[2]
 
 
 def test_generated_strike_signals_receive_after_cost_outcomes(tmp_path):
@@ -186,7 +290,8 @@ def test_generated_strike_signals_receive_after_cost_outcomes(tmp_path):
     assert model["weights"]
 
 
-def test_lifecycle_marks_target_and_moves_stop_to_entry(tmp_path):
+def test_lifecycle_marks_target_and_moves_stop_to_entry(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPTION_EDGE_POLICY_REQUIRE_PROMISING", "false")
     db = tmp_path / "snapshots.db"
     first = [_row(25000, 100, 1000, 1000)]
     second = [_row(25000, 110, 1200, 1500)]

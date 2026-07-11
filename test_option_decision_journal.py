@@ -154,6 +154,33 @@ def test_auto_shadow_candidates_for_selected():
         )
 
 
+def test_live_selected_stays_verified_when_auto_shadows_are_synthetic():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "journal.jsonl")
+        record_option_decision(
+            strategy="pivot_scalping",
+            symbol="NIFTY",
+            decision="selected",
+            side="BUY",
+            spot=23520,
+            quality={"chain_quality": {"source": "angel"}},
+            selected={
+                "symbol": "NIFTY26JUN2623500CE",
+                "strike": 23500,
+                "option_type": "CE",
+                "premium": 45.5,
+            },
+            path=path,
+        )
+        row = load_recent_option_decisions(path=path, limit=1)[0]
+
+        assert row["data_source"] == "angel"
+        assert row["is_live_data"] is True
+        assert row["evidence_class"] == "LIVE_OBSERVATION"
+        assert row["selected_synthetic"] is False
+        assert row["synthetic_shadow_count"] >= 5
+
+
 def test_repair_missing_shadow_candidates():
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "journal.jsonl"

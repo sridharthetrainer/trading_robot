@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sqlite3
 import time
 from dataclasses import asdict, dataclass, replace
@@ -139,6 +140,32 @@ def _f(value: Any, default: float = 0.0) -> float:
         return float(value if value is not None else default)
     except Exception:
         return float(default)
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return bool(default)
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _cfg_bool(name: str, default: bool) -> bool:
+    try:
+        import config as cfg
+        default = bool(getattr(cfg, name, default))
+    except Exception:
+        pass
+    return _env_bool(name, default)
+
+
+def _cfg_float(name: str, default: float) -> float:
+    try:
+        import config as cfg
+        default = float(getattr(cfg, name, default) or default)
+    except Exception:
+        pass
+    raw = os.getenv(name)
+    return _f(raw, default) if raw is not None else float(default)
 
 
 def _pct(current: float, previous: float) -> float:
@@ -386,15 +413,38 @@ def persist_multistrike_signals(
     )
     edge_gate = _execution_edge_gate(conn)
     from option_live_edge_policy import cohort_policy
-    signals = [
-        replace(
-            item,
-            edge_policy=(policy := cohort_policy(conn, flow=item.flow, direction=item.direction, score=item.score))["status"],
-            edge_outcomes=policy["outcomes"], edge_avg_r=policy["avg_net_r"],
-            edge_profit_factor=policy["profit_factor"],
+    block_quarantined = _cfg_bool("OPTION_EDGE_POLICY_BLOCK_QUARANTINED", True)
+    require_promising = _cfg_bool("OPTION_EDGE_POLICY_REQUIRE_PROMISING", True)
+    promising_bonus = max(0.0, _cfg_float("OPTION_EDGE_POLICY_PROMISING_SCORE_BONUS", 3.0))
+    policy_adjusted = []
+    for item in signals:
+        policy = cohort_policy(conn, flow=item.flow, direction=item.direction, score=item.score)
+        status = str(policy["status"])
+        reason = item.reason
+        tradable = item.tradable
+        score = item.score
+        if tradable and block_quarantined and status == "QUARANTINED":
+            tradable = False
+            reason = f"{reason},quarantined_negative_forward_edge"
+        elif tradable and require_promising and status not in {"PAPER_PROMISING", "LIVE_EVIDENCE_READY"}:
+            tradable = False
+            reason = f"{reason},edge_still_validating"
+        elif tradable and status in {"PAPER_PROMISING", "LIVE_EVIDENCE_READY"}:
+            score = round(min(100.0, float(score) + promising_bonus), 2)
+            reason = f"{reason},positive_forward_edge"
+        policy_adjusted.append(
+            replace(
+                item,
+                score=score,
+                tradable=tradable,
+                reason=reason,
+                edge_policy=status,
+                edge_outcomes=policy["outcomes"],
+                edge_avg_r=policy["avg_net_r"],
+                edge_profit_factor=policy["profit_factor"],
+            )
         )
-        for item in signals
-    ]
+    signals = policy_adjusted
     if not edge_gate["allow_actionable"]:
         signals = [
             replace(item, tradable=False, reason=f"{item.reason},negative_forward_edge_circuit_breaker")

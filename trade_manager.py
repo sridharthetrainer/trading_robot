@@ -1291,7 +1291,8 @@ class TradeManager:
         Returns (broker_name, order_id).
         Places a LIMIT order at ref_price ± LIMIT_ORDER_TOLERANCE (SEBI Apr-2026).
         If ref_price is not provided, attempts to fetch LTP from the broker.
-        Falls back to MARKET with a warning only when no price is available.
+        If no price is available, refuses the order instead of falling back to
+        MARKET; algo entries must remain bounded.
         """
         if self.broker_manager is None:
             logger.warning("Broker manager unavailable; returning simulated order")
@@ -1313,12 +1314,11 @@ class TradeManager:
             lp    = round(lp, 2)
             otype = "LIMIT"
         else:
-            logger.warning(
-                "SEBI-LIMIT: no ref_price for %s %s — falling back to MARKET",
+            logger.error(
+                "Bounded order refused: no reference price for %s %s",
                 buy_sell, symbol,
             )
-            lp    = 0
-            otype = "MARKET"
+            return None, None
 
         _tag = order_tag or self._build_order_tag()
 
@@ -1615,13 +1615,88 @@ class TradeManager:
                         _orig_paper = _broker.angel.paper_trade
                         _broker.angel.paper_trade = False
                         try:
-                            _live_broker_name, _live_order_id = \
-                                self._place_order_via_broker(
-                                    symbol=symbol, qty=_live_qty,
-                                    buy_sell=side, exchange=exchange,
-                                    ref_price=float(entry_price),
-                                    order_tag=self._build_order_tag(strategy),
+                            _is_option_live_leg = (
+                                str(exchange or "").upper() in {"NFO", "BFO"}
+                                or bool(
+                                    isinstance(_meta_in, dict)
+                                    and str(_meta_in.get("asset_type", "")).upper() == "OPTION"
                                 )
+                                or bool(re.search(r"\d(?:CE|PE)$", str(symbol or "").upper()))
+                            )
+                            _option_exec_report = {}
+                            _router_enabled = True
+                            try:
+                                import config as _cfg_exec_enabled
+                                _router_enabled = bool(
+                                    getattr(_cfg_exec_enabled, "ENABLE_OPTION_EXECUTION_ROUTER", True)
+                                )
+                            except Exception:
+                                _router_enabled = True
+                            if _is_option_live_leg and _router_enabled:
+                                try:
+                                    import config as _cfg_exec
+                                    from option_execution_router import execute_option_entry
+                                    _sig = (
+                                        _meta_in.get("signal_data", {})
+                                        if isinstance(_meta_in, dict)
+                                        and isinstance(_meta_in.get("signal_data"), dict)
+                                        else {}
+                                    )
+                                    _report = execute_option_entry(
+                                        broker=_broker,
+                                        symbol=symbol,
+                                        qty=_live_qty,
+                                        side=side,
+                                        exchange=exchange,
+                                        decision_price=float(entry_price),
+                                        order_tag=self._build_order_tag(strategy),
+                                        max_slippage_pct=float(
+                                            getattr(_cfg_exec, "OPTION_EXECUTION_MAX_SLIPPAGE_PCT", 0.0075)
+                                            or 0.0075
+                                        ),
+                                        wait_sec=float(
+                                            getattr(_cfg_exec, "OPTION_EXECUTION_WAIT_SEC", 4.0)
+                                            or 4.0
+                                        ),
+                                        reprice_attempts=int(
+                                            getattr(_cfg_exec, "OPTION_EXECUTION_REPRICE_ATTEMPTS", 1)
+                                            or 0
+                                        ),
+                                        max_signal_age_sec=float(
+                                            getattr(_cfg_exec, "MAX_SIGNAL_AGE_SEC", 90)
+                                            or 90
+                                        ),
+                                        signal_generated_at=float(_sig.get("generated_at", 0) or 0),
+                                    )
+                                    _option_exec_report = _report.to_dict()
+                                    if _report.ok:
+                                        _live_broker_name = _report.broker_name
+                                        _live_order_id = _report.order_id
+                                        if _report.fill_price > 0:
+                                            entry_price = float(_report.fill_price)
+                                    else:
+                                        logger.warning(
+                                            "Option live leg blocked by execution router | "
+                                            "symbol=%s reason=%s status=%s",
+                                            symbol, _report.reason, _report.status,
+                                        )
+                                except Exception as _router_exc:
+                                    logger.exception("Option execution router failed for %s", symbol)
+                                    _option_exec_report = {
+                                        "ok": False,
+                                        "reason": "router_exception",
+                                        "error": str(_router_exc)[:240],
+                                    }
+                            else:
+                                _live_broker_name, _live_order_id = \
+                                    self._place_order_via_broker(
+                                        symbol=symbol, qty=_live_qty,
+                                        buy_sell=side, exchange=exchange,
+                                        ref_price=float(entry_price),
+                                        order_tag=self._build_order_tag(strategy),
+                                    )
+                            if isinstance(_meta_in, dict) and _option_exec_report:
+                                _meta_in["option_execution_router"] = _option_exec_report
                             if _live_order_id:
                                 logger.info(
                                     "DUAL MODE: live order placed | "

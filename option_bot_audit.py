@@ -188,10 +188,7 @@ def _journal_stats(path: Path) -> Dict[str, Any]:
         if decision.startswith("selected") and isinstance(row.get("strikes"), list) and row["strikes"]:
             selected_with_shadow += 1
         evidence_class = str(row.get("evidence_class") or "")
-        synthetic = evidence_class == "RESEARCH_SYNTHETIC" or any(
-            isinstance(item, dict) and item.get("synthetic_shadow")
-            for item in (row.get("strikes") or [])
-        )
+        synthetic = evidence_class == "RESEARCH_SYNTHETIC" or bool(row.get("selected_synthetic"))
         if synthetic:
             synthetic_rows += 1
         research = (

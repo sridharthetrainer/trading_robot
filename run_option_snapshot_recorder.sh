@@ -14,4 +14,4 @@ cd "$BOT_DIR"
 exec "$PYTHON" option_chain_recorder.py \
     --loop \
     --interval-sec "${OPTION_CHAIN_SNAPSHOT_INTERVAL_SEC:-300}" \
-    --underlyings "${SNAPSHOT_OPTION_UNDERLYINGS:-NIFTY,BANKNIFTY,FINNIFTY,SENSEX}"
+    --underlyings "${SNAPSHOT_OPTION_UNDERLYINGS:-NIFTY,BANKNIFTY,FINNIFTY}"

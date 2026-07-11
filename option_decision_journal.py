@@ -639,14 +639,24 @@ def record_option_decision(
         strike_rows = synthesize_shadow_candidates(selected, spot=spot, side=side)
     selected_row = selected if isinstance(selected, dict) else {}
     metadata_row = metadata if isinstance(metadata, dict) else {}
+    quality_row = quality if isinstance(quality, dict) else {}
+    chain_quality = (
+        quality_row.get("chain_quality")
+        if isinstance(quality_row.get("chain_quality"), dict)
+        else {}
+    )
     source = str(
         metadata_row.get("data_source")
         or metadata_row.get("source")
         or selected_row.get("source")
+        or quality_row.get("source")
+        or chain_quality.get("source")
         or ""
     ).lower()
-    synthetic = bool(selected_row.get("synthetic_shadow")) or any(
-        isinstance(row, dict) and row.get("synthetic_shadow") for row in strike_rows
+    selected_synthetic = bool(selected_row.get("synthetic_shadow"))
+    synthetic_shadow_count = sum(
+        1 for row in strike_rows
+        if isinstance(row, dict) and row.get("synthetic_shadow")
     )
     research = (
         _is_research_strategy(strategy)
@@ -657,14 +667,13 @@ def record_option_decision(
         float(spot or 0) > 0
         and _safe_float(selected_row.get("strike"), 0) > 0
         and str(selected_row.get("option_type") or "").upper() in {"CE", "PE"}
-        and str(selected_row.get("expiry") or selected_row.get("option_expiry") or "").strip()
         and _safe_float(
             selected_row.get("premium") or selected_row.get("entry_price") or selected_row.get("ltp"),
             0,
         ) > 0
     )
-    is_live_data = bool(source in _LIVE_DATA_SOURCES and valid_contract and not synthetic and not research)
-    if research or synthetic:
+    is_live_data = bool(source in _LIVE_DATA_SOURCES and valid_contract and not selected_synthetic and not research)
+    if research or selected_synthetic:
         evidence_class = "RESEARCH_SYNTHETIC"
     elif is_live_data and trade_id:
         evidence_class = "LIVE_EXECUTION"
@@ -690,6 +699,8 @@ def record_option_decision(
         "data_source": source,
         "is_live_data": is_live_data,
         "evidence_class": evidence_class,
+        "selected_synthetic": selected_synthetic,
+        "synthetic_shadow_count": synthetic_shadow_count,
     }
     if metadata:
         payload["metadata"] = _clean(metadata)
