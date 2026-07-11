@@ -56,13 +56,15 @@ def _get_fetcher():
     return _FETCHER
 
 
-def compute_context(df) -> Dict[str, Any]:
-    """Pure: 1m OHLCV DataFrame (2 sessions preferred) -> context dict.
+def compute_context(df, underlying: str = "") -> Dict[str, Any]:
+    """Pure-ish: 1m OHLCV DataFrame (2 sessions preferred) -> context dict.
 
-    Vote-based: EMA stack, MACD, VWAP side, A/D slope, and breakout each cast
-    one directional vote; bias needs a net of >=2 agreeing votes. Regime is
-    TREND when the read is strongly one-sided or a breakout fired, RANGE when
-    votes net to ~0, MIXED between.
+    Vote-based: EMA stack, MACD, VWAP side, A/D slope, breakout, and — when
+    `underlying` is given and today's OI-tracker state is fresh — the 5-min
+    option-chain OI-buildup direction each cast one directional vote; bias
+    needs a net of >=2 agreeing votes. Regime is TREND when the read is
+    strongly one-sided or a breakout fired, RANGE when votes net to ~0,
+    MIXED between.
     """
     import numpy as np
     import pandas as pd
@@ -186,6 +188,28 @@ def compute_context(df) -> Dict[str, Any]:
     except Exception as exc:
         logger.debug("pivots: %s", exc)
 
+    # 6. OI-buildup direction (2026-07-11, operator: "include OI buildup").
+    # oi_tracker classifies 5-min option-chain OI deltas (PE writing =
+    # support building = bullish; CE writing = bearish) for NIFTY/BANKNIFTY
+    # and persists last_dir per symbol. Votes only when TODAY's state exists
+    # — a stale file abstains rather than voting on yesterday's OI.
+    if underlying:
+        try:
+            import json as _json
+            from datetime import date as _date
+            from pathlib import Path as _Path
+            _st = _json.loads(_Path("oi_tracker_state.json").read_text())
+            if _st.get("date") == _date.today().isoformat():
+                _oi_dir = str((_st.get("last_dir") or {})
+                              .get(str(underlying).upper(), "") or "").upper()
+                out["oi_dir"] = _oi_dir or "NONE"
+                if _oi_dir == "BULLISH":
+                    votes += 1; reasons.append("oi_buildup_bullish")
+                elif _oi_dir == "BEARISH":
+                    votes -= 1; reasons.append("oi_buildup_bearish")
+        except Exception as exc:
+            logger.debug("oi buildup vote: %s", exc)
+
     out["ok"] = True
     out["last"] = round(last, 2)
     out["votes"] = votes
@@ -208,7 +232,7 @@ def get_underlying_context(underlying: str) -> Tuple[str, str, Dict[str, Any]]:
     regime, bias, detail = "UNKNOWN", "UNKNOWN", {}
     try:
         df = _get_fetcher().get_market_data(sym, "1m", days=2)
-        ctx = compute_context(df)
+        ctx = compute_context(df, underlying=sym)
         if ctx.get("ok"):
             regime, bias, detail = ctx["regime"], ctx["bias"], ctx
     except Exception as exc:

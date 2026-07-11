@@ -250,7 +250,11 @@ def run_autopsy(df: "pd.DataFrame") -> Dict[str, Any]:
 
     # ── Categorical / boolean features ───────────────────────────────────────
     bool_features = ["htf_aligned", "vix_high", "near_expiry", "vol_thin",
-                     "open_session", "close_session", "monday_trade"]
+                     "open_session", "close_session", "monday_trade",
+                     # 2026-07-11: European-open overlap (12:30-13:45 IST) —
+                     # measured so a real help/hurt pattern can surface as a
+                     # candidate rule and earn forward-holdout promotion.
+                     "euro_open_window"]
     for feat in bool_features:
         if feat not in analysis_df.columns:
             continue

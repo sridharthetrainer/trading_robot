@@ -177,6 +177,20 @@ def _encode_row(row: Dict) -> Dict[str, float]:
     feat["close_session"]      = float(int(_safe(row.get("hour_of_day"))) >= 14)
     feat["monday_trade"]       = float(int(_safe(row.get("day_of_week"))) == 0)
     feat["friday_trade"]       = float(int(_safe(row.get("day_of_week"))) == 4)
+    # Global session overlap (2026-07-11, operator: "markets starting at
+    # different times impact our system"). The one foreign-market open that
+    # lands INSIDE NSE hours is Europe (London/Frankfurt ~12:30-13:45 IST);
+    # Tokyo/HK open pre-market and the US opens after our close (US futures
+    # trade throughout — already covered by the cross_asset features).
+    # Logged as a FEATURE so autopsy/ML MEASURE whether the window helps or
+    # hurts — never a hardcoded boost. Minute-accurate from signal_time,
+    # falling back to mid-hour when only hour_of_day exists.
+    _stime = str(row.get("signal_time") or "")
+    try:
+        _mins = int(_stime[:2]) * 60 + int(_stime[3:5])
+    except (ValueError, IndexError):
+        _mins = int(_safe(row.get("hour_of_day"), 12)) * 60 + 30
+    feat["euro_open_window"]   = float(750 <= _mins <= 825)   # 12:30-13:45 IST
     feat["vol_thin"]           = float(_safe(row.get("volume_ratio")) < 0.3)
     feat["vol_confirmed"]      = float(_safe(row.get("volume_ratio")) > 0.8)
     feat["near_profile_poc"]   = float(abs(_safe(row.get("profile_poc_distance_pct"), 99)) <= 0.20)
@@ -501,5 +515,6 @@ def build_signal_context(signal: Dict[str, Any]) -> Dict[str, float]:
         "volume_ratio":    (signal.get("signal_meta") or {}).get("volume_ratio", 0),
         "hour_of_day":     datetime.now().hour,
         "day_of_week":     datetime.now().weekday(),
+        "signal_time":     datetime.now().strftime("%H:%M:%S"),
     }
     return _encode_row(pseudo_row)
