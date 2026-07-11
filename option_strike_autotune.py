@@ -35,6 +35,14 @@ MIN_WEIGHT = float(os.getenv("OPTION_STRIKE_AUTOTUNE_MIN_WEIGHT", "0.65"))
 MAX_WEIGHT = float(os.getenv("OPTION_STRIKE_AUTOTUNE_MAX_WEIGHT", "1.35"))
 SHADOW_SAMPLE_WEIGHT = float(os.getenv("OPTION_STRIKE_AUTOTUNE_SHADOW_WEIGHT", "0.5"))
 SYNTHETIC_SHADOW_SAMPLE_WEIGHT = float(os.getenv("OPTION_STRIKE_AUTOTUNE_SYNTHETIC_SHADOW_WEIGHT", "0.15"))
+# Live multistrike observations: real chain premia, real EOD-labelled outcomes
+# (option_strike_signals in option_chain_snapshots.db). Full weight — this is
+# the only genuinely live-source evidence the learner has; the journal's
+# "selected" rows are all replay/backfill research.
+LIVE_STRIKE_SAMPLE_WEIGHT = float(os.getenv("OPTION_STRIKE_AUTOTUNE_LIVE_STRIKE_WEIGHT", "1.0"))
+LIVE_STRIKE_DB = os.getenv("OPTION_STRIKE_SIGNALS_DB", "option_chain_snapshots.db")
+LIVE_STRIKE_DAYS = int(os.getenv("OPTION_STRIKE_AUTOTUNE_LIVE_DAYS", "45"))
+_LIVE_SOURCES = ("nse_live", "resilience_nse", "angel", "angel_fallback", "sensibull", "bse", "bse_oc")
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -68,6 +76,74 @@ def _outcome(row: Dict[str, Any]) -> Tuple[bool, float] | None:
     if label_i == 0:
         return pnl > 0, pnl
     return label_i > 0, pnl
+
+
+def _load_live_strike_outcomes(
+    db_path: str = LIVE_STRIKE_DB, days: int = LIVE_STRIKE_DAYS, limit: int = 8000
+) -> List[Dict[str, Any]]:
+    """Labelled live-source multistrike rows mapped to the journal-row shape.
+
+    These are the bot's own generated strike signals, priced from the live
+    Angel/NSE chain and outcome-labelled at EOD from real subsequent premia —
+    the verified evidence stream the journal lacks (its 'selected' rows are
+    replay/backfill research). net_pnl is on the same rupee scale as journal
+    outcome pnl. Best-effort: returns [] on any error.
+    """
+    import sqlite3
+    from datetime import datetime, timedelta
+
+    rows: List[Dict[str, Any]] = []
+    try:
+        cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+        placeholders = ",".join("?" for _ in _LIVE_SOURCES)
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.execute(
+                f"""SELECT snapshot_time, underlying, expiry, strike, option_type,
+                           flow, signal, tradable, score, price, entry_price,
+                           spread_pct, oi, volume, outcome_label, gross_pnl, net_pnl
+                      FROM option_strike_signals
+                     WHERE outcome_label IN (-1,0,1)
+                       AND lower(COALESCE(source,'')) IN ({placeholders})
+                       AND snapshot_time >= ?
+                     ORDER BY snapshot_time DESC LIMIT ?""",
+                (*_LIVE_SOURCES, cutoff, int(limit)),
+            )
+            for r in cur:
+                premium = _safe_float(r["entry_price"]) or _safe_float(r["price"])
+                if premium <= 0:
+                    continue
+                dte = -1.0
+                try:
+                    exp = str(r["expiry"] or "")[:10]
+                    snap = str(r["snapshot_time"] or "")[:10]
+                    if exp and snap:
+                        d_exp = datetime.strptime(exp, "%Y-%m-%d")
+                        d_snap = datetime.strptime(snap, "%Y-%m-%d")
+                        dte = float((d_exp - d_snap).days)
+                except Exception:
+                    dte = -1.0
+                pnl = _safe_float(r["net_pnl"]) or _safe_float(r["gross_pnl"])
+                rows.append({
+                    "decision": "live_strike",
+                    "side": "BUY",
+                    "is_live_data": True,
+                    "selected": {
+                        "strike": _safe_float(r["strike"]),
+                        "option_type": str(r["option_type"] or "").upper(),
+                        "premium": premium,
+                        "dte": dte,
+                        "spread_pct": r["spread_pct"],
+                        "oi": _safe_float(r["oi"]),
+                        "volume": _safe_float(r["volume"]),
+                        "flow": str(r["flow"] or ""),
+                        "tradable": bool(r["tradable"]),
+                    },
+                    "outcome": {"label": int(r["outcome_label"]), "pnl": pnl},
+                })
+    except Exception:
+        return rows
+    return rows
 
 
 def candidate_features(row: Dict[str, Any]) -> List[str]:
@@ -141,6 +217,13 @@ def candidate_features(row: Dict[str, Any]) -> List[str]:
     if move_used > 0:
         feats.append("move_used:high" if move_used >= 0.6 else "move_used:room")
 
+    # Live multistrike rows only (journal rows lack these keys — no change there)
+    flow = str(selected.get("flow") or "").upper()
+    if flow:
+        feats.append(f"flow:{flow}")
+    if "tradable" in selected:
+        feats.append("tradable:yes" if selected.get("tradable") else "tradable:no")
+
     return feats
 
 
@@ -188,6 +271,7 @@ def build_strike_autotune(
     output_file: str = AUTOTUNE_FILE,
     min_samples: int = MIN_SAMPLES,
     limit: int = 5000,
+    live_strike_db: str = LIVE_STRIKE_DB,
 ) -> Dict[str, Any]:
     rows = load_recent_option_decisions(path=journal_file, limit=limit)
     feature_stats: Dict[str, Dict[str, Any]] = defaultdict(_empty_stat)
@@ -238,6 +322,18 @@ def build_strike_autotune(
                     shadow=True,
                 )
 
+    # Live-source labelled strike observations (real chain premia, real EOD
+    # outcomes) — the verified evidence the journal's research rows are not.
+    live_strike_labelled = 0
+    for live_row in (_load_live_strike_outcomes(db_path=live_strike_db) if live_strike_db else []):
+        out = _outcome(live_row)
+        if out is None:
+            continue
+        won, pnl = out
+        live_strike_labelled += 1
+        for feat in candidate_features(live_row):
+            _add(feature_stats[feat], won, pnl, weight=LIVE_STRIKE_SAMPLE_WEIGHT)
+
     weights = {
         feat: _weight_from_stats(stats, min_samples=min_samples)
         for feat, stats in sorted(feature_stats.items())
@@ -250,9 +346,13 @@ def build_strike_autotune(
         "labelled_shadow": shadow_labelled,
         "verified_labelled_selected": verified_labelled,
         "verified_labelled_shadow": verified_shadow_labelled,
-        "verified_generated_outcomes": verified_labelled + verified_shadow_labelled,
+        "live_strike_labelled": live_strike_labelled,
+        "verified_generated_outcomes": (
+            verified_labelled + verified_shadow_labelled + live_strike_labelled
+        ),
         "shadow_sample_weight": SHADOW_SAMPLE_WEIGHT,
         "synthetic_shadow_sample_weight": SYNTHETIC_SHADOW_SAMPLE_WEIGHT,
+        "live_strike_sample_weight": LIVE_STRIKE_SAMPLE_WEIGHT,
         "feature_weights": weights,
         "feature_stats": {
             feat: {

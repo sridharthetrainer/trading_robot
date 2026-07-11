@@ -48,7 +48,7 @@ def test_autotune_neutral_until_min_samples():
         out = str(Path(tmp) / "autotune.json")
         for _ in range(2):
             _record(journal, premium=20, won=True, pnl=100)
-        model = build_strike_autotune(journal_file=journal, output_file=out, min_samples=5)
+        model = build_strike_autotune(journal_file=journal, output_file=out, min_samples=5, live_strike_db="")
         assert (
             model["labelled_selected"] == 2
             and all(weight == 1.0 for weight in model["feature_weights"].values())
@@ -63,7 +63,7 @@ def test_autotune_rewards_winning_feature():
             _record(journal, premium=20, won=True, pnl=120)
         for _ in range(2):
             _record(journal, premium=20, won=False, pnl=-50)
-        model = build_strike_autotune(journal_file=journal, output_file=out, min_samples=5)
+        model = build_strike_autotune(journal_file=journal, output_file=out, min_samples=5, live_strike_db="")
         weight = model["feature_weights"].get("premium:15-35", 1.0)
         scored = score_candidate_with_autotune(
             {
@@ -108,7 +108,7 @@ def test_autotune_learns_from_shadow_candidates():
                 ],
                 path=journal,
             )
-        model = build_strike_autotune(journal_file=journal, output_file=out, min_samples=5)
+        model = build_strike_autotune(journal_file=journal, output_file=out, min_samples=5, live_strike_db="")
         assert (
             model["labelled_selected"] == 0
             and model["labelled_shadow"] == 10
