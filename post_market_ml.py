@@ -348,6 +348,21 @@ def _autonomous_monitoring() -> None:
     except Exception as exc:
         logger.debug("chaos check failed: %s", exc)
 
+    # Wiring watchdog (2026-07-11): nightly detector for the silent-default
+    # bug class — newly dead-constant signal_log columns and stale scheduled
+    # artifacts. Alerts on regressions only; report in
+    # wiring_watchdog_report.json.
+    try:
+        from wiring_watchdog import run as _wiring_run
+        _wrep = _wiring_run()
+        logger.info("  wiring watchdog: %s (%d dead cols, %d new, %d stale artifacts)",
+                    "OK" if _wrep.get("ok") else "REGRESSIONS",
+                    len(_wrep.get("dead_columns_now", [])),
+                    len(_wrep.get("new_dead_columns", [])),
+                    len(_wrep.get("stale_artifacts", [])))
+    except Exception as exc:
+        logger.debug("wiring watchdog failed: %s", exc)
+
 
 # ── Main pipeline ──────────────────────────────────────────────────────────────
 
