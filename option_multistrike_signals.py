@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import sqlite3
@@ -12,6 +13,8 @@ from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional
 
 from option_quality import extract_contract_liquidity
+
+logger = logging.getLogger(__name__)
 
 
 EDGE_MODEL_FILE = "option_multistrike_edge.json"
@@ -153,8 +156,8 @@ def _cfg_bool(name: str, default: bool) -> bool:
     try:
         import config as cfg
         default = bool(getattr(cfg, name, default))
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("_cfg_bool %s: %s", name, exc)
     return _env_bool(name, default)
 
 
@@ -162,8 +165,8 @@ def _cfg_float(name: str, default: float) -> float:
     try:
         import config as cfg
         default = float(getattr(cfg, name, default) or default)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("_cfg_float %s: %s", name, exc)
     raw = os.getenv(name)
     return _f(raw, default) if raw is not None else float(default)
 
