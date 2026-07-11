@@ -597,6 +597,29 @@ def save_result(result: ValidationResult, results_file: str = RESULTS_FILE) -> N
 
     existing.setdefault("results", {})
     existing["last_run"]  = str(date.today())
+
+    # 2026-07-11: last-writer-wins let the nightly SHALLOW revalidation
+    # (default depth -> often 1 dev window -> INSUFFICIENT_DATA) overwrite a
+    # deeper manual run minutes after it finished — a 420-day/5-window FAIL
+    # verdict was observed being downgraded live. A result computed on FEWER
+    # walk-forward windows never replaces one with more, unless the deeper
+    # result has gone stale (>14 days) — staleness eventually wins so an old
+    # deep run can't pin the file forever.
+    prev = (existing["results"].get(result.strategy) or {})
+    try:
+        prev_windows = int(prev.get("dev_windows") or 0)
+        new_windows = int(result.to_dict().get("dev_windows") or 0)
+        prev_date = str(prev.get("run_date") or "1970-01-01")
+        prev_age_days = (date.today() - date.fromisoformat(prev_date)).days
+        if new_windows < prev_windows and prev_age_days <= 14:
+            logger.info(
+                "Validation result for %s NOT saved: %d windows < existing %d "
+                "(run_date=%s, %dd old) — keeping the deeper result",
+                result.strategy, new_windows, prev_windows, prev_date, prev_age_days)
+            return
+    except Exception as exc:
+        logger.debug("save_result depth guard: %s", exc)
+
     existing["results"][result.strategy] = result.to_dict()
 
     out_path.write_text(
