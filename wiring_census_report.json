@@ -1,0 +1,4076 @@
+{
+  "generated_at": "2026-07-12T00:56:39",
+  "n_modules": 463,
+  "orphan_modules": [
+    "check_connections",
+    "comprehensive_news_engine",
+    "data_pool",
+    "debug_backtest",
+    "diag_telegram",
+    "fix_missing_tokens",
+    "manual_trades",
+    "mean_reversion_signal",
+    "mega_news_aggregator",
+    "setup_gdrive_backup",
+    "telegram_backup",
+    "validate_telegram"
+  ],
+  "shelved_known": [],
+  "unreferenced_functions": [
+    {
+      "module": "advanced_strategies",
+      "name": "get_stock_lot_size"
+    },
+    {
+      "module": "advanced_strategies",
+      "name": "get_stock_strike_interval"
+    },
+    {
+      "module": "angel_broker",
+      "name": "get_exchange_for_symbol"
+    },
+    {
+      "module": "asm_gsm_filter",
+      "name": "filter_surveillance"
+    },
+    {
+      "module": "auto_deploy_watcher",
+      "name": "get_drive_zip_time"
+    },
+    {
+      "module": "auto_deploy_watcher",
+      "name": "get_last_deploy_time"
+    },
+    {
+      "module": "bhavcopy_cache",
+      "name": "get_daily_history"
+    },
+    {
+      "module": "candle_cache",
+      "name": "cleanup_old_data"
+    },
+    {
+      "module": "candlestick_patterns",
+      "name": "plot_patterns"
+    },
+    {
+      "module": "channel_config",
+      "name": "get_channel_ids"
+    },
+    {
+      "module": "chart_patterns",
+      "name": "dwm_confluence_score"
+    },
+    {
+      "module": "comprehensive_news_engine",
+      "name": "format_telegram_comprehensive"
+    },
+    {
+      "module": "config",
+      "name": "get_ml_threshold"
+    },
+    {
+      "module": "config",
+      "name": "get_probation_allocation"
+    },
+    {
+      "module": "cross_sectional",
+      "name": "cross_sectional_zscore"
+    },
+    {
+      "module": "cvar_optimizer",
+      "name": "get_portfolio_cvar"
+    },
+    {
+      "module": "cvar_optimizer",
+      "name": "optimize_positions_cvar"
+    },
+    {
+      "module": "data_pool",
+      "name": "get_data"
+    },
+    {
+      "module": "data_pool",
+      "name": "get_source_status"
+    },
+    {
+      "module": "data_source_resilience",
+      "name": "compute_adaptive_correlation"
+    },
+    {
+      "module": "data_source_resilience",
+      "name": "depth_is_sufficient"
+    },
+    {
+      "module": "data_source_resilience",
+      "name": "get_google_trends_score"
+    },
+    {
+      "module": "data_source_resilience",
+      "name": "get_news_batch"
+    },
+    {
+      "module": "data_source_resilience",
+      "name": "get_sector_strength"
+    },
+    {
+      "module": "data_source_resilience",
+      "name": "is_near_earnings"
+    },
+    {
+      "module": "data_sources",
+      "name": "source_health_check"
+    },
+    {
+      "module": "expiry_regime",
+      "name": "get_expiry_day_of_week"
+    },
+    {
+      "module": "expiry_regime",
+      "name": "has_weekly_expiry"
+    },
+    {
+      "module": "fii_options_positioning",
+      "name": "get_strike_level_fii"
+    },
+    {
+      "module": "fii_tracker",
+      "name": "fii_summary_text"
+    },
+    {
+      "module": "gdrive_sync",
+      "name": "pull_from_drive"
+    },
+    {
+      "module": "gdrive_sync",
+      "name": "push_to_drive"
+    },
+    {
+      "module": "gex_engine",
+      "name": "force_gex_refresh"
+    },
+    {
+      "module": "gex_engine",
+      "name": "get_all_gex_summaries"
+    },
+    {
+      "module": "github_backup",
+      "name": "backup_status_message"
+    },
+    {
+      "module": "github_sync",
+      "name": "github_status"
+    },
+    {
+      "module": "github_sync",
+      "name": "pull_from_github"
+    },
+    {
+      "module": "greeks_live",
+      "name": "get_fpi_flows_nsdl"
+    },
+    {
+      "module": "greeks_live",
+      "name": "track_charm_decay"
+    },
+    {
+      "module": "hero_zero_strategy",
+      "name": "format_hero_zero_alert"
+    },
+    {
+      "module": "indicator_cache",
+      "name": "clear_cache"
+    },
+    {
+      "module": "indicators",
+      "name": "calculate_fibonacci_levels"
+    },
+    {
+      "module": "indicators",
+      "name": "detect_regime_from_indicators"
+    },
+    {
+      "module": "indicators",
+      "name": "signal_score_row"
+    },
+    {
+      "module": "institutional_alpha",
+      "name": "hurst_regime_signal"
+    },
+    {
+      "module": "institutional_indicators",
+      "name": "price_in_fvg"
+    },
+    {
+      "module": "iv_percentile",
+      "name": "calculate_volatility_cone"
+    },
+    {
+      "module": "logger_setup",
+      "name": "setup_logger"
+    },
+    {
+      "module": "lstm_model",
+      "name": "get_lstm_predictor"
+    },
+    {
+      "module": "macro_global_profit_engine",
+      "name": "get_macro_context"
+    },
+    {
+      "module": "market_intelligence_hub",
+      "name": "get_preferred_strategies_for_regime"
+    },
+    {
+      "module": "mean_reversion_signal",
+      "name": "generate_mr_signal"
+    },
+    {
+      "module": "mega_intelligence_engine",
+      "name": "fetch_crude_inventory"
+    },
+    {
+      "module": "mega_intelligence_engine",
+      "name": "fetch_mf_data"
+    },
+    {
+      "module": "mega_intelligence_engine",
+      "name": "format_intelligence_report"
+    },
+    {
+      "module": "mega_intelligence_engine",
+      "name": "format_maxpain_report"
+    },
+    {
+      "module": "mega_news_aggregator",
+      "name": "get_signal_news_boost"
+    },
+    {
+      "module": "meta_learner",
+      "name": "adaptive_confluence_threshold"
+    },
+    {
+      "module": "news_aggregator",
+      "name": "format_full_report"
+    },
+    {
+      "module": "news_aggregator",
+      "name": "get_symbol_news_sentiment"
+    },
+    {
+      "module": "nse_cost_model",
+      "name": "get_cost_model"
+    },
+    {
+      "module": "omnisource_news_engine",
+      "name": "fetch_mutual_fund_flows"
+    },
+    {
+      "module": "omnisource_news_engine",
+      "name": "format_omnisource_telegram"
+    },
+    {
+      "module": "option_chain_intelligence",
+      "name": "StrikeMetrics"
+    },
+    {
+      "module": "option_chain_intelligence",
+      "name": "option_chain_summary_to_dict"
+    },
+    {
+      "module": "pivot_boss",
+      "name": "analyse_cpr_trend"
+    },
+    {
+      "module": "pruning",
+      "name": "strategy_disabled"
+    },
+    {
+      "module": "quant_models",
+      "name": "capm"
+    },
+    {
+      "module": "quant_models",
+      "name": "compute_var_cvar"
+    },
+    {
+      "module": "quant_models",
+      "name": "gbm_simulate"
+    },
+    {
+      "module": "quant_models",
+      "name": "kelly_fraction"
+    },
+    {
+      "module": "quant_models",
+      "name": "markowitz_optimize"
+    },
+    {
+      "module": "rl_agent",
+      "name": "rl_score_adjustment"
+    },
+    {
+      "module": "sahi_strategy",
+      "name": "check_bear_put_spread"
+    },
+    {
+      "module": "sahi_strategy",
+      "name": "check_bull_call_spread"
+    },
+    {
+      "module": "sahi_strategy",
+      "name": "check_long_call"
+    },
+    {
+      "module": "sahi_strategy",
+      "name": "check_long_put"
+    },
+    {
+      "module": "sahi_strategy",
+      "name": "check_short_call"
+    },
+    {
+      "module": "sahi_strategy",
+      "name": "check_short_put"
+    },
+    {
+      "module": "sahi_strategy",
+      "name": "rollover_filter"
+    },
+    {
+      "module": "sector_rotation_engine",
+      "name": "get_sector_history"
+    },
+    {
+      "module": "sector_rotation_engine",
+      "name": "get_symbol_sector"
+    },
+    {
+      "module": "self_learning",
+      "name": "bootstrap_learning_system"
+    },
+    {
+      "module": "self_learning",
+      "name": "run_after_hours_learning"
+    },
+    {
+      "module": "signal_engine",
+      "name": "get_intelligence_score_modifier"
+    },
+    {
+      "module": "signal_engine",
+      "name": "get_symbol_params"
+    },
+    {
+      "module": "signal_track_record",
+      "name": "get_strategy_card"
+    },
+    {
+      "module": "subscriber_manager",
+      "name": "add_paid_subscriber"
+    },
+    {
+      "module": "subscriber_manager",
+      "name": "add_trial_subscriber"
+    },
+    {
+      "module": "subscriber_manager",
+      "name": "check_and_expire_subscriptions"
+    },
+    {
+      "module": "subscriber_manager",
+      "name": "get_active_subscribers"
+    },
+    {
+      "module": "subscriber_manager",
+      "name": "track_signal_view"
+    },
+    {
+      "module": "symbols",
+      "name": "get_symbols"
+    },
+    {
+      "module": "system_monitor",
+      "name": "log_health"
+    },
+    {
+      "module": "telegram_backup",
+      "name": "backup_env_to_telegram"
+    },
+    {
+      "module": "telegram_backup",
+      "name": "daily_backup"
+    },
+    {
+      "module": "time_regime",
+      "name": "get_expiry_phase"
+    },
+    {
+      "module": "time_regime",
+      "name": "get_time_zone_num"
+    },
+    {
+      "module": "time_regime",
+      "name": "is_tradeable_zone"
+    },
+    {
+      "module": "trade_manager",
+      "name": "estimate_slippage"
+    },
+    {
+      "module": "trading_calendar",
+      "name": "previous_session"
+    },
+    {
+      "module": "triple_barrier",
+      "name": "label_all_trades"
+    },
+    {
+      "module": "unified_intelligence_hub",
+      "name": "get_intelligence_score"
+    },
+    {
+      "module": "unified_intelligence_hub",
+      "name": "get_symbol_intelligence_boost"
+    },
+    {
+      "module": "ux_commands",
+      "name": "track_signal_on_paper"
+    },
+    {
+      "module": "ux_engine",
+      "name": "get_help_message"
+    },
+    {
+      "module": "ux_engine",
+      "name": "get_lot_info"
+    },
+    {
+      "module": "ux_engine",
+      "name": "get_next_30min_watchlist"
+    },
+    {
+      "module": "ux_engine",
+      "name": "get_paper_status"
+    },
+    {
+      "module": "ux_engine",
+      "name": "get_risk_snapshot"
+    },
+    {
+      "module": "ux_engine",
+      "name": "get_start_message"
+    },
+    {
+      "module": "ux_engine",
+      "name": "track_paper_signal"
+    },
+    {
+      "module": "validate_env",
+      "name": "is_nonneg"
+    },
+    {
+      "module": "validate_scan",
+      "name": "chk"
+    },
+    {
+      "module": "visual_analytics",
+      "name": "fundamental_radar"
+    },
+    {
+      "module": "weinstein_stage",
+      "name": "get_stage2_stocks"
+    }
+  ],
+  "internal_only_functions_count": 498,
+  "modules": {
+    "adaptive_position_sizer": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "nifty_options_engine",
+        "test_system",
+        "trade_manager"
+      ],
+      "n_importers": 4
+    },
+    "advanced_confluence": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "advanced_strategies": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "signal_engine",
+        "test_system"
+      ],
+      "n_importers": 4
+    },
+    "ai_trade_filter": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_system"
+      ],
+      "n_importers": 2
+    },
+    "alerts": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_backtest",
+        "autonomous_signal_lifecycle",
+        "chaos_tests",
+        "daily_dashboard",
+        "daily_loss_limit",
+        "executive_reporting",
+        "health_monitor",
+        "kill_switch"
+      ],
+      "n_importers": 18
+    },
+    "alpha_decay_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline",
+        "post_market_ml"
+      ],
+      "n_importers": 2
+    },
+    "alternative_price_representations": {
+      "status": "imported",
+      "imported_by": [
+        "alternative_representation_backfill",
+        "live_signal_engine",
+        "signal_engine",
+        "test_alternative_price_representations"
+      ],
+      "n_importers": 4
+    },
+    "alternative_representation_backfill": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "test_alternative_price_representations"
+      ],
+      "n_importers": 2
+    },
+    "angel": {
+      "status": "imported",
+      "imported_by": [
+        "angel_broker",
+        "autonomous_backtest",
+        "backtest",
+        "backtest_5min_ema",
+        "backtest_breakout",
+        "backtest_breakout_grid",
+        "backtest_ma_cross",
+        "backtest_ma_grid"
+      ],
+      "n_importers": 46
+    },
+    "angel_broker": {
+      "status": "imported",
+      "imported_by": [
+        "broker_manager",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "angel_option_chain": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "option_chain_fetcher",
+        "test_data_quality_upgrades"
+      ],
+      "n_importers": 3
+    },
+    "asm_gsm_filter": {
+      "status": "imported",
+      "imported_by": [
+        "nse_data_hub",
+        "off_hours_engine",
+        "signal_engine"
+      ],
+      "n_importers": 3
+    },
+    "auto_deploy_watcher": {
+      "status": "imported",
+      "imported_by": [
+        "test_system_upgrade"
+      ],
+      "n_importers": 1
+    },
+    "auto_mode": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "auto_strategy_selector": {
+      "status": "imported",
+      "imported_by": [
+        "self_learning",
+        "self_learning_engine"
+      ],
+      "n_importers": 2
+    },
+    "autonomous_backtest": {
+      "status": "imported",
+      "imported_by": [
+        "debug_backtest",
+        "ensemble_validate",
+        "idle_engine",
+        "main_autonomous",
+        "off_hours_engine",
+        "standalone_runner",
+        "telegram_commands"
+      ],
+      "n_importers": 7
+    },
+    "autonomous_edge_policy": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_signal_views",
+        "live_signal_engine",
+        "test_autonomous_edge_policy"
+      ],
+      "n_importers": 3
+    },
+    "autonomous_learning_cycle": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "test_autonomous_learning_cycle"
+      ],
+      "n_importers": 2
+    },
+    "autonomous_param_trainer": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline",
+        "test_autonomous_param_trainer",
+        "test_data_integrity_upgrades",
+        "test_ml_training_window"
+      ],
+      "n_importers": 4
+    },
+    "autonomous_signal_lifecycle": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_signal_views",
+        "executive_reporting",
+        "live_signal_engine",
+        "main_autonomous",
+        "test_autonomous_signal_lifecycle"
+      ],
+      "n_importers": 5
+    },
+    "autonomous_signal_views": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "backfill_market_profile_snapshots": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_5min_ema": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_breakout": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_breakout_grid",
+        "walk_forward_backtest"
+      ],
+      "n_importers": 2
+    },
+    "backtest_breakout_grid": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_cpr": {
+      "status": "dynamic",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_iron_condor": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_ma_cross": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_ma_grid",
+        "walk_forward_backtest"
+      ],
+      "n_importers": 2
+    },
+    "backtest_ma_grid": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_macro_sentiment": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_mean_reversion": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_mr_enhanced": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_mean_reversion",
+        "backtest_mr_grid",
+        "backtest_mr_validate",
+        "walk_forward_backtest"
+      ],
+      "n_importers": 4
+    },
+    "backtest_mr_grid": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_mr_validate": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_orb": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_pivot_boss": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_pivot_boss_intraday": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_sahi_strategy": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_scalping": {
+      "status": "imported",
+      "imported_by": [
+        "walk_forward_backtest"
+      ],
+      "n_importers": 1
+    },
+    "backtest_supertrend_mtf": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_trend": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_cpr",
+        "backtest_trend_grid",
+        "walk_forward_backtest"
+      ],
+      "n_importers": 3
+    },
+    "backtest_trend_grid": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "backtest_vwap_reversion": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "bet_sizing": {
+      "status": "imported",
+      "imported_by": [
+        "test_quant_methods"
+      ],
+      "n_importers": 1
+    },
+    "bhav_copy": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "live_signal_engine",
+        "nse_data_hub",
+        "signal_engine"
+      ],
+      "n_importers": 4
+    },
+    "bhavcopy_cache": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_backtest",
+        "data_download_tracker",
+        "data_fetcher",
+        "data_source_resilience",
+        "debug_backtest",
+        "off_hours_engine",
+        "seed_cache",
+        "signal_engine"
+      ],
+      "n_importers": 8
+    },
+    "broker_comparison": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "broker_interface": {
+      "status": "imported",
+      "imported_by": [
+        "angel_broker"
+      ],
+      "n_importers": 1
+    },
+    "broker_manager": {
+      "status": "imported",
+      "imported_by": [
+        "data_pipeline_audit",
+        "health_monitor",
+        "live_signal_engine",
+        "self_healing",
+        "test_live_order",
+        "trade_manager"
+      ],
+      "n_importers": 6
+    },
+    "bse_option_chain": {
+      "status": "imported",
+      "imported_by": [
+        "data_source_resilience",
+        "main_autonomous",
+        "option_chain_fetcher",
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 5
+    },
+    "bulk_deals": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "live_signal_engine",
+        "main_autonomous",
+        "nse_data_hub",
+        "signal_engine"
+      ],
+      "n_importers": 5
+    },
+    "candle_cache": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_param_trainer",
+        "data_fetcher",
+        "eod_signal_miner",
+        "intraday_candle_recorder",
+        "signal_engine",
+        "test_audit_safety_fixes",
+        "test_intraday_candle_recorder"
+      ],
+      "n_importers": 7
+    },
+    "candle_coverage_backfill": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "daily_pipeline"
+      ],
+      "n_importers": 2
+    },
+    "candlestick_patterns": {
+      "status": "imported",
+      "imported_by": [
+        "candlestick_signals",
+        "manual_trade_tracker",
+        "test_candlestick_patterns"
+      ],
+      "n_importers": 3
+    },
+    "candlestick_signals": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "test_candlestick_patterns"
+      ],
+      "n_importers": 2
+    },
+    "capital_allocator": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_autonomous_option_policy",
+        "test_system"
+      ],
+      "n_importers": 3
+    },
+    "capital_compounder": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "shadow_execution",
+        "test_trade_economics",
+        "trade_economics",
+        "trade_manager",
+        "triple_barrier"
+      ],
+      "n_importers": 7
+    },
+    "capital_recycler": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "trade_manager"
+      ],
+      "n_importers": 2
+    },
+    "capital_simulation": {
+      "status": "imported",
+      "imported_by": [
+        "chaos_tests",
+        "daily_dashboard",
+        "test_session_modules"
+      ],
+      "n_importers": 3
+    },
+    "channel_config": {
+      "status": "imported",
+      "imported_by": [
+        "off_hours_engine",
+        "signal_broadcaster"
+      ],
+      "n_importers": 2
+    },
+    "chaos_tests": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml"
+      ],
+      "n_importers": 1
+    },
+    "chart_patterns": {
+      "status": "imported",
+      "imported_by": [
+        "manual_trade_tracker",
+        "signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "check_connections": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "cloud_backup": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "comprehensive_news_engine": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "condor_backtest_real": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "condor_forward_test": {
+      "status": "imported",
+      "imported_by": [
+        "daily_dashboard",
+        "post_market_ml"
+      ],
+      "n_importers": 2
+    },
+    "config": {
+      "status": "imported",
+      "imported_by": [
+        "angel_broker",
+        "auto_mode",
+        "autonomous_learning_cycle",
+        "backtest",
+        "candle_coverage_backfill",
+        "cloud_backup",
+        "daily_loss_limit",
+        "data_fetcher"
+      ],
+      "n_importers": 48
+    },
+    "confluence_feature_store": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle"
+      ],
+      "n_importers": 1
+    },
+    "connection_monitor": {
+      "status": "imported",
+      "imported_by": [
+        "alerts",
+        "live_signal_engine",
+        "main_autonomous",
+        "telegram_commands"
+      ],
+      "n_importers": 4
+    },
+    "corporate_actions": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "live_signal_engine",
+        "main_autonomous",
+        "signal_engine",
+        "signal_refinements"
+      ],
+      "n_importers": 5
+    },
+    "cpr_ema_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "cross_asset": {
+      "status": "imported",
+      "imported_by": [
+        "data_download_tracker",
+        "live_signal_engine",
+        "macro_global_profit_engine",
+        "main_autonomous",
+        "market_snapshot_recorder",
+        "morning_brief",
+        "off_hours_engine",
+        "signal_engine"
+      ],
+      "n_importers": 11
+    },
+    "cross_sectional": {
+      "status": "imported",
+      "imported_by": [
+        "test_quant_methods"
+      ],
+      "n_importers": 1
+    },
+    "cvar_optimizer": {
+      "status": "dynamic",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "daily_dashboard": {
+      "status": "imported",
+      "imported_by": [
+        "chaos_tests",
+        "post_market_ml",
+        "test_audit_safety_fixes",
+        "test_session_modules"
+      ],
+      "n_importers": 4
+    },
+    "daily_loss_limit": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "manual_book_risk"
+      ],
+      "n_importers": 2
+    },
+    "daily_performance_report": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline"
+      ],
+      "n_importers": 1
+    },
+    "daily_pipeline": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "dark_pool": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "telegram_commands",
+        "wow_factors_engine"
+      ],
+      "n_importers": 3
+    },
+    "dashboard": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "dashboard_server": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "data_download_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "data_fetcher",
+        "main_autonomous",
+        "off_hours_engine"
+      ],
+      "n_importers": 3
+    },
+    "data_evidence_catalog": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "system_readiness_report",
+        "test_institutional_hardening"
+      ],
+      "n_importers": 3
+    },
+    "data_fetcher": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_backtest",
+        "autonomous_learning_cycle",
+        "autonomous_param_trainer",
+        "backtest",
+        "backtest_5min_ema",
+        "backtest_breakout",
+        "backtest_breakout_grid",
+        "backtest_ma_cross"
+      ],
+      "n_importers": 47
+    },
+    "data_gap_filler": {
+      "status": "imported",
+      "imported_by": [
+        "daily_dashboard",
+        "main_autonomous",
+        "post_market_ml"
+      ],
+      "n_importers": 3
+    },
+    "data_pipeline_audit": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "idle_engine",
+        "system_readiness_report"
+      ],
+      "n_importers": 3
+    },
+    "data_pool": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "data_quality_watchdog": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "system_readiness_report",
+        "test_intraday_candle_recorder"
+      ],
+      "n_importers": 3
+    },
+    "data_source_resilience": {
+      "status": "imported",
+      "imported_by": [
+        "chaos_tests",
+        "data_download_tracker",
+        "data_fetcher",
+        "eod_market_capture",
+        "gap_risk_manager",
+        "main_autonomous",
+        "market_data_feeds",
+        "market_intelligence"
+      ],
+      "n_importers": 16
+    },
+    "data_sources": {
+      "status": "imported",
+      "imported_by": [
+        "data_fetcher"
+      ],
+      "n_importers": 1
+    },
+    "day_classifier": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "signal_engine",
+        "test_system"
+      ],
+      "n_importers": 3
+    },
+    "db_health": {
+      "status": "imported",
+      "imported_by": [
+        "daily_dashboard",
+        "post_market_ml",
+        "test_session_modules"
+      ],
+      "n_importers": 3
+    },
+    "db_util": {
+      "status": "imported",
+      "imported_by": [
+        "test_db_util"
+      ],
+      "n_importers": 1
+    },
+    "debug_backtest": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "derive_daily_candles": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "daily_pipeline",
+        "test_derive_daily_candles"
+      ],
+      "n_importers": 3
+    },
+    "dhan_client": {
+      "status": "imported",
+      "imported_by": [
+        "broker_manager",
+        "data_fetcher",
+        "data_source_resilience",
+        "seed_cache",
+        "telegram_commands"
+      ],
+      "n_importers": 5
+    },
+    "diag": {
+      "status": "dynamic",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "diag_option_strike_audit": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "diag_option_strike_selection": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "diag_options_system": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "diag_scan": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "diag_signal_generation_flow": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "diag_telegram": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "download_master_contract": {
+      "status": "imported",
+      "imported_by": [
+        "off_hours_engine"
+      ],
+      "n_importers": 1
+    },
+    "dual_mode_engine": {
+      "status": "imported",
+      "imported_by": [
+        "auto_mode",
+        "main_autonomous",
+        "telegram_commands",
+        "test_all_files",
+        "trade_manager"
+      ],
+      "n_importers": 5
+    },
+    "dynamic_exit": {
+      "status": "imported",
+      "imported_by": [
+        "manual_trade_tracker"
+      ],
+      "n_importers": 1
+    },
+    "edge_report": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine"
+      ],
+      "n_importers": 1
+    },
+    "elliott_wave": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "ensemble_validate": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "entry_optimizer": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "entry_timing_1m": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "eod_market_capture": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "ml_feature_builder",
+        "post_market_ml"
+      ],
+      "n_importers": 3
+    },
+    "eod_option_structure_miner": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "test_eod_option_structure_miner"
+      ],
+      "n_importers": 2
+    },
+    "eod_signal_miner": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "eod_option_structure_miner",
+        "test_eod_signal_miner"
+      ],
+      "n_importers": 3
+    },
+    "eod_weight_engine": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "signal_engine",
+        "strategy_score_tracker",
+        "test_ml_training_contract",
+        "test_training_contract_audit",
+        "training_contract_audit"
+      ],
+      "n_importers": 6
+    },
+    "event_calendar": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "off_hours_engine"
+      ],
+      "n_importers": 3
+    },
+    "execution_algo": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "execution_compliance": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "broker_manager",
+        "system_readiness_report",
+        "test_institutional_hardening",
+        "trade_manager"
+      ],
+      "n_importers": 5
+    },
+    "execution_fill_telemetry": {
+      "status": "imported",
+      "imported_by": [
+        "system_readiness_report"
+      ],
+      "n_importers": 1
+    },
+    "execution_monitor": {
+      "status": "imported",
+      "imported_by": [
+        "health_monitor"
+      ],
+      "n_importers": 1
+    },
+    "executive_reporting": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline"
+      ],
+      "n_importers": 1
+    },
+    "exit_decision": {
+      "status": "imported",
+      "imported_by": [
+        "manual_trade_tracker"
+      ],
+      "n_importers": 1
+    },
+    "experiment_registry": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_param_trainer",
+        "chaos_tests",
+        "test_session_modules",
+        "validation_harness"
+      ],
+      "n_importers": 4
+    },
+    "expiry_regime": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "signal_engine",
+        "theta_strategy"
+      ],
+      "n_importers": 4
+    },
+    "expiry_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous"
+      ],
+      "n_importers": 2
+    },
+    "failed_breakout": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "failure_autopsy": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml"
+      ],
+      "n_importers": 1
+    },
+    "feature_importance": {
+      "status": "imported",
+      "imported_by": [
+        "off_hours_engine",
+        "signal_engine",
+        "trade_manager"
+      ],
+      "n_importers": 3
+    },
+    "fii_data_fetcher": {
+      "status": "imported",
+      "imported_by": [
+        "data_download_tracker",
+        "eod_market_capture",
+        "live_signal_engine",
+        "market_intelligence_hub",
+        "morning_brief",
+        "nse_data_hub",
+        "telegram_commands",
+        "test_session_modules"
+      ],
+      "n_importers": 9
+    },
+    "fii_options_positioning": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "telegram_commands",
+        "wow_factors_engine"
+      ],
+      "n_importers": 3
+    },
+    "fii_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "fix_missing_tokens": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "fno_ban_list": {
+      "status": "imported",
+      "imported_by": [
+        "data_fetcher",
+        "live_signal_engine",
+        "main_autonomous",
+        "nse_data_hub",
+        "signal_engine"
+      ],
+      "n_importers": 5
+    },
+    "fno_bhavcopy_oi": {
+      "status": "imported",
+      "imported_by": [
+        "data_download_tracker",
+        "main_autonomous",
+        "nse_data_hub",
+        "off_hours_engine"
+      ],
+      "n_importers": 4
+    },
+    "forward_cohort_review": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "gap_risk_manager": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "off_hours_engine"
+      ],
+      "n_importers": 2
+    },
+    "gdrive_sync": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "gex_engine": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "github_backup": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "github_sync": {
+      "status": "imported",
+      "imported_by": [
+        "off_hours_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "global_market_filter": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "macro_global_profit_engine",
+        "main_autonomous"
+      ],
+      "n_importers": 3
+    },
+    "greeks_live": {
+      "status": "imported",
+      "imported_by": [
+        "gex_engine",
+        "signal_broadcaster",
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 4
+    },
+    "greeks_sizer": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous"
+      ],
+      "n_importers": 2
+    },
+    "health_monitor": {
+      "status": "imported",
+      "imported_by": [
+        "self_healing"
+      ],
+      "n_importers": 1
+    },
+    "hero_zero_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "telegram_commands",
+        "test_hero_zero_strategy"
+      ],
+      "n_importers": 3
+    },
+    "hmm_regime": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "telegram_commands",
+        "wow_factors_engine"
+      ],
+      "n_importers": 3
+    },
+    "holy_grail": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "hurst_exponent": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "idle_engine": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "index_rebalancing": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "indicator_cache": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "manual_trade_tracker",
+        "signal_engine"
+      ],
+      "n_importers": 3
+    },
+    "indicator_confluence": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "test_indicator_confluence"
+      ],
+      "n_importers": 2
+    },
+    "indicators": {
+      "status": "imported",
+      "imported_by": [
+        "advanced_strategies",
+        "alternative_price_representations",
+        "backtest",
+        "backtest_5min_ema",
+        "backtest_breakout",
+        "backtest_cpr",
+        "backtest_ma_cross",
+        "backtest_mr_enhanced"
+      ],
+      "n_importers": 35
+    },
+    "institutional_alpha": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "signal_engine",
+        "test_system"
+      ],
+      "n_importers": 4
+    },
+    "institutional_indicators": {
+      "status": "imported",
+      "imported_by": [
+        "advanced_strategies",
+        "signal_engine",
+        "sl_hunt_guard",
+        "three_confirm"
+      ],
+      "n_importers": 4
+    },
+    "institutional_strategies": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "intraday_candle_recorder": {
+      "status": "imported",
+      "imported_by": [
+        "candle_coverage_backfill",
+        "idle_engine",
+        "test_intraday_candle_recorder"
+      ],
+      "n_importers": 3
+    },
+    "intraday_oi_logger": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "test_session_modules"
+      ],
+      "n_importers": 2
+    },
+    "intraday_profile": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "iv_percentile": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "option_selector",
+        "signal_engine"
+      ],
+      "n_importers": 3
+    },
+    "job_catchup": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine"
+      ],
+      "n_importers": 1
+    },
+    "kill_switch": {
+      "status": "imported",
+      "imported_by": [
+        "health_monitor",
+        "main_autonomous",
+        "self_healing",
+        "telegram_commands"
+      ],
+      "n_importers": 4
+    },
+    "learned_filters": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml",
+        "signal_engine",
+        "test_ml_training_contract",
+        "test_training_contract_audit",
+        "training_contract_audit"
+      ],
+      "n_importers": 5
+    },
+    "learning_coverage_report": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle"
+      ],
+      "n_importers": 1
+    },
+    "live_admission": {
+      "status": "imported",
+      "imported_by": [
+        "auto_mode",
+        "dual_mode_engine",
+        "quality_gate"
+      ],
+      "n_importers": 3
+    },
+    "live_eligibility": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "quality_gate",
+        "strategy_selector",
+        "test_live_eligibility"
+      ],
+      "n_importers": 4
+    },
+    "live_probation": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "live_probation_check",
+        "quality_gate",
+        "test_live_probation",
+        "trade_manager"
+      ],
+      "n_importers": 5
+    },
+    "live_probation_check": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "live_signal_engine": {
+      "status": "imported",
+      "imported_by": [
+        "data_pipeline_audit",
+        "diag",
+        "diag_scan",
+        "main_autonomous",
+        "option_chain_recorder",
+        "option_scalper",
+        "telegram_commands",
+        "test_audit_safety_fixes"
+      ],
+      "n_importers": 11
+    },
+    "logger_setup": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "logging_security": {
+      "status": "imported",
+      "imported_by": [
+        "angel",
+        "main_autonomous",
+        "open_health_check",
+        "test_logging_security"
+      ],
+      "n_importers": 4
+    },
+    "lstm_model": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "off_hours_engine"
+      ],
+      "n_importers": 2
+    },
+    "macro_global_profit_engine": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml",
+        "signal_engine",
+        "telegram_commands",
+        "test_session_modules"
+      ],
+      "n_importers": 4
+    },
+    "main_autonomous": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "manual_book_risk": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "manual_learning": {
+      "status": "imported",
+      "imported_by": [
+        "manual_trade_tracker"
+      ],
+      "n_importers": 1
+    },
+    "manual_trade_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands",
+        "test_data_quality_upgrades"
+      ],
+      "n_importers": 2
+    },
+    "manual_trades": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "market_context": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "option_chain_engine"
+      ],
+      "n_importers": 3
+    },
+    "market_context_builder": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_market_context_integration"
+      ],
+      "n_importers": 2
+    },
+    "market_data_feeds": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "market_snapshot_recorder",
+        "signal_engine"
+      ],
+      "n_importers": 4
+    },
+    "market_intelligence": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands",
+        "unified_intelligence_hub"
+      ],
+      "n_importers": 2
+    },
+    "market_intelligence_hub": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "manual_trade_tracker",
+        "off_hours_engine",
+        "signal_broadcaster",
+        "signal_engine",
+        "telegram_commands",
+        "trade_manager",
+        "websocket_tracker"
+      ],
+      "n_importers": 8
+    },
+    "market_profile_context": {
+      "status": "imported",
+      "imported_by": [
+        "backfill_market_profile_snapshots",
+        "signal_engine",
+        "test_market_profile_context"
+      ],
+      "n_importers": 3
+    },
+    "market_regime": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "market_snapshot_recorder",
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 4
+    },
+    "market_snapshot_recorder": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "live_signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "master_contract": {
+      "status": "imported",
+      "imported_by": [
+        "angel"
+      ],
+      "n_importers": 1
+    },
+    "mean_reversion_signal": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "mega_intelligence_engine": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "telegram_commands",
+        "unified_intelligence_hub"
+      ],
+      "n_importers": 3
+    },
+    "mega_news_aggregator": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "meta_labeler": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml"
+      ],
+      "n_importers": 1
+    },
+    "meta_learner": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "off_hours_engine",
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 4
+    },
+    "ml_feature_builder": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "post_market_ml",
+        "signal_engine",
+        "test_ml_training_contract"
+      ],
+      "n_importers": 4
+    },
+    "ml_trainer": {
+      "status": "imported",
+      "imported_by": [
+        "learned_filters",
+        "live_signal_engine",
+        "post_market_ml",
+        "test_institutional_hardening",
+        "test_ml_training_contract",
+        "test_training_contract_audit",
+        "training_contract_audit"
+      ],
+      "n_importers": 7
+    },
+    "model_champion": {
+      "status": "imported",
+      "imported_by": [
+        "ml_trainer",
+        "test_model_champion"
+      ],
+      "n_importers": 2
+    },
+    "model_quality": {
+      "status": "imported",
+      "imported_by": [
+        "ml_trainer",
+        "test_quant_methods"
+      ],
+      "n_importers": 2
+    },
+    "modifier_edge_analyzer": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml"
+      ],
+      "n_importers": 1
+    },
+    "morning_brief": {
+      "status": "imported",
+      "imported_by": [
+        "off_hours_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "mtf": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "signal_score"
+      ],
+      "n_importers": 2
+    },
+    "mtf_context": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "signal_engine",
+        "test_market_context_integration",
+        "test_mtf_context"
+      ],
+      "n_importers": 4
+    },
+    "narrative_engine": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "news_aggregator": {
+      "status": "imported",
+      "imported_by": [
+        "wow_factors_engine"
+      ],
+      "n_importers": 1
+    },
+    "news_nlp": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "signal_engine"
+      ],
+      "n_importers": 3
+    },
+    "news_sentiment_engine": {
+      "status": "imported",
+      "imported_by": [
+        "market_intelligence_hub",
+        "off_hours_engine",
+        "omnisource_news_engine",
+        "signal_engine",
+        "telegram_commands",
+        "unified_intelligence_hub"
+      ],
+      "n_importers": 6
+    },
+    "nifty_options_engine": {
+      "status": "imported",
+      "imported_by": [
+        "test_live_order"
+      ],
+      "n_importers": 1
+    },
+    "nifty_scalper_bot": {
+      "status": "imported",
+      "imported_by": [
+        "intraday_oi_logger"
+      ],
+      "n_importers": 1
+    },
+    "nightly_edge_monitor": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "test_usable_edge_days"
+      ],
+      "n_importers": 2
+    },
+    "nse_cost_model": {
+      "status": "imported",
+      "imported_by": [
+        "test_nse_cost_model_2026"
+      ],
+      "n_importers": 1
+    },
+    "nse_data_hub": {
+      "status": "imported",
+      "imported_by": [
+        "eod_market_capture",
+        "idle_engine"
+      ],
+      "n_importers": 2
+    },
+    "nse_master": {
+      "status": "imported",
+      "imported_by": [
+        "advanced_strategies",
+        "condor_forward_test",
+        "data_source_resilience",
+        "hero_zero_strategy",
+        "main_autonomous",
+        "nifty_options_engine",
+        "nifty_scalper_bot",
+        "option_chain_engine"
+      ],
+      "n_importers": 11
+    },
+    "nse_proxy": {
+      "status": "imported",
+      "imported_by": [
+        "connection_monitor",
+        "data_source_resilience",
+        "fii_data_fetcher",
+        "live_signal_engine",
+        "market_context",
+        "oi_strike_builder",
+        "oi_tracker",
+        "option_chain_fetcher"
+      ],
+      "n_importers": 12
+    },
+    "off_hours_engine": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "oi_strike_builder": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "oi_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "ensemble_validate",
+        "main_autonomous",
+        "off_hours_engine",
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 5
+    },
+    "omnisource_news_engine": {
+      "status": "imported",
+      "imported_by": [
+        "data_download_tracker",
+        "main_autonomous",
+        "market_intelligence_hub",
+        "off_hours_engine",
+        "signal_engine",
+        "trade_guardian",
+        "wow_factors_v2"
+      ],
+      "n_importers": 7
+    },
+    "open_health_check": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "option_autotune_backfill": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "test_option_autotune_backfill"
+      ],
+      "n_importers": 2
+    },
+    "option_bot_audit": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "system_readiness_report",
+        "test_data_quality_upgrades",
+        "test_option_infra_fixes"
+      ],
+      "n_importers": 4
+    },
+    "option_bot_views": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "option_strike_activity",
+        "test_option_report_table"
+      ],
+      "n_importers": 3
+    },
+    "option_chain_engine": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_autonomous_option_policy",
+        "test_option_chain_autotune_wiring",
+        "test_system"
+      ],
+      "n_importers": 4
+    },
+    "option_chain_fetcher": {
+      "status": "imported",
+      "imported_by": [
+        "chaos_tests",
+        "check_connections",
+        "data_source_resilience",
+        "intraday_oi_logger",
+        "live_signal_engine",
+        "option_chain_recorder",
+        "option_oi_chart",
+        "option_strike_activity"
+      ],
+      "n_importers": 17
+    },
+    "option_chain_intelligence": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "option_chain_fetcher",
+        "option_strike_activity",
+        "telegram_commands",
+        "test_option_activity_sentiment"
+      ],
+      "n_importers": 5
+    },
+    "option_chain_providers": {
+      "status": "imported",
+      "imported_by": [
+        "data_source_resilience",
+        "option_chain_fetcher",
+        "test_low_cost_data_sources"
+      ],
+      "n_importers": 3
+    },
+    "option_chain_recorder": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "live_signal_engine",
+        "manual_trade_tracker",
+        "test_data_integrity_upgrades",
+        "test_institutional_hardening",
+        "test_option_recorder_wiring"
+      ],
+      "n_importers": 6
+    },
+    "option_decision_journal": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "data_pipeline_audit",
+        "hero_zero_strategy",
+        "live_signal_engine",
+        "main_autonomous",
+        "option_autotune_backfill",
+        "option_bot_audit",
+        "option_chain_recorder"
+      ],
+      "n_importers": 19
+    },
+    "option_execution_quality": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_option_execution_quality"
+      ],
+      "n_importers": 2
+    },
+    "option_execution_router": {
+      "status": "imported",
+      "imported_by": [
+        "test_option_execution_router",
+        "trade_manager"
+      ],
+      "n_importers": 2
+    },
+    "option_generated_data_audit": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "option_historical_replay_labeller": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "option_autotune_backfill"
+      ],
+      "n_importers": 2
+    },
+    "option_intelligence": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous"
+      ],
+      "n_importers": 2
+    },
+    "option_live_edge_policy": {
+      "status": "imported",
+      "imported_by": [
+        "option_multistrike_signals",
+        "test_option_live_edge_policy"
+      ],
+      "n_importers": 2
+    },
+    "option_lot_override": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "option_chain_engine",
+        "option_selector",
+        "telegram_commands",
+        "test_option_lot_override"
+      ],
+      "n_importers": 5
+    },
+    "option_metrics_cache": {
+      "status": "imported",
+      "imported_by": [
+        "option_chain_fetcher",
+        "telegram_commands",
+        "test_system_upgrade",
+        "visual_analytics"
+      ],
+      "n_importers": 4
+    },
+    "option_multistrike_signals": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "option_bot_views",
+        "option_chain_engine",
+        "option_chain_recorder",
+        "option_strike_activity",
+        "option_telegram_report",
+        "test_option_live_edge_policy",
+        "test_option_multistrike_signals"
+      ],
+      "n_importers": 9
+    },
+    "option_oi_chart": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands",
+        "test_option_oi_chart"
+      ],
+      "n_importers": 2
+    },
+    "option_oi_intelligence": {
+      "status": "dynamic",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "option_quality": {
+      "status": "imported",
+      "imported_by": [
+        "hero_zero_strategy",
+        "live_signal_engine",
+        "option_chain_fetcher",
+        "option_multistrike_signals",
+        "test_option_quality"
+      ],
+      "n_importers": 5
+    },
+    "option_scalper": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "test_session_modules"
+      ],
+      "n_importers": 2
+    },
+    "option_selector": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_system"
+      ],
+      "n_importers": 2
+    },
+    "option_shadow_labeller": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "option_autotune_backfill"
+      ],
+      "n_importers": 2
+    },
+    "option_signal_evidence": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "test_option_infra_fixes"
+      ],
+      "n_importers": 2
+    },
+    "option_signal_snapshot_labeller": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "option_autotune_backfill"
+      ],
+      "n_importers": 2
+    },
+    "option_strike_activity": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands",
+        "test_option_strike_activity"
+      ],
+      "n_importers": 2
+    },
+    "option_strike_autotune": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "hero_zero_strategy",
+        "option_autotune_backfill",
+        "option_chain_engine",
+        "option_historical_replay_labeller",
+        "option_shadow_labeller",
+        "test_option_chain_autotune_wiring",
+        "test_option_strike_autotune"
+      ],
+      "n_importers": 9
+    },
+    "option_telegram_report": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline",
+        "main_autonomous",
+        "option_bot_views",
+        "post_market_ml",
+        "test_option_telegram_report"
+      ],
+      "n_importers": 5
+    },
+    "option_underlying_context": {
+      "status": "imported",
+      "imported_by": [
+        "option_chain_recorder"
+      ],
+      "n_importers": 1
+    },
+    "options_backtest": {
+      "status": "imported",
+      "imported_by": [
+        "condor_forward_test"
+      ],
+      "n_importers": 1
+    },
+    "options_bhavcopy_backfill": {
+      "status": "imported",
+      "imported_by": [
+        "data_gap_filler"
+      ],
+      "n_importers": 1
+    },
+    "orb_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "strategy_scanner"
+      ],
+      "n_importers": 2
+    },
+    "order_flow": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "overnight_protection": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "pairs_stat_arb_validation": {
+      "status": "imported",
+      "imported_by": [
+        "nightly_edge_monitor"
+      ],
+      "n_importers": 1
+    },
+    "param_bridge": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "param_sensitivity": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "participant_oi": {
+      "status": "imported",
+      "imported_by": [
+        "check_connections",
+        "data_fetcher",
+        "fii_options_positioning",
+        "idle_engine",
+        "live_signal_engine",
+        "main_autonomous",
+        "nse_data_hub",
+        "off_hours_engine"
+      ],
+      "n_importers": 11
+    },
+    "participant_oi_backfill": {
+      "status": "imported",
+      "imported_by": [
+        "eod_market_capture"
+      ],
+      "n_importers": 1
+    },
+    "participant_oi_edge": {
+      "status": "imported",
+      "imported_by": [
+        "data_gap_filler"
+      ],
+      "n_importers": 1
+    },
+    "pbo": {
+      "status": "imported",
+      "imported_by": [
+        "signal_log",
+        "test_quant_methods"
+      ],
+      "n_importers": 2
+    },
+    "performance_analytics": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "off_hours_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 3
+    },
+    "pivot_boss": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_pivot_boss",
+        "backtest_pivot_boss_intraday",
+        "candlestick_signals",
+        "cpr_ema_strategy",
+        "failed_breakout",
+        "main_autonomous",
+        "option_underlying_context",
+        "pivot_scalping_strategy"
+      ],
+      "n_importers": 10
+    },
+    "pivot_scalping_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "test_pivot_scalping_strategy"
+      ],
+      "n_importers": 2
+    },
+    "pnl_reporting": {
+      "status": "imported",
+      "imported_by": [
+        "remote_dashboard",
+        "telegram_commands",
+        "test_pnl_reporting"
+      ],
+      "n_importers": 3
+    },
+    "portfolio_heat": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "portfolio_risk": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "manual_book_risk"
+      ],
+      "n_importers": 2
+    },
+    "post_market_ml": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline",
+        "test_ml_training_window"
+      ],
+      "n_importers": 2
+    },
+    "price_structure": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "prune_invalid_candles": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "pruning": {
+      "status": "imported",
+      "imported_by": [
+        "daily_dashboard",
+        "post_market_ml",
+        "signal_engine",
+        "test_session_modules"
+      ],
+      "n_importers": 4
+    },
+    "public_signal_formatter": {
+      "status": "imported",
+      "imported_by": [
+        "morning_brief",
+        "signal_broadcaster",
+        "telegram_commands"
+      ],
+      "n_importers": 3
+    },
+    "purged_cv": {
+      "status": "imported",
+      "imported_by": [
+        "ml_trainer",
+        "model_champion",
+        "model_quality",
+        "signal_calibrator",
+        "test_purged_cv"
+      ],
+      "n_importers": 5
+    },
+    "quality_gate": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle"
+      ],
+      "n_importers": 1
+    },
+    "quant_models": {
+      "status": "imported",
+      "imported_by": [
+        "options_backtest"
+      ],
+      "n_importers": 1
+    },
+    "quote_cache": {
+      "status": "imported",
+      "imported_by": [
+        "angel_broker"
+      ],
+      "n_importers": 1
+    },
+    "regime": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "strategy_scanner"
+      ],
+      "n_importers": 2
+    },
+    "release_integrity": {
+      "status": "imported",
+      "imported_by": [
+        "system_readiness_report"
+      ],
+      "n_importers": 1
+    },
+    "remote_dashboard": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "repair_signal_integrity": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "research_bias_audit": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "system_readiness_report",
+        "test_institutional_hardening"
+      ],
+      "n_importers": 3
+    },
+    "rl_agent": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "trade_manager"
+      ],
+      "n_importers": 2
+    },
+    "run_backtest": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "runtime_telemetry": {
+      "status": "imported",
+      "imported_by": [
+        "executive_reporting",
+        "main_autonomous",
+        "option_chain_fetcher",
+        "strategy_scanner",
+        "telegram_commands",
+        "telegram_views",
+        "test_scan_stall_repair",
+        "test_system_upgrade"
+      ],
+      "n_importers": 10
+    },
+    "sahi_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_sahi_strategy",
+        "test_sahi_behavioral_layer"
+      ],
+      "n_importers": 2
+    },
+    "sample_weights": {
+      "status": "imported",
+      "imported_by": [
+        "test_quant_methods"
+      ],
+      "n_importers": 1
+    },
+    "scale_in_manager": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "score_calibrator": {
+      "status": "imported",
+      "imported_by": [
+        "strategy_performance_matrix",
+        "telegram_commands",
+        "trade_manager"
+      ],
+      "n_importers": 3
+    },
+    "sector_rotation_engine": {
+      "status": "imported",
+      "imported_by": [
+        "eod_market_capture",
+        "live_signal_engine",
+        "market_snapshot_recorder",
+        "morning_brief",
+        "off_hours_engine",
+        "telegram_commands",
+        "wow_factors_engine"
+      ],
+      "n_importers": 7
+    },
+    "seed_cache": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "self_healing": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "self_learning": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "self_learning_engine": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "off_hours_engine",
+        "self_learning",
+        "standalone_runner",
+        "telegram_commands",
+        "test_ml_training_window"
+      ],
+      "n_importers": 7
+    },
+    "sensibull_client": {
+      "status": "imported",
+      "imported_by": [
+        "chaos_tests",
+        "option_chain_fetcher"
+      ],
+      "n_importers": 2
+    },
+    "setup_gdrive_backup": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "shadow_execution": {
+      "status": "imported",
+      "imported_by": [
+        "option_historical_replay_labeller",
+        "option_multistrike_signals",
+        "option_shadow_labeller",
+        "test_institutional_hardening"
+      ],
+      "n_importers": 4
+    },
+    "shadow_portfolio_simulator": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "system_readiness_report"
+      ],
+      "n_importers": 2
+    },
+    "signal_broadcaster": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "off_hours_engine",
+        "ux_commands"
+      ],
+      "n_importers": 3
+    },
+    "signal_calibrator": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine",
+        "signal_engine",
+        "test_ml_training_contract",
+        "test_training_contract_audit",
+        "training_contract_audit"
+      ],
+      "n_importers": 5
+    },
+    "signal_engine": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_backtest",
+        "capital_recycler",
+        "ensemble_validate",
+        "idle_engine",
+        "live_signal_engine",
+        "main_autonomous",
+        "run_backtest",
+        "strategy_indicator_census"
+      ],
+      "n_importers": 19
+    },
+    "signal_log": {
+      "status": "imported",
+      "imported_by": [
+        "alternative_representation_backfill",
+        "autonomous_backtest",
+        "idle_engine",
+        "live_signal_engine",
+        "main_autonomous",
+        "nightly_edge_monitor",
+        "post_market_ml",
+        "self_learning_engine"
+      ],
+      "n_importers": 17
+    },
+    "signal_quality": {
+      "status": "imported",
+      "imported_by": [
+        "meta_labeler",
+        "ml_feature_builder",
+        "modifier_edge_analyzer",
+        "signal_log",
+        "strategy_edge_analyzer",
+        "test_data_quality_upgrades"
+      ],
+      "n_importers": 6
+    },
+    "signal_refinements": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "signal_reverse_engineer": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "post_market_ml",
+        "test_signal_reverse_engineer"
+      ],
+      "n_importers": 3
+    },
+    "signal_score": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "signal_track_record": {
+      "status": "imported",
+      "imported_by": [
+        "idle_engine"
+      ],
+      "n_importers": 1
+    },
+    "signal_trade_reconciler": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "test_signal_trade_reconciler"
+      ],
+      "n_importers": 2
+    },
+    "signals": {
+      "status": "imported",
+      "imported_by": [
+        "backtest"
+      ],
+      "n_importers": 1
+    },
+    "sl_hunt_guard": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "test_system"
+      ],
+      "n_importers": 3
+    },
+    "slippage": {
+      "status": "imported",
+      "imported_by": [
+        "backtest",
+        "backtest_5min_ema",
+        "backtest_breakout",
+        "backtest_cpr",
+        "backtest_ma_cross",
+        "backtest_mr_enhanced",
+        "backtest_scalping",
+        "backtest_trend"
+      ],
+      "n_importers": 8
+    },
+    "slippage_analyzer": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "smart_order_router": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "spread_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "standalone_runner": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "strategies_new": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "strategy_clusters": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "test_alternative_price_representations"
+      ],
+      "n_importers": 2
+    },
+    "strategy_edge_analyzer": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml"
+      ],
+      "n_importers": 1
+    },
+    "strategy_evolution": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "signal_engine",
+        "standalone_runner"
+      ],
+      "n_importers": 3
+    },
+    "strategy_indicator_census": {
+      "status": "imported",
+      "imported_by": [
+        "wiring_watchdog"
+      ],
+      "n_importers": 1
+    },
+    "strategy_performance_matrix": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_backtest",
+        "live_signal_engine",
+        "main_autonomous",
+        "post_market_ml",
+        "signal_engine",
+        "test_ml_training_contract",
+        "test_session_modules",
+        "trade_manager"
+      ],
+      "n_importers": 8
+    },
+    "strategy_scanner": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous"
+      ],
+      "n_importers": 2
+    },
+    "strategy_score_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "manual_trade_tracker",
+        "off_hours_engine"
+      ],
+      "n_importers": 3
+    },
+    "strategy_selector": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "strategy_validator": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline"
+      ],
+      "n_importers": 1
+    },
+    "strike_pcr": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "subscriber_manager": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "subscription_engine": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "off_hours_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 3
+    },
+    "supertrend_mtf_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "strategy_scanner"
+      ],
+      "n_importers": 2
+    },
+    "symbols": {
+      "status": "dynamic",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "system_monitor": {
+      "status": "imported",
+      "imported_by": [
+        "off_hours_engine"
+      ],
+      "n_importers": 1
+    },
+    "system_readiness_report": {
+      "status": "imported",
+      "imported_by": [
+        "daily_pipeline",
+        "live_admission"
+      ],
+      "n_importers": 2
+    },
+    "system_state": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "telegram_commands"
+      ],
+      "n_importers": 2
+    },
+    "tax_export": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "td_sequential": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "telegram_backup": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "telegram_commands": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "off_hours_engine",
+        "test_system_upgrade"
+      ],
+      "n_importers": 3
+    },
+    "telegram_views": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "test_all_files": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_alternative_price_representations": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_angel_direct": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_angel_rate_limit_detection": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_audit_safety_fixes": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_autonomous_edge_policy": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_autonomous_learning_cycle": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_autonomous_option_policy": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_autonomous_param_trainer": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_autonomous_signal_lifecycle": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_candlestick_patterns": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_core": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_core_modules_smoke": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_cost_aware_r_multiple": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_data": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_data_integrity_upgrades": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_data_quality_upgrades": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_db_util": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_derive_daily_candles": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_eod_option_structure_miner": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_eod_signal_miner": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_evidence_safe_scoring": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_hero_zero_strategy": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_indicator_confluence": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_institutional_hardening": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_intraday_candle_recorder": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_live_ai_model_bridge": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_live_eligibility": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_live_order": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_live_probation": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_logging_security": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_low_cost_data_sources": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_market_context_integration": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_market_profile_context": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_ml_training_contract": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_ml_training_window": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_model_champion": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_mtf_context": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_multileg_strategy_quarantine": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_nse_cost_model_2026": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_ochao_levels": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_activity_sentiment": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_autotune_backfill": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_chain_autotune_wiring": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_decision_journal": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_execution_quality": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_execution_router": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_infra_fixes": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_live_edge_policy": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_lot_override": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_metadata_wiring": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_multistrike_signals": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_oi_chart": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_quality": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_recorder_wiring": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_report_table": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_strike_activity": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_strike_autotune": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_telegram_report": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_pivot_scalping_strategy": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_pnl_reporting": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_purged_cv": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_quant_methods": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_sahi_behavioral_layer": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_scan_stall_repair": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_session_modules": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_signal_reverse_engineer": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_signal_risk_barrier": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_signal_trade_reconciler": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_system": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_system_upgrade": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_trade_economics": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_training_contract_audit": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_universe_manager": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_usable_edge_days": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "theta_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "three_confirm": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "tick_order_flow": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "time_regime": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "main_autonomous",
+        "signal_engine",
+        "strategy_scanner"
+      ],
+      "n_importers": 4
+    },
+    "trade_autopsy": {
+      "status": "imported",
+      "imported_by": [
+        "test_option_execution_quality",
+        "trade_manager"
+      ],
+      "n_importers": 2
+    },
+    "trade_card": {
+      "status": "imported",
+      "imported_by": [
+        "manual_trade_tracker",
+        "trade_guardian_bot"
+      ],
+      "n_importers": 2
+    },
+    "trade_direction_engine": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "trade_economics": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_trade_economics"
+      ],
+      "n_importers": 2
+    },
+    "trade_guardian": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands",
+        "trade_guardian_bot"
+      ],
+      "n_importers": 2
+    },
+    "trade_guardian_bot": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "trade_manager": {
+      "status": "imported",
+      "imported_by": [
+        "daily_loss_limit",
+        "health_monitor",
+        "kill_switch",
+        "live_signal_engine",
+        "main_autonomous",
+        "off_hours_engine",
+        "self_learning_engine",
+        "signal_engine"
+      ],
+      "n_importers": 10
+    },
+    "trade_rationale": {
+      "status": "imported",
+      "imported_by": [
+        "alerts"
+      ],
+      "n_importers": 1
+    },
+    "trading_agent": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
+    "trading_calendar": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_param_trainer",
+        "candle_coverage_backfill",
+        "data_quality_watchdog",
+        "idle_engine",
+        "off_hours_engine",
+        "option_bot_audit",
+        "post_market_ml",
+        "self_learning_engine"
+      ],
+      "n_importers": 15
+    },
+    "tradingview_strategies": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "trailing": {
+      "status": "imported",
+      "imported_by": [
+        "backtest",
+        "live_signal_engine",
+        "test_system"
+      ],
+      "n_importers": 3
+    },
+    "training_contract_audit": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "system_readiness_report",
+        "test_training_contract_audit"
+      ],
+      "n_importers": 3
+    },
+    "trend_basket_research": {
+      "status": "imported",
+      "imported_by": [
+        "test_session_modules"
+      ],
+      "n_importers": 1
+    },
+    "triple_barrier": {
+      "status": "imported",
+      "imported_by": [
+        "eod_signal_miner",
+        "self_learning_engine",
+        "signal_log",
+        "test_cost_aware_r_multiple",
+        "test_signal_risk_barrier"
+      ],
+      "n_importers": 5
+    },
+    "ttm_squeeze": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "tradingview_strategies"
+      ],
+      "n_importers": 2
+    },
+    "unified_intelligence_hub": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "universe_check": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "universe_manager": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "data_fetcher",
+        "data_pipeline_audit",
+        "learning_coverage_report",
+        "live_probation",
+        "test_universe_manager",
+        "universe_check"
+      ],
+      "n_importers": 7
+    },
+    "upstox_data": {
+      "status": "imported",
+      "imported_by": [
+        "data_fetcher",
+        "test_data_quality_upgrades"
+      ],
+      "n_importers": 2
+    },
+    "utils": {
+      "status": "imported",
+      "imported_by": [
+        "angel"
+      ],
+      "n_importers": 1
+    },
+    "ux_commands": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "ux_engine": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "off_hours_engine",
+        "telegram_commands",
+        "trade_manager"
+      ],
+      "n_importers": 4
+    },
+    "validate_all_symbols": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "validate_env": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "validate_oi_flow": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml"
+      ],
+      "n_importers": 1
+    },
+    "validate_scan": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "validate_telegram": {
+      "status": "ORPHAN",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "validation_harness": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_param_trainer",
+        "options_backtest",
+        "test_session_modules",
+        "trend_basket_research"
+      ],
+      "n_importers": 4
+    },
+    "value_at_risk": {
+      "status": "imported",
+      "imported_by": [
+        "alerts",
+        "live_signal_engine",
+        "manual_book_risk",
+        "portfolio_risk",
+        "telegram_commands"
+      ],
+      "n_importers": 5
+    },
+    "visual_analytics": {
+      "status": "imported",
+      "imported_by": [
+        "test_system_upgrade"
+      ],
+      "n_importers": 1
+    },
+    "voice_video_generator": {
+      "status": "imported",
+      "imported_by": [
+        "off_hours_engine",
+        "signal_broadcaster",
+        "telegram_commands"
+      ],
+      "n_importers": 3
+    },
+    "vol_surface": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "volume_profile_advanced": {
+      "status": "imported",
+      "imported_by": [
+        "market_profile_context",
+        "signal_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 3
+    },
+    "vwap_reversion_strategy": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine",
+        "strategy_scanner"
+      ],
+      "n_importers": 2
+    },
+    "walk_forward_backtest": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_backtest",
+        "daily_pipeline",
+        "self_learning",
+        "strategy_selector",
+        "test_system"
+      ],
+      "n_importers": 5
+    },
+    "watchdog": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "websocket_engine": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_low_cost_data_sources",
+        "test_option_infra_fixes"
+      ],
+      "n_importers": 3
+    },
+    "websocket_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "telegram_commands"
+      ],
+      "n_importers": 1
+    },
+    "weinstein_stage": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "whale_tracker": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "signal_engine"
+      ],
+      "n_importers": 2
+    },
+    "williams_systems": {
+      "status": "imported",
+      "imported_by": [
+        "signal_engine"
+      ],
+      "n_importers": 1
+    },
+    "wiring_census": {
+      "status": "imported",
+      "imported_by": [
+        "wiring_watchdog"
+      ],
+      "n_importers": 1
+    },
+    "wiring_watchdog": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml"
+      ],
+      "n_importers": 1
+    },
+    "wow_factors_engine": {
+      "status": "imported",
+      "imported_by": [
+        "trade_guardian",
+        "unified_intelligence_hub"
+      ],
+      "n_importers": 2
+    },
+    "wow_factors_v2": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "signal_engine",
+        "telegram_commands",
+        "trade_guardian"
+      ],
+      "n_importers": 4
+    },
+    "yf_compat": {
+      "status": "imported",
+      "imported_by": [
+        "advanced_strategies",
+        "angel",
+        "angel_option_chain",
+        "backtest_iron_condor",
+        "backtest_mean_reversion",
+        "backtest_orb",
+        "backtest_supertrend_mtf",
+        "backtest_vwap_reversion"
+      ],
+      "n_importers": 32
+    },
+    "zerodha_client": {
+      "status": "imported",
+      "imported_by": [
+        "data_fetcher",
+        "off_hours_engine",
+        "telegram_commands"
+      ],
+      "n_importers": 3
+    }
+  }
+}

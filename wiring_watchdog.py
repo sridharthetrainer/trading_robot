@@ -133,18 +133,54 @@ def run(send_telegram: bool = True) -> Dict[str, Any]:
     new_dead = sorted(current_dead - known_dead) if not first_run else []
     revived = sorted(known_dead - current_dead) if (not first_run and not sweep.get("skipped")) else []
 
-    # Persist updated baseline: today's dead set becomes the new baseline
-    # (so a regression alerts once, then becomes known until it revives).
+    # (baseline write moved below the census so orphan modules persist too)
+
+    stale = _artifact_staleness()
+
+    # 3. STATIC WIRING CENSUS (2026-07-12, operator: "audit each file and
+    # function, ensure all were wired") — orphan modules (imported by
+    # nothing, run by nothing: the spread_strategy pattern). Alert only on
+    # NEW orphans vs baseline; the current known set is an accepted state
+    # documented in wiring_census_report.json.
+    new_orphans: List[str] = []
+    census_orphans: List[str] = []
+    try:
+        from wiring_census import build_census
+        census = build_census()
+        census_orphans = sorted(census.get("orphan_modules", []))
+        known_orphans = set(baseline.get("orphan_modules", []))
+        if baseline:
+            new_orphans = sorted(set(census_orphans) - known_orphans)
+    except Exception as e:
+        logger.debug("wiring census: %s", e)
+
+    # 4. STRATEGY + INDICATOR RUNTIME CENSUS (2026-07-12) — call every
+    # registry strategy through the live adapter on enriched synthetic data
+    # (the 16-of-75-silently-erroring class) and diff consumed indicator
+    # columns vs live-produced ones (the crsi/aroon/elder-ray class). Any
+    # strategy ERROR always alerts — errors are regressions by definition.
+    strat_errors: List[Dict[str, str]] = []
+    ind_missing: List[str] = []
+    try:
+        from strategy_indicator_census import build as build_si
+        si = build_si()
+        strat_errors = si.get("strategies", {}).get("errors", [])
+        ind_missing = si.get("indicators", {}).get("consumed_not_produced", [])
+    except Exception as e:
+        logger.debug("strategy/indicator census: %s", e)
+
+    # Persist updated baseline: today's dead columns + orphan modules become
+    # the new baseline (a regression alerts once, then is known until fixed).
     if not sweep.get("skipped") and not sweep.get("error"):
         try:
             BASELINE_FILE.write_text(json.dumps({
                 "dead_columns": sorted(current_dead),
+                "orphan_modules": census_orphans,
                 "updated": datetime.now().isoformat(timespec="seconds"),
             }, indent=2))
         except Exception as e:
             logger.debug("baseline write: %s", e)
 
-    stale = _artifact_staleness()
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "sweep_rows": sweep.get("rows"),
@@ -154,8 +190,13 @@ def run(send_telegram: bool = True) -> Dict[str, Any]:
         "new_dead_columns": new_dead,
         "revived_columns": revived,
         "stale_artifacts": stale,
+        "orphan_modules": census_orphans,
+        "new_orphan_modules": new_orphans,
+        "strategy_errors": strat_errors,
+        "indicators_consumed_not_produced": ind_missing,
         "first_run_baseline": first_run,
-        "ok": not new_dead and not stale,
+        "ok": (not new_dead and not stale and not new_orphans
+               and not strat_errors and not ind_missing),
     }
     try:
         REPORT_FILE.write_text(json.dumps(report, indent=2))
@@ -165,25 +206,36 @@ def run(send_telegram: bool = True) -> Dict[str, Any]:
     if revived:
         logger.info("wiring watchdog: %d column(s) REVIVED (fixes verified): %s",
                     len(revived), ", ".join(revived[:10]))
-    if new_dead or stale:
+    if new_dead or stale or new_orphans or strat_errors or ind_missing:
         lines = ["🔌 <b>WIRING WATCHDOG</b>"]
         if new_dead:
             lines.append(f"  ❌ newly DEAD columns ({len(new_dead)}): "
                          + ", ".join(new_dead[:8]))
+        if new_orphans:
+            lines.append(f"  🔗 new ORPHAN modules ({len(new_orphans)}): "
+                         + ", ".join(new_orphans[:8])
+                         + " — built but imported/run by nothing")
+        if strat_errors:
+            lines.append(f"  💥 strategies ERRORING ({len(strat_errors)}): "
+                         + ", ".join(e["strategy"] for e in strat_errors[:6]))
+        if ind_missing:
+            lines.append(f"  🧩 indicators consumed but not produced "
+                         f"({len(ind_missing)}): " + ", ".join(ind_missing[:8]))
         for s in stale[:6]:
             lines.append(f"  ⏳ {s['file']}: {s['status']}"
                          + (f" ({s.get('age_hours')}h > {s.get('max_hours')}h)"
                             if s.get("age_hours") else ""))
-        lines.append("  A producer silently stopped — same bug class as the "
-                     "July audit finds.")
+        lines.append("  A producer silently stopped or code went unwired — "
+                     "same bug class as the July audit finds.")
         msg = "\n".join(lines)
-        logger.warning("wiring watchdog: %d new dead, %d stale artifacts",
-                       len(new_dead), len(stale))
+        logger.warning("wiring watchdog: %d new dead, %d stale, %d new orphans",
+                       len(new_dead), len(stale), len(new_orphans))
         if send_telegram:
             _send_alert(msg)
     else:
-        logger.info("wiring watchdog: OK (%d known-dead cols, 0 regressions, "
-                    "0 stale artifacts)", len(current_dead))
+        logger.info("wiring watchdog: OK (%d known-dead cols, %d known orphans, "
+                    "0 regressions, 0 stale artifacts)",
+                    len(current_dead), len(census_orphans))
     return report
 
 

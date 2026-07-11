@@ -202,6 +202,28 @@ def get_indicators(df: pd.DataFrame, symbol: str = "") -> dict:
             ind["connors_rsi"] = calculate_connors_rsi(df)
         except Exception as e:
             logger.debug("extended indicators %s: %s", symbol, e)
+
+        # Second batch (2026-07-12): the strategy/indicator census found FIVE
+        # MORE live strategies consuming columns only add_all_indicators (the
+        # never-called-live path) produces — aroon_trend, elder_ray,
+        # cci_trend, kama_trend, and the KST cross all ran on silent .get
+        # defaults their entire lives (their recorded edge stats reflect
+        # broken inputs). Same canonical implementations, one source of truth.
+        try:
+            from indicators import (
+                calculate_aroon, calculate_elder_ray, calculate_cci,
+                calculate_kama, calculate_kst,
+            )
+            a_up, a_dn, a_osc = calculate_aroon(df)
+            ind["aroon_up"], ind["aroon_down"], ind["aroon_osc"] = a_up, a_dn, a_osc
+            bull_p, bear_p = calculate_elder_ray(df)
+            ind["bull_power"], ind["bear_power"] = bull_p, bear_p
+            ind["cci"] = calculate_cci(df)
+            ind["kama"] = calculate_kama(close)
+            kst_line, kst_sig = calculate_kst(close)
+            ind["kst"], ind["kst_signal"] = kst_line, kst_sig
+        except Exception as e:
+            logger.debug("extended indicators batch2 %s: %s", symbol, e)
         
         # Cache it
         if symbol:
