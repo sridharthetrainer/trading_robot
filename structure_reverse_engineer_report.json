@@ -1,0 +1,2117 @@
+{
+  "runs": [
+    {
+      "generated_at": "2026-07-12T01:17:39",
+      "symbol": "NIFTY",
+      "interval": "5m",
+      "bars": 21317,
+      "span": "2025-05-19..2026-07-10",
+      "swing_k": 3,
+      "state_len": 4,
+      "round_trip_bps": 4.0,
+      "bonferroni_tests": 95,
+      "n_events": 12919,
+      "candidates": [],
+      "hurts": [
+        {
+          "pattern": "SEQ:HL>HH>HL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 54,
+            "mean_bps": -7.15,
+            "win": 0.296,
+            "t": -3.47,
+            "p": 0.00052
+          },
+          "holdout": {
+            "n": 27,
+            "mean_bps": -9.36,
+            "win": 0.296,
+            "t": -2.64,
+            "p": 0.0084
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:LH>LL>LH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 41,
+            "mean_bps": -8.5,
+            "win": 0.293,
+            "t": -3.53,
+            "p": 0.00041
+          },
+          "holdout": {
+            "n": 16,
+            "mean_bps": 3.83,
+            "win": 0.438,
+            "t": 0.38,
+            "p": 0.7034
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:LH>LL>HH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 67,
+            "mean_bps": -7.27,
+            "win": 0.373,
+            "t": -3.74,
+            "p": 0.00019
+          },
+          "holdout": {
+            "n": 22,
+            "mean_bps": -6.29,
+            "win": 0.5,
+            "t": -1.2,
+            "p": 0.23028
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:HL>HH>HL>HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 94,
+            "mean_bps": -4.35,
+            "win": 0.309,
+            "t": -3.84,
+            "p": 0.00012
+          },
+          "holdout": {
+            "n": 47,
+            "mean_bps": -4.34,
+            "win": 0.34,
+            "t": -1.35,
+            "p": 0.17601
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:LL>LH>LL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 74,
+            "mean_bps": -6.09,
+            "win": 0.257,
+            "t": -3.9,
+            "p": 0.0001
+          },
+          "holdout": {
+            "n": 30,
+            "mean_bps": 2.98,
+            "win": 0.6,
+            "t": 0.99,
+            "p": 0.31975
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:HH>HL>HH>HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 97,
+            "mean_bps": -4.23,
+            "win": 0.33,
+            "t": -3.94,
+            "p": 8e-05
+          },
+          "holdout": {
+            "n": 54,
+            "mean_bps": -2.96,
+            "win": 0.426,
+            "t": -1.35,
+            "p": 0.17742
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "EVT:BREAK_UP_MIXED",
+          "horizon_bars": 12,
+          "train": {
+            "n": 330,
+            "mean_bps": -4.18,
+            "win": 0.382,
+            "t": -4.11,
+            "p": 4e-05
+          },
+          "holdout": {
+            "n": 146,
+            "mean_bps": -2.08,
+            "win": 0.459,
+            "t": -0.99,
+            "p": 0.3243
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:TREND_DOWN:LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 129,
+            "mean_bps": -5.38,
+            "win": 0.287,
+            "t": -4.33,
+            "p": 2e-05
+          },
+          "holdout": {
+            "n": 59,
+            "mean_bps": 3.32,
+            "win": 0.61,
+            "t": 1.16,
+            "p": 0.24553
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 161,
+            "mean_bps": -4.15,
+            "win": 0.366,
+            "t": -4.44,
+            "p": 1e-05
+          },
+          "holdout": {
+            "n": 68,
+            "mean_bps": -1.98,
+            "win": 0.456,
+            "t": -0.92,
+            "p": 0.35777
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 457,
+            "mean_bps": -3.08,
+            "win": 0.372,
+            "t": -4.48,
+            "p": 1e-05
+          },
+          "holdout": {
+            "n": 197,
+            "mean_bps": -3.04,
+            "win": 0.431,
+            "t": -2.29,
+            "p": 0.02176
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 475,
+            "mean_bps": -3.06,
+            "win": 0.396,
+            "t": -4.71,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 186,
+            "mean_bps": -3.65,
+            "win": 0.425,
+            "t": -2.38,
+            "p": 0.01751
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 148,
+            "mean_bps": -4.94,
+            "win": 0.311,
+            "t": -4.91,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 68,
+            "mean_bps": -3.34,
+            "win": 0.397,
+            "t": -1.37,
+            "p": 0.17078
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 406,
+            "mean_bps": -4.92,
+            "win": 0.372,
+            "t": -5.09,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 169,
+            "mean_bps": -4.24,
+            "win": 0.438,
+            "t": -2.21,
+            "p": 0.02738
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 367,
+            "mean_bps": -4.78,
+            "win": 0.338,
+            "t": -5.11,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 147,
+            "mean_bps": -5.73,
+            "win": 0.374,
+            "t": -2.45,
+            "p": 0.01429
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "EVT:BREAK_DOWN_MIXED",
+          "horizon_bars": 6,
+          "train": {
+            "n": 455,
+            "mean_bps": -3.89,
+            "win": 0.378,
+            "t": -5.33,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 194,
+            "mean_bps": -2.67,
+            "win": 0.402,
+            "t": -1.71,
+            "p": 0.08783
+          },
+          "verdict": "HURTS"
+        }
+      ],
+      "all_tested": [
+        {
+          "pattern": "REGIME:TREND_DOWN:LH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 56,
+            "mean_bps": 2.87,
+            "win": 0.589,
+            "t": 0.75,
+            "p": 0.45381
+          },
+          "holdout": {
+            "n": 18,
+            "mean_bps": -4.75,
+            "win": 0.611,
+            "t": -0.36,
+            "p": 0.71512
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>LL>LH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 34,
+            "mean_bps": 2.45,
+            "win": 0.559,
+            "t": 0.53,
+            "p": 0.59708
+          },
+          "holdout": {
+            "n": 12,
+            "mean_bps": -8.14,
+            "win": 0.5,
+            "t": -0.58,
+            "p": 0.56463
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BOS_UP",
+          "horizon_bars": 36,
+          "train": {
+            "n": 34,
+            "mean_bps": 2.22,
+            "win": 0.618,
+            "t": 0.43,
+            "p": 0.66425
+          },
+          "holdout": {
+            "n": 16,
+            "mean_bps": -6.19,
+            "win": 0.5,
+            "t": -1.02,
+            "p": 0.30847
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>HH>LL>LH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 30,
+            "mean_bps": 1.82,
+            "win": 0.467,
+            "t": 0.33,
+            "p": 0.74151
+          },
+          "holdout": {
+            "n": 12,
+            "mean_bps": 8.68,
+            "win": 0.667,
+            "t": 0.79,
+            "p": 0.42766
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>HH>HL>HH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 31,
+            "mean_bps": -0.3,
+            "win": 0.581,
+            "t": -0.06,
+            "p": 0.94959
+          },
+          "holdout": {
+            "n": 15,
+            "mean_bps": -7.09,
+            "win": 0.4,
+            "t": -0.86,
+            "p": 0.39232
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:MIXED:LL",
+          "horizon_bars": 36,
+          "train": {
+            "n": 162,
+            "mean_bps": -0.36,
+            "win": 0.525,
+            "t": -0.13,
+            "p": 0.89759
+          },
+          "holdout": {
+            "n": 65,
+            "mean_bps": -8.4,
+            "win": 0.446,
+            "t": -1.33,
+            "p": 0.1827
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>HH>HL>LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 31,
+            "mean_bps": -0.64,
+            "win": 0.323,
+            "t": -0.22,
+            "p": 0.82621
+          },
+          "holdout": {
+            "n": 20,
+            "mean_bps": 3.93,
+            "win": 0.65,
+            "t": 0.52,
+            "p": 0.60496
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_DOWN:LL",
+          "horizon_bars": 36,
+          "train": {
+            "n": 52,
+            "mean_bps": -1.47,
+            "win": 0.462,
+            "t": -0.35,
+            "p": 0.72273
+          },
+          "holdout": {
+            "n": 23,
+            "mean_bps": -8.08,
+            "win": 0.478,
+            "t": -0.61,
+            "p": 0.54485
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:CHOCH_DOWN",
+          "horizon_bars": 12,
+          "train": {
+            "n": 59,
+            "mean_bps": -1.17,
+            "win": 0.373,
+            "t": -0.38,
+            "p": 0.70545
+          },
+          "holdout": {
+            "n": 19,
+            "mean_bps": -6.87,
+            "win": 0.421,
+            "t": -0.9,
+            "p": 0.36948
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HL",
+          "horizon_bars": 36,
+          "train": {
+            "n": 65,
+            "mean_bps": -1.74,
+            "win": 0.569,
+            "t": -0.44,
+            "p": 0.66237
+          },
+          "holdout": {
+            "n": 29,
+            "mean_bps": -4.24,
+            "win": 0.345,
+            "t": -0.67,
+            "p": 0.50433
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BOS_UP",
+          "horizon_bars": 12,
+          "train": {
+            "n": 69,
+            "mean_bps": -0.97,
+            "win": 0.464,
+            "t": -0.47,
+            "p": 0.63836
+          },
+          "holdout": {
+            "n": 31,
+            "mean_bps": -1.75,
+            "win": 0.323,
+            "t": -0.36,
+            "p": 0.72135
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>HH>LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 39,
+            "mean_bps": -1.39,
+            "win": 0.41,
+            "t": -0.5,
+            "p": 0.61583
+          },
+          "holdout": {
+            "n": 19,
+            "mean_bps": 2.25,
+            "win": 0.421,
+            "t": 0.39,
+            "p": 0.69922
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>HL>LH>LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 42,
+            "mean_bps": -2.0,
+            "win": 0.452,
+            "t": -0.57,
+            "p": 0.56883
+          },
+          "holdout": {
+            "n": 19,
+            "mean_bps": -10.43,
+            "win": 0.368,
+            "t": -1.79,
+            "p": 0.07407
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>HL>LH>LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 46,
+            "mean_bps": -1.77,
+            "win": 0.435,
+            "t": -0.69,
+            "p": 0.49161
+          },
+          "holdout": {
+            "n": 21,
+            "mean_bps": -5.56,
+            "win": 0.381,
+            "t": -1.23,
+            "p": 0.21809
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:CHOCH_DOWN",
+          "horizon_bars": 6,
+          "train": {
+            "n": 74,
+            "mean_bps": -1.46,
+            "win": 0.392,
+            "t": -0.75,
+            "p": 0.45431
+          },
+          "holdout": {
+            "n": 23,
+            "mean_bps": -1.65,
+            "win": 0.435,
+            "t": -0.59,
+            "p": 0.55214
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>HL>LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 37,
+            "mean_bps": -2.43,
+            "win": 0.405,
+            "t": -0.75,
+            "p": 0.45111
+          },
+          "holdout": {
+            "n": 14,
+            "mean_bps": -3.89,
+            "win": 0.429,
+            "t": -0.59,
+            "p": 0.55635
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>LH>LL>HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 32,
+            "mean_bps": -3.43,
+            "win": 0.375,
+            "t": -0.76,
+            "p": 0.4447
+          },
+          "holdout": {
+            "n": 13,
+            "mean_bps": -2.19,
+            "win": 0.538,
+            "t": -0.2,
+            "p": 0.84246
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>LH>LL",
+          "horizon_bars": 36,
+          "train": {
+            "n": 33,
+            "mean_bps": -2.87,
+            "win": 0.364,
+            "t": -0.77,
+            "p": 0.4415
+          },
+          "holdout": {
+            "n": 11,
+            "mean_bps": -29.03,
+            "win": 0.273,
+            "t": -1.53,
+            "p": 0.12565
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>LL>HH>HL",
+          "horizon_bars": 36,
+          "train": {
+            "n": 35,
+            "mean_bps": -3.12,
+            "win": 0.457,
+            "t": -0.8,
+            "p": 0.42229
+          },
+          "holdout": {
+            "n": 9,
+            "mean_bps": 17.53,
+            "win": 0.667,
+            "t": 1.06,
+            "p": 0.28707
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>LL>HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 36,
+            "mean_bps": -1.86,
+            "win": 0.417,
+            "t": -0.83,
+            "p": 0.4069
+          },
+          "holdout": {
+            "n": 15,
+            "mean_bps": -3.22,
+            "win": 0.333,
+            "t": -0.88,
+            "p": 0.37689
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>LL>LH>LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 36,
+            "mean_bps": -1.85,
+            "win": 0.417,
+            "t": -0.86,
+            "p": 0.38723
+          },
+          "holdout": {
+            "n": 15,
+            "mean_bps": 3.51,
+            "win": 0.533,
+            "t": 0.86,
+            "p": 0.39224
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>LH>LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 60,
+            "mean_bps": -1.8,
+            "win": 0.45,
+            "t": -1.09,
+            "p": 0.27771
+          },
+          "holdout": {
+            "n": 23,
+            "mean_bps": 0.21,
+            "win": 0.522,
+            "t": 0.02,
+            "p": 0.98009
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>HH>HL",
+          "horizon_bars": 36,
+          "train": {
+            "n": 42,
+            "mean_bps": -5.71,
+            "win": 0.524,
+            "t": -1.12,
+            "p": 0.26378
+          },
+          "holdout": {
+            "n": 24,
+            "mean_bps": -9.56,
+            "win": 0.333,
+            "t": -1.64,
+            "p": 0.10004
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BREAK_DOWN_MIXED",
+          "horizon_bars": 36,
+          "train": {
+            "n": 145,
+            "mean_bps": -3.11,
+            "win": 0.503,
+            "t": -1.18,
+            "p": 0.23989
+          },
+          "holdout": {
+            "n": 65,
+            "mean_bps": -3.77,
+            "win": 0.477,
+            "t": -0.57,
+            "p": 0.57157
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:MIXED:HH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 165,
+            "mean_bps": -3.02,
+            "win": 0.479,
+            "t": -1.18,
+            "p": 0.23693
+          },
+          "holdout": {
+            "n": 71,
+            "mean_bps": -3.34,
+            "win": 0.507,
+            "t": -0.62,
+            "p": 0.5357
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>HH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 73,
+            "mean_bps": -3.33,
+            "win": 0.438,
+            "t": -1.23,
+            "p": 0.21843
+          },
+          "holdout": {
+            "n": 44,
+            "mean_bps": 0.37,
+            "win": 0.432,
+            "t": 0.1,
+            "p": 0.91921
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>LL>LH>LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 33,
+            "mean_bps": -3.98,
+            "win": 0.273,
+            "t": -1.26,
+            "p": 0.20733
+          },
+          "holdout": {
+            "n": 13,
+            "mean_bps": 1.32,
+            "win": 0.462,
+            "t": 0.19,
+            "p": 0.84687
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>HH>HL>HH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 38,
+            "mean_bps": -8.52,
+            "win": 0.526,
+            "t": -1.31,
+            "p": 0.19042
+          },
+          "holdout": {
+            "n": 23,
+            "mean_bps": -0.14,
+            "win": 0.478,
+            "t": -0.01,
+            "p": 0.99115
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>LH>HL>HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 37,
+            "mean_bps": -4.78,
+            "win": 0.486,
+            "t": -1.42,
+            "p": 0.1545
+          },
+          "holdout": {
+            "n": 23,
+            "mean_bps": -8.32,
+            "win": 0.435,
+            "t": -1.39,
+            "p": 0.16577
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>LH>LL>HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 41,
+            "mean_bps": -3.63,
+            "win": 0.415,
+            "t": -1.46,
+            "p": 0.14326
+          },
+          "holdout": {
+            "n": 15,
+            "mean_bps": -8.89,
+            "win": 0.467,
+            "t": -1.37,
+            "p": 0.17136
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BREAK_UP_MIXED",
+          "horizon_bars": 36,
+          "train": {
+            "n": 157,
+            "mean_bps": -3.86,
+            "win": 0.484,
+            "t": -1.5,
+            "p": 0.13283
+          },
+          "holdout": {
+            "n": 72,
+            "mean_bps": -2.27,
+            "win": 0.542,
+            "t": -0.39,
+            "p": 0.69842
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>LL>HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 33,
+            "mean_bps": -4.81,
+            "win": 0.333,
+            "t": -1.51,
+            "p": 0.13059
+          },
+          "holdout": {
+            "n": 12,
+            "mean_bps": -11.74,
+            "win": 0.333,
+            "t": -1.51,
+            "p": 0.13201
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>HL>HH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 48,
+            "mean_bps": -5.27,
+            "win": 0.417,
+            "t": -1.52,
+            "p": 0.12823
+          },
+          "holdout": {
+            "n": 22,
+            "mean_bps": 2.82,
+            "win": 0.591,
+            "t": 0.39,
+            "p": 0.69786
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>LH>LL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 57,
+            "mean_bps": -2.07,
+            "win": 0.333,
+            "t": -1.56,
+            "p": 0.11856
+          },
+          "holdout": {
+            "n": 20,
+            "mean_bps": -4.68,
+            "win": 0.45,
+            "t": -1.29,
+            "p": 0.19789
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>HH>HL>HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 51,
+            "mean_bps": -3.71,
+            "win": 0.353,
+            "t": -1.56,
+            "p": 0.11836
+          },
+          "holdout": {
+            "n": 26,
+            "mean_bps": -7.8,
+            "win": 0.462,
+            "t": -1.46,
+            "p": 0.14347
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>HL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 38,
+            "mean_bps": -3.72,
+            "win": 0.395,
+            "t": -1.58,
+            "p": 0.11522
+          },
+          "holdout": {
+            "n": 14,
+            "mean_bps": -2.47,
+            "win": 0.357,
+            "t": -0.45,
+            "p": 0.65248
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>HL>HH>LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 39,
+            "mean_bps": -4.61,
+            "win": 0.333,
+            "t": -1.6,
+            "p": 0.10895
+          },
+          "holdout": {
+            "n": 18,
+            "mean_bps": -1.88,
+            "win": 0.389,
+            "t": -0.31,
+            "p": 0.75313
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>LH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 32,
+            "mean_bps": -4.0,
+            "win": 0.344,
+            "t": -1.64,
+            "p": 0.10014
+          },
+          "holdout": {
+            "n": 20,
+            "mean_bps": -15.22,
+            "win": 0.4,
+            "t": -3.05,
+            "p": 0.00233
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>LL>LH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 30,
+            "mean_bps": -5.47,
+            "win": 0.3,
+            "t": -1.75,
+            "p": 0.08019
+          },
+          "holdout": {
+            "n": 11,
+            "mean_bps": -8.44,
+            "win": 0.273,
+            "t": -1.67,
+            "p": 0.09434
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 53,
+            "mean_bps": -8.61,
+            "win": 0.509,
+            "t": -1.75,
+            "p": 0.08008
+          },
+          "holdout": {
+            "n": 30,
+            "mean_bps": -0.44,
+            "win": 0.467,
+            "t": -0.05,
+            "p": 0.96223
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>LH>LL>LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 51,
+            "mean_bps": -3.03,
+            "win": 0.314,
+            "t": -1.76,
+            "p": 0.07795
+          },
+          "holdout": {
+            "n": 18,
+            "mean_bps": -2.74,
+            "win": 0.389,
+            "t": -0.32,
+            "p": 0.74643
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:MIXED:LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 376,
+            "mean_bps": -1.77,
+            "win": 0.423,
+            "t": -1.77,
+            "p": 0.07635
+          },
+          "holdout": {
+            "n": 146,
+            "mean_bps": -4.22,
+            "win": 0.404,
+            "t": -1.81,
+            "p": 0.06982
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>HH>HL>HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 75,
+            "mean_bps": -4.62,
+            "win": 0.4,
+            "t": -1.8,
+            "p": 0.07137
+          },
+          "holdout": {
+            "n": 36,
+            "mean_bps": -3.67,
+            "win": 0.389,
+            "t": -0.78,
+            "p": 0.43684
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BOS_UP",
+          "horizon_bars": 6,
+          "train": {
+            "n": 104,
+            "mean_bps": -2.2,
+            "win": 0.404,
+            "t": -1.84,
+            "p": 0.06605
+          },
+          "holdout": {
+            "n": 50,
+            "mean_bps": -3.38,
+            "win": 0.36,
+            "t": -1.19,
+            "p": 0.23545
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>HH>LL>LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 50,
+            "mean_bps": -4.63,
+            "win": 0.36,
+            "t": -1.85,
+            "p": 0.06401
+          },
+          "holdout": {
+            "n": 24,
+            "mean_bps": -1.58,
+            "win": 0.375,
+            "t": -0.21,
+            "p": 0.83017
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>LH>LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 63,
+            "mean_bps": -3.1,
+            "win": 0.317,
+            "t": -1.87,
+            "p": 0.06139
+          },
+          "holdout": {
+            "n": 26,
+            "mean_bps": -1.22,
+            "win": 0.577,
+            "t": -0.24,
+            "p": 0.80689
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>LL>LH>HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 31,
+            "mean_bps": -3.92,
+            "win": 0.419,
+            "t": -1.88,
+            "p": 0.06033
+          },
+          "holdout": {
+            "n": 13,
+            "mean_bps": -5.44,
+            "win": 0.231,
+            "t": -1.78,
+            "p": 0.07573
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_DOWN:LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 104,
+            "mean_bps": -4.35,
+            "win": 0.375,
+            "t": -1.9,
+            "p": 0.05684
+          },
+          "holdout": {
+            "n": 45,
+            "mean_bps": 2.14,
+            "win": 0.578,
+            "t": 0.56,
+            "p": 0.57826
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>LL>LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 58,
+            "mean_bps": -5.24,
+            "win": 0.414,
+            "t": -1.94,
+            "p": 0.05219
+          },
+          "holdout": {
+            "n": 22,
+            "mean_bps": -1.9,
+            "win": 0.545,
+            "t": -0.46,
+            "p": 0.64368
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:MIXED:LH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 175,
+            "mean_bps": -4.3,
+            "win": 0.44,
+            "t": -1.96,
+            "p": 0.04985
+          },
+          "holdout": {
+            "n": 70,
+            "mean_bps": -3.64,
+            "win": 0.486,
+            "t": -0.65,
+            "p": 0.51623
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>HH>LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 46,
+            "mean_bps": -4.42,
+            "win": 0.348,
+            "t": -1.98,
+            "p": 0.04791
+          },
+          "holdout": {
+            "n": 22,
+            "mean_bps": 4.2,
+            "win": 0.455,
+            "t": 1.01,
+            "p": 0.31146
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>HL>HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 57,
+            "mean_bps": -4.47,
+            "win": 0.404,
+            "t": -2.01,
+            "p": 0.04483
+          },
+          "holdout": {
+            "n": 19,
+            "mean_bps": 2.64,
+            "win": 0.684,
+            "t": 0.55,
+            "p": 0.58069
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>HL>HH>LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 41,
+            "mean_bps": -4.44,
+            "win": 0.39,
+            "t": -2.04,
+            "p": 0.04122
+          },
+          "holdout": {
+            "n": 20,
+            "mean_bps": -5.58,
+            "win": 0.3,
+            "t": -1.76,
+            "p": 0.07873
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>LH>HL>HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 38,
+            "mean_bps": -4.45,
+            "win": 0.368,
+            "t": -2.14,
+            "p": 0.03265
+          },
+          "holdout": {
+            "n": 23,
+            "mean_bps": -7.35,
+            "win": 0.217,
+            "t": -2.39,
+            "p": 0.01668
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BOS_DOWN",
+          "horizon_bars": 12,
+          "train": {
+            "n": 48,
+            "mean_bps": -5.77,
+            "win": 0.375,
+            "t": -2.15,
+            "p": 0.03147
+          },
+          "holdout": {
+            "n": 40,
+            "mean_bps": -4.65,
+            "win": 0.425,
+            "t": -1.25,
+            "p": 0.21007
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>HH>HL>HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 57,
+            "mean_bps": -3.83,
+            "win": 0.368,
+            "t": -2.17,
+            "p": 0.0303
+          },
+          "holdout": {
+            "n": 28,
+            "mean_bps": -5.51,
+            "win": 0.357,
+            "t": -1.85,
+            "p": 0.06458
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>HL>HH",
+          "horizon_bars": 36,
+          "train": {
+            "n": 34,
+            "mean_bps": -12.57,
+            "win": 0.265,
+            "t": -2.17,
+            "p": 0.02975
+          },
+          "holdout": {
+            "n": 11,
+            "mean_bps": -20.55,
+            "win": 0.545,
+            "t": -1.0,
+            "p": 0.31544
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>HH>HL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 35,
+            "mean_bps": -3.34,
+            "win": 0.4,
+            "t": -2.18,
+            "p": 0.02928
+          },
+          "holdout": {
+            "n": 21,
+            "mean_bps": 0.45,
+            "win": 0.619,
+            "t": 0.14,
+            "p": 0.8919
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:CHOCH_UP",
+          "horizon_bars": 12,
+          "train": {
+            "n": 55,
+            "mean_bps": -7.16,
+            "win": 0.291,
+            "t": -2.25,
+            "p": 0.02456
+          },
+          "holdout": {
+            "n": 20,
+            "mean_bps": 1.03,
+            "win": 0.45,
+            "t": 0.18,
+            "p": 0.85963
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 121,
+            "mean_bps": -4.57,
+            "win": 0.446,
+            "t": -2.28,
+            "p": 0.02247
+          },
+          "holdout": {
+            "n": 52,
+            "mean_bps": 0.42,
+            "win": 0.481,
+            "t": 0.13,
+            "p": 0.89544
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>LL>LH>HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 44,
+            "mean_bps": -4.57,
+            "win": 0.364,
+            "t": -2.29,
+            "p": 0.02211
+          },
+          "holdout": {
+            "n": 16,
+            "mean_bps": -0.52,
+            "win": 0.562,
+            "t": -0.06,
+            "p": 0.95009
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>HH>LL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 56,
+            "mean_bps": -3.85,
+            "win": 0.411,
+            "t": -2.31,
+            "p": 0.02115
+          },
+          "holdout": {
+            "n": 27,
+            "mean_bps": -3.24,
+            "win": 0.37,
+            "t": -0.73,
+            "p": 0.46438
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>HL>HH>HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 51,
+            "mean_bps": -3.89,
+            "win": 0.412,
+            "t": -2.32,
+            "p": 0.02016
+          },
+          "holdout": {
+            "n": 22,
+            "mean_bps": -0.57,
+            "win": 0.591,
+            "t": -0.12,
+            "p": 0.9025
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:MIXED:HL",
+          "horizon_bars": 36,
+          "train": {
+            "n": 177,
+            "mean_bps": -5.39,
+            "win": 0.418,
+            "t": -2.32,
+            "p": 0.02012
+          },
+          "holdout": {
+            "n": 79,
+            "mean_bps": 2.55,
+            "win": 0.544,
+            "t": 0.5,
+            "p": 0.615
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LL>LH>HL>HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 64,
+            "mean_bps": -4.03,
+            "win": 0.281,
+            "t": -2.36,
+            "p": 0.01806
+          },
+          "holdout": {
+            "n": 20,
+            "mean_bps": -2.17,
+            "win": 0.6,
+            "t": -0.52,
+            "p": 0.60299
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>HH>HL>LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 46,
+            "mean_bps": -7.58,
+            "win": 0.304,
+            "t": -2.46,
+            "p": 0.01407
+          },
+          "holdout": {
+            "n": 25,
+            "mean_bps": -6.97,
+            "win": 0.36,
+            "t": -1.78,
+            "p": 0.07483
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BOS_DOWN",
+          "horizon_bars": 6,
+          "train": {
+            "n": 61,
+            "mean_bps": -4.27,
+            "win": 0.328,
+            "t": -2.51,
+            "p": 0.01194
+          },
+          "holdout": {
+            "n": 64,
+            "mean_bps": -3.99,
+            "win": 0.406,
+            "t": -2.06,
+            "p": 0.0394
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_DOWN:LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 96,
+            "mean_bps": -5.49,
+            "win": 0.375,
+            "t": -2.62,
+            "p": 0.00891
+          },
+          "holdout": {
+            "n": 54,
+            "mean_bps": -0.35,
+            "win": 0.556,
+            "t": -0.08,
+            "p": 0.9361
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HH>HL>LH>HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 35,
+            "mean_bps": -5.3,
+            "win": 0.371,
+            "t": -2.63,
+            "p": 0.00854
+          },
+          "holdout": {
+            "n": 21,
+            "mean_bps": -7.71,
+            "win": 0.333,
+            "t": -2.26,
+            "p": 0.02366
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>LL>LH>LL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 51,
+            "mean_bps": -8.52,
+            "win": 0.314,
+            "t": -2.69,
+            "p": 0.00706
+          },
+          "holdout": {
+            "n": 28,
+            "mean_bps": -6.8,
+            "win": 0.464,
+            "t": -1.45,
+            "p": 0.14628
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 111,
+            "mean_bps": -5.37,
+            "win": 0.369,
+            "t": -2.75,
+            "p": 0.00604
+          },
+          "holdout": {
+            "n": 50,
+            "mean_bps": -3.66,
+            "win": 0.44,
+            "t": -1.02,
+            "p": 0.30984
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:CHOCH_UP",
+          "horizon_bars": 6,
+          "train": {
+            "n": 73,
+            "mean_bps": -5.8,
+            "win": 0.342,
+            "t": -3.08,
+            "p": 0.00206
+          },
+          "holdout": {
+            "n": 22,
+            "mean_bps": -3.4,
+            "win": 0.318,
+            "t": -0.67,
+            "p": 0.50118
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>LL>LH>LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 67,
+            "mean_bps": -4.89,
+            "win": 0.403,
+            "t": -3.18,
+            "p": 0.00149
+          },
+          "holdout": {
+            "n": 36,
+            "mean_bps": -2.38,
+            "win": 0.472,
+            "t": -0.71,
+            "p": 0.47473
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:TREND_DOWN:LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 133,
+            "mean_bps": -3.54,
+            "win": 0.398,
+            "t": -3.27,
+            "p": 0.00109
+          },
+          "holdout": {
+            "n": 69,
+            "mean_bps": -2.33,
+            "win": 0.464,
+            "t": -0.98,
+            "p": 0.32891
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "EVT:BREAK_DOWN_MIXED",
+          "horizon_bars": 12,
+          "train": {
+            "n": 333,
+            "mean_bps": -3.86,
+            "win": 0.399,
+            "t": -3.38,
+            "p": 0.00073
+          },
+          "holdout": {
+            "n": 139,
+            "mean_bps": -3.49,
+            "win": 0.417,
+            "t": -1.31,
+            "p": 0.19025
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:LH>LL>HH>HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 77,
+            "mean_bps": -4.45,
+            "win": 0.312,
+            "t": -3.42,
+            "p": 0.00063
+          },
+          "holdout": {
+            "n": 25,
+            "mean_bps": -12.59,
+            "win": 0.36,
+            "t": -2.75,
+            "p": 0.00596
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "REGIME:MIXED:HH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 355,
+            "mean_bps": -3.67,
+            "win": 0.406,
+            "t": -3.42,
+            "p": 0.00064
+          },
+          "holdout": {
+            "n": 154,
+            "mean_bps": -3.17,
+            "win": 0.506,
+            "t": -1.41,
+            "p": 0.15998
+          },
+          "verdict": "NOISE"
+        },
+        {
+          "pattern": "SEQ:HL>HH>HL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 54,
+            "mean_bps": -7.15,
+            "win": 0.296,
+            "t": -3.47,
+            "p": 0.00052
+          },
+          "holdout": {
+            "n": 27,
+            "mean_bps": -9.36,
+            "win": 0.296,
+            "t": -2.64,
+            "p": 0.0084
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:LH>LL>LH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 41,
+            "mean_bps": -8.5,
+            "win": 0.293,
+            "t": -3.53,
+            "p": 0.00041
+          },
+          "holdout": {
+            "n": 16,
+            "mean_bps": 3.83,
+            "win": 0.438,
+            "t": 0.38,
+            "p": 0.7034
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:LH>LL>HH>HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 67,
+            "mean_bps": -7.27,
+            "win": 0.373,
+            "t": -3.74,
+            "p": 0.00019
+          },
+          "holdout": {
+            "n": 22,
+            "mean_bps": -6.29,
+            "win": 0.5,
+            "t": -1.2,
+            "p": 0.23028
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:HL>HH>HL>HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 94,
+            "mean_bps": -4.35,
+            "win": 0.309,
+            "t": -3.84,
+            "p": 0.00012
+          },
+          "holdout": {
+            "n": 47,
+            "mean_bps": -4.34,
+            "win": 0.34,
+            "t": -1.35,
+            "p": 0.17601
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:LL>LH>LL>LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 74,
+            "mean_bps": -6.09,
+            "win": 0.257,
+            "t": -3.9,
+            "p": 0.0001
+          },
+          "holdout": {
+            "n": 30,
+            "mean_bps": 2.98,
+            "win": 0.6,
+            "t": 0.99,
+            "p": 0.31975
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "SEQ:HH>HL>HH>HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 97,
+            "mean_bps": -4.23,
+            "win": 0.33,
+            "t": -3.94,
+            "p": 8e-05
+          },
+          "holdout": {
+            "n": 54,
+            "mean_bps": -2.96,
+            "win": 0.426,
+            "t": -1.35,
+            "p": 0.17742
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "EVT:BREAK_UP_MIXED",
+          "horizon_bars": 12,
+          "train": {
+            "n": 330,
+            "mean_bps": -4.18,
+            "win": 0.382,
+            "t": -4.11,
+            "p": 4e-05
+          },
+          "holdout": {
+            "n": 146,
+            "mean_bps": -2.08,
+            "win": 0.459,
+            "t": -0.99,
+            "p": 0.3243
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:TREND_DOWN:LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 129,
+            "mean_bps": -5.38,
+            "win": 0.287,
+            "t": -4.33,
+            "p": 2e-05
+          },
+          "holdout": {
+            "n": 59,
+            "mean_bps": 3.32,
+            "win": 0.61,
+            "t": 1.16,
+            "p": 0.24553
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 161,
+            "mean_bps": -4.15,
+            "win": 0.366,
+            "t": -4.44,
+            "p": 1e-05
+          },
+          "holdout": {
+            "n": 68,
+            "mean_bps": -1.98,
+            "win": 0.456,
+            "t": -0.92,
+            "p": 0.35777
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 457,
+            "mean_bps": -3.08,
+            "win": 0.372,
+            "t": -4.48,
+            "p": 1e-05
+          },
+          "holdout": {
+            "n": 197,
+            "mean_bps": -3.04,
+            "win": 0.431,
+            "t": -2.29,
+            "p": 0.02176
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:LL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 475,
+            "mean_bps": -3.06,
+            "win": 0.396,
+            "t": -4.71,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 186,
+            "mean_bps": -3.65,
+            "win": 0.425,
+            "t": -2.38,
+            "p": 0.01751
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:TREND_UP:HH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 148,
+            "mean_bps": -4.94,
+            "win": 0.311,
+            "t": -4.91,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 68,
+            "mean_bps": -3.34,
+            "win": 0.397,
+            "t": -1.37,
+            "p": 0.17078
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:HL",
+          "horizon_bars": 12,
+          "train": {
+            "n": 406,
+            "mean_bps": -4.92,
+            "win": 0.372,
+            "t": -5.09,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 169,
+            "mean_bps": -4.24,
+            "win": 0.438,
+            "t": -2.21,
+            "p": 0.02738
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:LH",
+          "horizon_bars": 12,
+          "train": {
+            "n": 367,
+            "mean_bps": -4.78,
+            "win": 0.338,
+            "t": -5.11,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 147,
+            "mean_bps": -5.73,
+            "win": 0.374,
+            "t": -2.45,
+            "p": 0.01429
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "EVT:BREAK_DOWN_MIXED",
+          "horizon_bars": 6,
+          "train": {
+            "n": 455,
+            "mean_bps": -3.89,
+            "win": 0.378,
+            "t": -5.33,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 194,
+            "mean_bps": -2.67,
+            "win": 0.402,
+            "t": -1.71,
+            "p": 0.08783
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "EVT:BREAK_UP_MIXED",
+          "horizon_bars": 6,
+          "train": {
+            "n": 452,
+            "mean_bps": -3.83,
+            "win": 0.356,
+            "t": -5.92,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 207,
+            "mean_bps": -2.61,
+            "win": 0.401,
+            "t": -1.99,
+            "p": 0.04676
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:LH",
+          "horizon_bars": 6,
+          "train": {
+            "n": 495,
+            "mean_bps": -3.89,
+            "win": 0.341,
+            "t": -6.62,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 199,
+            "mean_bps": -4.71,
+            "win": 0.382,
+            "t": -3.6,
+            "p": 0.00031
+          },
+          "verdict": "HURTS"
+        },
+        {
+          "pattern": "REGIME:MIXED:HL",
+          "horizon_bars": 6,
+          "train": {
+            "n": 515,
+            "mean_bps": -4.26,
+            "win": 0.361,
+            "t": -7.1,
+            "p": 0.0
+          },
+          "holdout": {
+            "n": 219,
+            "mean_bps": -4.83,
+            "win": 0.379,
+            "t": -3.69,
+            "p": 0.00022
+          },
+          "verdict": "HURTS"
+        }
+      ]
+    },
+    {
+      "error": "only 1728 bars for BANKNIFTY 5m"
+    },
+    {
+      "error": "only 412 bars for NIFTY 1h"
+    }
+  ]
+}
