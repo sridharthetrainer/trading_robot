@@ -375,6 +375,63 @@ def is_post_market(now: Optional[datetime] = None) -> bool:
     return current.weekday() < 5 and current.time() >= time(15, 35)
 
 
+def build_evidence_digest(day: Optional[str] = None) -> str:
+    """EOD evidence digest for the option channel: what the bot LEARNED
+    today — labelled outcomes, win rate by OI-flow bucket, autotune
+    weight extremes, and progress toward the audit's evidence gates.
+    Makes the learning loop visible instead of silent. Best-effort text."""
+    import sqlite3
+    d = day or date.today().isoformat()
+    lines = [f"🧪 <b>OPTION EVIDENCE DIGEST</b> · {d}"]
+    try:
+        with sqlite3.connect("option_chain_snapshots.db") as conn:
+            row = conn.execute(
+                "SELECT COUNT(*), SUM(outcome_label=1), ROUND(AVG(net_pnl),0) "
+                "FROM option_strike_signals WHERE snapshot_time LIKE ? "
+                "AND outcome_label IN (-1,0,1)", (d + "%",)).fetchone()
+            n, wins, avg = int(row[0] or 0), int(row[1] or 0), row[2]
+            if n:
+                lines.append(f"📊 Labelled today: {n} · wins {wins} "
+                             f"({wins / n * 100:.0f}%) · avg net ₹{avg}")
+                flows = conn.execute(
+                    "SELECT flow, COUNT(*), SUM(outcome_label=1), ROUND(AVG(net_pnl),0) "
+                    "FROM option_strike_signals WHERE snapshot_time LIKE ? "
+                    "AND outcome_label IN (-1,0,1) GROUP BY flow ORDER BY 4 DESC",
+                    (d + "%",)).fetchall()
+                for f, fn, fw, fa in flows[:5]:
+                    lines.append(f"   {f}: {int(fw or 0)}/{fn} · ₹{fa}")
+            else:
+                lines.append("📊 No outcomes labelled today (labeller runs EOD).")
+    except Exception as exc:
+        lines.append(f"📊 Strike outcomes unavailable ({str(exc)[:40]})")
+    try:
+        tune = json.loads(Path("option_strike_autotune.json").read_text())
+        weights = tune.get("feature_weights", {}) or {}
+        if weights:
+            import html as _html
+            ranked = sorted(weights.items(), key=lambda kv: kv[1])
+            # feature names like premium:<5 must not read as HTML tags
+            worst = ", ".join(f"{_html.escape(k)} {v}" for k, v in ranked[:2])
+            best = ", ".join(f"{_html.escape(k)} {v}" for k, v in ranked[-2:])
+            lines.append(f"⚖️ Autotune ({tune.get('verified_generated_outcomes', 0)} "
+                         f"verified): worst {worst} · best {best}")
+    except Exception as exc:
+        lines.append(f"⚖️ Autotune unavailable ({str(exc)[:40]})")
+    try:
+        rep = json.loads(Path("option_bot_audit_report.json").read_text())
+        s = rep.get("score", {}) or {}
+        jr = rep.get("decision_journal", {}) or {}
+        blocks = s.get("evidence_blocks", []) or []
+        lines.append(f"🎯 Gates: score {s.get('total', '?')}/100 "
+                     f"{s.get('readiness', '')} · live selections "
+                     f"{jr.get('verified_selected', 0)}/10"
+                     + (f" · blocks: {', '.join(blocks)}" if blocks else ""))
+    except Exception as exc:
+        lines.append(f"🎯 Audit gates unavailable ({str(exc)[:40]})")
+    lines.append("<i>Evidence only — no validated edge yet; paper mode.</i>")
+    return "\n".join(lines)
+
+
 def send_post_market_option_report(*, force: bool = False) -> Dict[str, Any]:
     """Send once per session to OPTION_BOT_TOKEN/OPTION_CHAT_ID after 15:35."""
     today = date.today().isoformat()
@@ -392,11 +449,19 @@ def send_post_market_option_report(*, force: bool = False) -> Dict[str, Any]:
         return {"ok": False, "skipped": "option_telegram_not_configured"}
     report = generate_option_report(today)
     from alerts import AlertManager
-    sent = AlertManager(bot_token=token, chat_id=chat, name="option").send_photo(
-        report["path"], report["caption"])
+    am = AlertManager(bot_token=token, chat_id=chat, name="option")
+    sent = am.send_photo(report["path"], report["caption"])
+    digest_sent = False
+    try:
+        digest_sent = bool(am.send(build_evidence_digest(today),
+                                   dedup_key=f"opt_evidence:{today}",
+                                   cooldown=6 * 3600))
+    except Exception as exc:
+        logger.debug("evidence digest send failed: %s", exc)
     if sent:
         STATE_FILE.write_text(json.dumps({"sent_for": today, "sent_at": datetime.now().isoformat()}, indent=2))
-    return {"ok": bool(sent), "day": today, "path": report["path"]}
+    return {"ok": bool(sent), "day": today, "path": report["path"],
+            "evidence_digest_sent": digest_sent}
 
 
 if __name__ == "__main__":

@@ -705,6 +705,9 @@ class TelegramCommandHandler:
         self.register("start",       self._cmd_start)
         self.register("status",      self._cmd_status)
         self.register("health",      self._cmd_health)
+        self.register("sysaudit",    self._cmd_sysaudit)
+        self.register("selfaudit",   self._cmd_sysaudit)
+        self.register("wiring",      self._cmd_sysaudit)
         self.register("state",       self._cmd_state)
         self.register("mode",        self._cmd_mode)
         self.register("version",     self._cmd_version)
@@ -1100,7 +1103,8 @@ class TelegramCommandHandler:
             "  /config  /capital  /threshold\n"
             "  /broker  /dhan  /zerodha\n"
             "  /session  /tax  /reentry\n"
-            "  /health  /log  /restart  /version\n\n"
+            "  /health  /sysaudit 🆕  /log  /restart\n"
+            "  /version\n\n"
             "💡 Most commands accept a symbol: <code>/signals RELIANCE</code>"
         )
 
@@ -1388,6 +1392,93 @@ class TelegramCommandHandler:
                     f"  Results in ~5 min on Telegram.")
         except Exception as e:
             return f"⚠️ Training error: {e}"
+
+    def _cmd_sysaudit(self, _="") -> str:
+        """One card for the self-audit systems: option-bot audit score,
+        wiring watchdog regressions, job catch-up ledger, forward-holdout
+        candidates. All read from their report files, best-effort."""
+        import json as _json
+        from datetime import datetime as _dt, timedelta as _td
+        from pathlib import Path as _Path
+        lines = ["🧾 <b>SYSTEM SELF-AUDIT</b>", "─" * 30]
+
+        # 1. Option bot audit (option_bot_audit_report.json)
+        try:
+            rep = _json.loads(_Path("option_bot_audit_report.json").read_text())
+            s = rep.get("score", {}) or {}
+            auto = s.get("autonomous_score", {}) or {}
+            blocks = s.get("evidence_blocks", []) or []
+            lines.append(
+                f"🤖 Option bot: <b>{s.get('total', '?')}/100</b> "
+                f"{s.get('grade', '')} · {s.get('readiness', '')}")
+            lines.append(f"   autonomy {auto.get('total', '?')}/100"
+                         + (f" · blocks: {', '.join(blocks)}" if blocks else " · no evidence blocks"))
+            jr = rep.get("decision_journal", {}) or {}
+            lines.append(
+                f"   verified: {jr.get('verified_generated_outcomes', 0)} journal + "
+                f"{(rep.get('option_chain_snapshots', {}) or {}).get('verified_strike_outcomes', 0)} strike outcomes | "
+                f"live selections {jr.get('verified_selected', 0)}/10")
+        except Exception as e:
+            lines.append(f"🤖 Option bot audit: unavailable ({str(e)[:40]})")
+
+        # 2. Wiring watchdog (nightly)
+        try:
+            w = _json.loads(_Path("wiring_watchdog_report.json").read_text())
+            regressions = (list(w.get("new_dead_columns", []))
+                           + list(w.get("new_orphan_modules", []))
+                           + [e.get("strategy", "?") for e in w.get("strategy_errors", [])])
+            stale = w.get("stale_artifacts", []) or []
+            icon = "✅" if w.get("ok") else "⚠️"
+            lines.append(f"{icon} Wiring watchdog ({str(w.get('generated_at', ''))[:16]})")
+            if regressions:
+                lines.append(f"   ❌ regressions: {', '.join(regressions[:6])}")
+            for st in stale[:4]:
+                lines.append(f"   ⏳ {st.get('file')}: {st.get('status')}"
+                             + (f" ({st.get('age_hours')}h)" if st.get("age_hours") else ""))
+            if w.get("revived_columns"):
+                lines.append(f"   💚 revived: {', '.join(w['revived_columns'][:6])}")
+            if not regressions and not stale:
+                lines.append(f"   clean · {len(w.get('dead_columns_now', []))} known-dead cols, "
+                             f"{len(w.get('orphan_modules', []))} known orphans")
+        except Exception as e:
+            lines.append(f"🔌 Wiring watchdog: unavailable ({str(e)[:40]})")
+
+        # 3. Job catch-up ledger (today + yesterday)
+        try:
+            cu = _json.loads(_Path("job_catchup_report.json").read_text())
+            days = [( _dt.now() - _td(days=d)).strftime("%Y-%m-%d") for d in (0, 1)]
+            counts = {"on_time": 0, "catch_up": 0, "failed": 0}
+            failed_names = []
+            for d in days:
+                for job, meta in (cu.get(d, {}) or {}).items():
+                    mode = str((meta or {}).get("mode", ""))
+                    if "fail" in mode:
+                        counts["failed"] += 1
+                        failed_names.append(f"{job}({d[5:]})")
+                    elif "catch" in mode:
+                        counts["catch_up"] += 1
+                    else:
+                        counts["on_time"] += 1
+            lines.append(f"🕒 Jobs (48h): {counts['on_time']} on-time · "
+                         f"{counts['catch_up']} caught-up · {counts['failed']} failed")
+            if failed_names:
+                lines.append(f"   ❌ {', '.join(failed_names[:5])}")
+        except Exception as e:
+            lines.append(f"🕒 Job catch-up: unavailable ({str(e)[:40]})")
+
+        # 4. Forward-holdout ledger (learned-filter candidates)
+        try:
+            led = _json.loads(_Path("learned_filter_ledger.json").read_text())
+            fw = [float((v or {}).get("forward_days", 0) or 0) for v in led.values()]
+            lf = _json.loads(_Path("learned_filters.json").read_text())
+            lines.append(
+                f"📈 Holdout ledger: {len(led)} candidates · "
+                f"max forward {max(fw) if fw else 0:.0f}d · "
+                f"promoted rules {'ACTIVE' if lf.get('active') else 'none yet'}")
+        except Exception as e:
+            lines.append(f"📈 Holdout ledger: unavailable ({str(e)[:40]})")
+
+        return "\n".join(lines)
 
     def _cmd_health(self, _="") -> str:
         """System health: CPU, memory, connections."""
