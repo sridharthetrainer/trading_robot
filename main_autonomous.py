@@ -5336,6 +5336,29 @@ class AutonomousTradingSystem:
             except Exception as _oite:
                 logger.debug("OITracker: %s", _oite)
 
+        # 2026-07-13: the 5-min option snapshot recorder had NO runner (no
+        # systemd unit, no cron — run_option_snapshot_recorder.sh was wired
+        # to nothing). The only snapshots came from the live-engine hook at
+        # scan pace (~26 min), so "5-min" OI-flow deltas were computed over
+        # 26-minute gaps all along. Run the loop in-process like OITracker;
+        # it self-sleeps outside market hours.
+        try:
+            import os as _snap_os
+            import threading as _snap_thr
+            from option_chain_recorder import run_snapshot_loop as _snap_loop
+            _snap_syms = [s.strip().upper() for s in _snap_os.getenv(
+                "SNAPSHOT_OPTION_UNDERLYINGS", "NIFTY,BANKNIFTY,FINNIFTY"
+            ).split(",") if s.strip()]
+            _snap_thr.Thread(
+                target=_snap_loop, args=(_snap_syms,),
+                kwargs={"interval_sec": int(_snap_os.getenv(
+                    "OPTION_CHAIN_SNAPSHOT_INTERVAL_SEC", "300"))},
+                daemon=True, name="OptionSnapshotRecorder",
+            ).start()
+            logger.info("Option snapshot recorder started (5-min, in-process)")
+        except Exception as _sre:
+            logger.debug("snapshot recorder: %s", _sre)
+
         # Init LLM trading agent
         self._agent = None
         if _AGENT_AVAILABLE:

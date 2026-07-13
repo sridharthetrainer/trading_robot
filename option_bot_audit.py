@@ -662,6 +662,32 @@ def _score_option_bot_autonomy(audit: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _recorder_cadence_ok(db: Path, min_rows_per_underlying: int = 30) -> bool:
+    """True when the most recent snapshot day shows a real 5-min-ish cadence.
+
+    A 5-min loop yields ~75 rows/underlying/session; the live-engine hook
+    alone (scan-paced, ~26 min) yields ~14. The threshold separates 'the
+    recorder actually ran' from 'only the fallback hook fired'.
+    """
+    if not db.exists():
+        return False
+    try:
+        with sqlite3.connect(db) as conn:
+            last_day = conn.execute(
+                "SELECT MAX(substr(snapshot_time,1,10)) FROM option_chain_snapshots WHERE ok=1"
+            ).fetchone()[0]
+            if not last_day:
+                return False
+            per_underlying = conn.execute(
+                "SELECT MAX(cnt) FROM (SELECT COUNT(*) cnt FROM option_chain_snapshots "
+                "WHERE ok=1 AND snapshot_time LIKE ? GROUP BY underlying)",
+                (last_day + "%",),
+            ).fetchone()[0]
+            return int(per_underlying or 0) >= min_rows_per_underlying
+    except Exception:
+        return False
+
+
 def build_audit() -> Dict[str, Any]:
     today = datetime.now().strftime("%Y-%m-%d")
     signal_db = Path("signal_log.db")
@@ -721,8 +747,11 @@ def build_audit() -> Dict[str, Any]:
         "automation": {
             "live_engine_snapshot_hook": "_record_learning_snapshots" in Path("live_signal_engine.py").read_text(encoding="utf-8", errors="replace")
             if Path("live_signal_engine.py").exists() else False,
-            "recorder_loop": "def run_snapshot_loop" in Path("option_chain_recorder.py").read_text(encoding="utf-8", errors="replace")
-            if Path("option_chain_recorder.py").exists() else False,
+            # Runtime evidence, not code presence: the loop existed for weeks
+            # while NOTHING ran it (no unit, no cron) and this flag stayed
+            # green. Require an actual 5-min-ish cadence on the most recent
+            # snapshot day (>=30 rows; engine-paced fallback gives ~14/underlying).
+            "recorder_loop": _recorder_cadence_ok(Path("option_chain_snapshots.db")),
             "eod_shadow_labeller": Path("option_shadow_labeller.py").exists()
             and "option_shadow_labels" in Path("autonomous_learning_cycle.py").read_text(encoding="utf-8", errors="replace"),
             "eod_structure_miner": Path("eod_option_structure_miner.py").exists()
