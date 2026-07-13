@@ -1,76 +1,97 @@
 {
-  "generated_at": "2026-06-25T16:20:19",
+  "generated_at": "2026-07-13T20:42:23",
   "option_chain_snapshots": {
     "exists": true,
-    "rows": 1074,
-    "ok_rows": 1059,
-    "latest": "2026-06-25T15:32:05+0530",
-    "latest_ok": "2026-06-25T15:32:05+0530",
-    "latest_ok_age_hours": 0.8,
+    "rows": 2152,
+    "ok_rows": 1848,
+    "verified_live_rows": 789,
+    "latest_verified_live": "2026-07-13T15:06:00+0530",
+    "latest": "2026-07-13T15:06:00+0530",
+    "latest_ok": "2026-07-13T15:06:00+0530",
+    "latest_ok_age_hours": 5.61,
     "recent_failures": [
+      {
+        "underlying": "NIFTY",
+        "reason": "non_live_source:cache_eod",
+        "count": 277
+      },
       {
         "underlying": "BANKNIFTY",
         "reason": "no_option_chain",
-        "count": 4
+        "count": 5
       },
       {
         "underlying": "NIFTY",
         "reason": "no_option_chain",
-        "count": 4
+        "count": 5
+      },
+      {
+        "underlying": "BANKNIFTY",
+        "reason": "non_live_source:cache",
+        "count": 3
       },
       {
         "underlying": "FINNIFTY",
         "reason": "no_option_chain",
-        "count": 2
-      },
-      {
-        "underlying": "SENSEX",
-        "reason": "no_option_chain",
-        "count": 2
-      },
-      {
-        "underlying": "BANKNIFTY",
-        "reason": "No module named 'pandas'",
-        "count": 1
+        "count": 3
       }
-    ]
+    ],
+    "strike_signal_rows": 18470,
+    "strike_signal_labelled": 15767,
+    "verified_strike_outcomes": 6552,
+    "today_strike_rows": 420,
+    "today_strike_tradable": 0,
+    "today_strike_labelled": 333
   },
   "decision_journal": {
     "exists": true,
-    "rows": 1306,
+    "rows": 4436,
     "decisions": {
-      "selected": 324,
-      "blocked_quality": 35,
-      "chain_snapshot_evidence": 792,
-      "chain_snapshot_neutral": 35,
-      "chain_signal": 98,
-      "chain_neutral": 22
+      "selected": 1807,
+      "blocked_quality": 104,
+      "chain_snapshot_evidence": 1419,
+      "chain_snapshot_neutral": 386,
+      "chain_signal": 398,
+      "chain_neutral": 249,
+      "blocked_no_tradeable_strike": 54,
+      "selected_pre_trade": 7,
+      "blocked_no_option_chain": 12
     },
-    "today_rows": 73,
+    "today_rows": 158,
     "today_decisions": {
-      "chain_signal": 47,
-      "blocked_quality": 17,
-      "chain_neutral": 9
+      "selected": 80,
+      "chain_signal": 38,
+      "chain_neutral": 18,
+      "blocked_quality": 20,
+      "blocked_no_option_chain": 2
     },
-    "today_selected": 0,
-    "today_blocked": 17,
+    "today_selected": 80,
+    "today_blocked": 22,
     "today_chain_signal": 56,
-    "selected_with_shadow": 324
+    "selected_with_shadow": 1814,
+    "verified_selected": 7,
+    "executed_selected": 0,
+    "synthetic_rows": 3572,
+    "research_rows": 3572,
+    "verified_outcomes": 0,
+    "verified_shadow_outcomes": 0,
+    "verified_generated_outcomes": 0
   },
   "strike_autotune": {
     "exists": true,
-    "labelled_selected": 324,
-    "labelled_shadow": 2596,
-    "weights": 30
+    "labelled_selected": 1767,
+    "labelled_shadow": 14143,
+    "weights": 41,
+    "verified_generated_outcomes": 6552
   },
   "option_structure_mining": {
     "report_exists": true,
     "db_exists": true,
-    "legs": 122,
+    "legs": 444,
     "symbols": 4,
-    "latest_session": "2026-06-24",
+    "latest_session": "2026-07-10",
     "top_edges": 10,
-    "report_legs": 69
+    "report_legs": 94
   },
   "hero_zero": {
     "module_exists": true,
@@ -135,7 +156,7 @@
   "historical_replay": {
     "exists": true,
     "ok": true,
-    "generated_at": "2026-06-24T21:30:19+0530",
+    "generated_at": "2026-07-13T01:24:09+0530",
     "written": 80,
     "shadow_outcomes": 640,
     "type_counts": {
@@ -143,9 +164,10 @@
       "PE": 41
     },
     "style_counts": {
-      "scalping": 16,
-      "swing": 25,
-      "intraday": 39
+      "intraday": 34,
+      "swing": 24,
+      "position": 14,
+      "scalping": 8
     }
   },
   "quality_layer": {
@@ -159,14 +181,14 @@
   "signal_log": {
     "exists": true,
     "signal_log_option_rows": 0,
-    "today_option_rows": 73,
+    "today_option_rows": 158,
     "today_executed_option_rows": 0
   },
   "historical_options": {
     "exists": true,
-    "rows": 3143775,
+    "rows": 3162107,
     "first_date": "2020-01-01",
-    "last_date": "2026-06-24"
+    "last_date": "2026-07-10"
   },
   "telegram_oi_tools": {
     "telegram_commands": true,
@@ -177,7 +199,7 @@
   },
   "automation": {
     "live_engine_snapshot_hook": true,
-    "recorder_loop": true,
+    "recorder_loop": false,
     "eod_shadow_labeller": true,
     "eod_structure_miner": true
   },
@@ -203,19 +225,21 @@
     "autonomous_learning_task": true
   },
   "score": {
-    "total": 98.0,
+    "total": 95.0,
+    "capability_score": 95.0,
+    "evidence_score": 95.0,
     "max": 100,
     "grade": "A",
-    "readiness": "LIVE_READY",
+    "readiness": "EVIDENCE_READY",
     "autonomous_score": {
-      "total": 100.0,
+      "total": 93.8,
       "max": 100,
       "grade": "A",
       "parts": {
         "automation": {
-          "score": 25.0,
+          "score": 18.8,
           "max": 25,
-          "detail": "4/4 autonomous option loops wired"
+          "detail": "3/4 autonomous option loops wired"
         },
         "telegram_oi_tools": {
           "score": 20.0,
@@ -225,7 +249,7 @@
         "historical_options": {
           "score": 20,
           "max": 20,
-          "detail": "3143775 historical option rows"
+          "detail": "3162107 historical option rows"
         },
         "source_modules": {
           "score": 20.0,
@@ -237,33 +261,38 @@
           "max": 15,
           "detail": "4/4 audit/report schedules wired"
         }
-      }
+      },
+      "raw_capability_score": 93.8,
+      "evidence_blocks": []
     },
+    "raw_capability_score": 95.0,
+    "minimum_verified_outcomes": 500,
+    "evidence_blocks": [],
     "parts": {
       "snapshot_capture": {
         "score": 25,
         "max": 25,
-        "detail": "ok_rows=1059, rows=1074, latest_ok=2026-06-25T15:32:05+0530"
+        "detail": "verified_live=789, ok_rows=1848, rows=2152, latest=2026-07-13T15:06:00+0530"
       },
       "decision_journal": {
-        "score": 15,
+        "score": 13.5,
         "max": 15,
-        "detail": "rows=1306, selected=324, selected_with_shadow=324"
+        "detail": "rows=4436, selected=1814, verified=7, generated_outcomes=6552, executed=0, research=3572"
       },
       "strike_autotune": {
         "score": 20,
         "max": 20,
-        "detail": "selected=324, shadow=2596, weights=30"
+        "detail": "research_selected=1767, research_shadow=14143, verified_generated=6552, weights=41"
       },
       "historical_options": {
         "score": 15,
         "max": 15,
-        "detail": "rows=3143775, range=2020-01-01..2026-06-24"
+        "detail": "rows=3162107, range=2020-01-01..2026-07-10"
       },
       "signal_activity": {
         "score": 8.0,
         "max": 10,
-        "detail": "today_option_rows=73, executed=0, journal_rows=73, chain_rows=56, signal_log_option_rows=0"
+        "detail": "today_option_rows=420, executed=0, journal_rows=158, chain_rows=56, strike_rows=420, signal_log_option_rows=0"
       },
       "telegram_oi_tools": {
         "score": 10.0,
@@ -271,9 +300,9 @@
         "detail": "telegram_commands, oi_chart, strikeflow, multi_strike_chart, send_photo"
       },
       "automation": {
-        "score": 5.0,
+        "score": 3.5,
         "max": 5,
-        "detail": "live_engine_snapshot_hook, recorder_loop, eod_shadow_labeller, eod_structure_miner"
+        "detail": "live_engine_snapshot_hook, eod_shadow_labeller, eod_structure_miner"
       }
     },
     "top_improvements": []

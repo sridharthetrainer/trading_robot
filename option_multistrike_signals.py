@@ -565,19 +565,39 @@ def update_signal_lifecycle(
     return events
 
 
+UNLABELABLE_OUTCOME = -3  # distinct from -99 (pending/retry) and -2 (journal "unfilled")
+
+
 def label_multistrike_outcomes(
     *,
     db_path: str = "option_chain_snapshots.db",
     min_horizon_sec: int = 900,
     max_horizon_sec: int = 3600,
+    extended_horizon_sec: int = 6 * 3600,
+    stale_after_sec: int = 6 * 3600,
     limit: int = 20000,
 ) -> Dict[str, Any]:
-    """Label every generated strike-flow signal from a later premium observation."""
+    """Label every generated strike-flow signal from a later premium observation.
+
+    Two-tier forward search: the intended short window first (min_horizon_sec
+    to max_horizon_sec), then a same-day extended window if the recorder had
+    a coverage gap over the short one (the recorder tracks a moving ATM±N
+    strike band, so a specific strike can silently drop out of capture for
+    hours — a rigid single window then loses that signal's evidence forever).
+    Rows that still have no match AND are older than stale_after_sec are
+    marked UNLABELABLE_OUTCOME instead of left pending: this both stops an
+    unbounded nightly rescan of permanently-dead rows (2026-07-13: last
+    night's run rescanned 3,342 pending rows and labelled ZERO of them) and
+    makes the gap auditable instead of an invisible growing "pending" count.
+    """
     from shadow_execution import simulate_option_round_trip
 
     labelled = 0
+    labelled_extended = 0
     skipped = 0
+    marked_unlabelable = 0
     verified = 0
+    now_ts = time.time()
     live_sources = {"nse_live", "resilience_nse", "angel", "angel_eod", "angel_fallback", "sensibull", "bse", "bse_oc"}
     with sqlite3.connect(db_path) as conn:
         ensure_multistrike_schema(conn)
@@ -588,6 +608,7 @@ def label_multistrike_outcomes(
             (max(1, int(limit)),),
         ).fetchall()
         for row in pending:
+            entry_ts = float(row["ts"])
             future = conn.execute(
                 """
                 SELECT price,ts,spread_pct,volume FROM option_strike_signals
@@ -598,18 +619,47 @@ def label_multistrike_outcomes(
                 """,
                 (
                     row["underlying"], row["expiry"], row["strike"], row["option_type"],
-                    float(row["ts"]) + max(60, int(min_horizon_sec)),
-                    float(row["ts"]) + max(int(min_horizon_sec), int(max_horizon_sec)),
+                    entry_ts + max(60, int(min_horizon_sec)),
+                    entry_ts + max(int(min_horizon_sec), int(max_horizon_sec)),
                 ),
             ).fetchone()
+            extended = False
+            if not future and extended_horizon_sec > max_horizon_sec:
+                future = conn.execute(
+                    """
+                    SELECT price,ts,spread_pct,volume FROM option_strike_signals
+                     WHERE upper(underlying)=upper(?) AND expiry=? AND strike=?
+                       AND upper(option_type)=upper(?) AND price>0
+                       AND ts>?  AND ts<=?
+                     ORDER BY ts LIMIT 1
+                    """,
+                    (
+                        row["underlying"], row["expiry"], row["strike"], row["option_type"],
+                        entry_ts + int(max_horizon_sec),
+                        entry_ts + max(int(max_horizon_sec), int(extended_horizon_sec)),
+                    ),
+                ).fetchone()
+                extended = bool(future)
             if not future:
                 skipped += 1
+                if now_ts - entry_ts > max(0, int(stale_after_sec)):
+                    conn.execute(
+                        "UPDATE option_strike_signals SET outcome_label=?,"
+                        "execution_status=?,labelled_at=? WHERE rowid=?",
+                        (UNLABELABLE_OUTCOME, "no_future_price_data",
+                         time.strftime("%Y-%m-%dT%H:%M:%S%z"), row["rowid"]),
+                    )
+                    marked_unlabelable += 1
                 continue
             execution = simulate_option_round_trip(
                 row["price"], future["price"], side="BUY",
                 entry_spread_pct=row["spread_pct"], exit_spread_pct=future["spread_pct"],
                 observed_volume=row["volume"],
             )
+            status = execution["execution_status"]
+            if extended:
+                labelled_extended += 1
+                status = f"{status},extended_horizon"
             conn.execute(
                 """
                 UPDATE option_strike_signals
@@ -621,7 +671,7 @@ def label_multistrike_outcomes(
                 (
                     execution["label"], execution["fill_exit_price"], execution["gross_pnl"],
                     execution["estimated_costs"], execution["net_pnl"],
-                    time.strftime("%Y-%m-%dT%H:%M:%S%z"), execution["execution_status"],
+                    time.strftime("%Y-%m-%dT%H:%M:%S%z"), status,
                     execution["fill_latency_sec"], execution["fill_probability"],
                     execution["capital_at_risk"], execution["net_r"], row["rowid"],
                 ),
@@ -633,8 +683,10 @@ def label_multistrike_outcomes(
     return {
         "ok": True,
         "labelled": labelled,
+        "labelled_extended_horizon": labelled_extended,
         "verified_labelled": verified,
         "skipped_no_future_price": skipped,
+        "marked_unlabelable": marked_unlabelable,
         "pending_seen": len(pending),
     }
 
