@@ -64,17 +64,102 @@ def _nse_session() -> requests.Session:
     return s
 
 
+_FETCHERS: Dict[str, object] = {}
+# Last failure reason per symbol — surfaced by the loop's escalation so a
+# day of silent fetch failures (2026-07-13: state frozen ALL DAY while the
+# recorder captured 42 snapshots in its own process) is loud, not DEBUG.
+_LAST_FETCH_ERROR: Dict[str, str] = {}
+
+
+def _chain_from_snapshot_db(symbol: str, max_age_min: float = 12.0) -> Optional[dict]:
+    """Rebuild an NSE-shaped chain from the recorder's latest DB snapshot.
+
+    The snapshot recorder (separate service) proved reliable on the exact
+    day this tracker's in-process fetch silently failed for a full session.
+    Feeding off its option_chain_snapshots rows gives the tracker a second,
+    already-validated source instead of a duplicate failure mode.
+    """
+    import json as _json
+    import sqlite3
+    from datetime import datetime as _dt
+    try:
+        with sqlite3.connect("option_chain_snapshots.db") as conn:
+            row = conn.execute(
+                "SELECT snapshot_time, spot, rows_json FROM option_chain_snapshots "
+                "WHERE underlying=? AND ok=1 ORDER BY ts DESC LIMIT 1", (symbol,)
+            ).fetchone()
+        if not row:
+            return None
+        snap_dt = _dt.fromisoformat(str(row[0]))
+        age_min = (_dt.now(tz=snap_dt.tzinfo) - snap_dt).total_seconds() / 60.0
+        if age_min > max_age_min:
+            _LAST_FETCH_ERROR[symbol] = f"snapshot_db_stale_{age_min:.0f}min"
+            return None
+        data = []
+        for r in _json.loads(row[2]) or []:
+            entry: Dict[str, object] = {
+                "strikePrice": r.get("strikePrice", 0),
+                "expiryDate": r.get("expiryDate", ""),
+            }
+            for side in ("CE", "PE"):
+                entry[side] = {
+                    "openInterest": r.get(f"{side}_openInterest", 0),
+                    "changeinOpenInterest": r.get(f"{side}_changeinOpenInterest", 0),
+                    "lastPrice": r.get(f"{side}_lastPrice", 0),
+                    "change": 0,
+                    "impliedVolatility": r.get(f"{side}_impliedVolatility", 0),
+                    "totalTradedVolume": r.get(f"{side}_totalTradedVolume", 0),
+                }
+            data.append(entry)
+        if not data:
+            return None
+        return {"records": {"data": data, "underlyingValue": float(row[1] or 0)}}
+    except Exception as e:
+        _LAST_FETCH_ERROR[symbol] = f"snapshot_db:{str(e)[:80]}"
+        logger.debug("chain from snapshot db %s: %s", symbol, e)
+        return None
+
+
 def _fetch_chain(symbol: str) -> Optional[dict]:
+    """NSE-shaped chain via the resilient fetcher (Angel fallback included).
+
+    The direct nseindia.com call has 404'd since mid-June — with it as the
+    only source this tracker ran all day producing NOTHING (state file
+    frozen for weeks while the loop looked alive). OptionChainFetcher.fetch()
+    returns the same records.data shape from whichever source works.
+    Final fallback: the snapshot recorder's DB (fresh ≤12 min), so this
+    tracker can never again fail alone while the recorder succeeds.
+    """
+    try:
+        if symbol not in _FETCHERS:
+            from option_chain_fetcher import NSEOptionChainFetcher
+            _FETCHERS[symbol] = NSEOptionChainFetcher(
+                underlying=symbol,
+                cache_file=f"option_chain_cache_{symbol.lower()}.json",
+            )
+        raw = _FETCHERS[symbol].fetch()
+        if raw and ((raw.get("records") or {}).get("data")):
+            _LAST_FETCH_ERROR.pop(symbol, None)
+            return raw
+        _LAST_FETCH_ERROR[symbol] = "fetcher_returned_empty"
+    except Exception as e:
+        _LAST_FETCH_ERROR[symbol] = f"fetcher:{str(e)[:80]}"
+        logger.debug("fetch_chain resilient %s: %s", symbol, e)
+    # Legacy direct NSE call, kept as last resort
     try:
         s = _nse_session()
         r = s.get(
             f"https://www.nseindia.com/api/option-chain-indices?symbol={symbol}",
             timeout=12,
         )
-        return r.json() if r.status_code == 200 else None
+        if r.status_code == 200:
+            _LAST_FETCH_ERROR.pop(symbol, None)
+            return r.json()
+        _LAST_FETCH_ERROR[symbol] = f"nse_http_{r.status_code}"
     except Exception as e:
+        _LAST_FETCH_ERROR[symbol] = f"nse:{str(e)[:80]}"
         logger.debug("fetch_chain %s: %s", symbol, e)
-        return None
+    return _chain_from_snapshot_db(symbol)
 
 
 def _parse_chain(raw: dict) -> Tuple[float, Dict[str, dict]]:
@@ -249,6 +334,12 @@ class OITracker:
     def _loop(self) -> None:
         last_bar       = -1
         alert_schedule = {"10:30": False, "12:30": False, "14:30": False, "15:15": False}
+        # Escalation: on 2026-07-13 this loop failed EVERY bar for a whole
+        # session with only DEBUG traces — invisible at the bot's INFO
+        # level. Consecutive failures now warn every ~30 min and alert
+        # Telegram once per day, with the underlying fetch errors attached.
+        consec_fail    = 0
+        fail_alerted   = ""
 
         while True:
             try:
@@ -261,8 +352,31 @@ class OITracker:
                 bar_id = (now.hour * 60 + now.minute) // 5
                 if bar_id != last_bar:
                     last_bar = bar_id
+                    any_ok = False
                     for sym in ["NIFTY", "BANKNIFTY"]:
-                        self._refresh(sym)
+                        if self._refresh(sym):
+                            any_ok = True
+                    if any_ok:
+                        consec_fail = 0
+                    else:
+                        consec_fail += 1
+                        if consec_fail % 6 == 0:   # every ~30 min of failure
+                            logger.warning(
+                                "OITracker: %d consecutive failed refreshes | errors=%s",
+                                consec_fail, dict(_LAST_FETCH_ERROR))
+                        today = now.strftime("%Y-%m-%d")
+                        if consec_fail >= 6 and fail_alerted != today and self.alerts:
+                            fail_alerted = today
+                            try:
+                                self.alerts.send(
+                                    "⚠️ <b>OI TRACKER SILENT-FAIL</b>\n"
+                                    f"No successful chain refresh for {consec_fail} bars.\n"
+                                    f"Errors: {dict(_LAST_FETCH_ERROR)}\n"
+                                    "OI-buildup votes are abstaining until this recovers.",
+                                    dedup_key=f"oi_tracker_fail:{today}",
+                                    cooldown=12 * 3600)
+                            except Exception as _ae:
+                                logger.debug("oi tracker fail alert: %s", _ae)
 
                 # Scheduled summary alerts
                 ts_key = now.strftime("%H:%M")

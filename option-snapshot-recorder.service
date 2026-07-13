@@ -1,0 +1,20 @@
+[Unit]
+Description=Option chain snapshot recorder (5-min loop, market hours self-gated)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sridhar
+WorkingDirectory=/home/sridhar/Desktop/trading_robot
+EnvironmentFile=-/home/sridhar/Desktop/trading_robot/.env
+ExecStart=/home/sridhar/Desktop/trading_robot/run_option_snapshot_recorder.sh
+Restart=always
+RestartSec=30
+StartLimitIntervalSec=600
+StartLimitBurst=5
+UMask=0027
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
