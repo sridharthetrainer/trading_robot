@@ -508,6 +508,10 @@ def alert_generated_option_signals(
     if am is None:
         return 0
     sent = 0
+    try:
+        from option_bot_views import score_gauge
+    except Exception:
+        score_gauge = None
     for row in rows_to_send:
         strike = _safe_float(row.get("strike"))
         otype = str(row.get("option_type") or "").upper()
@@ -515,7 +519,13 @@ def alert_generated_option_signals(
         status = "ACTIONABLE" if row.get("tradable") else "WATCH — NOT ACTIONABLE"
         lines = [
             f"🎯 <b>{underlying} OPTION SIGNAL</b> · {status}",
-            f"<b>{signal} {strike:.0f}{otype}</b> · Score {_safe_float(row.get('score')):.1f}",
+            f"<b>{signal} {strike:.0f}{otype}</b>",
+        ]
+        if score_gauge is not None:
+            lines.append(score_gauge(row.get("score")))
+        else:
+            lines.append(f"Score {_safe_float(row.get('score')):.1f}")
+        lines += [
             f"Entry ₹{_safe_float(row.get('entry_price')):.2f} | SL ₹{_safe_float(row.get('stop_loss')):.2f}",
             f"T1 ₹{_safe_float(row.get('target_1')):.2f} | T2 ₹{_safe_float(row.get('target_2')):.2f}",
             f"Expiry {expiry or '-'} | Flow {row.get('flow','-')} | Source {row.get('source','-')}",
