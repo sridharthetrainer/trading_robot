@@ -26,6 +26,7 @@ rest of this system — this module measures, it does not wire.
 from __future__ import annotations
 
 import json
+import logging
 import math
 import sqlite3
 from datetime import datetime
@@ -33,6 +34,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from eod_signal_miner import MINER_DB, ensure_miner_schema
+
+logger = logging.getLogger(__name__)
 
 REPORT_FILE = Path("eod_setup_edge_report.json")
 TRAIN_FRAC = 0.70
@@ -134,8 +137,8 @@ def run(db_path: str = MINER_DB, min_days: int = 6) -> Dict[str, Any]:
     }
     try:
         REPORT_FILE.write_text(json.dumps(report, indent=2))
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("report write: %s", exc)
     return report
 
 
