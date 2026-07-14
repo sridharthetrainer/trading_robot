@@ -216,8 +216,10 @@ def get_strategy_weight(strategy: str, now: Optional[datetime] = None) -> float:
 
 
 def is_expiry_day() -> bool:
-    """True when today is Thursday (NSE weekly expiry day)."""
-    return datetime.now().weekday() == 3
+    """True when today is Tuesday (NSE weekly expiry day since 2025-09-01;
+    was Thursday before that — fixed 2026-07-14, verified against this
+    system's own live option-chain data, see expiry_regime.py module note)."""
+    return datetime.now().weekday() == 1
 
 
 def get_expiry_phase() -> Optional[str]:

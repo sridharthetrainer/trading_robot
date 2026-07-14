@@ -2,13 +2,13 @@
 expiry_regime.py  —  Expiry Day Regime & Rollover Week Detection
 
 EXPIRY DAY IS A DIFFERENT MARKET:
-  0DTE (Thursday weekly / last Thursday monthly):
+  0DTE (Tuesday weekly / month's last Tuesday monthly):
     - Options lose 50-80% theta by 2 PM
     - Price magnetically pulls to max pain in last hour
     - Gamma explosions on large moves
     - Do NOT chase breakouts — mean revert toward max pain
 
-  1DTE (Wednesday):
+  1DTE (Monday):
     - Theta acceleration begins
     - Strangle premium collapses fast
     - Directional trades still work but hold time reduced
@@ -33,14 +33,35 @@ from __future__ import annotations
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SEBI CIRCULAR Nov 2024: Weekly expiry restricted to ONE index per exchange
-#   NSE: ONLY NIFTY has weekly expiry (Thursday)
-#   BSE: ONLY SENSEX has weekly expiry (Friday)
-#   BANKNIFTY: monthly only (last Wednesday of month)
-#   FINNIFTY:  monthly only (last Tuesday of month)
-#   MIDCPNIFTY: monthly only (last Monday of month)
+#   NSE: ONLY NIFTY has weekly expiry
+#   BSE: ONLY SENSEX has weekly expiry
+#   BANKNIFTY, FINNIFTY: monthly only
+#   MIDCPNIFTY: monthly only
+#
+# 2026-07-14 FIX: from 1 September 2025 NSE moved NIFTY's weekly (and every
+# NSE index monthly) expiry from Thursday to TUESDAY — this whole module was
+# still hardcoded to Thursday, meaning is_expiry_day()/get_expiry_regime()
+# had been silently checking the WRONG day for ~10 months: firing expiry-day
+# regime adjustments (suppress breakout/trend, boost mean-reversion, shorter
+# holds, block theta-selling) on ordinary Thursdays, and NOT firing them on
+# the actual Tuesday expiry. Verified against this system's own live option
+# chain data (option_chain_snapshots.db): every NIFTY, BANKNIFTY, and
+# FINNIFTY expiry recorded since 2026-06-19 falls on a Tuesday, with no
+# exception. Found via an external second-opinion review that specifically
+# named the SEBI Nov-2024 + Sep-2025 circulars; verified against this
+# system's own data before trusting the claim (a related claim — a specific
+# FII T+2 settlement mechanism — could NOT be similarly verified and was
+# NOT acted on; see chat).
+# MIDCPNIFTY set to Tuesday to match hero_zero_strategy.py's _EXPIRY_DAY
+# table, which was independently corrected for this same shift earlier and
+# never reconciled with this module. SENSEX (BSE) is NOT verified against
+# live data here (no recent snapshot rows). Also corrected Friday->Thursday
+# to match hero_zero_strategy.py's SENSEX=3 entry (a separate, pre-existing
+# disagreement between the two modules, unrelated to the Tuesday shift,
+# found while reconciling them) — still worth a direct BSE check.
 # ─────────────────────────────────────────────────────────────────────────────
-WEEKLY_EXPIRY_SYMBOLS  = {"NIFTY"}         # NSE — Thursday weekly
-WEEKLY_EXPIRY_BSE      = {"SENSEX"}        # BSE — Friday weekly
+WEEKLY_EXPIRY_SYMBOLS  = {"NIFTY"}         # NSE — Tuesday weekly
+WEEKLY_EXPIRY_BSE      = {"SENSEX"}        # BSE — Thursday weekly (unverified live)
 MONTHLY_ONLY_SYMBOLS   = {                 # No weekly expiry anymore
     "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY",
     "NIFTYNEXT50", "BANKEX"
@@ -55,15 +76,18 @@ def get_expiry_day_of_week(symbol: str) -> int:
     """Return weekday of expiry: 0=Mon,1=Tue,2=Wed,3=Thu,4=Fri."""
     s = symbol.upper()
     if s in WEEKLY_EXPIRY_SYMBOLS:
-        return 3  # Thursday (NSE NIFTY)
+        return 1  # Tuesday (NSE NIFTY, since 2025-09-01)
     if s in WEEKLY_EXPIRY_BSE:
-        return 4  # Friday (BSE SENSEX)
-    # Monthly only — last week of month
-    if s == "BANKNIFTY":    return 2  # Wednesday
-    if s == "FINNIFTY":     return 1  # Tuesday
-    if s == "MIDCPNIFTY":   return 0  # Monday
-    if s == "NIFTYNEXT50":  return 3  # Thursday (monthly)
-    return 3  # default Thursday
+        return 3  # Thursday (BSE SENSEX) — see module note
+    # Monthly only — Tuesday for all three, verified live for BANKNIFTY/
+    # FINNIFTY; MIDCPNIFTY matches hero_zero_strategy.py's already-corrected
+    # _EXPIRY_DAY table (that module was fixed for this shift earlier and
+    # not yet reconciled with this one — see module note).
+    if s == "BANKNIFTY":    return 1  # Tuesday (verified live)
+    if s == "FINNIFTY":     return 1  # Tuesday (verified live)
+    if s == "MIDCPNIFTY":   return 1  # Tuesday (per hero_zero_strategy.py)
+    if s == "NIFTYNEXT50":  return 1  # Tuesday (monthly, assumed to follow NIFTY)
+    return 1  # default Tuesday (was Thursday)
 
 
 
@@ -74,34 +98,36 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def _last_thursday(year: int, month: int) -> date:
-    """Return the last Thursday of a given month."""
-    # Find last day of month
+def _last_weekday_of_month(year: int, month: int, weekday: int = 1) -> date:
+    """Return the last occurrence of `weekday` (0=Mon..4=Fri) in a month.
+    Default weekday=1 (Tuesday) — NSE's expiry day since 2025-09-01."""
     if month == 12:
         last_day = date(year + 1, 1, 1) - timedelta(days=1)
     else:
         last_day = date(year, month + 1, 1) - timedelta(days=1)
-    # Walk back to Thursday (weekday 3)
-    days_back = (last_day.weekday() - 3) % 7
+    days_back = (last_day.weekday() - weekday) % 7
     return last_day - timedelta(days=days_back)
 
 
-def _all_thursdays_in_month(year: int, month: int) -> list:
-    """Return all Thursdays in a month."""
-    thursdays = []
+def _all_weekdays_in_month(year: int, month: int, weekday: int = 1) -> list:
+    """Return all occurrences of `weekday` (0=Mon..4=Fri) in a month.
+    Default weekday=1 (Tuesday) — NSE's expiry day since 2025-09-01."""
+    out = []
     d = date(year, month, 1)
-    # Find first Thursday
-    while d.weekday() != 3:
+    while d.weekday() != weekday:
         d += timedelta(days=1)
     while d.month == month:
-        thursdays.append(d)
+        out.append(d)
         d += timedelta(days=7)
-    return thursdays
+    return out
 
 
-def get_expiry_regime(today: Optional[date] = None) -> dict:
+def get_expiry_regime(today: Optional[date] = None, symbol: str = "NIFTY") -> dict:
     """
-    Analyze today's expiry regime.
+    Analyze today's expiry regime for `symbol` (default NIFTY — the only
+    NSE index with genuine weekly expiry; also representative for
+    BANKNIFTY/FINNIFTY monthly expiries, which verified live data shows
+    land on the same weekday).
 
     Returns:
         is_expiry_day:     bool
@@ -113,20 +139,21 @@ def get_expiry_regime(today: Optional[date] = None) -> dict:
     """
     if today is None:
         today = date.today()
+    wd = get_expiry_day_of_week(symbol)
 
-    # All weekly Thursdays this month
-    thursdays = _all_thursdays_in_month(today.year, today.month)
-    monthly_expiry = thursdays[-1]   # last Thursday = monthly
+    # All weekly occurrences of the expiry weekday this month
+    occurrences = _all_weekdays_in_month(today.year, today.month, wd)
+    monthly_expiry = occurrences[-1]   # last occurrence = monthly
 
     # Find next expiry
-    upcoming = [t for t in thursdays if t >= today]
+    upcoming = [t for t in occurrences if t >= today]
     if not upcoming:
         # Spill into next month
         if today.month == 12:
-            next_thursdays = _all_thursdays_in_month(today.year + 1, 1)
+            next_occurrences = _all_weekdays_in_month(today.year + 1, 1, wd)
         else:
-            next_thursdays = _all_thursdays_in_month(today.year, today.month + 1)
-        upcoming = next_thursdays
+            next_occurrences = _all_weekdays_in_month(today.year, today.month + 1, wd)
+        upcoming = next_occurrences
 
     next_expiry = upcoming[0]
     days_to_expiry = (next_expiry - today).days
