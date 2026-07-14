@@ -8,9 +8,28 @@ tunable parameters. Weekly, the GA tests variations and promotes winners.
 HOW IT WORKS:
   1. Each strategy has a genome: {stop_atr, target_atr, min_score, ...}
   2. Weekly: generate 5 variants per strategy (mutated genomes)
-  3. Backtest each variant on last 30 days of signal_log data
-  4. Winners (Sharpe > 0.6) replace current parameters
-  5. Losers (Sharpe < 0.3) get their weights reduced in STRATEGIES list
+  3. Day-split the last 30 days 70/30 into train/holdout (NOT row-split —
+     avoids leaking a correlated same-day batch across the split)
+  4. Search for the best mutation on TRAIN only, then require it to
+     INDEPENDENTLY beat the current genome's own holdout performance
+     before promoting — same discipline as option_live_edge_policy /
+     eod_setup_edge_analyzer / option_cohort_edge_miner elsewhere in this
+     repo. A variant that only wins on train is reported, not promoted.
+  5. Losers (holdout Sharpe < 0.1 with enough samples) get flagged for
+     weight reduction — reporting only, same as modifier_edge_analyzer.
+
+2026-07-14 FIX: the original version picked whichever of 5 mutations had
+the highest Sharpe on the SAME 30-day sample used to generate them, then
+wrote it straight to strategy_genomes.json — pure same-sample overfitting
+(picking the best of several random variants on one sample looks like an
+improvement by chance regardless of true edge), with min_score's own
+minimum-n floor as low as 3 (Sharpe on 3 binary outcomes is pure noise).
+This is the SAME bug class as [[cohort-policy-overfit-fixed]] and
+[[dead-wiring-audit-2026-07-10]] — verified same-day: get_genome() has
+ZERO callers anywhere else in the codebase, so no live behavior was ever
+actually affected by an evolved genome; wiring consumption into live
+signal generation is a separate, larger decision (deliberately NOT done
+here — this fix only hardens the search/promotion methodology).
 
 ALSO:
   - Tracks strategy decay: if strategy not working for 10 days → disable
@@ -61,6 +80,24 @@ PARAM_BOUNDS: Dict[str, Tuple] = {
     "min_bars":    (1, 6, 1),
 }
 
+TRAIN_FRAC = 0.70
+MIN_TRAIN_N = 20
+MIN_HOLDOUT_N = 10
+MIN_DISTINCT_DAYS = 6
+
+
+def _split_by_day(signals: List[Dict], frac: float = TRAIN_FRAC) -> Tuple[List[Dict], List[Dict], int]:
+    """Chronological day-split (not row-split, which would leak a
+    correlated same-day batch across train/holdout). Returns (train,
+    holdout, n_distinct_days)."""
+    days = sorted({str(s.get("signal_date", "")) for s in signals if s.get("signal_date")})
+    if len(days) < 2:
+        return signals, [], len(days)
+    cut = days[max(0, int(len(days) * frac) - 1)]
+    train = [s for s in signals if str(s.get("signal_date", "")) <= cut]
+    holdout = [s for s in signals if str(s.get("signal_date", "")) > cut]
+    return train, holdout, len(days)
+
 
 class StrategyEvolution:
     """
@@ -110,7 +147,8 @@ class StrategyEvolution:
                 mutated[param] = new_val
         return mutated
 
-    def _evaluate_genome(self, strategy: str, genome: Dict, signals: List[Dict]) -> Dict:
+    def _evaluate_genome(self, strategy: str, genome: Dict, signals: List[Dict],
+                         min_n: int = 3) -> Dict:
         """
         Evaluate a genome on historical signal data.
         Returns Sharpe, win_rate, avg_rr, n_trades.
@@ -118,21 +156,21 @@ class StrategyEvolution:
         try:
             strat_signals = [s for s in signals if s.get("strategy") == strategy
                              and s.get("tb_label") in (1, -1, 0)]
-            if len(strat_signals) < 5:
+            if len(strat_signals) < min_n:
                 return {"sharpe": 0.0, "win_rate": 0.0, "n": 0}
 
             # Apply genome filters
             min_score = genome.get("min_score", 5.0)
             filtered  = [s for s in strat_signals if float(s.get("score", 0)) >= min_score]
 
-            if len(filtered) < 3:
+            if len(filtered) < min_n:
                 return {"sharpe": 0.0, "win_rate": 0.0, "n": 0}
 
             wins   = sum(1 for s in filtered if s.get("tb_label") == 1)
             losses = sum(1 for s in filtered if s.get("tb_label") == -1)
             total  = wins + losses
 
-            if total < 3:
+            if total < min_n:
                 return {"sharpe": 0.0, "win_rate": 0.0, "n": 0}
 
             win_rate = wins / total
@@ -160,6 +198,12 @@ class StrategyEvolution:
         """
         Run one generation of evolution on all strategies.
         Uses signal_log data from last 30 days.
+
+        Search happens on TRAIN only; promotion requires the winning
+        mutation to also beat the CURRENT genome's own holdout performance
+        (day-split, not row-split) — see module docstring for why the
+        original same-sample selection was unsound. Strategies with too
+        few distinct days are reported as unconfirmed, not promoted.
         """
         results = {}
         try:
@@ -172,56 +216,92 @@ class StrategyEvolution:
                 logger.info("Not enough signal data for evolution: %d", len(signals))
                 return {"skipped": True, "reason": "not_enough_signals", "n": len(signals)}
 
+            train, holdout, n_days = _split_by_day(signals)
+
             improved = []
             degraded = []
+            unconfirmed = []
 
             for strategy, current_genome in list(self.genomes.items()):
-                # Evaluate current genome
-                current_perf = self._evaluate_genome(strategy, current_genome, signals)
+                if n_days < MIN_DISTINCT_DAYS:
+                    self.perf[strategy] = {
+                        "sharpe": self.perf.get(strategy, {}).get("sharpe", 0.0),
+                        "status": "insufficient_days", "days": n_days,
+                        "updated": date.today().isoformat(),
+                    }
+                    continue
 
-                # Generate 5 mutations
+                # Current genome's own train/holdout performance (baseline).
+                current_train = self._evaluate_genome(strategy, current_genome, train, min_n=MIN_TRAIN_N)
+                current_holdout = self._evaluate_genome(strategy, current_genome, holdout, min_n=MIN_HOLDOUT_N)
+
+                # Search on TRAIN only.
                 variants = [self._mutate(current_genome) for _ in range(5)]
                 best_variant = current_genome
-                best_sharpe  = current_perf.get("sharpe", 0.0)
-
+                best_train_sharpe = current_train.get("sharpe", 0.0)
                 for variant in variants:
-                    perf = self._evaluate_genome(strategy, variant, signals)
-                    if perf["sharpe"] > best_sharpe and perf["n"] >= 3:
-                        best_sharpe  = perf["sharpe"]
+                    perf = self._evaluate_genome(strategy, variant, train, min_n=MIN_TRAIN_N)
+                    if perf["n"] >= MIN_TRAIN_N and perf["sharpe"] > best_train_sharpe:
+                        best_train_sharpe = perf["sharpe"]
                         best_variant = variant
 
-                # Update if improved
+                promoted = False
+                best_holdout = current_holdout
                 if best_variant != current_genome:
-                    old_sharpe = current_perf.get("sharpe", 0.0)
-                    self.genomes[strategy] = best_variant
-                    improved.append({
-                        "strategy":   strategy,
-                        "old_sharpe": round(old_sharpe, 3),
-                        "new_sharpe": round(best_sharpe, 3),
-                        "changes":    {k: v for k, v in best_variant.items()
-                                      if current_genome.get(k) != v},
-                    })
-                    logger.info("Evolved %s: sharpe %.3f→%.3f", strategy, old_sharpe, best_sharpe)
+                    best_holdout = self._evaluate_genome(strategy, best_variant, holdout, min_n=MIN_HOLDOUT_N)
+                    # Promotion requires an INDEPENDENT holdout win, not just
+                    # a train win — the same-sample selection that already
+                    # picked this variant as the train-best guarantees
+                    # nothing about days it has never seen.
+                    holdout_confirms = (
+                        best_holdout.get("n", 0) >= MIN_HOLDOUT_N
+                        and best_holdout.get("sharpe", -999) > current_holdout.get("sharpe", 0.0)
+                    )
+                    if holdout_confirms:
+                        promoted = True
+                        self.genomes[strategy] = best_variant
+                        improved.append({
+                            "strategy": strategy,
+                            "train_sharpe": round(best_train_sharpe, 3),
+                            "old_holdout_sharpe": round(current_holdout.get("sharpe", 0.0), 3),
+                            "new_holdout_sharpe": round(best_holdout.get("sharpe", 0.0), 3),
+                            "changes": {k: v for k, v in best_variant.items()
+                                       if current_genome.get(k) != v},
+                        })
+                        logger.info("Evolved %s: holdout sharpe %.3f->%.3f (confirmed)",
+                                   strategy, current_holdout.get("sharpe", 0.0),
+                                   best_holdout.get("sharpe", 0.0))
+                    else:
+                        unconfirmed.append({
+                            "strategy": strategy,
+                            "train_sharpe": round(best_train_sharpe, 3),
+                            "holdout_sharpe": round(best_holdout.get("sharpe", 0.0), 3),
+                            "holdout_n": best_holdout.get("n", 0),
+                        })
 
-                # Track performance
+                # Track performance using the genome actually in effect.
+                effective_perf = best_holdout if promoted else current_holdout
                 self.perf[strategy] = {
-                    "sharpe":   round(best_sharpe, 3),
-                    "win_rate": current_perf.get("win_rate", 0.0),
-                    "n":        current_perf.get("n", 0),
+                    "sharpe":   round(effective_perf.get("sharpe", 0.0), 3),
+                    "win_rate": effective_perf.get("win_rate", 0.0),
+                    "n":        effective_perf.get("n", 0),
+                    "promoted_this_run": promoted,
                     "updated":  date.today().isoformat(),
                 }
 
-                # Disable strategies with poor performance
-                if best_sharpe < 0.1 and current_perf.get("n", 0) >= 10:
-                    degraded.append({"strategy": strategy, "sharpe": round(best_sharpe, 3)})
+                # Disable strategies with poor CONFIRMED (holdout) performance.
+                if effective_perf.get("sharpe", 0.0) < 0.1 and effective_perf.get("n", 0) >= MIN_HOLDOUT_N:
+                    degraded.append({"strategy": strategy, "sharpe": round(effective_perf.get("sharpe", 0.0), 3)})
 
             self._save()
 
             results = {
-                "improved":  improved,
-                "degraded":  degraded,
-                "total":     len(self.genomes),
-                "n_signals": len(signals),
+                "improved":    improved,
+                "unconfirmed": unconfirmed,
+                "degraded":    degraded,
+                "total":       len(self.genomes),
+                "n_signals":   len(signals),
+                "n_days":      n_days,
             }
 
             # Send Telegram report
@@ -237,21 +317,29 @@ class StrategyEvolution:
         if not self.alerts:
             return
         improved = results.get("improved", [])
+        unconfirmed = results.get("unconfirmed", [])
         degraded = results.get("degraded", [])
         lines = [
             f"🧬 <b>STRATEGY EVOLUTION COMPLETE</b>",
-            f"Signals used: {results.get('n_signals',0)}",
-            f"Improved: {len(improved)}  Degraded: {len(degraded)}",
+            f"Signals used: {results.get('n_signals',0)} over {results.get('n_days',0)} days",
+            f"Promoted (holdout-confirmed): {len(improved)}  "
+            f"Unconfirmed: {len(unconfirmed)}  Degraded: {len(degraded)}",
         ]
         if improved:
-            lines.append("━━━━━━━ IMPROVED ━━━━━━━")
+            lines.append("━━━━━━━ PROMOTED (train + independent holdout both improved) ━━━━━━━")
             for imp in improved[:5]:
                 chg = " ".join(f"{k}:{v}" for k, v in imp.get("changes",{}).items())
-                lines.append(f"  ✅ {imp['strategy']}: Sharpe {imp['old_sharpe']}→{imp['new_sharpe']}")
+                lines.append(f"  ✅ {imp['strategy']}: holdout Sharpe "
+                             f"{imp['old_holdout_sharpe']}→{imp['new_holdout_sharpe']}")
                 if chg:
                     lines.append(f"     {chg}")
+        if unconfirmed:
+            lines.append("━━━━━━━ NOT PROMOTED (looked better on train only) ━━━━━━━")
+            for u in unconfirmed[:3]:
+                lines.append(f"  ⏳ {u['strategy']}: train {u['train_sharpe']} vs "
+                             f"holdout {u['holdout_sharpe']} (n={u['holdout_n']}) — kept current genome")
         if degraded:
-            lines.append("━━━━━━━ DEGRADED ━━━━━━━")
+            lines.append("━━━━━━━ DEGRADED (confirmed) ━━━━━━━")
             for deg in degraded[:3]:
                 lines.append(f"  ⚠️ {deg['strategy']}: Sharpe={deg['sharpe']} (weight reduced)")
         lines.append(f"🕐 {datetime.now().strftime('%H:%M')}")
