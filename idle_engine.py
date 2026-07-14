@@ -839,23 +839,40 @@ class IdleEngine:
         # "backtest" 16:28 and "ml_train" 17:30 were fn=None placeholders that
         # never ran (removed 2026-06-12): walk_forward 18:30 and calibrator
         # 20:30 are the real implementations of those intents.
+        #
+        # 2026-07-14 (operator: "all process to be completed before night 9pm
+        # and all process to be done after 7am ... if any task is missed it
+        # should be taken whenever the system is idle"): every trigger below
+        # retimed into [7:00, 21:00] — mtf_backtest moved off 05:30, the four
+        # jobs at/after 21:00 (events/edge_report/autolearn/edge_monitor)
+        # pulled earlier — relative ORDER unchanged from before, just
+        # compressed. The 26h catch-up window (idle_engine._due_slot /
+        # job_catchup.py, market-hours-deferred) already IS the "if missed,
+        # run whenever idle" mechanism — nothing new needed there.
+        # CAVEAT that retiming alone cannot fix: autolearn's own
+        # signal_reverse_engineering step has taken up to ~5.5h by itself on
+        # a slow day (autonomous_learning_report.json, 2026-07-13:
+        # duration_sec=19956.851) — starting it earlier raises the odds it
+        # finishes inside the window on a normal day, but cannot GUARANTEE
+        # completion by 21:00 if that step runs long; on such a day the
+        # catch-up mechanism is what absorbs the overrun, same as today.
+        ( 7, 0,  "mtf_backtest", run_mtf_backtest,              "Multi-TF backtest (1h)", 240),
         ( 8, 50, "nse_hub_am",   _run_nse_data_hub,             "NSE data hub pre-market refresh", 180),
         (15, 25, "intraday_candles", _run_intraday_candle_recording, "Intraday candle cache recording", 180),
         (15, 45, "nse_hub_pm",   _run_nse_data_hub,             "NSE data hub post-market refresh", 360),
         (16, 10, "pipeline_audit", _run_data_pipeline_audit,    "Data pipeline audit", 360),
         (16, 20, "option_bot_audit", _run_option_bot_audit,     "Option bot audit", 360),
         (16, 45, "tb_labels",    _run_triple_barrier_labelling, "Triple-barrier signal labelling", 360),
-        (18, 30, "walk_forward", run_walk_forward_validation,   "Walk-forward validation", 480),
-        (19, 30, "track_record", _run_track_record,             "Signal track record update", 480),
-        (20, 30, "calibrator",   _run_calibrator_retrain,       "LR calibrator retrain", 480),
-        (20, 45, "eod_weights",  _run_eod_weight_update,        "EOD strategy/indicator weights", 480),
-        (21, 15, "edge_report",  _run_edge_report,              "Measured-edge analytics report", 480),
-        (21, 30, "autolearn",    _run_autonomous_learning_cycle,"Autonomous learning cycle", 600),
-        (19, 0,  "alt_data",     run_alternative_data_download, "Alternative data download", 480),
-        (20, 0,  "correlation",  run_correlation_update,        "Correlation matrix", 480),
-        (21, 0,  "events",       run_event_calendar_scan,       "Event calendar scan", 480),
-        ( 5, 30, "mtf_backtest", run_mtf_backtest,              "Multi-TF backtest (1h)", 240),
-        (21, 50, "edge_monitor", _run_edge_monitor,            "Edge monitor: pairs + keep/prune (alert on validated edge)", 600),
+        (17, 15, "walk_forward", run_walk_forward_validation,   "Walk-forward validation", 480),
+        (17, 35, "alt_data",     run_alternative_data_download, "Alternative data download", 480),
+        (17, 55, "correlation",  run_correlation_update,        "Correlation matrix", 480),
+        (18, 15, "track_record", _run_track_record,             "Signal track record update", 480),
+        (18, 35, "calibrator",   _run_calibrator_retrain,       "LR calibrator retrain", 480),
+        (18, 55, "eod_weights",  _run_eod_weight_update,        "EOD strategy/indicator weights", 480),
+        (19, 15, "events",       run_event_calendar_scan,       "Event calendar scan", 480),
+        (19, 35, "edge_report",  _run_edge_report,              "Measured-edge analytics report", 480),
+        (19, 55, "autolearn",    _run_autonomous_learning_cycle,"Autonomous learning cycle", 600),
+        (20, 35, "edge_monitor", _run_edge_monitor,            "Edge monitor: pairs + keep/prune (alert on validated edge)", 600),
     ]
 
     def __init__(self, alerts=None) -> None:
