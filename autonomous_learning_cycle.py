@@ -252,6 +252,22 @@ def run_autonomous_learning_cycle(
 
     report["steps"]["eod_signal_mining"] = _step("eod_signal_mining", _eod_signal_mining)
 
+    def _eod_setup_edge() -> Dict[str, Any]:
+        if dry_run:
+            return {"skipped": True, "reason": "dry_run"}
+        from eod_setup_edge_analyzer import run as run_setup_edge
+        rep = run_setup_edge()
+        if rep.get("error"):
+            return {"ok": True, "gated": rep["error"]}
+        return {
+            "mined_days": rep.get("mined_days", 0),
+            "candidates": len(rep.get("candidates", [])),
+            "hurts": len(rep.get("hurts", [])),
+            "bonferroni_tests": rep.get("bonferroni_tests", 0),
+        }
+
+    report["steps"]["eod_setup_edge"] = _step("eod_setup_edge", _eod_setup_edge)
+
     def _confluence_feature_store() -> Dict[str, Any]:
         from confluence_feature_store import refresh_confluence_features
 

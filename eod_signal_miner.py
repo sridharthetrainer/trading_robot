@@ -33,6 +33,78 @@ REPORT_MD = "EOD_SIGNAL_MINER_REPORT.md"
 CANDLE_CACHE_DB = Path("candle_cache.db")
 MIN_5M_BARS = 75
 
+# 2026-07-14: this miner previously re-scanned a rolling `days=5` window every
+# night and threw the candidates away — 24k+ candidates generated nightly with
+# NO accumulation across days, so "Best Setups"/"Best Factors" in the report
+# were always a ~4-5 day snapshot with no way to ever run a real significance
+# test (need enough independent TRADING DAYS for a day-split holdout, the same
+# discipline already used in modifier_edge_analyzer / option_live_edge_policy).
+# Persisting here is what lets eod_setup_edge_analyzer.py eventually test these
+# setups/factors properly instead of just ranking a few days of raw avg_return.
+MINER_DB = "eod_signal_miner.db"
+
+
+def ensure_miner_schema(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS eod_mined_candidates (
+            symbol TEXT NOT NULL,
+            candidate_time TEXT NOT NULL,
+            candidate_date TEXT NOT NULL,
+            side TEXT NOT NULL,
+            setup TEXT NOT NULL,
+            score INTEGER DEFAULT 0,
+            opposition INTEGER DEFAULT 0,
+            factors TEXT DEFAULT '',
+            entry_price REAL DEFAULT 0,
+            label INTEGER DEFAULT -99,
+            return_pct REAL DEFAULT 0,
+            run_date TEXT NOT NULL,
+            UNIQUE(symbol, candidate_time, setup)
+        )
+        """
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_eod_mined_setup_date "
+        "ON eod_mined_candidates(setup, candidate_date)"
+    )
+
+
+def persist_candidates(
+    all_candidates: List[Dict[str, Any]], *, db_path: str = MINER_DB
+) -> Dict[str, Any]:
+    """Append this run's candidates to a persistent history, deduped on
+    (symbol, candidate_time, setup) so re-mining the same overlapping window
+    on consecutive nights doesn't double-count. Best-effort; never raises."""
+    inserted = 0
+    run_date = datetime.now().strftime("%Y-%m-%d")
+    try:
+        with sqlite3.connect(db_path) as conn:
+            ensure_miner_schema(conn)
+            for c in all_candidates:
+                time_str = str(c.get("time", ""))
+                cur = conn.execute(
+                    """INSERT OR IGNORE INTO eod_mined_candidates
+                       (symbol, candidate_time, candidate_date, side, setup,
+                        score, opposition, factors, entry_price, label,
+                        return_pct, run_date)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (
+                        str(c.get("symbol", "")), time_str, time_str[:10],
+                        str(c.get("side", "")), str(c.get("setup", "")),
+                        int(c.get("score", 0) or 0), int(c.get("opposition", 0) or 0),
+                        ",".join(c.get("factors", []) or []),
+                        float(c.get("entry_price", 0) or 0),
+                        int(c.get("label", -99) if c.get("label") is not None else -99),
+                        float(c.get("return_pct", 0) or 0), run_date,
+                    ),
+                )
+                inserted += cur.rowcount
+            conn.commit()
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)[:200], "inserted": inserted}
+    return {"ok": True, "inserted": inserted, "seen": len(all_candidates)}
+
 
 def _get_data_fetcher():
     try:
@@ -539,6 +611,7 @@ def run_miner(
     days: int = 5,
     max_symbols: int = 20,
     write: bool = True,
+    persist: bool = True,
 ) -> Dict[str, Any]:
     results = []
     for symbol in symbols[:max_symbols]:
@@ -552,6 +625,9 @@ def run_miner(
         except Exception as exc:
             results.append({"symbol": symbol, "ok": False, "reason": str(exc), "candidates": []})
     report = build_report(results)
+    if persist:
+        all_candidates = [c for r in results if r.get("ok") for c in r.get("candidates", [])]
+        report["persist"] = persist_candidates(all_candidates)
     if write:
         Path(REPORT_JSON).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
         Path(REPORT_MD).write_text(render_markdown(report), encoding="utf-8")

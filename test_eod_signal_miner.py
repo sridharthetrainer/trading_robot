@@ -8,9 +8,13 @@ Run:
 
 from __future__ import annotations
 
+import sqlite3
+import tempfile
+from pathlib import Path
+
 import pandas as pd
 
-from eod_signal_miner import build_report, mine_symbol, render_markdown
+from eod_signal_miner import build_report, mine_symbol, persist_candidates, render_markdown
 
 
 def _synthetic_trend(rows: int = 140) -> pd.DataFrame:
@@ -49,10 +53,27 @@ def test_miner_handles_insufficient_data():
     assert result["ok"] is False and report["summary"]["n"] == 0
 
 
+def test_persist_candidates_dedupes_across_runs():
+    with tempfile.TemporaryDirectory() as tmp:
+        db_path = str(Path(tmp) / "eod_signal_miner_test.db")
+        cands = [{
+            "symbol": "TEST", "time": "2026-07-14 09:20:00+05:30", "side": "BUY",
+            "setup": "mtf_momentum", "score": 5, "opposition": 2,
+            "factors": ["above_vwap", "rsi_above_55"], "entry_price": 100.0,
+            "label": 1, "return_pct": 1.5,
+        }]
+        first = persist_candidates(cands, db_path=db_path)
+        second = persist_candidates(cands, db_path=db_path)  # same window re-mined
+        with sqlite3.connect(db_path) as conn:
+            n = conn.execute("SELECT COUNT(*) FROM eod_mined_candidates").fetchone()[0]
+        assert first["inserted"] == 1 and second["inserted"] == 0 and n == 1
+
+
 def main() -> int:
     tests = [
         ("miner finds candidates", test_miner_finds_candidates),
         ("miner handles insufficient data", test_miner_handles_insufficient_data),
+        ("persist_candidates dedupes across runs", test_persist_candidates_dedupes_across_runs),
     ]
     failed = 0
     for name, fn in tests:
