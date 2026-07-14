@@ -9,10 +9,29 @@ from __future__ import annotations
 
 import sqlite3
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 
+import eod_setup_edge_analyzer as esea
 from eod_signal_miner import ensure_miner_schema
 from eod_setup_edge_analyzer import run
+
+
+@contextmanager
+def _isolated_report(tmp_dir: str):
+    """run() ALSO writes to the module-level REPORT_FILE Path constant
+    regardless of the db_path argument — isolating db_path alone is not
+    enough, exactly the mistake made (and fixed) twice already today in
+    test_self_learning_engine_rl.py and test_strategy_evolution.py. This
+    one WAS missed initially and briefly overwrote the real
+    eod_setup_edge_report.json with synthetic test data; caught during a
+    broader audit pass same day, regenerated the real report, fixed here."""
+    orig = esea.REPORT_FILE
+    esea.REPORT_FILE = Path(tmp_dir) / "eod_setup_edge_report.json"
+    try:
+        yield
+    finally:
+        esea.REPORT_FILE = orig
 
 
 def _seed(db_path: str, *, setup: str, days: list[str], return_pct: float,
@@ -46,7 +65,7 @@ _HOLDOUT_DAYS = ["2026-06-29", "2026-06-30"]
 
 
 def test_gates_when_too_few_mined_days():
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory() as tmp, _isolated_report(tmp):
         db_path = str(Path(tmp) / "eod_signal_miner_test.db")
         _seed(db_path, setup="mtf_momentum", days=["2026-06-25", "2026-06-26"],
               return_pct=1.0)
@@ -55,7 +74,7 @@ def test_gates_when_too_few_mined_days():
 
 
 def test_candidate_confirmed_in_both_train_and_holdout():
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory() as tmp, _isolated_report(tmp):
         db_path = str(Path(tmp) / "eod_signal_miner_test.db")
         _seed(db_path, setup="mtf_momentum", days=_TRAIN_DAYS, return_pct=1.2, per_day=20)
         _seed(db_path, setup="mtf_momentum", days=_HOLDOUT_DAYS, return_pct=1.2, per_day=20)
@@ -66,7 +85,7 @@ def test_candidate_confirmed_in_both_train_and_holdout():
 
 
 def test_train_only_positive_flipping_negative_does_not_survive():
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory() as tmp, _isolated_report(tmp):
         db_path = str(Path(tmp) / "eod_signal_miner_test.db")
         _seed(db_path, setup="volume_breakout", days=_TRAIN_DAYS, return_pct=2.0, per_day=25)
         _seed(db_path, setup="volume_breakout", days=_HOLDOUT_DAYS, return_pct=-2.0, per_day=25)

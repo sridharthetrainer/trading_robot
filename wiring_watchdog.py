@@ -52,6 +52,16 @@ ARTIFACTS: Dict[str, float] = {
     "oi_tracker_state.json": 100,          # written only during market hours
     "job_catchup_report.json": 100,
     "option_strike_autotune.json": 80,
+    # 2026-07-14: added after data_quality_watchdog_report.json sat 13 days
+    # stale — the nightly step called audit_candle_cache() directly, which
+    # only wrote its own report via the CLI's main(), not the function
+    # itself (now fixed). This artifact-freshness list is exactly the
+    # mechanism that should have caught that on day 2, not day 13 — it just
+    # hadn't been added yet.
+    "data_quality_watchdog_report.json": 80,
+    "eod_signal_miner_report.json": 80,
+    "eod_setup_edge_report.json": 200,     # accumulates days; can legitimately gate on "not enough days yet"
+    "strategy_performance.json": 200,      # strategy_evolution runs weekly (Saturdays)
 }
 
 

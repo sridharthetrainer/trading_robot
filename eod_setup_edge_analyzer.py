@@ -76,6 +76,20 @@ def _verdict(train: Dict[str, Any], holdout: Dict[str, Any], bonferroni: int) ->
     return "NOISE"
 
 
+def _write_gated_report(reason: str, days_available: int) -> Dict[str, Any]:
+    """Persist a report even while gated on insufficient days — otherwise
+    the artifact goes stale forever (indistinguishable from a broken
+    pipeline) instead of honestly reporting 'accumulating, not enough data
+    yet' every run. Same fix applied to data_quality_watchdog.py same day."""
+    report = {"error": reason, "days_available": days_available,
+              "generated_at": datetime.now().isoformat(timespec="seconds")}
+    try:
+        REPORT_FILE.write_text(json.dumps(report, indent=2))
+    except Exception as exc:
+        logger.debug("gated report write: %s", exc)
+    return report
+
+
 def run(db_path: str = MINER_DB, min_days: int = 6) -> Dict[str, Any]:
     with sqlite3.connect(db_path) as conn:
         ensure_miner_schema(conn)
@@ -83,17 +97,19 @@ def run(db_path: str = MINER_DB, min_days: int = 6) -> Dict[str, Any]:
             "SELECT DISTINCT candidate_date FROM eod_mined_candidates "
             "WHERE label IN (-1,0,1) ORDER BY 1")]
         if len(days) < min_days:
-            return {"error": f"only {len(days)} distinct mined trading days "
-                              f"(need >= {min_days}) — accumulating, check back later",
-                    "days_available": len(days)}
+            return _write_gated_report(
+                f"only {len(days)} distinct mined trading days "
+                f"(need >= {min_days}) — accumulating, check back later",
+                len(days))
         cut_idx = max(1, int(len(days) * TRAIN_FRAC) - 1)
         cutoff = days[cut_idx]
         holdout_days = len(days) - cut_idx - 1
         if holdout_days < MIN_HOLDOUT_DAYS:
-            return {"error": f"only {holdout_days} holdout day(s) after a "
-                              f"{TRAIN_FRAC:.0%} split (need >= {MIN_HOLDOUT_DAYS}) — "
-                              "accumulating, check back later",
-                    "days_available": len(days)}
+            return _write_gated_report(
+                f"only {holdout_days} holdout day(s) after a "
+                f"{TRAIN_FRAC:.0%} split (need >= {MIN_HOLDOUT_DAYS}) — "
+                "accumulating, check back later",
+                len(days))
 
         rows = conn.execute(
             "SELECT setup, factors, return_pct, candidate_date FROM eod_mined_candidates "

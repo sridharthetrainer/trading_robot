@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import sqlite3
 import time
@@ -15,6 +16,7 @@ import pandas as pd
 
 from trading_calendar import session_lag
 
+logger = logging.getLogger(__name__)
 
 REPORT_JSON = "data_quality_watchdog_report.json"
 
@@ -72,6 +74,7 @@ def audit_candle_cache(
     db_path: str = "candle_cache.db",
     *,
     max_intraday_age_days: float | None = None,
+    write: bool = True,
 ) -> Dict[str, Any]:
     if not Path(db_path).exists():
         return {"ok": False, "reason": "candle_cache_missing", "checks": []}
@@ -132,7 +135,7 @@ def audit_candle_cache(
                 "total": int(total_rows or 0),
                 "pct": round(100.0 * int(zero_rows or 0) / max(int(total_rows or 0), 1), 2),
             }
-    return {
+    report = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "ok": len(checks) > 0,
         "total_groups": len(checks),
@@ -146,6 +149,17 @@ def audit_candle_cache(
         "zero_volume_by_interval": zero_volume_by_interval,
         "checks": checks,
     }
+    # 2026-07-14: this used to only get written by main()'s CLI path — the
+    # nightly autonomous_learning_cycle step calls this function directly,
+    # so REPORT_JSON sat 13 days stale despite the check itself running (and
+    # recomputing correctly) every night. Every caller now gets a fresh file
+    # by default; pass write=False (or --no-write on the CLI) to suppress.
+    if write:
+        try:
+            Path(REPORT_JSON).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+        except Exception as exc:
+            logger.debug("data_quality_watchdog report write: %s", exc)
+    return report
 
 
 def main(argv: Iterable[str] | None = None) -> int:
@@ -154,11 +168,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--repair", action="store_true", help="quarantine invalid OHLCV rows before auditing")
     args = parser.parse_args(list(argv) if argv is not None else None)
     repair = quarantine_invalid_candles() if args.repair else None
-    report = audit_candle_cache()
+    report = audit_candle_cache(write=not args.no_write)
     if repair is not None:
         report["repair"] = repair
-    if not args.no_write:
-        Path(REPORT_JSON).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+        if not args.no_write:
+            Path(REPORT_JSON).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
     print(json.dumps({
         "ok": report.get("ok"),
         "total_groups": report.get("total_groups", 0),
