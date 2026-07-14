@@ -554,6 +554,27 @@ def run_pipeline(
     except Exception as _pbo_exc:
         logger.debug("PBO report write skipped: %s", _pbo_exc, exc_info=True)
 
+    # Day-clustered bootstrap AUC significance (2026-07-15, external-review
+    # follow-up): purged CV removes label-window leakage but not correlated-
+    # observation inflation of effective N. Reuses the SAME df already loaded
+    # above — report-only, never gates promotion, self-improves as more
+    # distinct trading days accrue (currently thin; see report for n_days).
+    try:
+        from ml_effective_n_bootstrap import run as run_effective_n_bootstrap
+        _boot = run_effective_n_bootstrap(df=df)
+        if _boot.get("error"):
+            logger.info("[4/6] Day-clustered bootstrap skipped: %s", _boot["error"])
+        else:
+            logger.info(
+                "[4/6] Day-clustered bootstrap: champion=%s auc=%.3f 95%%CI=[%.3f,%.3f] "
+                "n_days=%d verdict=%s",
+                _boot.get("champion_model"), _boot.get("naive_pooled_auc", float("nan")),
+                _boot.get("ci_95_low", float("nan")), _boot.get("ci_95_high", float("nan")),
+                _boot.get("n_days", 0), _boot.get("verdict"),
+            )
+    except Exception as _boot_exc:
+        logger.debug("Day-clustered bootstrap skipped: %s", _boot_exc, exc_info=True)
+
     # ── Step 5: Write learned_filters.json ────────────────────────────────────
     if dry_run:
         logger.info("[5/6] DRY RUN — skipping learned_filters.json write")

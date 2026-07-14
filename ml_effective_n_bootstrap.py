@@ -131,13 +131,18 @@ def _day_clustered_bootstrap(y_true: np.ndarray, y_proba: np.ndarray, date: np.n
     }
 
 
-def run(days: int = 90) -> Dict[str, Any]:
-    from ml_feature_builder import build_feature_matrix
+def run(days: int = 90, df: "Any | None" = None) -> Dict[str, Any]:
+    """df: an already-built feature matrix (ml_feature_builder.build_feature_matrix
+    output) to reuse — avoids a duplicate load when called from a pipeline that
+    already has one in hand (post_market_ml.py). Builds its own if not given,
+    for standalone/CLI use."""
     from ml_trainer import (
         _feature_cols, CV_FOLDS, PURGE_HORIZON, PURGE_EMBARGO, MIN_PROMOTION_AUC,
     )
 
-    df = build_feature_matrix(days=days, executed_only=False)
+    if df is None:
+        from ml_feature_builder import build_feature_matrix
+        df = build_feature_matrix(days=days, executed_only=False)
     if df.empty or "tb_outcome" not in df.columns:
         return {"error": "empty_feature_matrix_or_missing_tb_outcome"}
     feat_cols = _feature_cols(df)
