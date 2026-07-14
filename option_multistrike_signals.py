@@ -415,13 +415,20 @@ def persist_multistrike_signals(
         market_bias=market_bias,
     )
     edge_gate = _execution_edge_gate(conn)
-    from option_live_edge_policy import cohort_policy
+    from option_live_edge_policy import cohort_policy, dte_bucket
     block_quarantined = _cfg_bool("OPTION_EDGE_POLICY_BLOCK_QUARANTINED", True)
     require_promising = _cfg_bool("OPTION_EDGE_POLICY_REQUIRE_PROMISING", True)
     promising_bonus = max(0.0, _cfg_float("OPTION_EDGE_POLICY_PROMISING_SCORE_BONUS", 3.0))
+    # 2026-07-15: dte:8plus is the single strongest, most holdout-confirmed
+    # losing cohort option_cohort_edge_miner.py has found (train t=-24.24,
+    # holdout n=5450 R=-0.023, worse than train) — the gate below previously
+    # had no DTE resolution at all, so far-dated signals got no extra
+    # scrutiny despite being the clearest measured loser in this system.
+    _dte = dte_bucket(expiry, snapshot_time)
     policy_adjusted = []
     for item in signals:
-        policy = cohort_policy(conn, flow=item.flow, direction=item.direction, score=item.score)
+        policy = cohort_policy(conn, flow=item.flow, direction=item.direction,
+                                score=item.score, dte=_dte)
         status = str(policy["status"])
         reason = item.reason
         tradable = item.tradable

@@ -49,9 +49,55 @@ def score_band(score: float) -> str:
     return "85_PLUS"
 
 
+# 2026-07-15: option_cohort_edge_miner.py's day-holdout study repeatedly
+# found dte:8plus the single strongest, most holdout-CONFIRMED losing
+# cohort in the whole system (train t=-24.24 p=0.0, holdout n=5450
+# R=-0.023 — the holdout is worse than train, not just "still negative").
+# score:lt50 and flow=NEUTRAL are the next most robust losers. None of
+# this was checked by the live gate below, which only ever looked at
+# (flow, direction, score_band) — signals on far-dated contracts got no
+# extra scrutiny despite being the clearest, best-replicated loser this
+# system has measured. Same DTE bucketing as the miner, for consistency.
+_DTE_BUCKET_SQL = """
+CASE
+  WHEN julianday(expiry) - julianday(substr(snapshot_time,1,10)) <= 0 THEN 'dte:0'
+  WHEN julianday(expiry) - julianday(substr(snapshot_time,1,10)) <= 2 THEN 'dte:1-2'
+  WHEN julianday(expiry) - julianday(substr(snapshot_time,1,10)) <= 7 THEN 'dte:3-7'
+  ELSE 'dte:8plus'
+END
+"""
+
+
+def dte_bucket(expiry: str, snapshot_date: str) -> str:
+    """Python-side equivalent of _DTE_BUCKET_SQL, for callers that already
+    have expiry/snapshot_time and just need the bucket label."""
+    try:
+        from datetime import date as _date
+        exp = _date.fromisoformat(str(expiry)[:10])
+        snap = _date.fromisoformat(str(snapshot_date)[:10])
+        dte = (exp - snap).days
+    except Exception:
+        return "dte:8plus"
+    if dte <= 0:
+        return "dte:0"
+    if dte <= 2:
+        return "dte:1-2"
+    if dte <= 7:
+        return "dte:3-7"
+    return "dte:8plus"
+
+
 def _agg(conn: sqlite3.Connection, *, flow: str, direction: str, band_clause: str,
-         placeholders: str, day_cmp: str, cutoff: Optional[str]) -> Tuple[int, int, float, float, float, float]:
-    params: Tuple[Any, ...] = (flow, direction, *LIVE_SOURCES)
+         placeholders: str, day_cmp: str, cutoff: Optional[str],
+         dte: Optional[str] = None) -> Tuple[int, int, float, float, float, float]:
+    # Param order MUST match placeholder order in the SQL string below:
+    # flow, direction, [dte], *LIVE_SOURCES, [cutoff].
+    params: Tuple[Any, ...] = (flow, direction)
+    dte_clause = ""
+    if dte:
+        dte_clause = f"AND ({_DTE_BUCKET_SQL}) = ?"
+        params = params + (dte,)
+    params = params + tuple(LIVE_SOURCES)
     if cutoff is not None:
         params = params + (cutoff,)
     row = conn.execute(
@@ -61,7 +107,7 @@ def _agg(conn: sqlite3.Connection, *, flow: str, direction: str, band_clause: st
                     SUM(CASE WHEN net_pnl>0 THEN net_pnl ELSE 0 END) /
                     NULLIF(ABS(SUM(CASE WHEN net_pnl<0 THEN net_pnl ELSE 0 END)),0)
                FROM option_strike_signals
-              WHERE flow=? AND direction=? AND {band_clause}
+              WHERE flow=? AND direction=? AND {band_clause} {dte_clause}
                 AND source IN ({placeholders}) AND outcome_label IN (-1,0,1) {day_cmp}""",
         params,
     ).fetchone()
@@ -71,7 +117,8 @@ def _agg(conn: sqlite3.Connection, *, flow: str, direction: str, band_clause: st
     return n, days, wr, avg_net, avg_r, pf
 
 
-def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score: float) -> Dict[str, Any]:
+def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score: float,
+                   dte: Optional[str] = None) -> Dict[str, Any]:
     band = score_band(float(score or 0))
     clauses = {
         "LT50": "score<50",
@@ -80,9 +127,12 @@ def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score:
         "85_PLUS": "score>=85",
     }
     placeholders = ",".join("?" for _ in LIVE_SOURCES)
+    # dte is an already-bucketed label (e.g. "dte:8plus") when the caller
+    # knows it; filtering by the SQL-computed bucket keeps this evidence
+    # query identical to option_cohort_edge_miner.py's regardless.
     n, days, wr, avg_net, avg_r, pf = _agg(
         conn, flow=flow, direction=direction, band_clause=clauses[band],
-        placeholders=placeholders, day_cmp="", cutoff=None)
+        placeholders=placeholders, day_cmp="", cutoff=None, dte=dte)
 
     # Promotion (positive status) additionally requires a day-split holdout
     # to independently confirm sign — see module note above. QUARANTINE
@@ -95,7 +145,7 @@ def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score:
         ho_n, ho_days, _, ho_avg_net, ho_avg_r, ho_pf = _agg(
             conn, flow=flow, direction=direction, band_clause=clauses[band],
             placeholders=placeholders, day_cmp="AND substr(snapshot_time,1,10) > ?",
-            cutoff=cutoff)
+            cutoff=cutoff, dte=dte)
         holdout_confirmed = (
             ho_n >= HOLDOUT_MIN_N and ho_days >= HOLDOUT_MIN_DAYS
             and ho_avg_net > 0 and ho_avg_r > 0
@@ -106,7 +156,7 @@ def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score:
     negative = n >= 20 and (avg_net <= 0 or avg_r <= 0 or pf < 1.0)
     status = "LIVE_EVIDENCE_READY" if live_ready else "PAPER_PROMISING" if promising else "QUARANTINED" if negative else "VALIDATING"
     return {
-        "status": status, "band": band, "outcomes": n, "days": days,
+        "status": status, "band": band, "dte": dte, "outcomes": n, "days": days,
         "win_rate": round(wr, 4), "avg_net_pnl": round(avg_net, 2),
         "avg_net_r": round(avg_r, 4), "profit_factor": round(pf, 3),
         "live_ready": live_ready,

@@ -198,6 +198,10 @@ def test_persist_blocks_quarantined_negative_forward_edge(tmp_path, monkeypatch)
             """
         )
         ensure_multistrike_schema(conn)
+        # Dates land 1-2 days before the 2026-06-30 expiry (dte:1-2 bucket)
+        # to match the actual call under test below (snapshot 06-29,
+        # expiry 06-30 -> 1 day) now that cohort_policy filters by DTE
+        # bucket too (2026-07-15).
         for idx in range(30):
             conn.execute(
                 """INSERT INTO option_strike_signals
@@ -206,7 +210,7 @@ def test_persist_blocks_quarantined_negative_forward_edge(tmp_path, monkeypatch)
                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     idx,
-                    f"2026-06-{25 + (idx % 3):02d}T10:00:00+05:30",
+                    f"2026-06-{28 + (idx % 2):02d}T10:00:00+05:30",
                     "NIFTY",
                     "2026-06-30",
                     24000 + idx,

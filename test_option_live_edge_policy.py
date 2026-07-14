@@ -1,7 +1,22 @@
 import sqlite3
 
+import pytest
+
+import option_live_edge_policy as olep
 from option_live_edge_policy import cohort_policy
 from option_multistrike_signals import ensure_multistrike_schema
+
+
+@pytest.fixture(autouse=True)
+def _reset_day_cache():
+    """_day_cutoff() caches the day-list/cutoff in a module-level dict keyed
+    only by a time-based TTL, not by which database it came from — running
+    after another test file that populated it from a DIFFERENT :memory: db
+    leaks a stale cutoff into this file's tests (found 2026-07-15, surfaced
+    by test collection order rather than anything wrong in the fix itself)."""
+    olep._DAY_CACHE.update(ts=0.0, days=[], cutoff=None)
+    yield
+    olep._DAY_CACHE.update(ts=0.0, days=[], cutoff=None)
 
 
 def _seed_days(conn, *, flow, direction, score, days, pnl, r_multiple, per_day=10):
