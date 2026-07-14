@@ -40,15 +40,23 @@ IRON_CONDOR_MARGIN_PER_LOT      = 65_000
 MIN_CAPITAL_FOR_SPREADS         = 1_50_000  # ₹1.5 lakh minimum
 MIN_CAPITAL_FOR_IRON_CONDOR     = 5_00_000  # ₹5 lakh minimum
 MIN_CAPITAL_FOR_STRADDLE        = 10_00_000 # ₹10 lakh minimum
-LOT_SIZE_NIFTY                  = 75
-LOT_SIZE_BANKNIFTY              = 30
-LOT_SIZE_FINNIFTY               = 65
 
+# 2026-07-15 FIX: this module kept its OWN hardcoded lot-size dict
+# (NIFTY=75, MIDCPNIFTY=75) instead of using nse_master.py's NSEMaster —
+# the same class of bug as the expiry-day fix (a second copy of a fact
+# that drifts). NSE revised these lot sizes in Jan 2026 (NIFTY 75->65,
+# FINNIFTY 65->60, MIDCPNIFTY 140->120 — verified against multiple NSE
+# circulars); nse_master.py's DEFAULT_LOT_SIZES already reflects the
+# current values and is live-refreshed from the broker master contract.
+# MIDCPNIFTY was wrong by the largest margin here (75 vs the correct
+# 120 — a ~40% understatement that would badly miscalculate margin/max-
+# loss for MIDCPNIFTY spreads). Fallback dict kept only for when
+# NSEMaster is unavailable; _lot_size() below prefers the live source.
 LOT_SIZES = {
-    "NIFTY":     LOT_SIZE_NIFTY,
-    "BANKNIFTY": LOT_SIZE_BANKNIFTY,
-    "FINNIFTY":  LOT_SIZE_FINNIFTY,
-    "MIDCPNIFTY": 75,
+    "NIFTY":      65,
+    "BANKNIFTY":  30,
+    "FINNIFTY":   60,
+    "MIDCPNIFTY": 120,
 }
 
 
@@ -106,7 +114,15 @@ class SpreadStrategy:
         self._open_spreads: Dict[str, SpreadPosition] = {}
 
     def _lot_size(self, underlying: str) -> int:
-        return self.lot_sizes.get(underlying.upper(), 75)
+        sym = underlying.upper()
+        try:
+            from nse_master import NSEMaster
+            live = NSEMaster().get_lot_size(sym)
+            if live and live > 0:
+                return int(live)
+        except Exception as exc:
+            logger.debug("_lot_size live lookup failed for %s: %s", sym, exc)
+        return self.lot_sizes.get(sym, 65)
 
     def _get_option_symbol(
         self, underlying: str, strike: int, option_type: str, expiry: str
