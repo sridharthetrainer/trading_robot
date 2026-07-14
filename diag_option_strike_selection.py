@@ -105,16 +105,16 @@ The option bot selects a strike through this flow:
 │    Available Capital = Angel API rmsLimit() call (LIVE)                     │
 │                       fallback to REAL_CAPITAL from .env                    │
 │                                                                             │
-│    Lot Size = Angel contract multiplier (default 75 for NIFTY)             │
-│    Premium per lot = strike price × 75 × lot count                         │
+│    Lot Size = Angel contract multiplier (default 65 for NIFTY)             │
+│    Premium per lot = strike price × 65 × lot count                         │
 │                                                                             │
 │    Max Lots = min(confidence_lots, position_sizer.max_lots,                │
 │                   max(1, available_capital / margin_per_lot))               │
 │                                                                             │
 │    Examples (Capital = ₹1,00,000):                                         │
-│      • NIFTY 23500 CE @ ₹45 × 75 = ₹3,375 per lot (margin ~₹15k)         │
+│      • NIFTY 23500 CE @ ₹45 × 65 = ₹2,925 per lot (margin ~₹15k)         │
 │        → Can do 6 lots max (6 × ₹15k = ₹90k used)                          │
-│      • BANKNIFTY 50000 CE @ ₹120 × 40 = ₹4,800 per lot (margin ~₹25k)    │
+│      • BANKNIFTY 50000 CE @ ₹120 × 30 = ₹3,600 per lot (margin ~₹25k)    │
 │        → Can do 3-4 lots max                                                │
 │                                                                             │
 │    pivot_scalping: max 2 lots (PIVOT_SCALPING_MAX_LOTS config)             │

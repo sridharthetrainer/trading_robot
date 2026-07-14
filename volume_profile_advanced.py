@@ -536,7 +536,7 @@ def get_stt_breakeven_points(symbol: str = "NIFTY", price: float = 22700) -> Dic
     trade is not worth taking regardless of signal score.
     """
     lot_sizes = {
-        "NIFTY": 75, "BANKNIFTY": 30, "FINNIFTY": 65,
+        "NIFTY": 65, "BANKNIFTY": 30, "FINNIFTY": 60,
         "MIDCPNIFTY": 120, "SENSEX": 20,
     }
     lot = lot_sizes.get(symbol.upper(), 1)

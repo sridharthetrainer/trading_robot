@@ -66,12 +66,12 @@ LOT_SIZES: dict = {
     # NSE Indices (NFO exchange)
     "NIFTY":  65,  # Updated Apr 2026
     "BANKNIFTY":  30,  # Updated Apr 2026   # reduced from 25 in Jan 2025
-    "FINNIFTY":  65,  # Updated Apr 2026
+    "FINNIFTY":  60,  # per Angel master contract Jun 2026 (was 65)
     "MIDCPNIFTY":  120,  # Updated Apr 2026
     "NIFTYNEXT50": 25,
     # BSE Indices (BFO exchange)
     "SENSEX":  20,  # Updated Apr 2026
-    "BANKEX":  15,  # Updated Apr 2026
+    "BANKEX":  30,  # per Angel master contract Jun 2026 (was 15)
     # Nifty 50 stocks (NFO) — typical lot sizes
     "RELIANCE":    250,  "HDFCBANK":   550,  "ICICIBANK":  700,
     "INFY":        300,  "TCS":        150,  "ITC":        1600,

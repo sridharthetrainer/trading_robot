@@ -239,8 +239,8 @@ def calculate_position_size(symbol: str, capital: float, risk_pct: float = 1.0) 
         # Get lot size
         lot_size = 1
         lot_sizes = {
-            "NIFTY": 75, "BANKNIFTY": 30, "FINNIFTY": 65,
-            "MIDCPNIFTY": 120, "SENSEX": 20, "BANKEX": 15,
+            "NIFTY": 65, "BANKNIFTY": 30, "FINNIFTY": 60,
+            "MIDCPNIFTY": 120, "SENSEX": 20, "BANKEX": 30,
         }
         lot_size = lot_sizes.get(symbol.upper(), 1)
 

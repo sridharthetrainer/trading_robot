@@ -125,7 +125,11 @@ try:
     _OCE_AVAILABLE = True
 except ImportError:
     _OCE_AVAILABLE = False
-    _LOT_SIZES = {"NIFTY": 75, "BANKNIFTY": 30, "FINNIFTY": 65}
+    # 2026-07-15: fallback-of-last-resort only (normal path imports the
+    # live-refreshed NSE_LOT_SIZES above) — kept in sync with the same
+    # correction as spread_strategy.py/option_chain_engine.py.
+    _LOT_SIZES = {"NIFTY": 65, "BANKNIFTY": 30, "FINNIFTY": 60, "MIDCPNIFTY": 120,
+                  "SENSEX": 20, "BANKEX": 30}
 
 try:
     from day_classifier import get_day_classifier as _get_dc, DAY_VOLATILE

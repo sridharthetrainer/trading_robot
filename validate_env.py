@@ -139,8 +139,8 @@ RULES = [
      is_int_pos,       "10"),
 
     # ── OPTION SETTINGS ────────────────────────────────────────────────────
-    ("OPTION_LOT_SIZE",   "REQUIRED",     "Default lot size (NIFTY=75)",
-     is_int_pos,       "75"),
+    ("OPTION_LOT_SIZE",   "REQUIRED",     "Default lot size (NIFTY=65)",
+     is_int_pos,       "65"),
 
     ("VIX_MAX_FOR_BUYING","RECOMMENDED", "Block option buying above this VIX",
      is_positive,      "22.0"),

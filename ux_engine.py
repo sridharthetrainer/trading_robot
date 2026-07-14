@@ -39,7 +39,7 @@ _WATCH_FILE  = Path("user_watchlists.json")
 _ALERT_FILE  = Path("price_alerts.json")
 _PAPER_FILE  = Path("paper_trades.json")
 _LOT_SIZES   = {
-    "NIFTY": 75, "BANKNIFTY": 30, "FINNIFTY": 40,
+    "NIFTY": 65, "BANKNIFTY": 30, "FINNIFTY": 60,
     "MIDCPNIFTY": 120, "SENSEX": 20,
 }
 _MARGIN_RATES = {  # approx SPAN margin %
