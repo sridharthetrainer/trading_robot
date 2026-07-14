@@ -88,6 +88,17 @@ MIN_TRADES_TO_TRAIN          = 50    # minimum total trades before any training
 
 # RL watermark key stored inside rl_state.json
 _RL_WATERMARK_KEY = "__last_processed_trade_id__"
+_RL_SIGNAL_WATERMARK_KEY = "__last_processed_signal_id__"
+# 2026-07-14: real closed trades are the ONLY thing that ever fed RL, and this
+# system executes almost nothing (paper-mode, signal-only) — rl_state.json
+# had 1-2 trades per strategy after months of running, so score (a running
+# sum) never grew past noise: modifier_edge_report.json measured rl_bias as
+# DEAD (coverage=0.0) system-wide. signal_log's triple-barrier-labelled
+# outcomes (~23k rows) are the same "all generated signals, not just the tiny
+# executed sample" evidence source already used to fix option_strike_autotune
+# (2026-07-13) — fed here at reduced weight since a labelled signal is a
+# well-tested proxy for a fill, not a real one.
+RL_SHADOW_SIGNAL_WEIGHT = float(os.getenv("RL_SHADOW_SIGNAL_WEIGHT", "0.3"))
 
 
 class SelfLearningEngine:
@@ -251,6 +262,12 @@ class SelfLearningEngine:
 
     def _set_rl_watermark(self, trade_id: int) -> None:
         self.rl_state[_RL_WATERMARK_KEY] = int(trade_id)
+
+    def _get_rl_signal_watermark(self) -> int:
+        return int(self.rl_state.get(_RL_SIGNAL_WATERMARK_KEY, 0))
+
+    def _set_rl_signal_watermark(self, signal_id: int) -> None:
+        self.rl_state[_RL_SIGNAL_WATERMARK_KEY] = int(signal_id)
 
     # ------------------------------------------------------------------
     # Feature engineering
@@ -863,6 +880,70 @@ class SelfLearningEngine:
             "watermark":        max_id_seen,
         }
 
+    def _load_new_labelled_signals(self, limit: int = 20000) -> List[Dict[str, Any]]:
+        """Triple-barrier-labelled signal_log rows beyond the signal watermark —
+        the same broad evidence source (all generated signals, not just the
+        tiny executed-trade sample) already used to fix option_strike_autotune.
+        Best-effort; returns [] on any failure."""
+        watermark = self._get_rl_signal_watermark()
+        try:
+            import sqlite3
+            with sqlite3.connect("signal_log.db") as conn:
+                conn.row_factory = sqlite3.Row
+                rows = conn.execute(
+                    "SELECT id, strategy, side, signal_date, entry_price, "
+                    "outcome_price, tb_label, regime FROM signal_log "
+                    "WHERE tb_label IN (1,0,-1) AND training_eligible=1 "
+                    "AND entry_price > 0 AND outcome_price > 0 AND id > ? "
+                    "ORDER BY id LIMIT ?", (watermark, int(limit)),
+                ).fetchall()
+                return [dict(r) for r in rows]
+        except Exception as exc:
+            logger.debug("RL signal load failed: %s", exc)
+            return []
+
+    def _update_rl_from_signals(self, signal_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Same accumulation as _update_rl, weighted down (RL_SHADOW_SIGNAL_WEIGHT)
+        since a labelled signal is a well-tested proxy for a fill, not a real
+        one. Tracked in separate shadow_* fields so real-trade evidence stays
+        visibly distinct from shadow evidence (same convention as autotune's
+        verified vs shadow counters) — score itself IS blended, since that is
+        the only field _rl_score_adjustment reads."""
+        if not signal_rows:
+            return {"updated": False, "signals_processed": 0}
+
+        max_id_seen = self._get_rl_signal_watermark()
+        for row in signal_rows:
+            signal_id = int(row.get("id", 0) or 0)
+            strategy = str(row.get("strategy", "unknown")).upper()
+            side = str(row.get("side", "BUY")).upper()
+            entry = float(row.get("entry_price", 0) or 0)
+            outcome = float(row.get("outcome_price", 0) or 0)
+            regime = str(row.get("regime", "UNKNOWN") or "UNKNOWN").upper()
+            sign = 1.0 if side == "BUY" else -1.0
+            ret_pct = sign * (outcome - entry) / max(entry, 1e-9) * 100.0
+
+            if strategy not in self.rl_state:
+                self.rl_state[strategy] = {
+                    "score": 0.0, "trades": 0, "wins": 0, "losses": 0,
+                    "avg_pnl": 0.0, "last_regime": regime,
+                }
+            state = self.rl_state[strategy]
+            reward = (ret_pct / 100.0) * RL_SHADOW_SIGNAL_WEIGHT
+            state["score"] = float(state.get("score", 0.0)) + reward
+            state["shadow_signals"] = int(state.get("shadow_signals", 0)) + 1
+            state["shadow_wins"] = int(state.get("shadow_wins", 0)) + (1 if ret_pct > 0 else 0)
+            state["shadow_losses"] = int(state.get("shadow_losses", 0)) + (1 if ret_pct <= 0 else 0)
+            if signal_id > max_id_seen:
+                max_id_seen = signal_id
+
+        self._set_rl_signal_watermark(max_id_seen)
+        self._save_rl_state()
+        logger.info("RL updated from labelled signals | n=%d watermark->%d strategies=%d",
+                    len(signal_rows), max_id_seen, len(self.rl_state))
+        return {"updated": True, "signals_processed": len(signal_rows),
+                "signal_watermark": max_id_seen}
+
     # ------------------------------------------------------------------
     # Strategy selector bridge
     # ------------------------------------------------------------------
@@ -969,6 +1050,8 @@ class SelfLearningEngine:
 
             # ---- RL update (new trades only) ---------------------------
             rl_result = self._update_rl(all_closed_trades)
+            rl_result["shadow_signals"] = self._update_rl_from_signals(
+                self._load_new_labelled_signals())
 
             # ---- Model training (conditional) --------------------------
             should_train, train_reason = self._should_retrain(total_trades)
