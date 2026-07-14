@@ -753,21 +753,38 @@ class OptionChainEngine:
     # ── Per-index expiry weekday ─────────────────────────────────────────────────
     # Fallback expiry weekday schedule. The master contract path above is the
     # source of truth; these are used only when local contracts are unavailable.
-    #   NIFTY 50      → Tuesday  (weekday=1), Sep 2025+
-    #   BANKNIFTY     → Wednesday (weekday=2)
-    #   FINNIFTY      → Tuesday  (weekday=1)
-    #   MIDCPNIFTY    → Monday   (weekday=0)
-    #   NIFTYNEXT50   → Friday   (weekday=4)
-    #   SENSEX (BSE)  → Friday   (weekday=4) — BSE, different exchange
+    #
+    # 2026-07-14 FIX: this table had drifted from expiry_regime.py's Thursday
+    # hardcode (fixed same day — NSE moved index expiry Thursday->Tuesday on
+    # 2025-09-01) and was left disagreeing with the corrected values: this
+    # table said BANKNIFTY=Wednesday/MIDCPNIFTY=Monday/SENSEX=Friday while
+    # expiry_regime.py's fix (verified against this system's own live
+    # option_chain_snapshots.db: every recorded NIFTY/BANKNIFTY/FINNIFTY
+    # expiry falls on Tuesday, no exception) moved to Tuesday/Tuesday/Thursday.
+    # Since THIS table is the one real order-placement fallback actually uses
+    # (_select_expiry, when the master-contract lookup fails), a stale entry
+    # here risks selecting the wrong expiry contract — not just a scoring nudge
+    # like expiry_regime.py's regime modifiers. Reconciled to match.
+    #   NIFTY 50      → Tuesday   (weekday=1) — verified live
+    #   BANKNIFTY     → Tuesday   (weekday=1) — verified live (was Wednesday)
+    #   FINNIFTY      → Tuesday   (weekday=1) — verified live
+    #   MIDCPNIFTY    → Tuesday   (weekday=1) — per hero_zero_strategy.py's
+    #                    _EXPIRY_DAY table (was Monday); NOT live-verified here
+    #   NIFTYNEXT50   → Tuesday   (weekday=1) — assumed to follow NIFTY (was
+    #                    Friday); NOT live-verified here
+    #   SENSEX (BSE)  → Thursday  (weekday=3) — per hero_zero_strategy.py's
+    #                    SENSEX=3 entry (was Friday); NOT live-verified here
+    #   BANKEX (BSE)  → Thursday  (weekday=3) — assumed to match SENSEX (same
+    #                    exchange, was Friday); NOT live-verified here
     # Individual stocks → Monthly last Thursday
     EXPIRY_WEEKDAY = {
-        "NIFTY":       1,   # Tuesday
-        "BANKNIFTY":   2,   # Wednesday
-        "FINNIFTY":    1,   # Tuesday
-        "MIDCPNIFTY":  0,   # Monday
-        "NIFTYNEXT50": 4,   # Friday
-        "SENSEX":      4,   # Friday (BSE)
-        "BANKEX":      4,   # Friday (BSE)
+        "NIFTY":       1,   # Tuesday — verified live
+        "BANKNIFTY":   1,   # Tuesday — verified live (was Wednesday)
+        "FINNIFTY":    1,   # Tuesday — verified live
+        "MIDCPNIFTY":  1,   # Tuesday — per hero_zero_strategy.py (was Monday)
+        "NIFTYNEXT50": 1,   # Tuesday — assumed to follow NIFTY (was Friday)
+        "SENSEX":      3,   # Thursday (BSE) — per hero_zero_strategy.py (was Friday)
+        "BANKEX":      3,   # Thursday (BSE) — assumed to match SENSEX (was Friday)
     }
     MONTHLY_EXPIRY_UNDERLYING = {"NIFTY", "BANKNIFTY"}  # also have monthly options
 
@@ -780,10 +797,9 @@ class OptionChainEngine:
         """
         Select correct expiry based on underlying's actual expiry weekday.
 
-        Each index expires on a different day of the week (NSE design to
-        spread expiry risk across the week).
-
-        BANKNIFTY → Wednesday, FINNIFTY → Tuesday, MIDCPNIFTY → Monday
+        Since 2025-09-01, NIFTY/BANKNIFTY/FINNIFTY/MIDCPNIFTY/NIFTYNEXT50 all
+        expire on Tuesday (see EXPIRY_WEEKDAY above); SENSEX/BANKEX (BSE) on
+        Thursday.
         """
         today    = date.today()
         min_dte  = MIN_DTE_BY_STYLE.get(style, 0)

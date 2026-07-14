@@ -59,6 +59,15 @@ from __future__ import annotations
 # to match hero_zero_strategy.py's SENSEX=3 entry (a separate, pre-existing
 # disagreement between the two modules, unrelated to the Tuesday shift,
 # found while reconciling them) — still worth a direct BSE check.
+#
+# CODE REVIEW FOLLOW-UP (2026-07-14, same day): this fix left
+# option_chain_engine.py's OWN separate EXPIRY_WEEKDAY fallback table (used
+# for REAL expiry selection when the master-contract lookup fails, not just
+# a scoring nudge) disagreeing — it still had BANKNIFTY=Wednesday,
+# MIDCPNIFTY=Monday, SENSEX=Friday (the values THIS module had matched
+# before today's fix). Reconciled both together; BANKEX also given an
+# explicit Thursday case here (previously fell through to the Tuesday
+# default by accident, not by reasoning — see get_expiry_day_of_week).
 # ─────────────────────────────────────────────────────────────────────────────
 WEEKLY_EXPIRY_SYMBOLS  = {"NIFTY"}         # NSE — Tuesday weekly
 WEEKLY_EXPIRY_BSE      = {"SENSEX"}        # BSE — Thursday weekly (unverified live)
@@ -87,7 +96,13 @@ def get_expiry_day_of_week(symbol: str) -> int:
     if s == "FINNIFTY":     return 1  # Tuesday (verified live)
     if s == "MIDCPNIFTY":   return 1  # Tuesday (per hero_zero_strategy.py)
     if s == "NIFTYNEXT50":  return 1  # Tuesday (monthly, assumed to follow NIFTY)
-    return 1  # default Tuesday (was Thursday)
+    # BANKEX previously fell through to this catch-all — an unreasoned
+    # accident of how the default was written, not a real decision (caught
+    # in code review 2026-07-14). It's BSE, same exchange as SENSEX, so it
+    # should follow SENSEX's weekday, not NSE's — explicit case, matching
+    # option_chain_engine.py's EXPIRY_WEEKDAY (also reconciled same day).
+    if s == "BANKEX":       return 3  # Thursday (BSE, matches SENSEX) — unverified live
+    return 1  # default Tuesday (was Thursday) — NSE indices only reach here
 
 
 
