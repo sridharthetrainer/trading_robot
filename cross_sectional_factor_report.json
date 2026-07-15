@@ -1,0 +1,155 @@
+{
+  "generated_at": "2026-07-15T19:07:48",
+  "bonferroni_tests": 4,
+  "value_factor": "excluded_no_fundamental_data",
+  "factors": {
+    "momentum": {
+      "factor": "momentum",
+      "symbols_in_universe": 29,
+      "rebalance_points": 43,
+      "cutoff_date": "2025-05-06",
+      "long_short": {
+        "train": {
+          "n": 29,
+          "mean_monthly_pct": -2.064,
+          "win_rate": 0.276,
+          "t": -1.6,
+          "p": 0.11013
+        },
+        "holdout": {
+          "n": 12,
+          "mean_monthly_pct": 0.6916,
+          "win_rate": 0.583,
+          "t": 0.41,
+          "p": 0.6803
+        }
+      },
+      "long_only_active": {
+        "train": {
+          "n": 29,
+          "mean_monthly_pct": -1.0375,
+          "win_rate": 0.241,
+          "t": -1.41,
+          "p": 0.15838
+        },
+        "holdout": {
+          "n": 12,
+          "mean_monthly_pct": 0.3433,
+          "win_rate": 0.5,
+          "t": 0.5,
+          "p": 0.61693
+        }
+      },
+      "verdicts": {
+        "long_short": {
+          "verdict": "NOISE",
+          "train": {
+            "n": 29,
+            "mean_monthly_pct": -2.064,
+            "win_rate": 0.276,
+            "t": -1.6,
+            "p": 0.11013
+          },
+          "holdout": {
+            "n": 12,
+            "mean_monthly_pct": 0.6916,
+            "win_rate": 0.583,
+            "t": 0.41,
+            "p": 0.6803
+          }
+        },
+        "long_only_active": {
+          "verdict": "NOISE",
+          "train": {
+            "n": 29,
+            "mean_monthly_pct": -1.0375,
+            "win_rate": 0.241,
+            "t": -1.41,
+            "p": 0.15838
+          },
+          "holdout": {
+            "n": 12,
+            "mean_monthly_pct": 0.3433,
+            "win_rate": 0.5,
+            "t": 0.5,
+            "p": 0.61693
+          }
+        }
+      }
+    },
+    "low_vol": {
+      "factor": "low_vol",
+      "symbols_in_universe": 29,
+      "rebalance_points": 43,
+      "cutoff_date": "2025-05-06",
+      "long_short": {
+        "train": {
+          "n": 29,
+          "mean_monthly_pct": -1.278,
+          "win_rate": 0.448,
+          "t": -1.05,
+          "p": 0.29272
+        },
+        "holdout": {
+          "n": 12,
+          "mean_monthly_pct": -1.88,
+          "win_rate": 0.333,
+          "t": -1.87,
+          "p": 0.06103
+        }
+      },
+      "long_only_active": {
+        "train": {
+          "n": 29,
+          "mean_monthly_pct": 0.1171,
+          "win_rate": 0.586,
+          "t": 0.24,
+          "p": 0.81306
+        },
+        "holdout": {
+          "n": 12,
+          "mean_monthly_pct": -0.4171,
+          "win_rate": 0.333,
+          "t": -0.89,
+          "p": 0.37516
+        }
+      },
+      "verdicts": {
+        "long_short": {
+          "verdict": "NOISE",
+          "train": {
+            "n": 29,
+            "mean_monthly_pct": -1.278,
+            "win_rate": 0.448,
+            "t": -1.05,
+            "p": 0.29272
+          },
+          "holdout": {
+            "n": 12,
+            "mean_monthly_pct": -1.88,
+            "win_rate": 0.333,
+            "t": -1.87,
+            "p": 0.06103
+          }
+        },
+        "long_only_active": {
+          "verdict": "NOISE",
+          "train": {
+            "n": 29,
+            "mean_monthly_pct": 0.1171,
+            "win_rate": 0.586,
+            "t": 0.24,
+            "p": 0.81306
+          },
+          "holdout": {
+            "n": 12,
+            "mean_monthly_pct": -0.4171,
+            "win_rate": 0.333,
+            "t": -0.89,
+            "p": 0.37516
+          }
+        }
+      }
+    }
+  }
+}
