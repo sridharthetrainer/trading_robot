@@ -22,12 +22,15 @@ this ledger accrues.
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
 from option_underlying_decomposition import _load_candles, _parse_snapshot_time, _forward_return, _stat
+
+logger = logging.getLogger(__name__)
 
 LEDGER_FILE = Path("option_signal_research_ledger.json")
 SNAPSHOT_DB = "option_chain_snapshots.db"
@@ -119,8 +122,8 @@ def run_all() -> Dict[str, Any]:
               "candidates": {name: check_candidate(name) for name in CANDIDATES}}
     try:
         LEDGER_FILE.write_text(json.dumps(report, indent=2))
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("ledger write failed: %s", exc)
     return report
 
 
