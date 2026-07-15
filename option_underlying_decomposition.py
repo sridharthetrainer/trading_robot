@@ -29,11 +29,15 @@ structure_reverse_engineer.py):
 """
 from __future__ import annotations
 
+import json
+import logging
 import math
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+
+logger = logging.getLogger(__name__)
 
 SNAPSHOT_DB = "option_chain_snapshots.db"
 CANDLE_DB = "candle_cache.db"
@@ -210,9 +214,9 @@ def run(underlyings: Tuple[str, ...] = ("NIFTY", "BANKNIFTY", "FINNIFTY")) -> Di
         "all_tested": results,
     }
     try:
-        REPORT_FILE.write_text(__import__("json").dumps(report, indent=2))
-    except Exception:
-        pass
+        REPORT_FILE.write_text(json.dumps(report, indent=2))
+    except Exception as exc:
+        logger.debug("report write failed: %s", exc)
     return report
 
 
