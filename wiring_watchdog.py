@@ -62,6 +62,7 @@ ARTIFACTS: Dict[str, float] = {
     "eod_signal_miner_report.json": 80,
     "eod_setup_edge_report.json": 200,     # accumulates days; can legitimately gate on "not enough days yet"
     "strategy_performance.json": 200,      # strategy_evolution runs weekly (Saturdays)
+    "option_signal_research_ledger.json": 80,
 }
 
 

@@ -268,6 +268,17 @@ def run_autonomous_learning_cycle(
 
     report["steps"]["eod_setup_edge"] = _step("eod_setup_edge", _eod_setup_edge)
 
+    def _option_signal_research_ledger() -> Dict[str, Any]:
+        if dry_run:
+            return {"skipped": True, "reason": "dry_run"}
+        from option_signal_research_ledger import run_all
+        rep = run_all()
+        return {name: {"verdict": r["verdict"], "forward_days": r["forward_days"]}
+                for name, r in rep["candidates"].items()}
+
+    report["steps"]["option_signal_research_ledger"] = _step(
+        "option_signal_research_ledger", _option_signal_research_ledger)
+
     def _confluence_feature_store() -> Dict[str, Any]:
         from confluence_feature_store import refresh_confluence_features
 
