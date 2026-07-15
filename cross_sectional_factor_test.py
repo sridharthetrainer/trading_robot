@@ -233,8 +233,8 @@ def main() -> int:
 
     try:
         Path("cross_sectional_factor_report.json").write_text(json.dumps(report, indent=2))
-    except Exception:
-        pass
+    except Exception as exc:
+        print(f"report write failed: {exc}")
     return 0
 
 
