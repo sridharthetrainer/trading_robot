@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-07-01T19:21:46+0530",
+  "ok": true,
+  "policy": "paper_forward_test_only_no_live_promotion",
+  "minimums": {
+    "clean_days": 3,
+    "samples": 10
+  },
+  "recommendations": [
+    {
+      "strategy": "heikin_ashi",
+      "samples": 13,
+      "clean_days": 3,
+      "avg_net_r": 0.29286923076923077,
+      "profit_factor": 2.603884067739489,
+      "positive_rate": 0.6153846153846154
+    },
+    {
+      "strategy": "td_sequential",
+      "samples": 14,
+      "clean_days": 3,
+      "avg_net_r": 0.16531428571428572,
+      "profit_factor": 1.703978586202701,
+      "positive_rate": 0.5
+    },
+    {
+      "strategy": "weinstein_stage",
+      "samples": 12,
+      "clean_days": 3,
+      "avg_net_r": 0.03126666666666664,
+      "profit_factor": 1.1022900763358778,
+      "positive_rate": 0.3333333333333333
+    },
+    {
+      "strategy": "candlestick_bearish_engulfing",
+      "samples": 57,
+      "clean_days": 3,
+      "avg_net_r": 0.014214035087719299,
+      "profit_factor": 1.0644627441619923,
+      "positive_rate": 0.3684210526315789
+    },
+    {
+      "strategy": "cpr",
+      "samples": 37,
+      "clean_days": 3,
+      "avg_net_r": 0.006889189189189196,
+      "profit_factor": 1.0238086342493133,
+      "positive_rate": 0.4864864864864865
+    }
+  ],
+  "live_approved": false,
+  "live_requirements": {
+    "clean_days": 15,
+    "clean_outcomes": 5000,
+    "profit_factor": 1.2,
+    "walk_forward_stable": true
+  }
+}

@@ -1,0 +1,569 @@
+{
+  "timestamp": "2026-07-15T18:39:00.198097",
+  "cv_method": "purged_kfold",
+  "cv_auc_mean": 0.7097,
+  "importances": [
+    {
+      "feature": "mtf_pivot_mod",
+      "importance": 0.04938,
+      "std": 0.03822
+    },
+    {
+      "feature": "volume_ratio",
+      "importance": 0.03103,
+      "std": 0.02044
+    },
+    {
+      "feature": "time_bucket_wt",
+      "importance": 0.01905,
+      "std": 0.01199
+    },
+    {
+      "feature": "hour_of_day",
+      "importance": 0.01523,
+      "std": 0.01363
+    },
+    {
+      "feature": "euro_open_window",
+      "importance": 0.01305,
+      "std": 0.00916
+    },
+    {
+      "feature": "trade_num_today",
+      "importance": 0.00479,
+      "std": 0.00942
+    },
+    {
+      "feature": "profile_value_width_pct",
+      "importance": 0.00456,
+      "std": 0.00827
+    },
+    {
+      "feature": "close_session",
+      "importance": 0.0037,
+      "std": 0.00759
+    },
+    {
+      "feature": "sector_code",
+      "importance": 0.00355,
+      "std": 0.00581
+    },
+    {
+      "feature": "india_vix",
+      "importance": 0.00261,
+      "std": 0.00569
+    },
+    {
+      "feature": "expiry_mod",
+      "importance": 0.00259,
+      "std": 0.00421
+    },
+    {
+      "feature": "expiry_dte",
+      "importance": 0.00183,
+      "std": 0.00298
+    },
+    {
+      "feature": "profile_poc_distance_pct",
+      "importance": 0.00138,
+      "std": 0.00497
+    },
+    {
+      "feature": "near_expiry",
+      "importance": 0.00133,
+      "std": 0.0029
+    },
+    {
+      "feature": "n_agree",
+      "importance": 0.00129,
+      "std": 0.00214
+    },
+    {
+      "feature": "fii_cum_5d",
+      "importance": 0.00125,
+      "std": 0.00437
+    },
+    {
+      "feature": "open_session",
+      "importance": 0.00102,
+      "std": 0.00206
+    },
+    {
+      "feature": "fii_fut_ratio",
+      "importance": 0.00095,
+      "std": 0.00307
+    },
+    {
+      "feature": "profile_position_enc",
+      "importance": 0.00079,
+      "std": 0.00153
+    },
+    {
+      "feature": "baseline_distance_atr",
+      "importance": 0.00065,
+      "std": 0.00131
+    },
+    {
+      "feature": "regime_enc",
+      "importance": 0.0005,
+      "std": 0.00145
+    },
+    {
+      "feature": "profile_bias_enc",
+      "importance": 0.00029,
+      "std": 0.00055
+    },
+    {
+      "feature": "ai_score",
+      "importance": 0.00018,
+      "std": 0.00051
+    },
+    {
+      "feature": "ichimoku_position",
+      "importance": 0.00016,
+      "std": 0.00038
+    },
+    {
+      "feature": "n_conflict",
+      "importance": 0.0001,
+      "std": 0.00027
+    },
+    {
+      "feature": "n_net_agree",
+      "importance": 7e-05,
+      "std": 0.0017
+    },
+    {
+      "feature": "range_direction",
+      "importance": 4e-05,
+      "std": 9e-05
+    },
+    {
+      "feature": "kagi_direction",
+      "importance": 0.0,
+      "std": 0.00184
+    },
+    {
+      "feature": "raw_score",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "bhav_delivery",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "sip_boost",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "bulk_deal_mod",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "theta_mod",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "rebal_mod",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "news_mod",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "rl_bias",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "market_profile_mod",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "iv_percentile",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "pcr_atm",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "fii_net_cash",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "client_ce_pct",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "sensex_nifty_div",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "above_weekly_pvt",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "above_monthly_pvt",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "pct_from_w_r1",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "pct_from_m_r1",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "day_of_week",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "bar_return_1_atr",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "line_turn",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "step_direction",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "hollow_state",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "volume_candle_strength",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "line_break_run",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "line_break_event",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "kagi_reversal",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "kagi_distance_atr",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "pnf_boxes",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "pnf_reversal",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "range_event",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "footprint_available",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "representation_coverage",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "tick_oim",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "tick_velocity",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "tick_momentum",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "tick_sample_count",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "tick_flow_available",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "cross_asset_bias_enc",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "expiry_regime_enc",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "confluence_enc",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "htf_aligned",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "vix_high",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "vix_extreme",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "monday_trade",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "friday_trade",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "vol_thin",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "vol_confirmed",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "near_profile_poc",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "profile_confirmed",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "profile_headwind",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "hist_fii_net",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "hist_fii_cum5",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "sector_breadth",
+      "importance": 0.0,
+      "std": 0.0
+    },
+    {
+      "feature": "score",
+      "importance": -3e-05,
+      "std": 0.00114
+    },
+    {
+      "feature": "side_enc",
+      "importance": -4e-05,
+      "std": 0.00061
+    },
+    {
+      "feature": "cross_asset_mod",
+      "importance": -0.0002,
+      "std": 0.00108
+    },
+    {
+      "feature": "hollow_run",
+      "importance": -0.00022,
+      "std": 0.00083
+    },
+    {
+      "feature": "pnf_direction",
+      "importance": -0.00023,
+      "std": 0.00047
+    },
+    {
+      "feature": "ichimoku_tk",
+      "importance": -0.00028,
+      "std": 0.00058
+    },
+    {
+      "feature": "htf_bias_enc",
+      "importance": -0.00045,
+      "std": 0.00089
+    },
+    {
+      "feature": "fii_bull_confirm",
+      "importance": -0.00052,
+      "std": 0.00066
+    },
+    {
+      "feature": "score_boost_pct",
+      "importance": -0.00059,
+      "std": 0.00189
+    },
+    {
+      "feature": "footprint_delta_proxy",
+      "importance": -0.0006,
+      "std": 0.00209
+    },
+    {
+      "feature": "score_boost",
+      "importance": -0.00068,
+      "std": 0.00278
+    },
+    {
+      "feature": "weinstein_mod",
+      "importance": -0.00104,
+      "std": 0.00251
+    },
+    {
+      "feature": "range_run",
+      "importance": -0.0018,
+      "std": 0.00222
+    },
+    {
+      "feature": "line_break_direction",
+      "importance": -0.00214,
+      "std": 0.00438
+    },
+    {
+      "feature": "line_slope_atr",
+      "importance": -0.00251,
+      "std": 0.00507
+    },
+    {
+      "feature": "participant_mod",
+      "importance": -0.0035,
+      "std": 0.00345
+    }
+  ],
+  "noise_features_suggest_prune": [
+    "raw_score",
+    "bhav_delivery",
+    "sip_boost",
+    "bulk_deal_mod",
+    "theta_mod",
+    "rebal_mod",
+    "news_mod",
+    "rl_bias",
+    "market_profile_mod",
+    "iv_percentile",
+    "pcr_atm",
+    "fii_net_cash",
+    "client_ce_pct",
+    "sensex_nifty_div",
+    "above_weekly_pvt",
+    "above_monthly_pvt",
+    "pct_from_w_r1",
+    "pct_from_m_r1",
+    "day_of_week",
+    "bar_return_1_atr",
+    "line_turn",
+    "step_direction",
+    "hollow_state",
+    "volume_candle_strength",
+    "line_break_run",
+    "line_break_event",
+    "kagi_reversal",
+    "kagi_distance_atr",
+    "pnf_boxes",
+    "pnf_reversal",
+    "range_event",
+    "footprint_available",
+    "representation_coverage",
+    "tick_oim",
+    "tick_velocity",
+    "tick_momentum",
+    "tick_sample_count",
+    "tick_flow_available",
+    "cross_asset_bias_enc",
+    "expiry_regime_enc",
+    "confluence_enc",
+    "htf_aligned",
+    "vix_high",
+    "vix_extreme",
+    "monday_trade",
+    "friday_trade",
+    "vol_thin",
+    "vol_confirmed",
+    "near_profile_poc",
+    "profile_confirmed",
+    "profile_headwind",
+    "hist_fii_net",
+    "hist_fii_cum5",
+    "sector_breadth",
+    "score",
+    "side_enc",
+    "cross_asset_mod",
+    "hollow_run",
+    "pnf_direction",
+    "ichimoku_tk",
+    "htf_bias_enc",
+    "fii_bull_confirm",
+    "score_boost_pct",
+    "footprint_delta_proxy",
+    "score_boost",
+    "weinstein_mod",
+    "range_run",
+    "line_break_direction",
+    "line_slope_atr",
+    "participant_mod"
+  ]
+}

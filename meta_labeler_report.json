@@ -1,5 +1,100 @@
 {
-  "error": "insufficient temporal coverage: 7 distinct day(s) < 10 \u2014 meta-labeling needs weeks of labelled data; refusing to train (a high AUC here would be an overfit artifact of one day's intraday regime).",
-  "distinct_days": 7,
-  "n_rows": 7213
+  "n_total": 15434,
+  "n_train": 11646,
+  "n_test": 3788,
+  "n_features": 42,
+  "base_win_rate": 0.0628,
+  "auc": 0.5666,
+  "cost_pct": 0.12,
+  "by_threshold": [
+    {
+      "threshold": 0.5,
+      "n_selected": 2709,
+      "coverage": 0.7152,
+      "precision": 0.0779,
+      "lift_vs_base": 0.0151
+    },
+    {
+      "threshold": 0.55,
+      "n_selected": 2188,
+      "coverage": 0.5776,
+      "precision": 0.0804,
+      "lift_vs_base": 0.0176
+    },
+    {
+      "threshold": 0.6,
+      "n_selected": 1522,
+      "coverage": 0.4018,
+      "precision": 0.0729,
+      "lift_vs_base": 0.0101
+    },
+    {
+      "threshold": 0.65,
+      "n_selected": 972,
+      "coverage": 0.2566,
+      "precision": 0.0566,
+      "lift_vs_base": -0.0062
+    },
+    {
+      "threshold": 0.7,
+      "n_selected": 580,
+      "coverage": 0.1531,
+      "precision": 0.019,
+      "lift_vs_base": -0.0439
+    }
+  ],
+  "top_features": [
+    {
+      "feature": "hour_of_day",
+      "importance": 0.1177
+    },
+    {
+      "feature": "fii_cum_5d",
+      "importance": 0.1131
+    },
+    {
+      "feature": "time_bucket_wt",
+      "importance": 0.1129
+    },
+    {
+      "feature": "mtf_pivot_mod",
+      "importance": 0.0838
+    },
+    {
+      "feature": "weinstein_mod",
+      "importance": 0.0762
+    },
+    {
+      "feature": "volume_ratio",
+      "importance": 0.0671
+    },
+    {
+      "feature": "india_vix",
+      "importance": 0.0533
+    },
+    {
+      "feature": "fii_net_cash",
+      "importance": 0.0473
+    },
+    {
+      "feature": "side_buy",
+      "importance": 0.0404
+    },
+    {
+      "feature": "participant_mod",
+      "importance": 0.0346
+    },
+    {
+      "feature": "sr_level_mod",
+      "importance": 0.0343
+    },
+    {
+      "feature": "cross_asset_mod",
+      "importance": 0.0328
+    }
+  ],
+  "best_threshold": null,
+  "conclusion": "AUC=0.567 but no threshold clears base rate by >2% at usable coverage \u2014 no actionable precision lift yet. Report-only.",
+  "model_saved": false,
+  "model_save_reason": "no_locked_holdout_precision_lift"
 }

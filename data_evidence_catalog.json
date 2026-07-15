@@ -1,0 +1,1226 @@
+{
+  "generated_at": "2026-07-14T21:54:09+0530",
+  "policy": {
+    "preserve_all_rows": true,
+    "legacy_data_role": "research_only_until_source_and_timing_are_verified",
+    "promotion_rule": "only row-level verified live provenance may unlock live trading"
+  },
+  "database_count": 19,
+  "table_count": 45,
+  "total_rows": 6562983,
+  "total_bytes": 1183281152,
+  "ok": true,
+  "issues": [],
+  "empty_databases": [
+    "historical_options.db"
+  ],
+  "databases": [
+    {
+      "path": "candle_cache.db",
+      "bytes": 580005888,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "cache_meta",
+          "rows": 970,
+          "columns": [
+            "symbol",
+            "interval",
+            "last_update",
+            "bar_count"
+          ]
+        },
+        {
+          "name": "candles",
+          "rows": 3013952,
+          "columns": [
+            "symbol",
+            "interval",
+            "timestamp",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume"
+          ]
+        },
+        {
+          "name": "quarantined_candles",
+          "rows": 2926,
+          "columns": [
+            "symbol",
+            "interval",
+            "timestamp",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "quarantined_at",
+            "reason"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "confluence_features.db",
+      "bytes": 18763776,
+      "tier": "DERIVED_RESEARCH",
+      "tables": [
+        {
+          "name": "confluence_features",
+          "rows": 25613,
+          "columns": [
+            "signal_id",
+            "log_time",
+            "symbol",
+            "side",
+            "strategy",
+            "score",
+            "raw_score",
+            "score_boost",
+            "n_agree",
+            "n_conflict",
+            "agreeing_strats_json",
+            "regime",
+            "htf_bias",
+            "confluence",
+            "volume_ratio",
+            "indicator_coverage",
+            "candidate_confirmations",
+            "modifier_sum",
+            "rejection_reason",
+            "executed",
+            "tb_label",
+            "updated_at"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "download_log.db",
+      "bytes": 20480,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "downloads",
+          "rows": 0,
+          "columns": [
+            "id",
+            "ts",
+            "dl_date",
+            "dl_time",
+            "source",
+            "category",
+            "item",
+            "status",
+            "size_kb",
+            "rows",
+            "latency_ms",
+            "error",
+            "url"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "eod_signal_miner.db",
+      "bytes": 7225344,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "eod_mined_candidates",
+          "rows": 24303,
+          "columns": [
+            "symbol",
+            "candidate_time",
+            "candidate_date",
+            "side",
+            "setup",
+            "score",
+            "opposition",
+            "factors",
+            "entry_price",
+            "label",
+            "return_pct",
+            "run_date"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "experiments.db",
+      "bytes": 12288,
+      "tier": "DERIVED_RESEARCH",
+      "tables": [
+        {
+          "name": "experiments",
+          "rows": 18,
+          "columns": [
+            "config_hash",
+            "strategy",
+            "symbol",
+            "timeframe",
+            "params",
+            "n_trials",
+            "dev_sharpe",
+            "holdout_sharpe",
+            "deflated_sharpe",
+            "beats_benchmark",
+            "verdict",
+            "run_count",
+            "first_run",
+            "last_run"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "historical_options.db",
+      "bytes": 0,
+      "tier": "RESEARCH_REPLAY",
+      "tables": [],
+      "ok": true,
+      "empty": true,
+      "quick_check": "not_applicable"
+    },
+    {
+      "path": "manual_learning.db",
+      "bytes": 24576,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "outcomes",
+          "rows": 64,
+          "columns": [
+            "id",
+            "order_id",
+            "symbol",
+            "side",
+            "is_option",
+            "entry",
+            "exit",
+            "pnl",
+            "pnl_pct",
+            "r_multiple",
+            "win",
+            "regime",
+            "vix",
+            "alignment_pct",
+            "dte",
+            "held_overnight",
+            "entry_hour",
+            "closed_at"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "manual_trades.db",
+      "bytes": 90112,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "manual_trade_updates",
+          "rows": 436,
+          "columns": [
+            "id",
+            "order_id",
+            "timestamp",
+            "price",
+            "pnl",
+            "pnl_pct",
+            "trailing_sl",
+            "event"
+          ]
+        },
+        {
+          "name": "manual_trades",
+          "rows": 65,
+          "columns": [
+            "id",
+            "order_id",
+            "symbol",
+            "exchange",
+            "side",
+            "qty",
+            "entry_price",
+            "product",
+            "order_time",
+            "stop_loss",
+            "target_1",
+            "target_2",
+            "strategies_bullish",
+            "strategies_bearish",
+            "regime",
+            "vix",
+            "wow_factors",
+            "status",
+            "exit_price",
+            "exit_time",
+            "exit_reason",
+            "pnl",
+            "created_at",
+            "sl_gtt_id",
+            "target_gtt_id",
+            "hwm",
+            "protected",
+            "current_price",
+            "pnl_pct",
+            "realized_pnl",
+            "t1_hit",
+            "highest_since_entry",
+            "lowest_since_entry"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "market_profile_snapshots.db",
+      "bytes": 34152448,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "market_profile_snapshots",
+          "rows": 83971,
+          "columns": [
+            "id",
+            "snapshot_date",
+            "snapshot_time",
+            "ts",
+            "symbol",
+            "timeframe",
+            "price",
+            "poc",
+            "vah",
+            "val",
+            "hvn_json",
+            "lvn_json",
+            "value_width_pct",
+            "poc_distance_pct",
+            "vah_distance_pct",
+            "val_distance_pct",
+            "profile_position",
+            "profile_bias",
+            "acceptance_state",
+            "score_modifier",
+            "quality",
+            "created_at"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "market_snapshots.db",
+      "bytes": 81920,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "market_snapshots",
+          "rows": 214,
+          "columns": [
+            "ts",
+            "snapshot_time",
+            "india_vix",
+            "vix_change",
+            "breadth_ratio",
+            "breadth_signal",
+            "cross_asset_bias",
+            "regime",
+            "top_sectors_json",
+            "avoid_sectors_json",
+            "raw_json"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "nse_cache.db",
+      "bytes": 18087936,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "ohlcv",
+          "rows": 152074,
+          "columns": [
+            "symbol",
+            "date",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "option_chain_snapshots.db",
+      "bytes": 41533440,
+      "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
+      "tables": [
+        {
+          "name": "option_chain_snapshots",
+          "rows": 2386,
+          "columns": [
+            "ts",
+            "snapshot_time",
+            "underlying",
+            "spot",
+            "expiry",
+            "atm_strike",
+            "pcr_oi",
+            "pcr_change_oi",
+            "max_pain",
+            "rows_json",
+            "summary_json",
+            "ok",
+            "reason",
+            "source",
+            "is_live",
+            "provider_request_id"
+          ]
+        },
+        {
+          "name": "option_strike_signals",
+          "rows": 20810,
+          "columns": [
+            "ts",
+            "snapshot_time",
+            "underlying",
+            "expiry",
+            "strike",
+            "option_type",
+            "flow",
+            "signal",
+            "direction",
+            "score",
+            "tradable",
+            "price",
+            "price_change_pct",
+            "oi",
+            "oi_change_pct",
+            "volume",
+            "volume_change_pct",
+            "spread_pct",
+            "reason",
+            "source",
+            "outcome_label",
+            "exit_price",
+            "gross_pnl",
+            "estimated_costs",
+            "net_pnl",
+            "labelled_at",
+            "market_regime",
+            "market_bias",
+            "regime_aligned",
+            "score_rank",
+            "execution_status",
+            "fill_latency_sec",
+            "fill_probability",
+            "capital_at_risk",
+            "net_r",
+            "entry_price",
+            "stop_loss",
+            "target_1",
+            "target_2",
+            "lifecycle_status",
+            "status_updated_at",
+            "edge_policy",
+            "edge_outcomes",
+            "edge_avg_r",
+            "edge_profit_factor"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "option_structure_training.db",
+      "bytes": 434176,
+      "tier": "DERIVED_RESEARCH",
+      "tables": [
+        {
+          "name": "option_structure_legs",
+          "rows": 452,
+          "columns": [
+            "id",
+            "run_date",
+            "symbol",
+            "session_date",
+            "direction",
+            "start_ts",
+            "end_ts",
+            "entry_price",
+            "exit_price",
+            "max_profit_pts",
+            "max_profit_pct",
+            "max_adverse_pct",
+            "bars",
+            "structure_start",
+            "structure_end",
+            "leg_type",
+            "hh_count",
+            "hl_count",
+            "lh_count",
+            "ll_count",
+            "bos",
+            "choch",
+            "vwap_state",
+            "vwap_cross",
+            "volume_ratio",
+            "rsi14",
+            "atr_pct",
+            "ema_state",
+            "trend_15m",
+            "range_position",
+            "oi_pcr",
+            "oi_pcr_change",
+            "nearest_strike",
+            "top_ce_volume_strike",
+            "top_pe_volume_strike",
+            "top_ce_oi_strike",
+            "top_pe_oi_strike",
+            "score",
+            "features_json",
+            "created_at"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "options_nifty.db",
+      "bytes": 447930368,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "options_eod",
+          "rows": 3163779,
+          "columns": [
+            "date",
+            "expiry",
+            "strike",
+            "opt_type",
+            "close",
+            "settle",
+            "oi",
+            "underlying"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "participant_oi.db",
+      "bytes": 1093632,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "nifty_daily",
+          "rows": 1613,
+          "columns": [
+            "date",
+            "close"
+          ]
+        },
+        {
+          "name": "participant_oi",
+          "rows": 8065,
+          "columns": [
+            "date",
+            "client_type",
+            "future_index_long",
+            "future_index_short",
+            "future_stock_long",
+            "future_stock_short",
+            "opt_index_call_long",
+            "opt_index_put_long",
+            "opt_index_call_short",
+            "opt_index_put_short",
+            "opt_stock_call_long",
+            "opt_stock_put_long",
+            "opt_stock_call_short",
+            "opt_stock_put_short",
+            "total_long",
+            "total_short"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "runtime_telemetry.db",
+      "bytes": 1437696,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "api_failures",
+          "rows": 1011,
+          "columns": [
+            "id",
+            "occurred_at",
+            "provider",
+            "endpoint",
+            "status_code",
+            "error",
+            "attempt",
+            "details"
+          ]
+        },
+        {
+          "name": "component_heartbeats",
+          "rows": 7,
+          "columns": [
+            "component",
+            "updated_at",
+            "status",
+            "detail",
+            "pid",
+            "process_uptime_sec"
+          ]
+        },
+        {
+          "name": "crash_history",
+          "rows": 0,
+          "columns": [
+            "id",
+            "occurred_at",
+            "component",
+            "reason",
+            "traceback",
+            "cpu_pct",
+            "ram_mb",
+            "last_scanned_symbol",
+            "last_executed_strategy",
+            "recovery_action",
+            "recovered_at",
+            "details"
+          ]
+        },
+        {
+          "name": "cumulative_summary",
+          "rows": 185,
+          "columns": [
+            "window_days",
+            "generated_at",
+            "payload"
+          ]
+        },
+        {
+          "name": "daily_summary",
+          "rows": 15,
+          "columns": [
+            "session_date",
+            "generated_at",
+            "payload"
+          ]
+        },
+        {
+          "name": "market_context",
+          "rows": 0,
+          "columns": [
+            "id",
+            "captured_at",
+            "symbol",
+            "regime",
+            "spot",
+            "vix",
+            "pcr",
+            "max_pain",
+            "freshness_sec",
+            "quality_score",
+            "payload"
+          ]
+        },
+        {
+          "name": "option_snapshot",
+          "rows": 0,
+          "columns": [
+            "id",
+            "captured_at",
+            "underlying",
+            "expiry",
+            "spot",
+            "pcr",
+            "max_pain",
+            "call_wall",
+            "put_wall",
+            "freshness_sec",
+            "quality_score",
+            "payload"
+          ]
+        },
+        {
+          "name": "qualified_signals",
+          "rows": 0,
+          "columns": [
+            "id",
+            "cycle_id",
+            "created_at",
+            "symbol",
+            "strategy",
+            "side",
+            "score",
+            "payload"
+          ]
+        },
+        {
+          "name": "raw_signals",
+          "rows": 0,
+          "columns": [
+            "id",
+            "cycle_id",
+            "created_at",
+            "symbol",
+            "strategy",
+            "side",
+            "score",
+            "payload"
+          ]
+        },
+        {
+          "name": "rejected_signals",
+          "rows": 0,
+          "columns": [
+            "id",
+            "cycle_id",
+            "created_at",
+            "symbol",
+            "strategy",
+            "side",
+            "score",
+            "reason",
+            "payload"
+          ]
+        },
+        {
+          "name": "scan_cycles",
+          "rows": 0,
+          "columns": [
+            "id",
+            "started_at",
+            "finished_at",
+            "scanned",
+            "signals",
+            "qualified",
+            "rejected",
+            "duration_ms",
+            "latency_ms",
+            "last_scanned_symbol",
+            "status",
+            "error"
+          ]
+        },
+        {
+          "name": "strategy_runs",
+          "rows": 0,
+          "columns": [
+            "id",
+            "cycle_id",
+            "created_at",
+            "symbol",
+            "strategy",
+            "duration_ms",
+            "result",
+            "error"
+          ]
+        },
+        {
+          "name": "strategy_statistics",
+          "rows": 4207,
+          "columns": [
+            "strategy",
+            "window_days",
+            "generated_at",
+            "samples",
+            "win_rate",
+            "profit_factor",
+            "expectancy",
+            "median_pnl",
+            "avg_pnl",
+            "sample_quality",
+            "weight",
+            "confidence"
+          ]
+        },
+        {
+          "name": "trade_journal",
+          "rows": 0,
+          "columns": [
+            "trade_id",
+            "created_at",
+            "symbol",
+            "strategy",
+            "side",
+            "entry_reason",
+            "exit_reason",
+            "entry_price",
+            "exit_price",
+            "initial_sl",
+            "trailing_sl",
+            "target",
+            "risk_reward",
+            "brokerage",
+            "taxes",
+            "net_pnl",
+            "mfe",
+            "mae",
+            "duration_sec",
+            "capital_used",
+            "available_capital",
+            "drawdown",
+            "payload"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "signal_log.db",
+      "bytes": 28459008,
+      "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
+      "tables": [
+        {
+          "name": "intraday_oi_snapshots",
+          "rows": 3864,
+          "columns": [
+            "id",
+            "timestamp",
+            "underlying",
+            "spot",
+            "expiry",
+            "strike",
+            "ce_oi",
+            "pe_oi",
+            "ce_ltp",
+            "pe_ltp",
+            "ce_iv",
+            "pe_iv"
+          ]
+        },
+        {
+          "name": "macro_global_sentiment",
+          "rows": 54,
+          "columns": [
+            "id",
+            "timestamp",
+            "gift_change_pct",
+            "global_score",
+            "bias",
+            "us_vix",
+            "positive_sectors",
+            "negative_sectors",
+            "reasons_json",
+            "gift_nifty_change",
+            "us_futures_score",
+            "asia_score",
+            "europe_score",
+            "commodity_score",
+            "currency_score",
+            "vix_score",
+            "bond_yield_score",
+            "final_global_score",
+            "gap_prediction",
+            "gap_probability",
+            "nifty_bias",
+            "banknifty_bias",
+            "market_regime",
+            "profit_quality_score",
+            "allowed_trade_type",
+            "no_trade_reason"
+          ]
+        },
+        {
+          "name": "signal_log",
+          "rows": 25613,
+          "columns": [
+            "id",
+            "log_time",
+            "signal_date",
+            "signal_time",
+            "symbol",
+            "side",
+            "strategy",
+            "confluence",
+            "n_agree",
+            "n_conflict",
+            "agreeing_strats",
+            "score",
+            "raw_score",
+            "regime",
+            "htf_bias",
+            "entry_price",
+            "executed",
+            "rejection_reason",
+            "trade_id",
+            "bhav_delivery",
+            "cross_asset_mod",
+            "participant_mod",
+            "expiry_mod",
+            "sip_boost",
+            "bulk_deal_mod",
+            "theta_mod",
+            "rebal_mod",
+            "news_mod",
+            "mtf_pivot_mod",
+            "gex_mod",
+            "skew_mod",
+            "whale_mod",
+            "sr_level_mod",
+            "pivot_boss_mod",
+            "oi_mod",
+            "structure_mod",
+            "market_quality_mod",
+            "candidate_quality_mod",
+            "time_bucket_wt",
+            "ai_score",
+            "rl_bias",
+            "weinstein_mod",
+            "volume_ratio",
+            "structure_label",
+            "structure_direction",
+            "structure_bos",
+            "structure_choch",
+            "structure_score",
+            "structure_aligned",
+            "structure_retest",
+            "indicator_coverage",
+            "candidate_confirmations",
+            "india_vix",
+            "iv_percentile",
+            "pcr_atm",
+            "fii_net_cash",
+            "fii_fut_ratio",
+            "fii_cum_5d",
+            "client_ce_pct",
+            "cross_asset_bias",
+            "sensex_nifty_div",
+            "above_weekly_pvt",
+            "above_monthly_pvt",
+            "pct_from_w_r1",
+            "pct_from_m_r1",
+            "expiry_dte",
+            "expiry_regime",
+            "symbol_type",
+            "sector_code",
+            "option_type",
+            "option_strike",
+            "option_expiry",
+            "option_dte",
+            "option_style",
+            "option_premium",
+            "option_symbol",
+            "hour_of_day",
+            "day_of_week",
+            "trade_num_today",
+            "daily_pnl_before",
+            "tb_label",
+            "outcome_price",
+            "outcome_time",
+            "peak_price",
+            "max_adverse_move",
+            "max_favorable_move",
+            "market_profile_mod",
+            "sector_mod",
+            "crsi_mod",
+            "nr_mod",
+            "volume_mod",
+            "profile_poc",
+            "profile_vah",
+            "profile_val",
+            "profile_poc_distance_pct",
+            "profile_value_width_pct",
+            "profile_bias",
+            "profile_position",
+            "profile_acceptance",
+            "stop_loss",
+            "target",
+            "rr",
+            "tb_target",
+            "tb_stop",
+            "tb_rr",
+            "tb_r_multiple",
+            "tb_used_custom_barrier",
+            "tb_r_multiple_net",
+            "risk_level_source",
+            "training_eligible",
+            "training_exclusion_reason",
+            "bar_return_1_atr",
+            "line_slope_atr",
+            "line_turn",
+            "step_direction",
+            "baseline_distance_atr",
+            "hollow_state",
+            "hollow_run",
+            "volume_candle_strength",
+            "line_break_direction",
+            "line_break_run",
+            "line_break_event",
+            "kagi_direction",
+            "kagi_reversal",
+            "kagi_distance_atr",
+            "pnf_direction",
+            "pnf_boxes",
+            "pnf_reversal",
+            "range_direction",
+            "range_run",
+            "range_event",
+            "footprint_delta_proxy",
+            "footprint_available",
+            "ichimoku_position",
+            "ichimoku_tk",
+            "representation_coverage",
+            "tick_oim",
+            "tick_velocity",
+            "tick_momentum",
+            "tick_sample_count",
+            "tick_flow_available",
+            "lifecycle_status",
+            "lifecycle_updated_at",
+            "lifecycle_price"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "trade_guardian.db",
+      "bytes": 20480,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "guarded_trades",
+          "rows": 0,
+          "columns": [
+            "trade_id",
+            "symbol",
+            "instrument",
+            "option_type",
+            "strike",
+            "expiry",
+            "side",
+            "qty",
+            "entry_price",
+            "entry_time",
+            "stop_loss",
+            "target_1",
+            "target_2",
+            "target_3",
+            "regime",
+            "signal_score",
+            "status",
+            "exit_price",
+            "exit_time",
+            "exit_reason",
+            "pnl",
+            "pnl_pct",
+            "notes",
+            "created_at"
+          ]
+        },
+        {
+          "name": "guardian_events",
+          "rows": 0,
+          "columns": [
+            "id",
+            "trade_id",
+            "event",
+            "price",
+            "pnl",
+            "pnl_pct",
+            "detail",
+            "ts"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
+      "path": "trades.db",
+      "bytes": 3907584,
+      "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
+      "tables": [
+        {
+          "name": "bot_events",
+          "rows": 1017,
+          "columns": [
+            "id",
+            "created_at",
+            "level",
+            "event_type",
+            "message"
+          ]
+        },
+        {
+          "name": "eod_indicator_weights",
+          "rows": 189,
+          "columns": [
+            "date",
+            "indicator",
+            "samples",
+            "wins",
+            "losses",
+            "win_rate",
+            "avg_pnl",
+            "total_pnl",
+            "weight",
+            "details"
+          ]
+        },
+        {
+          "name": "eod_ml_feedback",
+          "rows": 1210,
+          "columns": [
+            "id",
+            "date",
+            "strategy",
+            "total_signals",
+            "avg_score",
+            "win_rate",
+            "avg_pnl",
+            "accuracy",
+            "regime",
+            "feedback"
+          ]
+        },
+        {
+          "name": "eod_strategy_weights",
+          "rows": 2079,
+          "columns": [
+            "date",
+            "strategy",
+            "samples",
+            "executed_trades",
+            "wins",
+            "losses",
+            "win_rate",
+            "avg_pnl",
+            "total_pnl",
+            "avg_score",
+            "weight",
+            "source",
+            "details"
+          ]
+        },
+        {
+          "name": "fii_dii_data",
+          "rows": 19,
+          "columns": [
+            "id",
+            "date",
+            "fii_buy",
+            "fii_sell",
+            "fii_net",
+            "dii_buy",
+            "dii_sell",
+            "dii_net",
+            "fii_futures_oi",
+            "fii_futures_net",
+            "vix",
+            "nifty_close",
+            "source"
+          ]
+        },
+        {
+          "name": "strategy_scores",
+          "rows": 21790,
+          "columns": [
+            "id",
+            "timestamp",
+            "symbol",
+            "strategy",
+            "score",
+            "direction",
+            "regime",
+            "vix",
+            "price",
+            "reasons",
+            "metadata"
+          ]
+        },
+        {
+          "name": "trades",
+          "rows": 12,
+          "columns": [
+            "trade_id",
+            "symbol",
+            "side",
+            "qty",
+            "strategy",
+            "broker_name",
+            "order_id",
+            "entry_price",
+            "entry_time",
+            "stop_loss",
+            "target_price",
+            "trail_stop",
+            "entry_atr",
+            "highest_price",
+            "lowest_price",
+            "status",
+            "exit_price",
+            "exit_time",
+            "exit_reason",
+            "realized_pnl",
+            "confidence",
+            "regime",
+            "score",
+            "correlation_group",
+            "sl_order_id",
+            "metadata",
+            "mode",
+            "trade_type",
+            "gross_pnl",
+            "brokerage",
+            "stt",
+            "exchange_charge",
+            "sebi_levy",
+            "gst",
+            "stamp_duty",
+            "total_charges",
+            "cumulative_pnl",
+            "holding_minutes",
+            "r_multiple",
+            "paper_pnl",
+            "live_pnl",
+            "created_at",
+            "updated_at",
+            "signal_metadata",
+            "entry_reason",
+            "win_rate_at_entry"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    }
+  ]
+}

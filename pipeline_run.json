@@ -1,21 +1,26 @@
 {
-  "started_at": "2026-06-25T19:04:44.750299",
-  "finished_at": "2026-06-25T19:12:19.273156",
-  "total_elapsed": 454.5,
-  "steps_ok": 8,
-  "steps_error": 0,
-  "errors": [],
+  "started_at": "2026-07-15T01:41:42.756164",
+  "finished_at": "2026-07-15T18:44:11.867591",
+  "total_elapsed": 61349.1,
+  "steps_ok": 9,
+  "steps_error": 1,
+  "errors": [
+    {
+      "step": "option_telegram_report",
+      "error": "not_post_market"
+    }
+  ],
   "steps": [
     {
       "step": "strategy_validator",
       "status": "ok",
-      "elapsed": 4.12,
+      "elapsed": 2.91,
       "error": null
     },
     {
       "step": "alpha_decay_tracker",
       "status": "ok",
-      "elapsed": 0.01,
+      "elapsed": 0.02,
       "error": null
     },
     {
@@ -25,33 +30,45 @@
       "error": null
     },
     {
+      "step": "executive_eod_report",
+      "status": "ok",
+      "elapsed": 0.97,
+      "error": null
+    },
+    {
+      "step": "option_telegram_report",
+      "status": "error",
+      "elapsed": 0.01,
+      "error": "not_post_market"
+    },
+    {
       "step": "candle_coverage_plan",
       "status": "ok",
-      "elapsed": 1.92,
+      "elapsed": 8.06,
       "error": null
     },
     {
       "step": "derive_daily_candles",
       "status": "ok",
-      "elapsed": 9.32,
+      "elapsed": 60763.55,
       "error": null
     },
     {
       "step": "autonomous_param_training",
       "status": "ok",
-      "elapsed": 0.87,
+      "elapsed": 162.64,
       "error": null
     },
     {
       "step": "system_readiness_report",
       "status": "ok",
-      "elapsed": 0.13,
+      "elapsed": 40.52,
       "error": null
     },
     {
       "step": "post_market_ml",
       "status": "ok",
-      "elapsed": 438.07,
+      "elapsed": 370.34,
       "error": null
     },
     {

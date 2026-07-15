@@ -1,0 +1,474 @@
+{
+  "generated_at": "2026-07-15T18:55:24",
+  "underlyings": [
+    "NIFTY",
+    "BANKNIFTY",
+    "FINNIFTY"
+  ],
+  "distinct_observations": 7827,
+  "skipped_unparseable": 0,
+  "days": 17,
+  "cutoff_day": "2026-07-06",
+  "bonferroni_tests": 24,
+  "known_option_net_r_all_time": -0.0131,
+  "candidates": [],
+  "direction_wrong_way": [],
+  "all_tested": [
+    {
+      "kind": "flow:LONG_BUILDUP",
+      "horizon_min": 180,
+      "train": {
+        "n": 553,
+        "mean_bps": 3.36,
+        "win_rate": 0.535,
+        "t": 1.9,
+        "p": 0.05684
+      },
+      "holdout": {
+        "n": 228,
+        "mean_bps": 4.04,
+        "win_rate": 0.5,
+        "t": 1.55,
+        "p": 0.12143
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_COVERING",
+      "horizon_min": 60,
+      "train": {
+        "n": 911,
+        "mean_bps": 0.91,
+        "win_rate": 0.514,
+        "t": 1.25,
+        "p": 0.21131
+      },
+      "holdout": {
+        "n": 479,
+        "mean_bps": -1.54,
+        "win_rate": 0.455,
+        "t": -1.32,
+        "p": 0.1859
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "overall",
+      "horizon_min": 180,
+      "train": {
+        "n": 2537,
+        "mean_bps": 0.96,
+        "win_rate": 0.507,
+        "t": 1.12,
+        "p": 0.26299
+      },
+      "holdout": {
+        "n": 1090,
+        "mean_bps": 0.39,
+        "win_rate": 0.496,
+        "t": 0.32,
+        "p": 0.74822
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:LONG_UNWINDING",
+      "horizon_min": 180,
+      "train": {
+        "n": 367,
+        "mean_bps": 2.44,
+        "win_rate": 0.496,
+        "t": 1.09,
+        "p": 0.27732
+      },
+      "holdout": {
+        "n": 142,
+        "mean_bps": -3.52,
+        "win_rate": 0.472,
+        "t": -0.9,
+        "p": 0.36565
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:LONG_BUILDUP",
+      "horizon_min": 15,
+      "train": {
+        "n": 1069,
+        "mean_bps": 0.31,
+        "win_rate": 0.494,
+        "t": 0.97,
+        "p": 0.32998
+      },
+      "holdout": {
+        "n": 466,
+        "mean_bps": 0.06,
+        "win_rate": 0.491,
+        "t": 0.1,
+        "p": 0.91792
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:LONG_BUILDUP",
+      "horizon_min": 30,
+      "train": {
+        "n": 1017,
+        "mean_bps": 0.38,
+        "win_rate": 0.502,
+        "t": 0.78,
+        "p": 0.4351
+      },
+      "holdout": {
+        "n": 449,
+        "mean_bps": -0.14,
+        "win_rate": 0.517,
+        "t": -0.19,
+        "p": 0.85302
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_COVERING",
+      "horizon_min": 30,
+      "train": {
+        "n": 1015,
+        "mean_bps": 0.28,
+        "win_rate": 0.519,
+        "t": 0.57,
+        "p": 0.57071
+      },
+      "holdout": {
+        "n": 525,
+        "mean_bps": 0.0,
+        "win_rate": 0.505,
+        "t": 0.0,
+        "p": 0.99652
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:LONG_BUILDUP",
+      "horizon_min": 60,
+      "train": {
+        "n": 935,
+        "mean_bps": 0.38,
+        "win_rate": 0.489,
+        "t": 0.53,
+        "p": 0.5959
+      },
+      "holdout": {
+        "n": 414,
+        "mean_bps": -1.71,
+        "win_rate": 0.464,
+        "t": -1.44,
+        "p": 0.14863
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:NEUTRAL",
+      "horizon_min": 180,
+      "train": {
+        "n": 437,
+        "mean_bps": 0.99,
+        "win_rate": 0.503,
+        "t": 0.43,
+        "p": 0.66385
+      },
+      "holdout": {
+        "n": 203,
+        "mean_bps": 0.22,
+        "win_rate": 0.507,
+        "t": 0.1,
+        "p": 0.9213
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_COVERING",
+      "horizon_min": 15,
+      "train": {
+        "n": 1085,
+        "mean_bps": 0.09,
+        "win_rate": 0.499,
+        "t": 0.28,
+        "p": 0.78224
+      },
+      "holdout": {
+        "n": 542,
+        "mean_bps": 0.34,
+        "win_rate": 0.498,
+        "t": 0.67,
+        "p": 0.50491
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:NEUTRAL",
+      "horizon_min": 60,
+      "train": {
+        "n": 779,
+        "mean_bps": 0.17,
+        "win_rate": 0.503,
+        "t": 0.21,
+        "p": 0.83418
+      },
+      "holdout": {
+        "n": 381,
+        "mean_bps": -0.11,
+        "win_rate": 0.509,
+        "t": -0.09,
+        "p": 0.92765
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "overall",
+      "horizon_min": 60,
+      "train": {
+        "n": 4449,
+        "mean_bps": 0.05,
+        "win_rate": 0.496,
+        "t": 0.16,
+        "p": 0.87365
+      },
+      "holdout": {
+        "n": 1948,
+        "mean_bps": -0.27,
+        "win_rate": 0.493,
+        "t": -0.46,
+        "p": 0.64355
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "overall",
+      "horizon_min": 30,
+      "train": {
+        "n": 4912,
+        "mean_bps": 0.02,
+        "win_rate": 0.496,
+        "t": 0.1,
+        "p": 0.91674
+      },
+      "holdout": {
+        "n": 2131,
+        "mean_bps": 0.07,
+        "win_rate": 0.5,
+        "t": 0.18,
+        "p": 0.85815
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:NEUTRAL",
+      "horizon_min": 30,
+      "train": {
+        "n": 856,
+        "mean_bps": 0.05,
+        "win_rate": 0.499,
+        "t": 0.1,
+        "p": 0.92368
+      },
+      "holdout": {
+        "n": 417,
+        "mean_bps": 0.28,
+        "win_rate": 0.513,
+        "t": 0.33,
+        "p": 0.74153
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:NEUTRAL",
+      "horizon_min": 15,
+      "train": {
+        "n": 890,
+        "mean_bps": 0.02,
+        "win_rate": 0.492,
+        "t": 0.06,
+        "p": 0.95352
+      },
+      "holdout": {
+        "n": 428,
+        "mean_bps": 0.05,
+        "win_rate": 0.502,
+        "t": 0.09,
+        "p": 0.92691
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "overall",
+      "horizon_min": 15,
+      "train": {
+        "n": 5212,
+        "mean_bps": -0.0,
+        "win_rate": 0.494,
+        "t": -0.03,
+        "p": 0.97999
+      },
+      "holdout": {
+        "n": 2197,
+        "mean_bps": 0.1,
+        "win_rate": 0.496,
+        "t": 0.39,
+        "p": 0.69905
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_COVERING",
+      "horizon_min": 180,
+      "train": {
+        "n": 506,
+        "mean_bps": -0.52,
+        "win_rate": 0.518,
+        "t": -0.28,
+        "p": 0.78084
+      },
+      "holdout": {
+        "n": 270,
+        "mean_bps": 4.06,
+        "win_rate": 0.511,
+        "t": 1.64,
+        "p": 0.10068
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_BUILDUP",
+      "horizon_min": 180,
+      "train": {
+        "n": 674,
+        "mean_bps": -0.71,
+        "win_rate": 0.482,
+        "t": -0.43,
+        "p": 0.66702
+      },
+      "holdout": {
+        "n": 247,
+        "mean_bps": -4.6,
+        "win_rate": 0.482,
+        "t": -1.71,
+        "p": 0.08754
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_BUILDUP",
+      "horizon_min": 30,
+      "train": {
+        "n": 1234,
+        "mean_bps": -0.2,
+        "win_rate": 0.483,
+        "t": -0.46,
+        "p": 0.64288
+      },
+      "holdout": {
+        "n": 458,
+        "mean_bps": 0.09,
+        "win_rate": 0.478,
+        "t": 0.11,
+        "p": 0.91578
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_BUILDUP",
+      "horizon_min": 15,
+      "train": {
+        "n": 1306,
+        "mean_bps": -0.16,
+        "win_rate": 0.493,
+        "t": -0.58,
+        "p": 0.56196
+      },
+      "holdout": {
+        "n": 470,
+        "mean_bps": -0.22,
+        "win_rate": 0.496,
+        "t": -0.38,
+        "p": 0.7004
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:LONG_UNWINDING",
+      "horizon_min": 60,
+      "train": {
+        "n": 691,
+        "mean_bps": -0.61,
+        "win_rate": 0.486,
+        "t": -0.71,
+        "p": 0.48079
+      },
+      "holdout": {
+        "n": 257,
+        "mean_bps": 1.2,
+        "win_rate": 0.521,
+        "t": 0.71,
+        "p": 0.47703
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:LONG_UNWINDING",
+      "horizon_min": 30,
+      "train": {
+        "n": 790,
+        "mean_bps": -0.45,
+        "win_rate": 0.472,
+        "t": -0.76,
+        "p": 0.44831
+      },
+      "holdout": {
+        "n": 282,
+        "mean_bps": 0.16,
+        "win_rate": 0.482,
+        "t": 0.16,
+        "p": 0.87557
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:LONG_UNWINDING",
+      "horizon_min": 15,
+      "train": {
+        "n": 862,
+        "mean_bps": -0.29,
+        "win_rate": 0.492,
+        "t": -0.78,
+        "p": 0.43544
+      },
+      "holdout": {
+        "n": 291,
+        "mean_bps": 0.3,
+        "win_rate": 0.491,
+        "t": 0.42,
+        "p": 0.67391
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "kind": "flow:SHORT_BUILDUP",
+      "horizon_min": 60,
+      "train": {
+        "n": 1133,
+        "mean_bps": -0.59,
+        "win_rate": 0.489,
+        "t": -0.9,
+        "p": 0.36908
+      },
+      "holdout": {
+        "n": 417,
+        "mean_bps": 1.57,
+        "win_rate": 0.532,
+        "t": 1.18,
+        "p": 0.23715
+      },
+      "verdict": "NOISE"
+    }
+  ]
+}

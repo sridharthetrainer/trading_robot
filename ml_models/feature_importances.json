@@ -1,86 +1,89 @@
 {
-  "timestamp": "2026-06-25T19:05:05.553464",
+  "timestamp": "2026-07-15T18:38:22.176236",
   "cross_symbol_top20": [
     [
-      "profile_poc_distance_pct",
-      0.19593
+      "score",
+      0.0
     ],
     [
-      "profile_value_width_pct",
-      0.17406
+      "raw_score",
+      0.0
     ],
     [
-      "trade_num_today",
-      0.11711
+      "n_agree",
+      0.0
     ],
     [
-      "ai_score",
-      0.10949
+      "n_conflict",
+      0.0
     ],
     [
-      "mtf_pivot_mod",
-      0.0923
-    ],
-    [
-      "close_session",
-      0.06828
-    ],
-    [
-      "sector_code",
-      0.05944
+      "bhav_delivery",
+      0.0
     ],
     [
       "cross_asset_mod",
-      0.04615
+      0.0
     ],
     [
-      "market_profile_mod",
-      0.04475
+      "participant_mod",
+      0.0
     ],
     [
-      "day_of_week",
-      0.03379
+      "expiry_mod",
+      0.0
     ],
     [
-      "sector_breadth",
-      0.01886
+      "sip_boost",
+      0.0
+    ],
+    [
+      "bulk_deal_mod",
+      0.0
+    ],
+    [
+      "theta_mod",
+      0.0
+    ],
+    [
+      "rebal_mod",
+      0.0
+    ],
+    [
+      "news_mod",
+      0.0
+    ],
+    [
+      "mtf_pivot_mod",
+      0.0
+    ],
+    [
+      "time_bucket_wt",
+      0.0
+    ],
+    [
+      "ai_score",
+      0.0
+    ],
+    [
+      "rl_bias",
+      0.0
     ],
     [
       "weinstein_mod",
-      0.00965
+      0.0
     ],
     [
-      "client_ce_pct",
-      0.00856
+      "market_profile_mod",
+      0.0
     ],
     [
-      "friday_trade",
-      0.00737
-    ],
-    [
-      "profile_position_enc",
-      0.00375
-    ],
-    [
-      "htf_bias_enc",
-      0.00362
-    ],
-    [
-      "near_expiry",
-      0.00238
-    ],
-    [
-      "profile_headwind",
-      0.00236
-    ],
-    [
-      "profile_confirmed",
-      0.00214
-    ],
-    [
-      "near_profile_poc",
-      1e-05
+      "profile_poc_distance_pct",
+      0.0
     ]
   ],
-  "cross_symbol_cv_auc": 0.5861
+  "cross_symbol_cv_auc": 0.7097,
+  "training_contract": "all_generated_signals_v4_causal_representations",
+  "training_data_fingerprint": "c509613ebef5aad83dbc19c7d9a04a09282c14fdfcb8d25ef46d3ba4c6448420",
+  "model_artifacts": []
 }

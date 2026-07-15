@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-07-14T21:53:54+0530",
+  "method": "full_history_vs_truncated_prefix",
+  "sample": {
+    "source": "candle_cache",
+    "symbol": "RELIANCE",
+    "interval": "5m"
+  },
+  "rows": 320,
+  "checks": [
+    {
+      "name": "sma",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "ema",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "rsi",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "atr",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "adx",
+      "ok": true,
+      "comparisons": 15,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "supertrend",
+      "ok": true,
+      "comparisons": 10,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "vwap",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "bollinger",
+      "ok": true,
+      "comparisons": 15,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "macd",
+      "ok": true,
+      "comparisons": 15,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "volume_ratio",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "obv",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "mfi",
+      "ok": true,
+      "comparisons": 5,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "ichimoku",
+      "ok": true,
+      "comparisons": 25,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "alternative_price_representations",
+      "ok": true,
+      "comparisons": 125,
+      "mismatches": 0,
+      "max_abs_error": 0.0
+    }
+  ],
+  "ok": true,
+  "failed": []
+}
