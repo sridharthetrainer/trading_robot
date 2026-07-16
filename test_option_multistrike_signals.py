@@ -327,3 +327,49 @@ def test_lifecycle_marks_target_and_moves_stop_to_entry(tmp_path, monkeypatch):
     assert event["status"] in {"TARGET1_HIT", "TARGET2_HIT"}
     if event["status"] == "TARGET1_HIT":
         assert stored[2] == stored[1]
+
+
+def _insert_leg(conn, *, ts, snapshot_time, side, price):
+    """Directly seed one strike-signal row with an explicit side, the way
+    option_core_strategies' shadow legs land (labeller-input shape)."""
+    conn.execute(
+        """INSERT INTO option_strike_signals
+           (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,
+            direction,score,tradable,price,spread_pct,volume,reason,source,
+            strategy,combo_id,side)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (ts, snapshot_time, "NIFTY", "2026-06-30", 25000, "CE",
+         "SHADOW_STRATEGY", "SHADOW_ENTRY", "NEUTRAL", 0.0, 0, price,
+         0.01, 1000, "test", "angel", "C1", "combo-1", side),
+    )
+
+
+def test_labeller_scores_sell_legs_as_shorts_not_longs(tmp_path):
+    """Regression for the labeller's former hardcoded side='BUY': premium
+    falls 100 -> 80, so the SELL leg must label profitable (+1) and the BUY
+    control leg must label losing (-1). Before the fix both came out as
+    longs and the short's P&L was computed backwards."""
+    db = tmp_path / "snapshots.db"
+    with sqlite3.connect(db) as conn:
+        ensure_multistrike_schema(conn)
+        _insert_leg(conn, ts=1_000.0, snapshot_time="2026-06-25T10:00:00+05:30",
+                    side="SELL", price=100.0)
+        _insert_leg(conn, ts=1_060.0, snapshot_time="2026-06-25T10:01:00+05:30",
+                    side="BUY", price=100.0)
+        # future observation of the same contract at a lower premium
+        _insert_leg(conn, ts=1_000.0 + 1200, snapshot_time="2026-06-25T10:20:00+05:30",
+                    side="BUY", price=80.0)
+        conn.commit()
+
+    result = label_multistrike_outcomes(db_path=str(db), min_horizon_sec=900)
+    assert result["labelled"] >= 2
+    with sqlite3.connect(db) as conn:
+        sell = conn.execute(
+            "SELECT outcome_label, net_pnl FROM option_strike_signals "
+            "WHERE side='SELL' AND outcome_label IN (-1,0,1)").fetchone()
+        buy = conn.execute(
+            "SELECT outcome_label, net_pnl FROM option_strike_signals "
+            "WHERE side='BUY' AND ts=1060 AND outcome_label IN (-1,0,1)").fetchone()
+    assert sell is not None and buy is not None
+    assert sell[0] == 1 and sell[1] > 0, f"short should profit when premium decays: {sell}"
+    assert buy[0] == -1 and buy[1] < 0, f"long should lose when premium decays: {buy}"

@@ -692,8 +692,15 @@ def label_multistrike_outcomes(
                     )
                     marked_unlabelable += 1
                 continue
+            # side comes from the row (2026-07-17): every row before the
+            # strategy/side migration was backfilled 'BUY' so this is
+            # byte-identical for the whole historical table; the option
+            # strategy catalog's short legs (C1/C3, side='SELL') now get
+            # their P&L simulated as the short they actually are instead of
+            # silently backwards as a long.
             execution = simulate_option_round_trip(
-                row["price"], future["price"], side="BUY",
+                row["price"], future["price"],
+                side=str(row["side"] or "BUY").upper(),
                 entry_spread_pct=row["spread_pct"], exit_spread_pct=future["spread_pct"],
                 observed_volume=row["volume"],
             )
