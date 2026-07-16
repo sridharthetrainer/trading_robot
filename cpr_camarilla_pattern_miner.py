@@ -188,6 +188,46 @@ def _detect_day(bars: List[Tuple], levels: Dict[str, float],
             elif prev_c >= dn_lvl > c:
                 fired.add("P5")
                 out.append({"pattern": "P5_session_breakout", "bar": i, "direction": -1})
+
+        # ── 2026-07-17 additions from the external AI's revision. Only the
+        # two genuinely NEW hypotheses are tested. The three "reverse the
+        # loser" proposals are deliberately NOT mined: reversing negates a
+        # pattern's gross move but not the cost, and the original report's
+        # gross means were all within ~2bps of zero, so every flip is
+        # pre-computably negative net of costs -- and re-testing a flip on
+        # the same sample that suggested it would be data-snooping anyway.
+
+        # P6 FALSE_BREAKOUT_REVERSAL: a small breach (<=0.3*ATR) beyond a
+        # key level that closes back inside within 2 bars, with a reversal
+        # candle -> trade against the failed break.
+        if "P6" not in fired and i >= 2:
+            for lvl in (pdh, tc, h3):
+                b1, b2 = bars[i - 2], bars[i - 1]
+                breached = lvl < max(b1[2], b2[2]) <= lvl + 0.3 * atr
+                if breached and c < lvl and _is_reversal_candle(o, h, l, c, prev_o, prev_c):
+                    fired.add("P6")
+                    out.append({"pattern": "P6_false_breakout_reversal", "bar": i, "direction": -1})
+                    break
+            else:
+                for lvl in (pdl, bc, l3):
+                    b1, b2 = bars[i - 2], bars[i - 1]
+                    breached = lvl - 0.3 * atr <= min(b1[3], b2[3]) < lvl
+                    if breached and c > lvl and _is_reversal_candle(o, h, l, c, prev_o, prev_c):
+                        fired.add("P6")
+                        out.append({"pattern": "P6_false_breakout_reversal", "bar": i, "direction": 1})
+                        break
+
+        # P7 CPR_MEAN_REVERSION: price inside the CPR range touches an edge
+        # without closing beyond it, reversal candle -> fade toward pivot.
+        if "P7" not in fired and bc < c < tc and (tc - bc) > 0.3 * atr:
+            touched_tc = h >= tc and c < tc
+            touched_bc = l <= bc and c > bc
+            if touched_tc and _is_reversal_candle(o, h, l, c, prev_o, prev_c):
+                fired.add("P7")
+                out.append({"pattern": "P7_cpr_range_fade", "bar": i, "direction": -1})
+            elif touched_bc and _is_reversal_candle(o, h, l, c, prev_o, prev_c):
+                fired.add("P7")
+                out.append({"pattern": "P7_cpr_range_fade", "bar": i, "direction": 1})
     return out
 
 
@@ -248,19 +288,26 @@ def run(symbol: str = SYMBOL) -> Dict[str, Any]:
                 observations.append({
                     "pattern": sig["pattern"], "horizon": hname, "day": day,
                     "net_bps": gross_bps - ROUND_TRIP_COST_BPS,
+                    "gross_bps": gross_bps,
                 })
 
     cutoff = days_used[max(1, int(len(days_used) * TRAIN_FRAC) - 1)] if len(days_used) >= 6 else None
-    cells: Dict[Tuple[str, str], Dict[str, List[float]]] = defaultdict(lambda: {"train": [], "holdout": []})
+    cells: Dict[Tuple[str, str], Dict[str, List[float]]] = defaultdict(
+        lambda: {"train": [], "holdout": [], "train_gross": [], "holdout_gross": []})
     for obs in observations:
         slot = "train" if (cutoff is None or obs["day"] <= cutoff) else "holdout"
         cells[(obs["pattern"], obs["horizon"])][slot].append(obs["net_bps"])
+        cells[(obs["pattern"], obs["horizon"])][slot + "_gross"].append(obs["gross_bps"])
 
     n_tests = sum(1 for c in cells.values() if len(c["train"]) >= MIN_TRAIN_N)
     bonferroni = max(1, n_tests)
     results = []
     for (pattern, horizon), c in sorted(cells.items()):
         tr, ho = _stat(c["train"]), _stat(c["holdout"])
+        if c["train_gross"]:
+            tr["gross_mean_bps"] = round(sum(c["train_gross"]) / len(c["train_gross"]), 2)
+        if c["holdout_gross"]:
+            ho["gross_mean_bps"] = round(sum(c["holdout_gross"]) / len(c["holdout_gross"]), 2)
         if tr.get("n", 0) < MIN_TRAIN_N:
             verdict = "INSUFFICIENT_N"
         else:
@@ -306,9 +353,10 @@ def main() -> int:
     for r in rep["results"]:
         tr, ho = r.get("train", {}), r.get("holdout", {})
         print(f"  {r['verdict']:<20} {r['pattern']:<36} h={r['horizon']:<6} "
-              f"train n={tr.get('n', 0):>4} {tr.get('mean_bps', '-'):>8}bps "
+              f"train n={tr.get('n', 0):>4} net={tr.get('mean_bps', '-'):>7}bps "
+              f"gross={tr.get('gross_mean_bps', '-'):>7}bps "
               f"p_corr={tr.get('p_corrected', '-')} | "
-              f"holdout n={ho.get('n', 0):>4} {ho.get('mean_bps', '-'):>8}bps")
+              f"holdout n={ho.get('n', 0):>4} net={ho.get('mean_bps', '-'):>7}bps")
     return 0
 
 

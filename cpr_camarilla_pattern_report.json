@@ -2,8 +2,8 @@
   "symbol": "NIFTY",
   "days": 284,
   "cutoff_day": "2026-03-09",
-  "observations": 942,
-  "bonferroni_tests": 9,
+  "observations": 1594,
+  "bonferroni_tests": 15,
   "round_trip_cost_bps": 5.0,
   "volume_data_present": false,
   "results": [
@@ -22,14 +22,16 @@
         "t": -2.242,
         "p_raw": 0.024961,
         "win_rate": 0.4432,
-        "p_corrected": 0.224649
+        "gross_mean_bps": 0.79,
+        "p_corrected": 0.374415
       },
       "holdout": {
         "n": 36,
         "mean_bps": -5.3,
         "t": -1.17,
         "p_raw": 0.242114,
-        "win_rate": 0.3889
+        "win_rate": 0.3889,
+        "gross_mean_bps": -0.3
       },
       "verdict": "NOISE"
     },
@@ -42,16 +44,84 @@
         "t": -2.438,
         "p_raw": 0.014788,
         "win_rate": 0.4103,
-        "p_corrected": 0.133092
+        "gross_mean_bps": -5.75,
+        "p_corrected": 0.22182
       },
       "holdout": {
         "n": 14,
         "mean_bps": 0.82,
         "t": 0.114,
         "p_raw": 0.909474,
-        "win_rate": 0.5
+        "win_rate": 0.5,
+        "gross_mean_bps": 5.82
       },
       "verdict": "NOISE"
+    },
+    {
+      "pattern": "P6_false_breakout_reversal",
+      "horizon": "30min",
+      "train": {
+        "n": 97,
+        "mean_bps": -4.13,
+        "t": -2.643,
+        "p_raw": 0.008223,
+        "win_rate": 0.2887,
+        "gross_mean_bps": 0.87,
+        "p_corrected": 0.123345
+      },
+      "holdout": {
+        "n": 44,
+        "mean_bps": -9.45,
+        "t": -3.721,
+        "p_raw": 0.000198,
+        "win_rate": 0.2955,
+        "gross_mean_bps": -4.45
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "pattern": "P6_false_breakout_reversal",
+      "horizon": "60min",
+      "train": {
+        "n": 90,
+        "mean_bps": -5.95,
+        "t": -2.819,
+        "p_raw": 0.004822,
+        "win_rate": 0.3222,
+        "gross_mean_bps": -0.95,
+        "p_corrected": 0.07233
+      },
+      "holdout": {
+        "n": 40,
+        "mean_bps": -6.4,
+        "t": -1.457,
+        "p_raw": 0.145051,
+        "win_rate": 0.375,
+        "gross_mean_bps": -1.4
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "pattern": "P7_cpr_range_fade",
+      "horizon": "60min",
+      "train": {
+        "n": 58,
+        "mean_bps": -6.65,
+        "t": -3.036,
+        "p_raw": 0.002397,
+        "win_rate": 0.3448,
+        "gross_mean_bps": -1.65,
+        "p_corrected": 0.035955
+      },
+      "holdout": {
+        "n": 17,
+        "mean_bps": -9.82,
+        "t": -2.077,
+        "p_raw": 0.037832,
+        "win_rate": 0.3529,
+        "gross_mean_bps": -4.82
+      },
+      "verdict": "HURTS"
     },
     {
       "pattern": "P3_camarilla_boundary_fade",
@@ -62,14 +132,16 @@
         "t": -3.113,
         "p_raw": 0.001849,
         "win_rate": 0.3544,
-        "p_corrected": 0.016641
+        "gross_mean_bps": -1.19,
+        "p_corrected": 0.027735
       },
       "holdout": {
         "n": 37,
         "mean_bps": -10.54,
         "t": -1.83,
         "p_raw": 0.067311,
-        "win_rate": 0.2973
+        "win_rate": 0.2973,
+        "gross_mean_bps": -5.54
       },
       "verdict": "HURTS"
     },
@@ -82,14 +154,16 @@
         "t": -3.118,
         "p_raw": 0.001821,
         "win_rate": 0.3646,
-        "p_corrected": 0.016389
+        "gross_mean_bps": 0.06,
+        "p_corrected": 0.027315
       },
       "holdout": {
         "n": 41,
         "mean_bps": -8.96,
         "t": -2.647,
         "p_raw": 0.00812,
-        "win_rate": 0.2439
+        "win_rate": 0.2439,
+        "gross_mean_bps": -3.96
       },
       "verdict": "HURTS"
     },
@@ -102,14 +176,16 @@
         "t": -3.355,
         "p_raw": 0.000795,
         "win_rate": 0.381,
-        "p_corrected": 0.007155
+        "gross_mean_bps": -4.73,
+        "p_corrected": 0.011925
       },
       "holdout": {
         "n": 14,
         "mean_bps": 3.65,
         "t": 0.693,
         "p_raw": 0.488124,
-        "win_rate": 0.5714
+        "win_rate": 0.5714,
+        "gross_mean_bps": 8.65
       },
       "verdict": "HURTS"
     },
@@ -122,14 +198,38 @@
         "t": -3.733,
         "p_raw": 0.000189,
         "win_rate": 0.2706,
-        "p_corrected": 0.001701
+        "gross_mean_bps": -0.0,
+        "p_corrected": 0.002835
       },
       "holdout": {
         "n": 41,
         "mean_bps": -8.6,
         "t": -2.841,
         "p_raw": 0.004492,
-        "win_rate": 0.2927
+        "win_rate": 0.2927,
+        "gross_mean_bps": -3.6
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P7_cpr_range_fade",
+      "horizon": "30min",
+      "train": {
+        "n": 59,
+        "mean_bps": -6.01,
+        "t": -3.752,
+        "p_raw": 0.000175,
+        "win_rate": 0.2881,
+        "gross_mean_bps": -1.01,
+        "p_corrected": 0.002625
+      },
+      "holdout": {
+        "n": 20,
+        "mean_bps": -5.96,
+        "t": -1.49,
+        "p_raw": 0.136133,
+        "win_rate": 0.35,
+        "gross_mean_bps": -0.96
       },
       "verdict": "HURTS"
     },
@@ -142,14 +242,60 @@
         "t": -3.776,
         "p_raw": 0.000159,
         "win_rate": 0.2184,
-        "p_corrected": 0.001431
+        "gross_mean_bps": 1.76,
+        "p_corrected": 0.002385
       },
       "holdout": {
         "n": 43,
         "mean_bps": -5.95,
         "t": -2.737,
         "p_raw": 0.006208,
-        "win_rate": 0.1628
+        "win_rate": 0.1628,
+        "gross_mean_bps": -0.95
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P6_false_breakout_reversal",
+      "horizon": "15min",
+      "train": {
+        "n": 99,
+        "mean_bps": -4.13,
+        "t": -4.068,
+        "p_raw": 4.7e-05,
+        "win_rate": 0.2828,
+        "gross_mean_bps": 0.87,
+        "p_corrected": 0.000705
+      },
+      "holdout": {
+        "n": 46,
+        "mean_bps": -12.38,
+        "t": -7.212,
+        "p_raw": 0.0,
+        "win_rate": 0.1522,
+        "gross_mean_bps": -7.38
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P7_cpr_range_fade",
+      "horizon": "15min",
+      "train": {
+        "n": 60,
+        "mean_bps": -5.42,
+        "t": -4.514,
+        "p_raw": 6e-06,
+        "win_rate": 0.2,
+        "gross_mean_bps": -0.42,
+        "p_corrected": 9e-05
+      },
+      "holdout": {
+        "n": 22,
+        "mean_bps": -7.34,
+        "t": -2.283,
+        "p_raw": 0.022451,
+        "win_rate": 0.2727,
+        "gross_mean_bps": -2.34
       },
       "verdict": "HURTS"
     },
@@ -162,14 +308,16 @@
         "t": -4.577,
         "p_raw": 5e-06,
         "win_rate": 0.2093,
-        "p_corrected": 4.5e-05
+        "gross_mean_bps": -1.65,
+        "p_corrected": 7.5e-05
       },
       "holdout": {
         "n": 16,
         "mean_bps": -1.4,
         "t": -0.562,
         "p_raw": 0.573796,
-        "win_rate": 0.5
+        "win_rate": 0.5,
+        "gross_mean_bps": 3.6
       },
       "verdict": "HURTS"
     },
@@ -182,6 +330,7 @@
         "t": -5.224,
         "p_raw": 0.0,
         "win_rate": 0.26,
+        "gross_mean_bps": -0.13,
         "p_corrected": 0.0
       },
       "holdout": {
@@ -189,7 +338,8 @@
         "mean_bps": -7.57,
         "t": -3.284,
         "p_raw": 0.001024,
-        "win_rate": 0.2439
+        "win_rate": 0.2439,
+        "gross_mean_bps": -2.57
       },
       "verdict": "HURTS"
     }
