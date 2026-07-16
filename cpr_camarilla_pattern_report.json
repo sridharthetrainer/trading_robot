@@ -1,0 +1,197 @@
+{
+  "symbol": "NIFTY",
+  "days": 284,
+  "cutoff_day": "2026-03-09",
+  "observations": 942,
+  "bonferroni_tests": 9,
+  "round_trip_cost_bps": 5.0,
+  "volume_data_present": false,
+  "results": [
+    {
+      "pattern": "P4_volume_divergence_short",
+      "horizon": "all",
+      "verdict": "UNTESTABLE",
+      "note": "NSE index candles carry no real volume; pattern requires it"
+    },
+    {
+      "pattern": "P5_session_breakout",
+      "horizon": "60min",
+      "train": {
+        "n": 88,
+        "mean_bps": -4.21,
+        "t": -2.242,
+        "p_raw": 0.024961,
+        "win_rate": 0.4432,
+        "p_corrected": 0.224649
+      },
+      "holdout": {
+        "n": 36,
+        "mean_bps": -5.3,
+        "t": -1.17,
+        "p_raw": 0.242114,
+        "win_rate": 0.3889
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "pattern": "P2_cpr_pullback_bounce",
+      "horizon": "60min",
+      "train": {
+        "n": 39,
+        "mean_bps": -10.75,
+        "t": -2.438,
+        "p_raw": 0.014788,
+        "win_rate": 0.4103,
+        "p_corrected": 0.133092
+      },
+      "holdout": {
+        "n": 14,
+        "mean_bps": 0.82,
+        "t": 0.114,
+        "p_raw": 0.909474,
+        "win_rate": 0.5
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "pattern": "P3_camarilla_boundary_fade",
+      "horizon": "60min",
+      "train": {
+        "n": 79,
+        "mean_bps": -6.19,
+        "t": -3.113,
+        "p_raw": 0.001849,
+        "win_rate": 0.3544,
+        "p_corrected": 0.016641
+      },
+      "holdout": {
+        "n": 37,
+        "mean_bps": -10.54,
+        "t": -1.83,
+        "p_raw": 0.067311,
+        "win_rate": 0.2973
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P5_session_breakout",
+      "horizon": "30min",
+      "train": {
+        "n": 96,
+        "mean_bps": -4.94,
+        "t": -3.118,
+        "p_raw": 0.001821,
+        "win_rate": 0.3646,
+        "p_corrected": 0.016389
+      },
+      "holdout": {
+        "n": 41,
+        "mean_bps": -8.96,
+        "t": -2.647,
+        "p_raw": 0.00812,
+        "win_rate": 0.2439
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P2_cpr_pullback_bounce",
+      "horizon": "30min",
+      "train": {
+        "n": 42,
+        "mean_bps": -9.73,
+        "t": -3.355,
+        "p_raw": 0.000795,
+        "win_rate": 0.381,
+        "p_corrected": 0.007155
+      },
+      "holdout": {
+        "n": 14,
+        "mean_bps": 3.65,
+        "t": 0.693,
+        "p_raw": 0.488124,
+        "win_rate": 0.5714
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P3_camarilla_boundary_fade",
+      "horizon": "30min",
+      "train": {
+        "n": 85,
+        "mean_bps": -5.0,
+        "t": -3.733,
+        "p_raw": 0.000189,
+        "win_rate": 0.2706,
+        "p_corrected": 0.001701
+      },
+      "holdout": {
+        "n": 41,
+        "mean_bps": -8.6,
+        "t": -2.841,
+        "p_raw": 0.004492,
+        "win_rate": 0.2927
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P3_camarilla_boundary_fade",
+      "horizon": "15min",
+      "train": {
+        "n": 87,
+        "mean_bps": -3.24,
+        "t": -3.776,
+        "p_raw": 0.000159,
+        "win_rate": 0.2184,
+        "p_corrected": 0.001431
+      },
+      "holdout": {
+        "n": 43,
+        "mean_bps": -5.95,
+        "t": -2.737,
+        "p_raw": 0.006208,
+        "win_rate": 0.1628
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P2_cpr_pullback_bounce",
+      "horizon": "15min",
+      "train": {
+        "n": 43,
+        "mean_bps": -6.65,
+        "t": -4.577,
+        "p_raw": 5e-06,
+        "win_rate": 0.2093,
+        "p_corrected": 4.5e-05
+      },
+      "holdout": {
+        "n": 16,
+        "mean_bps": -1.4,
+        "t": -0.562,
+        "p_raw": 0.573796,
+        "win_rate": 0.5
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "pattern": "P5_session_breakout",
+      "horizon": "15min",
+      "train": {
+        "n": 100,
+        "mean_bps": -5.13,
+        "t": -5.224,
+        "p_raw": 0.0,
+        "win_rate": 0.26,
+        "p_corrected": 0.0
+      },
+      "holdout": {
+        "n": 41,
+        "mean_bps": -7.57,
+        "t": -3.284,
+        "p_raw": 0.001024,
+        "win_rate": 0.2439
+      },
+      "verdict": "HURTS"
+    }
+  ]
+}
