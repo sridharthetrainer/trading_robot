@@ -75,6 +75,12 @@ _DIMENSIONS: List[Tuple[str, str]] = [
     ("premium_bucket", _PREMIUM_SQL),
     ("score_band", _SCORE_SQL),
     ("tradable", "tradable"),
+    # 2026-07-16: surfaces strategy-level verdicts for the multi-strategy
+    # option catalog (option_strategy_registry.py). Rows written before this
+    # were backfilled to 'single_strike_flow' (option_multistrike_signals.py
+    # ensure_multistrike_schema), so that cohort is measured here too, not
+    # silently excluded.
+    ("strategy", "strategy"),
     ("flow_x_score", f"flow || ':' || ({_SCORE_SQL})"),
     ("flow_x_dte", f"flow || ':' || ({_DTE_SQL})"),
     ("underlying_x_flow", "underlying || ':' || flow"),

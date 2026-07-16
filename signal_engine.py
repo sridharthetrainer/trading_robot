@@ -2398,6 +2398,23 @@ RESEARCH_ONLY_MULTILEG_STRATEGIES = (
     [run_delta_neutral_theta, run_gamma_scalp_strategy] if _INST_AVAIL else []
 )
 
+# 2026-07-16: the 42-strategy option catalog (option_strategy_registry.py).
+# Same reasoning as RESEARCH_ONLY_MULTILEG_STRATEGIES above -- these are
+# multi-leg/portfolio structures (straddles, condors, spreads), not single
+# CE/PE directional signals, so they don't belong in STRATEGIES or the
+# research-only list above (whose contract is "2 known stub functions").
+# Re-exported (not duplicated) so a registry-contract test can assert
+# against one source of truth. Shadow/journal-only: nothing here places an
+# order (see option_strategy_registry.py's module docstring).
+try:
+    import option_strategy_registry as _opt_catalog
+    OPTION_STRATEGY_CATALOG = _opt_catalog.OPTION_STRATEGY_CATALOG
+    _OPT_CATALOG_AVAIL = True
+except Exception as _opt_catalog_exc:
+    OPTION_STRATEGY_CATALOG = []
+    _OPT_CATALOG_AVAIL = False
+    logger.debug("option_strategy_registry unavailable: %s", _opt_catalog_exc)
+
 
 # ---------------------------------------------------------------------------
 # Strategy call adapter

@@ -2097,6 +2097,7 @@ class LiveSignalEngine:
             signal = generate_signal(df=df, df_htf=df_htf, symbol=symbol,
                                       option_data=_market_ctx,
                                       config=_pb_config)
+            self._run_option_strategy_catalog_shadow(symbol, df, df_htf, _market_ctx)
             if signal:
                 try:
                     self._log_shadow_strategy_candidates(
@@ -2987,6 +2988,31 @@ class LiveSignalEngine:
             if bool(getattr(cfg, "REQUIRE_OPTION_CHAIN_FOR_OPTION_TRADE", True)):
                 return False, "selected_option_execution_quality_error", {"error": str(exc)}
             return True, "", {"error": str(exc), "soft_pass": True}
+
+    def _run_option_strategy_catalog_shadow(
+        self, symbol: str, df, df_htf, option_data: Dict[str, Any]
+    ) -> None:
+        """Evaluate the 42-strategy option catalog (option_strategy_registry.py)
+        in shadow/journal-only mode, once per symbol per cycle. Structurally
+        incapable of affecting the real candidate/score path or the live
+        loop: gated by config, wrapped in a blanket except, fire-and-forget.
+        Nothing in the catalog places an order (see that module's docstring)
+        -- this call exists only so its shadow signals get journaled through
+        the existing option-bot pipeline and feed the cohort-evidence system."""
+        if not bool(getattr(cfg, "ENABLE_OPTION_STRATEGY_CATALOG", True)):
+            return
+        try:
+            from option_strategy_regime import detect_regime
+            from option_strategy_registry import evaluate_catalog
+            vix = float(_INTEL_CACHE.get("vix", 15.0))
+            # No genuine daily frame is threaded through this call path yet;
+            # detect_regime()'s gap check safely no-ops (returns 0.0/False)
+            # when df_daily is None, rather than needing one.
+            regime = detect_regime(df, df_daily=None, vix=vix, symbol=symbol)
+            evaluate_catalog(symbol=symbol, df=df, df_htf=df_htf,
+                              option_data=option_data, regime=regime)
+        except Exception as exc:
+            logger.debug("option strategy catalog shadow eval failed for %s: %s", symbol, exc)
 
     def _record_option_decision_safe(
         self,

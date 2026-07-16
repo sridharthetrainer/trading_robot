@@ -110,10 +110,30 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
         "edge_outcomes": "INTEGER DEFAULT 0",
         "edge_avg_r": "REAL DEFAULT 0",
         "edge_profit_factor": "REAL DEFAULT 0",
+        # 2026-07-16: added so the multi-strategy option catalog
+        # (option_strategy_registry.py / option_core_strategies.py) can
+        # write shadow-only legs into this same table and have
+        # option_live_edge_policy.cohort_policy() accrue evidence per
+        # strategy, not just per (flow, direction, score, dte). `side`
+        # distinguishes short (SELL) legs -- every row before this migration
+        # was BUY-only, hence the backfill below.
+        "strategy": "TEXT DEFAULT ''",
+        "combo_id": "TEXT DEFAULT ''",
+        "side": "TEXT DEFAULT 'BUY'",
     }
     for name, declaration in migrations.items():
         if name not in columns:
             conn.execute(f"ALTER TABLE option_strike_signals ADD COLUMN {name} {declaration}")
+    conn.execute(
+        """UPDATE option_strike_signals
+              SET strategy='single_strike_flow'
+            WHERE COALESCE(strategy,'')=''"""
+    )
+    conn.execute(
+        """UPDATE option_strike_signals
+              SET side='BUY'
+            WHERE COALESCE(side,'')=''"""
+    )
     conn.execute(
         """UPDATE option_strike_signals
               SET lifecycle_status=CASE WHEN tradable=1 THEN 'OPEN' ELSE 'WATCH' END,
@@ -132,9 +152,21 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
         "CREATE INDEX IF NOT EXISTS idx_strike_signal_lookup "
         "ON option_strike_signals(underlying, option_type, ts DESC, score DESC)"
     )
+    # 2026-07-16: widened to include `strategy`. The old 4-column unique key
+    # (snapshot_time, underlying, strike, option_type) would otherwise let a
+    # new strategy's shadow leg silently collide with (INSERT OR REPLACE
+    # clobber) the single-strike-flow system's row for the exact same
+    # strike/snapshot -- a real risk since ATM/near-ATM strikes are exactly
+    # what both systems track. Recreating (not just adding a second index)
+    # because the old unique constraint must stop being enforced on its own.
+    conn.execute("DROP INDEX IF EXISTS idx_strike_signal_unique")
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_strike_signal_unique "
-        "ON option_strike_signals(snapshot_time, underlying, strike, option_type)"
+        "ON option_strike_signals(snapshot_time, underlying, strike, option_type, strategy)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_strike_signal_strategy "
+        "ON option_strike_signals(strategy, ts DESC)"
     )
 
 
@@ -471,8 +503,9 @@ def persist_multistrike_signals(
              direction,score,tradable,price,price_change_pct,oi,oi_change_pct,
              volume,volume_change_pct,spread_pct,reason,source,market_regime,
              market_bias,regime_aligned,score_rank,entry_price,stop_loss,target_1,target_2,
-             lifecycle_status,status_updated_at,edge_policy,edge_outcomes,edge_avg_r,edge_profit_factor)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             lifecycle_status,status_updated_at,edge_policy,edge_outcomes,edge_avg_r,edge_profit_factor,
+             strategy,side)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 snapshot_ts, snapshot_time, underlying, expiry, row["strike"], row["option_type"],
@@ -486,6 +519,7 @@ def persist_multistrike_signals(
                 row["entry_price"], row["stop_loss"], row["target_1"], row["target_2"],
                 "OPEN" if row["tradable"] else "WATCH", snapshot_time,
                 row["edge_policy"], row["edge_outcomes"], row["edge_avg_r"], row["edge_profit_factor"],
+                "single_strike_flow", "BUY",
             ),
         )
     lifecycle_events = update_signal_lifecycle(conn, underlying=underlying, snapshot_time=snapshot_time)
