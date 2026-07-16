@@ -195,8 +195,9 @@ def _param(strategy_id: str, key: str, default: Any = None) -> Any:
                 return int(raw)
             if isinstance(default, float):
                 return float(raw)
-        except Exception:
-            pass
+        except (TypeError, ValueError) as exc:
+            logger.debug("env override %s=%r not coercible to %s: %s",
+                         env_key, raw, type(default).__name__, exc)
         return raw
     params = load_strategy_params()
     entry = params.get(strategy_id, {})

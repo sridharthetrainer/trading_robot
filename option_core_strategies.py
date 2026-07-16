@@ -71,8 +71,8 @@ def _leg_quote(rows: List[Dict[str, Any]], strike: float, option_type: str) -> D
                 if v is not None:
                     try:
                         return float(v)
-                    except Exception:
-                        pass
+                    except (TypeError, ValueError):
+                        logger.debug("non-numeric chain field %s=%r", k, v)
             return 0.0
 
         bid, ask = _f("bidprice", "bidPrice", "bestBid"), _f("askPrice", "askprice", "bestAsk")
