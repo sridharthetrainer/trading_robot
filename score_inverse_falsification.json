@@ -1,0 +1,43 @@
+{
+  "candidate": "score_inverse_3hr",
+  "n": 9208,
+  "days": 18,
+  "baseline_rho_180min": -0.1996,
+  "partial_rho_controlling_gap": -0.1995,
+  "gap_split": {
+    "median_abs_gap_pct": 0.266,
+    "flat_days_rho": -0.1608,
+    "flat_n": 3710,
+    "gappy_days_rho": -0.2022,
+    "gappy_n": 5498
+  },
+  "horizon_decay": {
+    "60min": {
+      "rho": 0.0186,
+      "n": 9208
+    },
+    "120min": {
+      "rho": -0.1098,
+      "n": 9208
+    },
+    "180min": {
+      "rho": -0.1996,
+      "n": 9208
+    },
+    "240min": {
+      "rho": -0.224,
+      "n": 6304
+    }
+  },
+  "leave_one_day_out": {
+    "min_abs_rho": 0.1268,
+    "most_influential_day": {
+      "dropped_day": "2026-06-23",
+      "rho": -0.1268
+    }
+  },
+  "vix_split": "insufficient_vix_coverage",
+  "flags": [],
+  "verdict": "SURVIVES_BATTERY",
+  "note": "Diagnostics on the discovery sample; forward ledger remains the promotion authority. Tripped flags are a human-review signal, not an auto-quarantine."
+}
