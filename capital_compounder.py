@@ -172,6 +172,7 @@ def calculate_full_costs(
     brokerage_per_leg:  float = 20.0,
     is_options:         bool  = True,
     product_type:       str   = "INTRADAY",
+    side:               str   = "BUY",
 ) -> TransactionCosts:
     """
     Calculate ALL NSE options transaction costs for a round-trip trade.
@@ -201,13 +202,21 @@ def calculate_full_costs(
     entry_turnover = entry_price * qty
     exit_turnover  = exit_price  * qty
     total_turnover = entry_turnover + exit_turnover
+    # STT is charged on the SELL leg and stamp duty on the BUY leg. Which
+    # leg that is depends on trade direction: a long sells at EXIT, a short
+    # sells at ENTRY. Charging exit-side STT unconditionally (the pre-
+    # 2026-07-17 behavior) flattered winning shorts — the sell-entry
+    # turnover is the larger leg exactly when a premium-seller wins.
+    is_short = str(side or "BUY").upper() == "SELL"
+    sell_turnover = entry_turnover if is_short else exit_turnover
+    buy_turnover  = exit_turnover  if is_short else entry_turnover
 
     # ── Brokerage (flat per leg) ─────────────────────────────────────
     c.brokerage = 2.0 * brokerage_per_leg
 
     if is_options:
-        # ── STT (sell side only for options — exit leg) ───────────────
-        c.stt = exit_turnover * STT_OPTIONS_SELL
+        # ── STT (sell side only for options) ──────────────────────────
+        c.stt = sell_turnover * STT_OPTIONS_SELL
 
         # ── NSE exchange transaction charge (both sides) ──────────────
         c.exchange_charge = total_turnover * NSE_EXCHANGE_CHARGE_RATE
@@ -218,8 +227,8 @@ def calculate_full_costs(
         # ── GST: 18% on (brokerage + exchange + SEBI) ─────────────────
         c.gst = (c.brokerage + c.exchange_charge + c.sebi_levy) * GST_RATE
 
-        # ── Stamp duty (buy side only — entry leg) ────────────────────
-        c.stamp_duty = entry_turnover * STAMP_DUTY_RATE
+        # ── Stamp duty (buy side only) ────────────────────────────────
+        c.stamp_duty = buy_turnover * STAMP_DUTY_RATE
 
     else:
         # Equity (cash) — segment-specific (intraday vs delivery)
@@ -227,11 +236,11 @@ def calculate_full_costs(
         if delivery:
             # STT 0.1% on BOTH buy + sell; stamp 0.015% buy side
             c.stt        = total_turnover * EQ_STT_DELIVERY
-            c.stamp_duty = entry_turnover * EQ_STAMP_DELIVERY
+            c.stamp_duty = buy_turnover * EQ_STAMP_DELIVERY
         else:
             # Intraday: STT 0.025% sell side only; stamp 0.003% buy side
-            c.stt        = exit_turnover  * EQ_STT_INTRADAY_SELL
-            c.stamp_duty = entry_turnover * EQ_STAMP_INTRADAY
+            c.stt        = sell_turnover * EQ_STT_INTRADAY_SELL
+            c.stamp_duty = buy_turnover * EQ_STAMP_INTRADAY
         c.exchange_charge = total_turnover * EQ_EXCHANGE_CHARGE_RATE
         c.sebi_levy       = total_turnover * SEBI_LEVY_RATE
         c.gst             = (c.brokerage + c.exchange_charge + c.sebi_levy) * GST_RATE
@@ -264,7 +273,8 @@ def calculate_net_pnl(
         gross = (entry_price - exit_price) * qty
 
     costs  = calculate_full_costs(entry_price, exit_price, qty,
-                                   brokerage_per_leg, is_options, product_type)
+                                   brokerage_per_leg, is_options, product_type,
+                                   side=side)
     net    = gross - costs.total
 
     return round(gross, 2), round(net, 2), costs
