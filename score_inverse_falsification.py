@@ -38,6 +38,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import random
+from datetime import timedelta
+
 from option_underlying_decomposition import _load_candles, _parse_snapshot_time, _forward_return
 from option_decomposition_followups import _load_scored_observations, _spearman
 
@@ -116,10 +119,34 @@ def _daily_vix() -> Dict[str, float]:
     return out
 
 
+def _prev_day_rv(underlying: str) -> Dict[str, float]:
+    """day -> previous trading day's realized vol (std of 5m returns, %)."""
+    import sqlite3
+    conn = sqlite3.connect("candle_cache.db")
+    rows = conn.execute(
+        "SELECT timestamp, close FROM candles WHERE symbol=? AND interval='5m' "
+        "ORDER BY timestamp", (underlying,)).fetchall()
+    conn.close()
+    by_day: Dict[str, List[float]] = defaultdict(list)
+    for ts, close in rows:
+        by_day[str(ts)[:10]].append(float(close))
+    day_rv: Dict[str, float] = {}
+    for day, closes in by_day.items():
+        if len(closes) < 20:
+            continue
+        rets = [(closes[i] - closes[i - 1]) / closes[i - 1] * 100
+                for i in range(1, len(closes)) if closes[i - 1] > 0]
+        m = sum(rets) / len(rets)
+        day_rv[day] = math.sqrt(sum((r - m) ** 2 for r in rets) / max(1, len(rets) - 1))
+    days_sorted = sorted(day_rv)
+    return {days_sorted[i]: day_rv[days_sorted[i - 1]] for i in range(1, len(days_sorted))}
+
+
 def _build_samples() -> List[Dict[str, Any]]:
     obs = _load_scored_observations(UNDERLYINGS)
     candles = {u: _load_candles(u) for u in UNDERLYINGS}
     gaps = {u: _daily_gaps(u) for u in UNDERLYINGS}
+    prev_rv = {u: _prev_day_rv(u) for u in UNDERLYINGS}
     samples: List[Dict[str, Any]] = []
     for o in obs:
         try:
@@ -138,8 +165,13 @@ def _build_samples() -> List[Dict[str, Any]]:
                 rets[h] = sign * r
         if CANDIDATE_HORIZON not in rets:
             continue
+        trail = _forward_return(candles[o["underlying"]],
+                                 entry_ts - timedelta(minutes=60), 60)
         samples.append({"day": day, "signed_score": sign * o["score"],
-                        "gap": gap, "rets": rets})
+                        "gap": gap, "rets": rets,
+                        "trail60": (sign * trail) if trail is not None else None,
+                        "prev_rv": prev_rv[o["underlying"]].get(day),
+                        "hour": entry_ts.hour + entry_ts.minute / 60.0})
     return samples
 
 
@@ -194,9 +226,82 @@ def run() -> Dict[str, Any]:
         rho_highvix, n_highvix = _spearman([s["signed_score"] for s in high],
                                             [s["rets"][CANDIDATE_HORIZON] for s in high])
 
+    # ── Round-5 controls (2026-07-17, pre-registered before the forward
+    # verdict): day-clustered inference, trailing-return residualization,
+    # vol-standardization, time-of-day buckets. Two external audits
+    # disagreed on which of these kills the lead — settled empirically. ──
+
+    # (b) day-level inference: per-day rho, sign test, day-block bootstrap
+    by_day: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for s in samples:
+        by_day[s["day"]].append(s)
+    day_rhos = []
+    for d in days:
+        ds = by_day[d]
+        if len(ds) >= 10:
+            r, _ = _spearman([s["signed_score"] for s in ds],
+                              [s["rets"][CANDIDATE_HORIZON] for s in ds])
+            day_rhos.append({"day": d, "rho": round(r, 4), "n": len(ds)})
+    neg_days = sum(1 for x in day_rhos if x["rho"] < 0)
+    # exact two-sided binomial sign test at p=0.5
+    nd = len(day_rhos)
+    k = neg_days
+    tail = sum(math.comb(nd, j) for j in range(k, nd + 1)) / 2 ** nd
+    sign_test_p = min(1.0, 2 * min(tail, 1 - tail + math.comb(nd, k) / 2 ** nd))
+    rng = random.Random(42)
+    boot = []
+    day_list = [x["day"] for x in day_rhos]
+    for _ in range(1000):
+        chosen = [rng.choice(day_list) for _ in day_list]
+        xs_b, ys_b = [], []
+        for d in chosen:
+            for s in by_day[d]:
+                xs_b.append(s["signed_score"])
+                ys_b.append(s["rets"][CANDIDATE_HORIZON])
+        r, _ = _spearman(xs_b, ys_b)
+        boot.append(r)
+    boot.sort()
+    ci_lo, ci_hi = boot[24], boot[974]
+
+    # (c) trailing-return residualization: partial rho controlling the
+    # signed trailing 60-min underlying return
+    trail_sub = [s for s in samples if s["trail60"] is not None]
+    rho_ctrl_trail = _partial_spearman(
+        [s["signed_score"] for s in trail_sub],
+        [s["rets"][CANDIDATE_HORIZON] for s in trail_sub],
+        [s["trail60"] for s in trail_sub])
+
+    # (a) vol-standardization: returns scaled by prior-day realized vol
+    rv_sub = [s for s in samples if s["prev_rv"] and s["prev_rv"] > 0]
+    rho_volstd, n_volstd = _spearman(
+        [s["signed_score"] for s in rv_sub],
+        [s["rets"][CANDIDATE_HORIZON] / s["prev_rv"] for s in rv_sub])
+
+    # (d) time-of-day buckets (fixed ex-ante; all have full 180m horizon)
+    tod_buckets = {}
+    for lo, hi, name in ((9.25, 10.5, "0915-1030"), (10.5, 11.5, "1030-1130"),
+                          (11.5, 12.75, "1130-1245")):
+        sub = [s for s in samples if lo <= s["hour"] < hi]
+        if len(sub) >= 200:
+            r, sn = _spearman([s["signed_score"] for s in sub],
+                               [s["rets"][CANDIDATE_HORIZON] for s in sub])
+            tod_buckets[name] = {"rho": round(r, 4), "n": sn}
+
     flags = []
     if abs(rho_partial) < FLAT_RHO_THRESHOLD:
         flags.append("VANISHES_CONTROLLING_OVERNIGHT_GAP")
+    if ci_hi >= 0:
+        flags.append("DAY_CLUSTERED_CI_INCLUDES_ZERO")
+    if sign_test_p > 0.05:
+        flags.append("DAY_SIGN_TEST_NOT_SIGNIFICANT")
+    if abs(rho_ctrl_trail) < abs(rho_base) / 2:
+        flags.append("HALVED_BY_TRAILING_RETURN_CONTROL")
+    if abs(rho_volstd) < FLAT_RHO_THRESHOLD:
+        flags.append("VANISHES_VOL_STANDARDIZED")
+    if tod_buckets and (max(v["rho"] for v in tod_buckets.values()) > 0 >
+                         min(v["rho"] for v in tod_buckets.values())
+                         and any(v["rho"] > FLAT_RHO_THRESHOLD for v in tod_buckets.values())):
+        flags.append("TIME_OF_DAY_SIGN_FLIP")
     if abs(rho_flat) < FLAT_RHO_THRESHOLD and abs(rho_gappy) >= abs(rho_base):
         flags.append("CONCENTRATED_IN_GAPPY_DAYS")
     if lodo_min_abs < abs(rho_base) / 2:
@@ -221,6 +326,14 @@ def run() -> Dict[str, Any]:
         "vix_split": ({"low_vix_rho": round(rho_lowvix, 4), "low_n": n_lowvix,
                         "high_vix_rho": round(rho_highvix, 4), "high_n": n_highvix}
                        if rho_lowvix is not None else "insufficient_vix_coverage"),
+        "round5_controls": {
+            "day_level": {"per_day_rhos": day_rhos, "days_negative": neg_days,
+                           "days_total": nd, "sign_test_p": round(sign_test_p, 5),
+                           "bootstrap_ci95": [round(ci_lo, 4), round(ci_hi, 4)]},
+            "partial_rho_controlling_trailing_60min": round(rho_ctrl_trail, 4),
+            "rho_vol_standardized": {"rho": round(rho_volstd, 4), "n": n_volstd},
+            "time_of_day_buckets": tod_buckets,
+        },
         "flags": flags,
         "verdict": "FLAGS_TRIPPED" if flags else "SURVIVES_BATTERY",
         "note": "Diagnostics on the discovery sample; forward ledger remains the "
@@ -247,6 +360,13 @@ def main() -> int:
     print(f"  LODO min |rho|:                 {rep['leave_one_day_out']['min_abs_rho']} "
           f"(worst drop: {rep['leave_one_day_out']['most_influential_day']['dropped_day']})")
     print(f"  vix split:                      {rep['vix_split']}")
+    r5 = rep["round5_controls"]
+    dl = r5["day_level"]
+    print(f"  day-level: {dl['days_negative']}/{dl['days_total']} days negative, "
+          f"sign-test p={dl['sign_test_p']}, day-bootstrap CI95={dl['bootstrap_ci95']}")
+    print(f"  partial rho | trailing-60min:   {r5['partial_rho_controlling_trailing_60min']}")
+    print(f"  rho on vol-standardized rets:   {r5['rho_vol_standardized']}")
+    print(f"  time-of-day buckets:            {r5['time_of_day_buckets']}")
     print(f"\n  flags: {rep['flags'] or 'NONE'}")
     print(f"  verdict: {rep['verdict']}")
     return 0

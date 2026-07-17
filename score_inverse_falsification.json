@@ -3,13 +3,13 @@
   "n": 9208,
   "days": 18,
   "baseline_rho_180min": -0.1996,
-  "partial_rho_controlling_gap": -0.1995,
+  "partial_rho_controlling_gap": -0.1997,
   "gap_split": {
-    "median_abs_gap_pct": 0.266,
-    "flat_days_rho": -0.1608,
-    "flat_n": 3710,
-    "gappy_days_rho": -0.2022,
-    "gappy_n": 5498
+    "median_abs_gap_pct": 0.358,
+    "flat_days_rho": -0.1024,
+    "flat_n": 4196,
+    "gappy_days_rho": -0.2877,
+    "gappy_n": 5012
   },
   "horizon_decay": {
     "60min": {
@@ -37,7 +37,133 @@
     }
   },
   "vix_split": "insufficient_vix_coverage",
-  "flags": [],
-  "verdict": "SURVIVES_BATTERY",
+  "round5_controls": {
+    "day_level": {
+      "per_day_rhos": [
+        {
+          "day": "2026-06-19",
+          "rho": -0.1344,
+          "n": 941
+        },
+        {
+          "day": "2026-06-22",
+          "rho": -0.1965,
+          "n": 909
+        },
+        {
+          "day": "2026-06-23",
+          "rho": -0.6332,
+          "n": 662
+        },
+        {
+          "day": "2026-06-24",
+          "rho": 0.5782,
+          "n": 242
+        },
+        {
+          "day": "2026-06-25",
+          "rho": -0.2635,
+          "n": 1089
+        },
+        {
+          "day": "2026-06-29",
+          "rho": -0.7359,
+          "n": 135
+        },
+        {
+          "day": "2026-06-30",
+          "rho": 0.033,
+          "n": 240
+        },
+        {
+          "day": "2026-07-01",
+          "rho": 0.7585,
+          "n": 236
+        },
+        {
+          "day": "2026-07-02",
+          "rho": 0.1633,
+          "n": 575
+        },
+        {
+          "day": "2026-07-03",
+          "rho": -0.5962,
+          "n": 209
+        },
+        {
+          "day": "2026-07-06",
+          "rho": 0.3817,
+          "n": 210
+        },
+        {
+          "day": "2026-07-07",
+          "rho": -0.6658,
+          "n": 205
+        },
+        {
+          "day": "2026-07-08",
+          "rho": -0.6401,
+          "n": 207
+        },
+        {
+          "day": "2026-07-09",
+          "rho": 0.41,
+          "n": 536
+        },
+        {
+          "day": "2026-07-10",
+          "rho": 0.4415,
+          "n": 409
+        },
+        {
+          "day": "2026-07-13",
+          "rho": 0.7271,
+          "n": 240
+        },
+        {
+          "day": "2026-07-14",
+          "rho": -0.6028,
+          "n": 1090
+        },
+        {
+          "day": "2026-07-16",
+          "rho": -0.6663,
+          "n": 1073
+        }
+      ],
+      "days_negative": 10,
+      "days_total": 18,
+      "sign_test_p": 0.81453,
+      "bootstrap_ci95": [
+        -0.4489,
+        0.1406
+      ]
+    },
+    "partial_rho_controlling_trailing_60min": -0.1978,
+    "rho_vol_standardized": {
+      "rho": -0.2064,
+      "n": 9208
+    },
+    "time_of_day_buckets": {
+      "0915-1030": {
+        "rho": 0.0619,
+        "n": 3436
+      },
+      "1030-1130": {
+        "rho": -0.3461,
+        "n": 3065
+      },
+      "1130-1245": {
+        "rho": -0.4094,
+        "n": 2649
+      }
+    }
+  },
+  "flags": [
+    "DAY_CLUSTERED_CI_INCLUDES_ZERO",
+    "DAY_SIGN_TEST_NOT_SIGNIFICANT",
+    "TIME_OF_DAY_SIGN_FLIP"
+  ],
+  "verdict": "FLAGS_TRIPPED",
   "note": "Diagnostics on the discovery sample; forward ledger remains the promotion authority. Tripped flags are a human-review signal, not an auto-quarantine."
 }
