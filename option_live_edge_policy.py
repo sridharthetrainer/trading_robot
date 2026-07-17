@@ -173,3 +173,84 @@ def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score:
         "holdout_outcomes": ho_n, "holdout_days": ho_days,
         "holdout_avg_net_r": round(ho_avg_r, 4),
     }
+
+
+# ── Combo-level evidence for multi-leg catalog strategies (2026-07-17) ──
+#
+# Four independent external audits converged on the same statistical hole:
+# a multi-leg structure's legs are near-perfectly correlated observations
+# of ONE underlying path. Counting a condor as 4 rows inflates n ~4x,
+# understates variance, and leg-level profit factor is not any function of
+# combo-level profit factor (3 winning legs + 1 catastrophic leg reads
+# ~3:1 per-leg and <1 per-combo). Per-leg rows remain the substrate for
+# execution/attribution; PROMOTION statistics for catalog strategies come
+# only from this combo-aggregated view. cohort_policy(strategy=...) above
+# stays for per-leg attribution and the nightly miner — it must not be
+# used as a promotion authority for multi-leg strategies.
+
+def _combo_agg(conn: sqlite3.Connection, *, strategy: str, day_cmp: str,
+                cutoff: Optional[str]) -> Tuple[int, int, float, float, float, float]:
+    """Aggregate labelled legs into combo outcomes (SUM net_pnl per
+    combo_id), then compute the same summary stats _agg produces. Legs
+    with an empty combo_id fall back to being their own singleton combo
+    (rowid-keyed) so single-leg strategies work identically."""
+    params: Tuple[Any, ...] = (strategy,) + tuple(LIVE_SOURCES)
+    if cutoff is not None:
+        params = params + (cutoff,)
+    row = conn.execute(
+        f"""SELECT COUNT(*),COUNT(DISTINCT day),
+                    AVG(CASE WHEN combo_net>0 THEN 1.0 ELSE 0.0 END),
+                    AVG(combo_net),AVG(combo_r),
+                    SUM(CASE WHEN combo_net>0 THEN combo_net ELSE 0 END) /
+                    NULLIF(ABS(SUM(CASE WHEN combo_net<0 THEN combo_net ELSE 0 END)),0)
+               FROM (
+                 SELECT COALESCE(NULLIF(combo_id,''), 'row:'||rowid) AS cid,
+                        substr(MIN(snapshot_time),1,10) AS day,
+                        SUM(net_pnl) AS combo_net,
+                        SUM(net_pnl) / NULLIF(SUM(ABS(capital_at_risk)),0) AS combo_r
+                   FROM option_strike_signals
+                  WHERE strategy=? AND source IN ({','.join('?' for _ in LIVE_SOURCES)})
+                    AND outcome_label IN (-1,0,1)
+                  GROUP BY cid
+               )
+              WHERE 1=1 {day_cmp}""",
+        params,
+    ).fetchone()
+    n, days = int(row[0] or 0), int(row[1] or 0)
+    wr, avg_net, avg_r = (float(value or 0) for value in row[2:5])
+    pf = float(row[5]) if row[5] is not None else (999.0 if n and avg_net > 0 else 0.0)
+    return n, days, wr, avg_net, avg_r, pf
+
+
+def strategy_combo_policy(conn: sqlite3.Connection, *, strategy: str) -> Dict[str, Any]:
+    """Promotion policy for a catalog strategy judged at COMBO granularity.
+    Same thresholds and day-split-holdout discipline as cohort_policy; the
+    only difference is the observation unit."""
+    n, days, wr, avg_net, avg_r, pf = _combo_agg(conn, strategy=strategy,
+                                                  day_cmp="", cutoff=None)
+    _, cutoff = _day_cutoff(conn)
+    holdout_confirmed = False
+    ho_n = ho_days = 0
+    ho_avg_r = 0.0
+    if cutoff is not None:
+        ho_n, ho_days, _, ho_avg_net, ho_avg_r, ho_pf = _combo_agg(
+            conn, strategy=strategy, day_cmp="AND day > ?", cutoff=cutoff)
+        holdout_confirmed = (
+            ho_n >= HOLDOUT_MIN_N and ho_days >= HOLDOUT_MIN_DAYS
+            and ho_avg_net > 0 and ho_avg_r > 0
+        )
+
+    promising = n >= 30 and days >= 3 and avg_net > 0 and avg_r > 0 and pf >= 1.2 and holdout_confirmed
+    live_ready = n >= 500 and days >= 15 and avg_net > 0 and avg_r > 0 and pf >= 1.2 and holdout_confirmed
+    negative = n >= 20 and (avg_net <= 0 or avg_r <= 0 or pf < 1.0)
+    status = "LIVE_EVIDENCE_READY" if live_ready else "PAPER_PROMISING" if promising else "QUARANTINED" if negative else "VALIDATING"
+    return {
+        "status": status, "strategy": strategy, "unit": "combo",
+        "outcomes": n, "days": days,
+        "win_rate": round(wr, 4), "avg_net_pnl": round(avg_net, 2),
+        "avg_net_r": round(avg_r, 4), "profit_factor": round(pf, 3),
+        "live_ready": live_ready,
+        "holdout_confirmed": holdout_confirmed,
+        "holdout_outcomes": ho_n, "holdout_days": ho_days,
+        "holdout_avg_net_r": round(ho_avg_r, 4),
+    }

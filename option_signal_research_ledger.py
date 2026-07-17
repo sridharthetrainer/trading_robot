@@ -117,9 +117,27 @@ def check_candidate(name: str) -> Dict[str, Any]:
     }
 
 
+def _catalog_combo_evidence() -> Dict[str, Any]:
+    """Combo-level (not per-leg) promotion status for every implemented
+    option-catalog strategy — the observation unit is one combo_id, so a
+    4-leg condor counts once. Guarded: absent modules or an unmigrated
+    schema simply yield an empty dict."""
+    out: Dict[str, Any] = {}
+    try:
+        from option_live_edge_policy import strategy_combo_policy
+        from option_strategy_registry import implemented_ids
+        with sqlite3.connect(SNAPSHOT_DB) as conn:
+            for sid in implemented_ids():
+                out[sid] = strategy_combo_policy(conn, strategy=sid)
+    except Exception as exc:
+        logger.debug("catalog combo evidence: %s", exc)
+    return out
+
+
 def run_all() -> Dict[str, Any]:
     report = {"generated_at": datetime.now().isoformat(timespec="seconds"),
-              "candidates": {name: check_candidate(name) for name in CANDIDATES}}
+              "candidates": {name: check_candidate(name) for name in CANDIDATES},
+              "catalog_strategies_combo_unit": _catalog_combo_evidence()}
     try:
         LEDGER_FILE.write_text(json.dumps(report, indent=2))
     except Exception as exc:

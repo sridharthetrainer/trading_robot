@@ -80,3 +80,67 @@ def test_negative_cohort_is_quarantined():
                r_multiple=-0.2)
     policy = cohort_policy(conn, flow="LONG_BUILDUP", direction="BULLISH", score=60)
     assert policy["status"] == "QUARANTINED"
+
+
+# ── Combo-level unit (2026-07-17): a multi-leg structure's legs are one
+# observation, not four ─────────────────────────────────────────────────
+
+def _seed_combo(conn, *, strategy, combo_id, day, leg_pnls, entry_minute=30,
+                capital_per_leg=6500.0):
+    for j, pnl in enumerate(leg_pnls):
+        conn.execute(
+            """INSERT INTO option_strike_signals
+               (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,direction,
+                score,tradable,price,source,outcome_label,net_pnl,net_r,capital_at_risk,
+                strategy,combo_id,side)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (hash((combo_id, j)) % 10**9, f"{day}T09:{entry_minute:02d}:00+05:30",
+             "NIFTY", "2026-07-07",
+             24000 + 100 * j, "CE" if j % 2 == 0 else "PE", "SHADOW_STRATEGY",
+             "SHADOW_ENTRY", "NEUTRAL", 0, 0, 100, "angel",
+             1 if pnl > 0 else -1, pnl, pnl / capital_per_leg, capital_per_leg,
+             strategy, combo_id, "SELL" if j < 2 else "BUY"),
+        )
+
+
+def test_combo_policy_counts_a_condor_once_not_four_times():
+    """3 winning legs + 1 catastrophic leg is ONE losing combo. Per-leg
+    counting would read it as a 3:1 winner — the exact inflation all four
+    external audits flagged."""
+    conn = sqlite3.connect(":memory:")
+    ensure_multistrike_schema(conn)
+    for i, day in enumerate(["2026-06-25", "2026-06-26", "2026-06-27",
+                              "2026-06-28", "2026-06-29", "2026-06-30"]):
+        for k in range(4):
+            _seed_combo(conn, strategy="C3", combo_id=f"NIFTY_C3_{i}_{k}", day=day,
+                        leg_pnls=[300, 250, 200, -2000], entry_minute=30 + k)
+    combo = olep.strategy_combo_policy(conn, strategy="C3")
+    assert combo["outcomes"] == 24            # 24 combos, not 96 legs
+    assert combo["win_rate"] == 0.0           # every combo nets -1250
+    assert combo["status"] == "QUARANTINED"   # combo-level truth: it loses
+    # per-leg attribution view still sees the individual legs
+    leg_view = cohort_policy(conn, flow="SHADOW_STRATEGY", direction="NEUTRAL",
+                              score=0, strategy="C3")
+    assert leg_view["outcomes"] == 96
+
+
+def test_combo_policy_singleton_fallback_for_empty_combo_id():
+    """Legs with no combo_id are their own singleton combos, so single-leg
+    strategies flow through the same policy unchanged."""
+    conn = sqlite3.connect(":memory:")
+    ensure_multistrike_schema(conn)
+    for i, day in enumerate(["2026-06-25", "2026-06-26", "2026-06-27"]):
+        for k in range(8):
+            conn.execute(
+                """INSERT INTO option_strike_signals
+                   (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,
+                    direction,score,tradable,price,source,outcome_label,net_pnl,net_r,
+                    capital_at_risk,strategy,combo_id,side)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (i * 100 + k, f"{day}T10:00:00+05:30", "NIFTY", "2026-07-07",
+                 24000 + k, "CE", "SHADOW_STRATEGY", "SHADOW_ENTRY", "NEUTRAL",
+                 0, 0, 100, "angel", -1, -50, -0.01, 6500.0, "X9", "", "BUY"),
+            )
+    combo = olep.strategy_combo_policy(conn, strategy="X9")
+    assert combo["outcomes"] == 24            # each leg its own combo
+    assert combo["status"] == "QUARANTINED"
