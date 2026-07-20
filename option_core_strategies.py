@@ -77,14 +77,37 @@ def _leg_quote(rows: List[Dict[str, Any]], strike: float, option_type: str) -> D
 
         bid, ask = _f("bidprice", "bidPrice", "bestBid"), _f("askPrice", "askprice", "bestAsk")
         spread_pct = (ask - bid) / ((ask + bid) / 2.0) if (bid > 0 and ask >= bid and (ask + bid) > 0) else 0.0
+        oi = _f("openInterest", "oi")
+        oi_chg = _f("changeinOpenInterest", "changeInOpenInterest", "chg_oi")
         return {
             "last_price": _f("lastPrice", "ltp"),
-            "oi": _f("openInterest", "oi"),
+            "oi": oi,
+            "oi_change": oi_chg,
             "volume": _f("totalTradedVolume", "volume"),
             "iv": _f("impliedVolatility", "iv"),
             "spread_pct": spread_pct,
         }
-    return {"last_price": 0.0, "oi": 0.0, "volume": 0.0, "iv": 0.0, "spread_pct": 0.0}
+    return {"last_price": 0.0, "oi": 0.0, "oi_change": 0.0, "volume": 0.0, "iv": 0.0, "spread_pct": 0.0}
+
+
+# 2026-07-20 (operator: "include some image or color indicator of OI
+# direction"). NSE's `changeinOpenInterest` is versus the PREVIOUS DAY's
+# close, given per-strike in the same chain row -- no second snapshot
+# needed. This is deliberately a simple 3-way OI-only classifier (BUILDUP/
+# UNWINDING/FLAT), not the 4-way price+OI flow taxonomy
+# (option_multistrike_signals._classify's LONG_BUILDUP/SHORT_COVERING/...)
+# -- that one needs the leg's OWN premium change too, which this chain row
+# shape doesn't carry a clean previous-close for. Reusing that function
+# with a fabricated price input would be worse than a narrower, honest one.
+_OI_DIRECTION_EMOJI = {"BUILDUP": "🟢", "UNWINDING": "🔴", "FLAT": "⚪"}
+
+
+def _oi_direction(oi: float, oi_change: float) -> Dict[str, Any]:
+    prev_oi = oi - oi_change
+    pct = (oi_change / prev_oi * 100.0) if prev_oi > 0 else 0.0
+    label = "BUILDUP" if pct > 2.0 else "UNWINDING" if pct < -2.0 else "FLAT"
+    return {"oi_direction": label, "oi_change_pct": round(pct, 2),
+            "oi_emoji": _OI_DIRECTION_EMOJI[label]}
 
 
 def _strikes_near(spot: float, gap: int, steps: int) -> List[float]:
@@ -221,8 +244,10 @@ def evaluate_c1_short_straddle(symbol: str, df=None, df_htf=None, option_data=No
     net_credit = round(ce["last_price"] + pe["last_price"], 2)
 
     legs = [
-        {"strike": strike, "option_type": "CE", "price": ce["last_price"], "delta": round(ce_delta, 4)},
-        {"strike": strike, "option_type": "PE", "price": pe["last_price"], "delta": round(pe_delta, 4)},
+        {"strike": strike, "option_type": "CE", "price": ce["last_price"], "delta": round(ce_delta, 4),
+         **_oi_direction(ce["oi"], ce.get("oi_change", 0.0))},
+        {"strike": strike, "option_type": "PE", "price": pe["last_price"], "delta": round(pe_delta, 4),
+         **_oi_direction(pe["oi"], pe.get("oi_change", 0.0))},
     ]
     ts = time.time()
     combo_id = _combo_id(symbol, strategy_id, ts)
@@ -237,6 +262,11 @@ def evaluate_c1_short_straddle(symbol: str, df=None, df_htf=None, option_data=No
         },
         metadata={
             "regime": regime,
+            # OI direction is OBSERVED CONTEXT, logged for future evidence
+            # mining -- NOT a live entry gate. It plays no role in whether
+            # this straddle fires; adding it as a gate would need its own
+            # forward-holdout validation first, same as every other param.
+            "oi_context_unvalidated": True,
             "sl_pct_per_leg": _param(strategy_id, "sl_desc_per_leg_pct", [25, 30]),
             "target_desc": _param(strategy_id, "target_desc", "25-30% total premium"),
             "margin_max_pct_capital": _param(strategy_id, "margin_max_pct_capital", 25),
@@ -355,10 +385,14 @@ def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
     max_loss = round(wing_width - net_credit, 2)
 
     legs = [
-        {"strike": short_ce["strike"], "option_type": "CE", "side": "SELL", "price": short_ce["quote"]["last_price"], "delta": round(short_ce["delta"], 4)},
-        {"strike": long_ce_strike, "option_type": "CE", "side": "BUY", "price": long_ce["last_price"], "delta": 0.0},
-        {"strike": short_pe["strike"], "option_type": "PE", "side": "SELL", "price": short_pe["quote"]["last_price"], "delta": round(short_pe["delta"], 4)},
-        {"strike": long_pe_strike, "option_type": "PE", "side": "BUY", "price": long_pe["last_price"], "delta": 0.0},
+        {"strike": short_ce["strike"], "option_type": "CE", "side": "SELL", "price": short_ce["quote"]["last_price"], "delta": round(short_ce["delta"], 4),
+         **_oi_direction(short_ce["quote"]["oi"], short_ce["quote"].get("oi_change", 0.0))},
+        {"strike": long_ce_strike, "option_type": "CE", "side": "BUY", "price": long_ce["last_price"], "delta": 0.0,
+         **_oi_direction(long_ce["oi"], long_ce.get("oi_change", 0.0))},
+        {"strike": short_pe["strike"], "option_type": "PE", "side": "SELL", "price": short_pe["quote"]["last_price"], "delta": round(short_pe["delta"], 4),
+         **_oi_direction(short_pe["quote"]["oi"], short_pe["quote"].get("oi_change", 0.0))},
+        {"strike": long_pe_strike, "option_type": "PE", "side": "BUY", "price": long_pe["last_price"], "delta": 0.0,
+         **_oi_direction(long_pe["oi"], long_pe.get("oi_change", 0.0))},
     ]
     ts = time.time()
     combo_id = _combo_id(symbol, strategy_id, ts)
@@ -376,6 +410,9 @@ def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
             "sl_desc": _param(strategy_id, "sl_desc", "2x credit"),
             "target_desc": _param(strategy_id, "target_desc", "50% credit"),
             "risk_pct_capital": _param(strategy_id, "risk_pct_capital", 1.0),
+            # OI direction is OBSERVED CONTEXT for future evidence mining --
+            # NOT a live entry gate (see C1's identical note).
+            "oi_context_unvalidated": True,
             "unvalidated": True,
         },
     )

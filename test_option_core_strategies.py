@@ -190,3 +190,37 @@ def test_c3_adjustment_no_action_inside_range():
     result = ocs.evaluate_c3_adjustment(
         legs=[], current_spot=22000.0, short_ce_strike=22400.0, short_pe_strike=21650.0)
     assert result["recommendations"] == ["no_adjustment_needed"]
+
+
+def test_oi_direction_classifies_buildup_unwinding_flat():
+    buildup = ocs._oi_direction(10000, 2000)   # +25% vs prior 8000
+    assert buildup["oi_direction"] == "BUILDUP"
+    assert buildup["oi_emoji"] == "🟢"
+
+    unwinding = ocs._oi_direction(8000, -2000)  # -20% vs prior 10000
+    assert unwinding["oi_direction"] == "UNWINDING"
+    assert unwinding["oi_emoji"] == "🔴"
+
+    flat = ocs._oi_direction(10000, 50)         # +0.5%
+    assert flat["oi_direction"] == "FLAT"
+    assert flat["oi_emoji"] == "⚪"
+
+    # no prior OI (new contract) must not divide by zero
+    fresh = ocs._oi_direction(500, 500)
+    assert fresh["oi_direction"] == "FLAT"
+
+
+def test_c1_legs_carry_oi_direction_fields(monkeypatch):
+    fake = _RecorderFake()
+    monkeypatch.setattr(ocs.odj, "record_option_decision", fake)
+    conn = sqlite3.connect(":memory:")
+
+    result = ocs.evaluate_c1_short_straddle(
+        symbol="NIFTY", option_data=_synthetic_chain(), regime=_CALM_REGIME, conn=conn)
+
+    assert result["status"] == "selected"
+    legs = fake.calls[0]["selected"]["legs"]
+    assert len(legs) == 2
+    for leg in legs:
+        assert leg["oi_direction"] in {"BUILDUP", "UNWINDING", "FLAT"}
+        assert leg["oi_emoji"] in {"🟢", "🔴", "⚪"}

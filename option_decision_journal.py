@@ -234,6 +234,23 @@ def _format_option_card(p: Dict[str, Any]) -> str:
     if money:
         lines.append("💰 " + "  ·  ".join(money))
 
+    # OI-direction color indicator, one line per leg, for multi-leg
+    # structures (C1/C3/...). 2026-07-20, operator: "include some image
+    # or color indicator of OI direction." Observed context only -- see
+    # option_core_strategies.py's oi_context_unvalidated note; this is
+    # display, not a claim that OI direction predicts anything here.
+    legs = sel.get("legs")
+    if isinstance(legs, list) and legs:
+        oi_bits = []
+        for leg in legs:
+            if not isinstance(leg, dict) or not leg.get("oi_emoji"):
+                continue
+            leg_lbl = f"{leg.get('option_type', '')}{int(_safe_float(leg.get('strike')))}"
+            oi_bits.append(f"{leg.get('oi_emoji')}{leg_lbl}")
+        if oi_bits:
+            lines.append("OI " + " ".join(oi_bits)
+                         + "  (🟢buildup 🔴unwinding ⚪flat)")
+
     ctx = []
     spot = _safe_float(p.get("spot") or sel.get("spot"))
     if spot > 0:
