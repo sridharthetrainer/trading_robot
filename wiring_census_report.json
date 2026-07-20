@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-15T18:44:07",
-  "n_modules": 472,
+  "generated_at": "2026-07-20T22:51:14",
+  "n_modules": 493,
   "orphan_modules": [
     "check_connections",
     "comprehensive_news_engine",
@@ -478,7 +478,7 @@
       "name": "get_stage2_stocks"
     }
   ],
-  "internal_only_functions_count": 497,
+  "internal_only_functions_count": 498,
   "modules": {
     "adaptive_position_sizer": {
       "status": "imported",
@@ -567,7 +567,7 @@
         "backtest_ma_cross",
         "backtest_ma_grid"
       ],
-      "n_importers": 46
+      "n_importers": 47
     },
     "angel_broker": {
       "status": "imported",
@@ -939,12 +939,13 @@
         "live_signal_engine",
         "main_autonomous",
         "shadow_execution",
+        "test_nse_cost_model_2026",
         "test_trade_economics",
         "trade_economics",
         "trade_manager",
         "triple_barrier"
       ],
-      "n_importers": 7
+      "n_importers": 8
     },
     "capital_recycler": {
       "status": "imported",
@@ -1029,7 +1030,7 @@
         "daily_loss_limit",
         "data_fetcher"
       ],
-      "n_importers": 48
+      "n_importers": 49
     },
     "confluence_feature_store": {
       "status": "imported",
@@ -1059,6 +1060,14 @@
       ],
       "n_importers": 5
     },
+    "cpr_camarilla_pattern_miner": {
+      "status": "imported",
+      "imported_by": [
+        "ema_pattern_miner",
+        "trend_exhaustion_miner"
+      ],
+      "n_importers": 2
+    },
     "cpr_ema_strategy": {
       "status": "imported",
       "imported_by": [
@@ -1086,6 +1095,11 @@
         "test_quant_methods"
       ],
       "n_importers": 1
+    },
+    "cross_sectional_factor_test": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
     },
     "cvar_optimizer": {
       "status": "dynamic",
@@ -1353,6 +1367,11 @@
       ],
       "n_importers": 2
     },
+    "ema_pattern_miner": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "ensemble_validate": {
       "status": "entrypoint",
       "imported_by": [],
@@ -1488,11 +1507,12 @@
       "imported_by": [
         "live_signal_engine",
         "main_autonomous",
+        "option_strategy_regime",
         "signal_engine",
         "test_expiry_regime",
         "theta_strategy"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "expiry_strategy": {
       "status": "imported",
@@ -1603,6 +1623,11 @@
       ],
       "n_importers": 2
     },
+    "get_option_chat_id": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "gex_engine": {
       "status": "imported",
       "imported_by": [
@@ -1640,11 +1665,14 @@
       "status": "imported",
       "imported_by": [
         "gex_engine",
+        "option_core_strategies",
+        "option_strategy_regime",
         "signal_broadcaster",
         "signal_engine",
-        "telegram_commands"
+        "telegram_commands",
+        "test_option_core_strategies"
       ],
-      "n_importers": 4
+      "n_importers": 7
     },
     "greeks_sizer": {
       "status": "imported",
@@ -2012,10 +2040,11 @@
       "imported_by": [
         "main_autonomous",
         "market_snapshot_recorder",
+        "option_strategy_regime",
         "signal_engine",
         "telegram_commands"
       ],
-      "n_importers": 4
+      "n_importers": 5
     },
     "market_snapshot_recorder": {
       "status": "imported",
@@ -2385,6 +2414,14 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "option_core_strategies": {
+      "status": "imported",
+      "imported_by": [
+        "option_strategy_registry",
+        "test_option_core_strategies"
+      ],
+      "n_importers": 2
+    },
     "option_decision_journal": {
       "status": "imported",
       "imported_by": [
@@ -2397,7 +2434,14 @@
         "option_bot_audit",
         "option_chain_recorder"
       ],
-      "n_importers": 19
+      "n_importers": 20
+    },
+    "option_decomposition_followups": {
+      "status": "imported",
+      "imported_by": [
+        "score_inverse_falsification"
+      ],
+      "n_importers": 1
     },
     "option_execution_quality": {
       "status": "imported",
@@ -2411,9 +2455,10 @@
       "status": "imported",
       "imported_by": [
         "test_option_execution_router",
+        "test_option_strategy_catalog_no_execution",
         "trade_manager"
       ],
-      "n_importers": 2
+      "n_importers": 3
     },
     "option_generated_data_audit": {
       "status": "entrypoint",
@@ -2440,9 +2485,11 @@
       "status": "imported",
       "imported_by": [
         "option_multistrike_signals",
+        "option_signal_research_ledger",
+        "test_option_cohort_schema_migration",
         "test_option_live_edge_policy"
       ],
-      "n_importers": 2
+      "n_importers": 4
     },
     "option_lot_override": {
       "status": "imported",
@@ -2472,12 +2519,12 @@
         "option_bot_views",
         "option_chain_engine",
         "option_chain_recorder",
+        "option_core_strategies",
         "option_strike_activity",
         "option_telegram_report",
-        "test_option_live_edge_policy",
-        "test_option_multistrike_signals"
+        "test_option_cohort_schema_migration"
       ],
-      "n_importers": 9
+      "n_importers": 12
     },
     "option_oi_chart": {
       "status": "imported",
@@ -2498,10 +2545,11 @@
         "hero_zero_strategy",
         "live_signal_engine",
         "option_chain_fetcher",
+        "option_core_strategies",
         "option_multistrike_signals",
         "test_option_quality"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "option_scalper": {
       "status": "imported",
@@ -2535,6 +2583,14 @@
       ],
       "n_importers": 2
     },
+    "option_signal_research_ledger": {
+      "status": "imported",
+      "imported_by": [
+        "autonomous_learning_cycle",
+        "test_option_signal_research_ledger"
+      ],
+      "n_importers": 2
+    },
     "option_signal_snapshot_labeller": {
       "status": "imported",
       "imported_by": [
@@ -2542,6 +2598,34 @@
         "option_autotune_backfill"
       ],
       "n_importers": 2
+    },
+    "option_strategy_regime": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_option_strategy_regime"
+      ],
+      "n_importers": 2
+    },
+    "option_strategy_registry": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "option_core_strategies",
+        "option_signal_research_ledger",
+        "option_strategy_risk_checks",
+        "signal_engine",
+        "test_option_strategy_catalog_no_execution",
+        "test_option_strategy_registry"
+      ],
+      "n_importers": 7
+    },
+    "option_strategy_risk_checks": {
+      "status": "imported",
+      "imported_by": [
+        "test_option_strategy_risk_checks"
+      ],
+      "n_importers": 1
     },
     "option_strike_activity": {
       "status": "imported",
@@ -2582,6 +2666,16 @@
         "option_chain_recorder"
       ],
       "n_importers": 1
+    },
+    "option_underlying_decomposition": {
+      "status": "imported",
+      "imported_by": [
+        "option_decomposition_followups",
+        "option_signal_research_ledger",
+        "pipeline_sensitivity_floor",
+        "score_inverse_falsification"
+      ],
+      "n_importers": 4
     },
     "options_backtest": {
       "status": "imported",
@@ -2684,19 +2778,24 @@
       ],
       "n_importers": 3
     },
+    "pipeline_sensitivity_floor": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "pivot_boss": {
       "status": "imported",
       "imported_by": [
         "backtest_pivot_boss",
         "backtest_pivot_boss_intraday",
         "candlestick_signals",
+        "cpr_camarilla_pattern_miner",
         "cpr_ema_strategy",
         "failed_breakout",
         "main_autonomous",
-        "option_underlying_context",
-        "pivot_scalping_strategy"
+        "option_underlying_context"
       ],
-      "n_importers": 10
+      "n_importers": 11
     },
     "pivot_scalping_strategy": {
       "status": "imported",
@@ -2895,6 +2994,11 @@
         "trade_manager"
       ],
       "n_importers": 3
+    },
+    "score_inverse_falsification": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
     },
     "sector_rotation_engine": {
       "status": "imported",
@@ -3537,6 +3641,16 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_option_cohort_schema_migration": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_core_strategies": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_option_decision_journal": {
       "status": "test",
       "imported_by": [],
@@ -3593,6 +3707,31 @@
       "n_importers": 0
     },
     "test_option_report_table": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_signal_research_ledger": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_strategy_catalog_no_execution": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_strategy_regime": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_strategy_registry": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_option_strategy_risk_checks": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -3735,11 +3874,12 @@
       "imported_by": [
         "live_signal_engine",
         "main_autonomous",
+        "option_strategy_regime",
         "signal_engine",
         "strategy_scanner",
         "test_expiry_regime"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "trade_autopsy": {
       "status": "imported",
@@ -3860,6 +4000,11 @@
         "test_session_modules"
       ],
       "n_importers": 1
+    },
+    "trend_exhaustion_miner": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
     },
     "triple_barrier": {
       "status": "imported",

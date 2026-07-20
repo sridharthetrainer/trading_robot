@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-15T19:42:04",
+  "generated_at": "2026-07-20T22:59:40",
   "option_chain_snapshots": {
     "exists": true,
-    "rows": 2386,
-    "ok_rows": 2082,
-    "verified_live_rows": 1023,
-    "latest_verified_live": "2026-07-14T15:31:22+0530",
-    "latest": "2026-07-14T15:31:22+0530",
-    "latest_ok": "2026-07-14T15:31:22+0530",
-    "latest_ok_age_hours": 28.18,
+    "rows": 2854,
+    "ok_rows": 2550,
+    "verified_live_rows": 1491,
+    "latest_verified_live": "2026-07-20T15:33:59+0530",
+    "latest": "2026-07-20T15:33:59+0530",
+    "latest_ok": "2026-07-20T15:33:59+0530",
+    "latest_ok_age_hours": 7.43,
     "recent_failures": [
       {
         "underlying": "NIFTY",
@@ -36,53 +36,62 @@
         "count": 3
       }
     ],
-    "strike_signal_rows": 20810,
-    "strike_signal_labelled": 17895,
-    "verified_strike_outcomes": 8680,
-    "today_strike_rows": 0,
+    "strike_signal_rows": 25480,
+    "strike_signal_labelled": 22185,
+    "verified_strike_outcomes": 12970,
+    "today_strike_rows": 2310,
     "today_strike_tradable": 0,
-    "today_strike_labelled": 0
+    "today_strike_labelled": 2122
   },
   "decision_journal": {
     "exists": true,
-    "rows": 1306,
+    "rows": 4256,
     "decisions": {
-      "selected": 324,
-      "blocked_quality": 35,
-      "chain_snapshot_evidence": 792,
-      "chain_snapshot_neutral": 35,
-      "chain_signal": 98,
-      "chain_neutral": 22
+      "selected": 807,
+      "blocked_quality": 63,
+      "chain_snapshot_evidence": 1967,
+      "chain_snapshot_neutral": 581,
+      "chain_signal": 140,
+      "chain_neutral": 36,
+      "blocked_no_chain_data": 662
     },
-    "today_rows": 0,
-    "today_decisions": {},
-    "today_selected": 0,
-    "today_blocked": 0,
-    "today_chain_signal": 0,
-    "selected_with_shadow": 324,
+    "today_rows": 1217,
+    "today_decisions": {
+      "selected": 240,
+      "chain_signal": 42,
+      "chain_neutral": 14,
+      "blocked_no_chain_data": 662,
+      "blocked_quality": 28,
+      "chain_snapshot_evidence": 213,
+      "chain_snapshot_neutral": 18
+    },
+    "today_selected": 240,
+    "today_blocked": 690,
+    "today_chain_signal": 287,
+    "selected_with_shadow": 807,
     "verified_selected": 0,
     "executed_selected": 0,
-    "synthetic_rows": 0,
-    "research_rows": 324,
+    "synthetic_rows": 2204,
+    "research_rows": 2528,
     "verified_outcomes": 0,
     "verified_shadow_outcomes": 0,
     "verified_generated_outcomes": 0
   },
   "strike_autotune": {
     "exists": true,
-    "labelled_selected": 324,
-    "labelled_shadow": 2596,
-    "weights": 41,
+    "labelled_selected": 807,
+    "labelled_shadow": 6463,
+    "weights": 40,
     "verified_generated_outcomes": 8000
   },
   "option_structure_mining": {
     "report_exists": true,
     "db_exists": true,
-    "legs": 482,
+    "legs": 605,
     "symbols": 4,
-    "latest_session": "2026-07-14",
+    "latest_session": "2026-07-20",
     "top_edges": 10,
-    "report_legs": 69
+    "report_legs": 70
   },
   "hero_zero": {
     "module_exists": true,
@@ -147,17 +156,18 @@
   "historical_replay": {
     "exists": true,
     "ok": true,
-    "generated_at": "2026-06-24T21:30:19+0530",
+    "generated_at": "2026-07-20T19:56:02+0530",
     "written": 80,
     "shadow_outcomes": 640,
     "type_counts": {
-      "CE": 39,
-      "PE": 41
+      "CE": 40,
+      "PE": 40
     },
     "style_counts": {
-      "scalping": 16,
-      "swing": 25,
-      "intraday": 39
+      "intraday": 51,
+      "swing": 16,
+      "scalping": 12,
+      "position": 1
     }
   },
   "quality_layer": {
@@ -171,14 +181,14 @@
   "signal_log": {
     "exists": true,
     "signal_log_option_rows": 0,
-    "today_option_rows": 0,
+    "today_option_rows": 1217,
     "today_executed_option_rows": 0
   },
   "historical_options": {
     "exists": true,
-    "rows": 3165451,
+    "rows": 3170303,
     "first_date": "2020-01-01",
-    "last_date": "2026-07-14"
+    "last_date": "2026-07-17"
   },
   "telegram_oi_tools": {
     "telegram_commands": true,
@@ -215,9 +225,9 @@
     "autonomous_learning_task": true
   },
   "score": {
-    "total": 91.0,
-    "capability_score": 91.0,
-    "evidence_score": 91.0,
+    "total": 95.0,
+    "capability_score": 95.0,
+    "evidence_score": 95.0,
     "max": 100,
     "grade": "A",
     "readiness": "EVIDENCE_READY",
@@ -239,7 +249,7 @@
         "historical_options": {
           "score": 20,
           "max": 20,
-          "detail": "3165451 historical option rows"
+          "detail": "3170303 historical option rows"
         },
         "source_modules": {
           "score": 20.0,
@@ -255,34 +265,34 @@
       "raw_capability_score": 100.0,
       "evidence_blocks": []
     },
-    "raw_capability_score": 91.0,
+    "raw_capability_score": 95.0,
     "minimum_verified_outcomes": 500,
     "evidence_blocks": [],
     "parts": {
       "snapshot_capture": {
         "score": 25,
         "max": 25,
-        "detail": "verified_live=1023, ok_rows=2082, rows=2386, latest=2026-07-14T15:31:22+0530"
+        "detail": "verified_live=1491, ok_rows=2550, rows=2854, latest=2026-07-20T15:33:59+0530"
       },
       "decision_journal": {
         "score": 12.0,
         "max": 15,
-        "detail": "rows=1306, selected=324, verified=0, generated_outcomes=8680, executed=0, research=324"
+        "detail": "rows=4256, selected=807, verified=0, generated_outcomes=12970, executed=0, research=2528"
       },
       "strike_autotune": {
         "score": 20,
         "max": 20,
-        "detail": "research_selected=324, research_shadow=2596, verified_generated=8000, weights=41"
+        "detail": "research_selected=807, research_shadow=6463, verified_generated=8000, weights=40"
       },
       "historical_options": {
         "score": 15,
         "max": 15,
-        "detail": "rows=3165451, range=2020-01-01..2026-07-14"
+        "detail": "rows=3170303, range=2020-01-01..2026-07-17"
       },
       "signal_activity": {
-        "score": 4.0,
+        "score": 8.0,
         "max": 10,
-        "detail": "today_option_rows=0, executed=0, journal_rows=0, chain_rows=0, strike_rows=0, signal_log_option_rows=0"
+        "detail": "today_option_rows=2310, executed=0, journal_rows=1217, chain_rows=287, strike_rows=2310, signal_log_option_rows=0"
       },
       "telegram_oi_tools": {
         "score": 10.0,
@@ -296,8 +306,7 @@
       }
     },
     "top_improvements": [
-      "Collect source-attributed generated option signals and EOD outcomes; synthetic research does not qualify.",
-      "No option signal rows today yet; confirm market-hour scan and option-chain availability."
+      "Collect source-attributed generated option signals and EOD outcomes; synthetic research does not qualify."
     ]
   }
 }

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-15T18:44:08",
-  "sweep_rows": 3518,
+  "generated_at": "2026-07-20T22:49:15",
+  "sweep_rows": 2196,
   "sweep_days": 5,
   "columns_checked": 144,
   "dead_columns_now": [
@@ -10,8 +10,6 @@
     "client_ce_pct",
     "daily_pnl_before",
     "executed",
-    "expiry_mod",
-    "expiry_regime",
     "footprint_available",
     "gex_mod",
     "iv_percentile",
@@ -31,7 +29,6 @@
     "rl_bias",
     "rr",
     "sensex_nifty_div",
-    "sip_boost",
     "skew_mod",
     "theta_mod",
     "tick_flow_available",
@@ -44,10 +41,7 @@
     "training_exclusion_reason",
     "whale_mod"
   ],
-  "new_dead_columns": [
-    "expiry_mod",
-    "expiry_regime"
-  ],
+  "new_dead_columns": [],
   "revived_columns": [],
   "stale_artifacts": [],
   "orphan_modules": [
@@ -68,5 +62,5 @@
   "strategy_errors": [],
   "indicators_consumed_not_produced": [],
   "first_run_baseline": false,
-  "ok": false
+  "ok": true
 }
