@@ -81,10 +81,57 @@ def test_entry_window_range_form():
 
 
 def test_entry_window_sharp_form_with_tolerance():
+    """2026-07-20: was a +/-3min SYMMETRIC tolerance. Production showed real
+    per-symbol cycle latency (API timeouts + retries) routinely pushes a
+    symbol's evaluation past a narrow window entirely -- confirmed live:
+    NIFTY's chain fetch logged at 09:20:32/09:20:46 (inside the OLD window)
+    yet C1 produced zero journal entries all day. Fixed to fire from a
+    small pre-target tolerance through a post-target catch-up window
+    instead (spec's own C1 doc explicitly allows a "09:35 variant")."""
     target = datetime(2026, 7, 16, 9, 20)
     assert reg.entry_window_ok("09:20_sharp", target) is True
-    assert reg.entry_window_ok("09:20_sharp", datetime(2026, 7, 16, 9, 22)) is True   # within tolerance
-    assert reg.entry_window_ok("09:20_sharp", datetime(2026, 7, 16, 9, 30)) is False  # outside tolerance
+    assert reg.entry_window_ok("09:20_sharp", datetime(2026, 7, 16, 9, 22)) is True
+    assert reg.entry_window_ok("09:20_sharp", datetime(2026, 7, 16, 9, 34)) is True    # catch-up window
+    assert reg.entry_window_ok("09:20_sharp", datetime(2026, 7, 16, 9, 19)) is True    # small pre-target tolerance
+    assert reg.entry_window_ok("09:20_sharp", datetime(2026, 7, 16, 9, 36)) is False   # past catch-up deadline
+    assert reg.entry_window_ok("09:20_sharp", datetime(2026, 7, 16, 9, 18)) is False   # too early
+
+
+def test_entry_window_one_shot_dedup_prevents_repeat_fires(monkeypatch):
+    """The wider catch-up window means a one-shot strategy is now open for
+    ~16 minutes of scan cycles -- without dedup it could sell a fresh
+    straddle every cycle. evaluate_catalog must fire it at most once/day."""
+    assert reg.is_one_shot_window("09:20_sharp") is True
+    assert reg.is_one_shot_window("09:30-11:00") is False
+
+    class _FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 7, 20, 9, 21)
+
+    monkeypatch.setattr(reg, "datetime", _FixedDateTime)
+
+    calls = []
+
+    def _fake_c1(**kw):
+        calls.append(1)
+        return {"id": "C1", "status": "selected"}
+
+    original = reg.get_strategy("C1")
+    patched = reg.OptionStrategyDef(**{**original.__dict__, "evaluate_fn": _fake_c1})
+    idx = next(i for i, d in enumerate(reg.OPTION_STRATEGY_CATALOG) if d.id == "C1")
+    reg.OPTION_STRATEGY_CATALOG[idx] = patched
+    reg._BY_ID["C1"] = patched
+    try:
+        reg._ONE_SHOT_FIRED.clear()
+        for _ in range(4):   # simulate several scan cycles in the same window
+            reg.evaluate_catalog(symbol="NIFTY", df=None, df_htf=None,
+                                  option_data={}, regime={})
+        assert len(calls) == 1, "one-shot strategy fired more than once in its window"
+    finally:
+        reg.OPTION_STRATEGY_CATALOG[idx] = original
+        reg._BY_ID["C1"] = original
+        reg._ONE_SHOT_FIRED.clear()
 
 
 def test_entry_window_comma_separated_multiples():

@@ -45,7 +45,20 @@ PARAMS_FILE = Path(__file__).parent / "option_strategy_params.json"
 
 _ENTRY_WINDOW_RANGE_RE = re.compile(r"^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$")
 _ENTRY_WINDOW_SHARP_RE = re.compile(r"^(\d{1,2}):(\d{2})(?:_sharp)?$")
-_SHARP_TOLERANCE_MIN = int(os.getenv("OPT_STRAT_SHARP_TOLERANCE_MIN", "3"))
+# 2026-07-20: was a narrow +/-3min SYMMETRIC tolerance. Production data
+# showed real per-symbol cycle latency (API timeouts + retries some
+# mornings) routinely pushes a symbol's evaluation past a 6-minute window
+# entirely -- confirmed live: NIFTY's chain fetch logged at 09:20:32 and
+# 09:20:46 on 2026-07-20 (inside the old window), yet C1 produced ZERO
+# journal entries all day, because by the time this symbol's full cycle
+# reached the catalog call, wall-clock had drifted past 09:23:00. A
+# one-shot strategy should fire on the first opportunity AT OR AFTER its
+# target time, not require landing inside a window that assumes near-zero
+# latency. Small pre-target tolerance kept for clock-skew safety; the real
+# fix is the catch-up window after the target (spec's own C1 doc explicitly
+# allows a "09:35 variant for less noise", i.e. up to +15min is spec-sane).
+_SHARP_EARLY_TOLERANCE_MIN = int(os.getenv("OPT_STRAT_SHARP_EARLY_TOLERANCE_MIN", "1"))
+_SHARP_CATCHUP_MIN = int(os.getenv("OPT_STRAT_SHARP_CATCHUP_MIN", "15"))
 
 
 @dataclass(frozen=True)
@@ -216,12 +229,16 @@ def _parse_hhmm(text: str) -> Optional[dtime]:
 
 def entry_window_ok(entry_window: str, now: Optional[datetime] = None) -> bool:
     """True if `now` falls inside `entry_window`. Handles the two parseable
-    spec forms ("HH:MM-HH:MM" range, "HH:MM" / "HH:MM_sharp" one-shot with a
-    +/- tolerance window), comma-separated multiples of either. Exotic forms
+    spec forms ("HH:MM-HH:MM" range, "HH:MM" / "HH:MM_sharp" one-shot --
+    fires from a small pre-target tolerance through a post-target catch-up
+    window, NOT a narrow symmetric band; see the catch-up-window comment
+    above), comma-separated multiples of either. Exotic forms
     (day-of-week-qualified, "T-1_...", "same_as_base_strategy" -- all only
     used by strategies that have no real logic yet this pass) are reported
     as not-open rather than raising, since there is nothing to evaluate them
-    against yet."""
+    against yet. Callers of a one-shot ("_sharp") window are responsible for
+    their own once-per-day dedup (see evaluate_catalog's _ONE_SHOT_FIRED) --
+    this function only answers "is now within the firing opportunity"."""
     if not entry_window:
         return False
     now = now or datetime.now()
@@ -240,11 +257,18 @@ def entry_window_ok(entry_window: str, now: Optional[datetime] = None) -> bool:
             target = dtime(int(m.group(1)), int(m.group(2)))
             target_min = target.hour * 60 + target.minute
             now_min = t.hour * 60 + t.minute
-            if abs(now_min - target_min) <= _SHARP_TOLERANCE_MIN:
+            if -_SHARP_EARLY_TOLERANCE_MIN <= (now_min - target_min) <= _SHARP_CATCHUP_MIN:
                 return True
             continue
         # Unrecognized/exotic form -- safe default is "not confirmed open".
     return False
+
+
+def is_one_shot_window(entry_window: str) -> bool:
+    """True for '_sharp'/bare-HH:MM windows (fire-once-per-day semantics),
+    False for 'HH:MM-HH:MM' ranges (fire-every-cycle-while-open)."""
+    chunk = (entry_window or "").split(",")[0].strip()
+    return bool(_ENTRY_WINDOW_SHARP_RE.match(chunk)) and not _ENTRY_WINDOW_RANGE_RE.match(chunk)
 
 
 # ── Dispatch ───────────────────────────────────────────────────────────────
@@ -268,6 +292,15 @@ def _placeholder_result(strategy_def: OptionStrategyDef, symbol: str) -> Dict[st
     }
 
 
+# One-shot ("_sharp") strategies must fire at most once per (strategy, symbol,
+# day) even though their catch-up window now spans several scan cycles --
+# without this, C1 could sell a fresh straddle every ~20s for 16 minutes
+# straight. Keyed on a "selected" result only: a blocked/error result must
+# NOT be marked done, so the strategy keeps retrying within its catch-up
+# window (e.g. still-too-high VIX at 09:20 clearing by 09:28).
+_ONE_SHOT_FIRED: set = set()
+
+
 def evaluate_catalog(symbol: str, df, df_htf, option_data, regime: Dict[str, Any],
                       **kw) -> List[Dict[str, Any]]:
     """Evaluate every strategy in the catalog once. IMPLEMENTED entries call
@@ -275,18 +308,27 @@ def evaluate_catalog(symbol: str, df, df_htf, option_data, regime: Dict[str, Any
     every other entry returns a cheap, inert not_active result. Never raises
     -- a single strategy's exception is caught and reported, not allowed to
     stop the rest of the catalog or bubble into the live loop."""
+    today = datetime.now().strftime("%Y-%m-%d")
     results: List[Dict[str, Any]] = []
     for strategy_def in OPTION_STRATEGY_CATALOG:
         if strategy_def.logic_status != "IMPLEMENTED" or strategy_def.evaluate_fn is None:
             results.append(_placeholder_result(strategy_def, symbol))
             continue
+        fire_key = (strategy_def.id, symbol, today)
+        one_shot = is_one_shot_window(strategy_def.entry_window)
+        if one_shot and fire_key in _ONE_SHOT_FIRED:
+            results.append({"id": strategy_def.id, "status": "already_fired_today"})
+            continue
         try:
             if not entry_window_ok(strategy_def.entry_window):
                 results.append({"id": strategy_def.id, "status": "blocked_entry_window"})
                 continue
-            results.append(strategy_def.evaluate_fn(
+            result = strategy_def.evaluate_fn(
                 symbol=symbol, df=df, df_htf=df_htf, option_data=option_data,
-                regime=regime, **kw))
+                regime=regime, **kw)
+            if one_shot and result.get("status") == "selected":
+                _ONE_SHOT_FIRED.add(fire_key)
+            results.append(result)
         except Exception as exc:
             logger.debug("evaluate_catalog(%s): %s", strategy_def.id, exc)
             results.append({"id": strategy_def.id, "status": "error", "reason": str(exc)[:200]})
