@@ -751,6 +751,7 @@ class LiveSignalEngine:
         self._kelly_sizer     = _get_kelly_sizer()  if _ADV_LIVE_AVAILABLE else None
         self._expiry_pattern:  dict  = {}
         self._macro_bias:      float = 0.0
+        self._catalog_error_logged: set = set()   # (strategy_id, symbol, day) throttle
         self._last_signal_bar: dict  = {}   # symbol → last bar index that fired a signal
         # ATM straddle cache for expected-range filter
         self._atm_straddle:    float = 0.0
@@ -2097,7 +2098,8 @@ class LiveSignalEngine:
             signal = generate_signal(df=df, df_htf=df_htf, symbol=symbol,
                                       option_data=_market_ctx,
                                       config=_pb_config)
-            self._run_option_strategy_catalog_shadow(symbol, df, df_htf, _market_ctx)
+            self._run_option_strategy_catalog_shadow(symbol, df, df_htf, _market_ctx,
+                                                      option_result=option_result)
             if signal:
                 try:
                     self._log_shadow_strategy_candidates(
@@ -2990,7 +2992,8 @@ class LiveSignalEngine:
             return True, "", {"error": str(exc), "soft_pass": True}
 
     def _run_option_strategy_catalog_shadow(
-        self, symbol: str, df, df_htf, option_data: Dict[str, Any]
+        self, symbol: str, df, df_htf, option_data: Dict[str, Any],
+        option_result: Any = None,
     ) -> None:
         """Evaluate the 42-strategy option catalog (option_strategy_registry.py)
         in shadow/journal-only mode, once per symbol per cycle. Structurally
@@ -2998,19 +3001,65 @@ class LiveSignalEngine:
         loop: gated by config, wrapped in a blanket except, fire-and-forget.
         Nothing in the catalog places an order (see that module's docstring)
         -- this call exists only so its shadow signals get journaled through
-        the existing option-bot pipeline and feed the cohort-evidence system."""
+        the existing option-bot pipeline and feed the cohort-evidence system.
+
+        2026-07-20 bug fix: `option_data` (`_market_ctx`) is built by
+        market_context_builder.build_market_context(), which extracts only
+        SCALAR summary fields (spot, ATM strike, PCR, IV) from the option
+        chain -- it never carries the per-strike CE/PE rows, so every
+        catalog strategy that reads extract_chain_rows(option_data) got an
+        empty list on every evaluation since the catalog went live on
+        2026-07-16 (confirmed: 658 C3 evaluations on 2026-07-20, 100%
+        blocked_no_chain_data, despite real chain data being fetched
+        successfully that same morning). Fixed narrowly here -- passing the
+        raw fetch result's raw_json separately -- rather than widening
+        build_market_context(), which also feeds real signal generation and
+        deserves its own review if ever changed."""
         if not bool(getattr(cfg, "ENABLE_OPTION_STRATEGY_CATALOG", True)):
+            return
+        # 2026-07-20: every IMPLEMENTED catalog strategy today (C1, C3)
+        # requires real option-chain rows -- option_result is None for the
+        # ~180 non-index equities in the scan universe (no option fetcher
+        # configured for them), so those calls could only ever end in
+        # blocked_no_chain_data. Skip the dispatch entirely for them rather
+        # than pay 42-strategy-loop overhead + journal noise for a
+        # guaranteed no-op. Revisit this early-return if a future catalog
+        # strategy is added that doesn't need chain data.
+        if option_result is None:
             return
         try:
             from option_strategy_regime import detect_regime
             from option_strategy_registry import evaluate_catalog
+            catalog_chain_data = option_data
+            raw_json = getattr(option_result, "raw_json", None)
+            if isinstance(raw_json, dict) and raw_json:
+                catalog_chain_data = dict(raw_json)
+                catalog_chain_data.setdefault(
+                    "spot", float(getattr(option_result, "spot", 0.0) or 0.0))
+                catalog_chain_data.setdefault("ts", time.time())
             vix = float(_INTEL_CACHE.get("vix", 15.0))
             # No genuine daily frame is threaded through this call path yet;
             # detect_regime()'s gap check safely no-ops (returns 0.0/False)
             # when df_daily is None, rather than needing one.
             regime = detect_regime(df, df_daily=None, vix=vix, symbol=symbol)
-            evaluate_catalog(symbol=symbol, df=df, df_htf=df_htf,
-                              option_data=option_data, regime=regime)
+            results = evaluate_catalog(symbol=symbol, df=df, df_htf=df_htf,
+                                        option_data=catalog_chain_data, regime=regime)
+            # 2026-07-20: results were computed and discarded here -- the
+            # exact "computed but discarded" bug class this project keeps
+            # finding elsewhere. "selected" and "error" are now visible;
+            # "blocked_*"/"not_active" stay silent (that volume is already
+            # journaled or intentionally not, per option_strategy_registry).
+            for r in results or []:
+                status = r.get("status", "")
+                if status == "selected":
+                    logger.info("option catalog: %s SELECTED for %s (combo=%s)",
+                               r.get("id"), symbol, r.get("combo_id"))
+                elif status == "error":
+                    key = (r.get("id"), symbol, time.strftime("%Y-%m-%d"))
+                    if key not in self._catalog_error_logged:
+                        self._catalog_error_logged.add(key)
+                        logger.warning("option catalog: %s ERRORED for %s: %s",
+                                      r.get("id"), symbol, r.get("reason"))
         except Exception as exc:
             logger.debug("option strategy catalog shadow eval failed for %s: %s", symbol, exc)
 
