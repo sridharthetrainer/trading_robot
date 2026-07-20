@@ -222,7 +222,8 @@ class NSEOptionChainFetcher:
                     self._accept_provider_metadata(_data)
                     logger.info("Option-chain source=%s | underlying=%s", self.last_source, self.underlying)
                     return _data
-            except Exception: pass
+            except Exception as exc:
+                logger.debug("data_source_resilience fetch failed for %s: %s", self.underlying, exc)
         # Sensibull fallback (when NSE IP is blocked)
         try:
             from sensibull_client import fetch_option_chain as _sb_oc
