@@ -137,7 +137,17 @@ def save_candles(symbol: str, interval: str, df) -> int:
             )
         return inserted
     except Exception as e:
-        logger.debug("Cache save %s: %s", symbol, e)
+        # 2026-07-20: was logger.debug (invisible at default log level).
+        # Found via hours of after-the-fact archaeology that BANKNIFTY/
+        # FINNIFTY/MIDCPNIFTY/SENSEX/NIFTYNEXT50's 5m+15m candles (and
+        # NIFTY's own 15m) silently stopped updating after 2026-07-17
+        # despite every fetch that morning succeeding ("Upstox V2 ✅ ...")
+        # -- the failure is somewhere between a successful fetch and a
+        # successful write, and this exact except clause is the only place
+        # that could have seen why. Upgraded to warning with the real
+        # exception so the NEXT occurrence is diagnosable in minutes, not
+        # hours.
+        logger.warning("Cache save FAILED %s %s: %s", symbol, interval, e, exc_info=True)
         return 0
 
 

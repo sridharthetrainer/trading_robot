@@ -215,3 +215,34 @@ def test_live_engine_logs_shadow_strategy_candidates(tmp_path, monkeypatch):
     conn.close()
 
     assert row == ("NIFTY", "BUY", "near_miss", 3.2, 0, "shadow_post_confluence_below_min", 14.5)
+
+
+def test_candle_cache_save_failure_is_logged_not_silent(tmp_path, monkeypatch, caplog):
+    """2026-07-20 regression: save_candles() swallowed a real exception at
+    logger.debug (invisible at default level), which is exactly why
+    BANKNIFTY/FINNIFTY/MIDCPNIFTY/SENSEX/NIFTYNEXT50's 5m+15m candles going
+    stale for days went unnoticed. A genuine write failure must now be
+    visible at WARNING with the actual exception."""
+    import logging
+    import candle_cache
+
+    db_path = tmp_path / "candle_cache.db"
+    monkeypatch.setattr(candle_cache, "_DB_PATH", db_path)
+    monkeypatch.setattr(candle_cache, "_INIT_DONE", False)
+
+    def _boom():
+        raise sqlite3.OperationalError("database is locked")
+    monkeypatch.setattr(candle_cache, "_get_conn", _boom)
+
+    _base = pd.Timestamp.now().normalize() + pd.Timedelta(hours=9, minutes=15)
+    df = pd.DataFrame(
+        [{"open": 100, "high": 103, "low": 99, "close": 102, "volume": 200}],
+        index=[_base],
+    )
+
+    with caplog.at_level(logging.WARNING, logger="candle_cache"):
+        result = candle_cache.save_candles("NIFTY", "5m", df)
+
+    assert result == 0
+    assert any("Cache save FAILED" in r.message and "database is locked" in r.message
+               for r in caplog.records)

@@ -700,9 +700,18 @@ class DataFetcher:
         try:
             from candle_cache import save_candles
 
-            save_candles(symbol, interval, df)
+            saved = save_candles(symbol, interval, df)
+            if saved == 0 and len(df) > 0:
+                # save_candles() itself logs a warning on a real exception;
+                # this covers the OTHER silent-zero path -- every row in df
+                # failed _valid_ohlc() or the spacing guard above already
+                # returned early. Either way, a fetch that reported success
+                # writing zero rows is exactly the kind of gap that let
+                # 2026-07-20's multi-day candle staleness go unnoticed.
+                logger.warning("candle cache: %s %s fetch returned %d rows but 0 were saved",
+                               symbol, interval, len(df))
         except Exception as exc:
-            logger.debug("candle cache persist failed %s %s: %s", symbol, interval, exc)
+            logger.warning("candle cache persist failed %s %s: %s", symbol, interval, exc, exc_info=True)
 
     def _data_matches_interval(self, interval: str, df, *, min_points: int = 3) -> bool:
         """Return False when an intraday request received daily-shaped bars."""
