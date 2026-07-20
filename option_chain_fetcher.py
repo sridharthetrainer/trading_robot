@@ -200,18 +200,29 @@ class NSEOptionChainFetcher:
         except Exception as exc:
             logger.debug("Authenticated option-chain providers failed: %s", exc)
 
+        # 2026-07-20: SENSEX/BANKEX are BSE-listed indices -- NSE structurally
+        # never serves their option chain (confirmed live: 98 straight 404s
+        # on option-chain-indices?symbol=SENSEX on 2026-07-20 alone, all
+        # morning, every one guaranteed to fail, not transient). Both NSE
+        # paths below (resilience-module retry, then direct fetch) are
+        # skipped for these two underlyings so they go straight to
+        # Sensibull/Angel instead of burning retries + timeout budget on an
+        # endpoint that can never succeed for them.
+        _nse_serves_this = self.underlying not in {"SENSEX", "BANKEX"}
+
         # Try resilience module first (NSE with retry). last_source records
         # which provider actually served the chain (observability: lets a live
         # caller / diagnostic confirm real-vs-stale data per the audit gap).
-        try:
-            from data_source_resilience import fetch_option_chain
-            _data = fetch_option_chain(self.underlying)
-            if (_data and self._spot_ok(_data)
-                    and bool(_data.get("_provider_is_live", False))):
-                self._accept_provider_metadata(_data)
-                logger.info("Option-chain source=%s | underlying=%s", self.last_source, self.underlying)
-                return _data
-        except Exception: pass
+        if _nse_serves_this:
+            try:
+                from data_source_resilience import fetch_option_chain
+                _data = fetch_option_chain(self.underlying)
+                if (_data and self._spot_ok(_data)
+                        and bool(_data.get("_provider_is_live", False))):
+                    self._accept_provider_metadata(_data)
+                    logger.info("Option-chain source=%s | underlying=%s", self.last_source, self.underlying)
+                    return _data
+            except Exception: pass
         # Sensibull fallback (when NSE IP is blocked)
         try:
             from sensibull_client import fetch_option_chain as _sb_oc
@@ -221,15 +232,16 @@ class NSEOptionChainFetcher:
                 logger.info("Option-chain source=sensibull | underlying=%s", self.underlying)
                 return _sb_data
         except Exception: pass
-        raw = self._fetch_live()
-        if raw and self._spot_ok(raw):
-            self.last_source = "nse_live"
-            self.last_request_id = str(raw.get("_provider_request_id", "") or "")
-            logger.info("Option-chain source=nse_live | underlying=%s", self.underlying)
-            self._save_cache(raw)
-            if expiry:
-                raw = self._filter_by_expiry(raw, expiry)
-            return raw
+        if _nse_serves_this:
+            raw = self._fetch_live()
+            if raw and self._spot_ok(raw):
+                self.last_source = "nse_live"
+                self.last_request_id = str(raw.get("_provider_request_id", "") or "")
+                logger.info("Option-chain source=nse_live | underlying=%s", self.underlying)
+                self._save_cache(raw)
+                if expiry:
+                    raw = self._filter_by_expiry(raw, expiry)
+                return raw
 
         # Angel SmartAPI fallback (wired 2026-06-12 — the docstring always
         # promised "NSE → Sensibull → Angel" but the Angel step was missing,
@@ -280,6 +292,17 @@ class NSEOptionChainFetcher:
             raw = _fetch_bse_option_chain(self.underlying)
             rows = raw.get("data", []) if isinstance(raw, dict) else []
             if not isinstance(rows, list) or not rows:
+                # 2026-07-20: this was a silent `return None` -- confirmed
+                # via live run that it fires every time today (BSE_UNDERLYINGS'
+                # getScripHeaderData endpoint returns scrip HEADER data, not
+                # option-chain strikes, so "data" is never populated the way
+                # this parser expects). Root cause of the endpoint itself is
+                # out of scope here (undocumented third-party API, needs
+                # live verification against the real BSE derivatives
+                # endpoint); this at least makes the failure visible instead
+                # of an invisible fallthrough to a doomed NSE call.
+                logger.debug("BSE OC fallback: no strike rows for %s (raw keys=%s)",
+                             self.underlying, list(raw.keys()) if isinstance(raw, dict) else type(raw))
                 return None
 
             spot = float(_fetch_bse_index_level(self.underlying) or 0.0)
