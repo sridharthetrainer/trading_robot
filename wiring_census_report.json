@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-20T22:51:14",
-  "n_modules": 493,
+  "generated_at": "2026-07-21T19:58:27",
+  "n_modules": 496,
   "orphan_modules": [
     "check_connections",
     "comprehensive_news_engine",
@@ -2087,6 +2087,13 @@
       ],
       "n_importers": 1
     },
+    "meta_labeler_historical_replay": {
+      "status": "imported",
+      "imported_by": [
+        "test_meta_labeler_historical_replay"
+      ],
+      "n_importers": 1
+    },
     "meta_learner": {
       "status": "imported",
       "imported_by": [
@@ -2793,9 +2800,9 @@
         "cpr_ema_strategy",
         "failed_breakout",
         "main_autonomous",
-        "option_underlying_context"
+        "meta_labeler_historical_replay"
       ],
-      "n_importers": 11
+      "n_importers": 12
     },
     "pivot_scalping_strategy": {
       "status": "imported",
@@ -3591,6 +3598,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_meta_labeler_historical_replay": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_ml_training_contract": {
       "status": "test",
       "imported_by": [],
@@ -3841,6 +3853,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_upstox_data": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_usable_edge_days": {
       "status": "test",
       "imported_by": [],
@@ -4010,12 +4027,13 @@
       "status": "imported",
       "imported_by": [
         "eod_signal_miner",
+        "meta_labeler_historical_replay",
         "self_learning_engine",
         "signal_log",
         "test_cost_aware_r_multiple",
         "test_signal_risk_barrier"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "ttm_squeeze": {
       "status": "imported",
@@ -4054,9 +4072,10 @@
       "status": "imported",
       "imported_by": [
         "data_fetcher",
-        "test_data_quality_upgrades"
+        "test_data_quality_upgrades",
+        "test_upstox_data"
       ],
-      "n_importers": 2
+      "n_importers": 3
     },
     "utils": {
       "status": "imported",

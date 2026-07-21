@@ -1,90 +1,79 @@
 {
-  "ts": 1784514789.418191,
+  "ts": 1784601242.4606807,
   "data": {
-    "ts": 1784514789.4181828,
+    "ts": 1784601242.460674,
     "sentiment": "NEUTRAL",
-    "avg_score": 0.045,
+    "avg_score": 0.0,
     "total_headlines": 20,
-    "top_bullish": [
-      {
-        "headline": "<![CDATA[Positive Breakout: These 9 stocks cross above their 200 DMAs]]>",
-        "category": "India Markets",
-        "score": 0.6
-      },
-      {
-        "headline": "<![CDATA[ASEAN, Africa lead India's export growth in first two months of FY27]]>",
-        "category": "Economy",
-        "score": 0.3
-      }
-    ],
+    "top_bullish": [],
     "top_bearish": [],
     "commodities": {
       "Gold": {
-        "price": 4012.2,
-        "change_pct": -0.01,
+        "price": 4031.0,
+        "change_pct": 0.38,
         "unit": "$/oz",
         "india_impact": "Jewellery/safe haven",
         "direction": "FLAT"
       },
       "Silver": {
-        "price": 57.01,
-        "change_pct": 1.73,
+        "price": 57.25,
+        "change_pct": 0.31,
         "unit": "$/oz",
         "india_impact": "Industrial demand",
-        "direction": "UP"
+        "direction": "FLAT"
       },
       "Brent Crude": {
-        "price": 90.34,
-        "change_pct": 2.54,
+        "price": 88.64,
+        "change_pct": -0.65,
         "unit": "$/bbl",
         "india_impact": "Inflation/OMC stocks",
-        "direction": "UP"
-      },
-      "WTI Crude": {
-        "price": 83.68,
-        "change_pct": 1.44,
-        "unit": "$/bbl",
-        "india_impact": "Energy sector",
-        "direction": "UP"
-      },
-      "Natural Gas": {
-        "price": 2.887,
-        "change_pct": -0.82,
-        "unit": "$/MMBtu",
-        "india_impact": "Energy/Fertiliser",
         "direction": "DOWN"
       },
+      "WTI Crude": {
+        "price": 82.23,
+        "change_pct": -0.3,
+        "unit": "$/bbl",
+        "india_impact": "Energy sector",
+        "direction": "FLAT"
+      },
+      "Natural Gas": {
+        "price": 2.847,
+        "change_pct": -0.45,
+        "unit": "$/MMBtu",
+        "india_impact": "Energy/Fertiliser",
+        "direction": "FLAT"
+      },
       "Copper": {
-        "price": 6.283,
-        "change_pct": 1.01,
+        "price": 6.374,
+        "change_pct": 0.52,
         "unit": "$/lb",
         "india_impact": "Economic indicator",
         "direction": "UP"
       },
       "Aluminium": {
-        "price": 3452.0,
-        "change_pct": -2.18,
+        "price": 3448.75,
+        "change_pct": 0.15,
         "unit": "$/MT",
         "india_impact": "Manufacturing",
-        "direction": "DOWN"
+        "direction": "FLAT"
       },
       "Cotton": {
-        "price": 78.93,
-        "change_pct": 2.41,
+        "price": 78.88,
+        "change_pct": 0.32,
         "unit": "\u00a2/lb",
         "india_impact": "Textile stocks",
-        "direction": "UP"
+        "direction": "FLAT"
       },
       "Wheat": {
-        "price": 684.25,
-        "change_pct": 0.22,
+        "price": 674.25,
+        "change_pct": 0.04,
         "unit": "\u00a2/bu",
         "india_impact": "Agri inflation",
         "direction": "FLAT"
       },
       "Soybean": {
-        "price": 1210.5,
-        "change_pct": 0.5,
+        "price": 1223.5,
+        "change_pct": -0.22,
         "unit": "\u00a2/bu",
         "india_impact": "Agri/FMCG",
         "direction": "FLAT"
@@ -97,16 +86,12 @@
         "direction": "FLAT"
       }
     },
-    "sector_impacts": {
-      "OMC (BPCL/HPCL/IOC)": "\ud83d\udd34 BEARISH \u2014 Crude +2.5% \u2192 Margin squeeze",
-      "Aviation (IndiGo)": "\ud83d\udd34 BEARISH \u2014 Crude +2.5% \u2192 Fuel cost up",
-      "Paints (Asian/Berger)": "\ud83d\udd34 BEARISH \u2014 Crude +2.5% \u2192 Input cost up"
-    },
+    "sector_impacts": {},
     "news_by_cat": {
       "India Markets": [
         "Economic Times",
-        "<![CDATA[Oil Price Today (July 20): Crude oil jumps 3%, crosses $90 as US and Iran exchange attacks. $100 in sight?]]>",
-        "<![CDATA[Stock split alert! Last day to buy this smallcap stock that rallied 580% in 3 years. Do you own?]]>"
+        "<![CDATA[Triveni Engineering demerger: Last day to buy stock to get Triveni Power Transmission shares. Check details]]>",
+        "<![CDATA[Oil prices dip as mediation efforts offset US-Iran strikes]]>"
       ],
       "Global Markets": [
         "MarketWatch.com - Real-time Headlines",
@@ -115,13 +100,13 @@
       ],
       "Commodities": [
         "Economic Times",
-        "<![CDATA[Oil Price Today (July 20): Crude oil jumps 3%, crosses $90 as US and Iran exchange attacks. $100 in sight?]]>",
-        "<![CDATA[Gold slips as oil prices advance, Fed rate-hike voices grow]]>"
+        "<![CDATA[Oil Price Today (July 21): Crude oil dips below $90 on hopes of 10-day ceasefire in Iran war. What are experts saying?]]>",
+        "<![CDATA[Oil prices dip as mediation efforts offset US-Iran strikes]]>"
       ],
       "Economy": [
         "Economic Times",
-        "<![CDATA[Government tightens norms for skilling centres, prioritises permanent industry-aligned institutions]]>",
-        "<![CDATA[JPC weighs key changes to Corporate Laws Bill, reviews AIF-to-LLP conversion and CSR norms]]>"
+        "<![CDATA[Protein inflation surges as costlier fodder pushes up milk, chicken prices]]>",
+        "<![CDATA[Gratuity, leave encashment not part of CIRP cost: NCLAT]]>"
       ]
     }
   }

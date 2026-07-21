@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-20T22:59:40",
+  "generated_at": "2026-07-21T19:37:52",
   "option_chain_snapshots": {
     "exists": true,
-    "rows": 2854,
-    "ok_rows": 2550,
-    "verified_live_rows": 1491,
-    "latest_verified_live": "2026-07-20T15:33:59+0530",
-    "latest": "2026-07-20T15:33:59+0530",
-    "latest_ok": "2026-07-20T15:33:59+0530",
-    "latest_ok_age_hours": 7.43,
+    "rows": 3088,
+    "ok_rows": 2784,
+    "verified_live_rows": 1725,
+    "latest_verified_live": "2026-07-21T15:30:26+0530",
+    "latest": "2026-07-21T15:30:26+0530",
+    "latest_ok": "2026-07-21T15:30:26+0530",
+    "latest_ok_age_hours": 4.12,
     "recent_failures": [
       {
         "underlying": "NIFTY",
@@ -36,38 +36,37 @@
         "count": 3
       }
     ],
-    "strike_signal_rows": 25480,
+    "strike_signal_rows": 27890,
     "strike_signal_labelled": 22185,
     "verified_strike_outcomes": 12970,
-    "today_strike_rows": 2310,
+    "today_strike_rows": 2410,
     "today_strike_tradable": 0,
-    "today_strike_labelled": 2122
+    "today_strike_labelled": 0
   },
   "decision_journal": {
     "exists": true,
-    "rows": 4256,
+    "rows": 4346,
     "decisions": {
-      "selected": 807,
-      "blocked_quality": 63,
+      "selected": 826,
+      "blocked_quality": 77,
       "chain_snapshot_evidence": 1967,
       "chain_snapshot_neutral": 581,
-      "chain_signal": 140,
-      "chain_neutral": 36,
-      "blocked_no_chain_data": 662
-    },
-    "today_rows": 1217,
-    "today_decisions": {
-      "selected": 240,
-      "chain_signal": 42,
-      "chain_neutral": 14,
+      "chain_signal": 195,
+      "chain_neutral": 37,
       "blocked_no_chain_data": 662,
-      "blocked_quality": 28,
-      "chain_snapshot_evidence": 213,
-      "chain_snapshot_neutral": 18
+      "blocked_vix_too_high_for_theta": 1
     },
-    "today_selected": 240,
-    "today_blocked": 690,
-    "today_chain_signal": 287,
+    "today_rows": 90,
+    "today_decisions": {
+      "chain_signal": 55,
+      "selected": 19,
+      "blocked_vix_too_high_for_theta": 1,
+      "blocked_quality": 14,
+      "chain_neutral": 1
+    },
+    "today_selected": 19,
+    "today_blocked": 15,
+    "today_chain_signal": 56,
     "selected_with_shadow": 807,
     "verified_selected": 0,
     "executed_selected": 0,
@@ -181,14 +180,14 @@
   "signal_log": {
     "exists": true,
     "signal_log_option_rows": 0,
-    "today_option_rows": 1217,
+    "today_option_rows": 90,
     "today_executed_option_rows": 0
   },
   "historical_options": {
     "exists": true,
-    "rows": 3170303,
+    "rows": 3171931,
     "first_date": "2020-01-01",
-    "last_date": "2026-07-17"
+    "last_date": "2026-07-20"
   },
   "telegram_oi_tools": {
     "telegram_commands": true,
@@ -249,7 +248,7 @@
         "historical_options": {
           "score": 20,
           "max": 20,
-          "detail": "3170303 historical option rows"
+          "detail": "3171931 historical option rows"
         },
         "source_modules": {
           "score": 20.0,
@@ -272,12 +271,12 @@
       "snapshot_capture": {
         "score": 25,
         "max": 25,
-        "detail": "verified_live=1491, ok_rows=2550, rows=2854, latest=2026-07-20T15:33:59+0530"
+        "detail": "verified_live=1725, ok_rows=2784, rows=3088, latest=2026-07-21T15:30:26+0530"
       },
       "decision_journal": {
         "score": 12.0,
         "max": 15,
-        "detail": "rows=4256, selected=807, verified=0, generated_outcomes=12970, executed=0, research=2528"
+        "detail": "rows=4346, selected=826, verified=0, generated_outcomes=12970, executed=0, research=2528"
       },
       "strike_autotune": {
         "score": 20,
@@ -287,12 +286,12 @@
       "historical_options": {
         "score": 15,
         "max": 15,
-        "detail": "rows=3170303, range=2020-01-01..2026-07-17"
+        "detail": "rows=3171931, range=2020-01-01..2026-07-20"
       },
       "signal_activity": {
         "score": 8.0,
         "max": 10,
-        "detail": "today_option_rows=2310, executed=0, journal_rows=1217, chain_rows=287, strike_rows=2310, signal_log_option_rows=0"
+        "detail": "today_option_rows=2410, executed=0, journal_rows=90, chain_rows=56, strike_rows=2410, signal_log_option_rows=0"
       },
       "telegram_oi_tools": {
         "score": 10.0,

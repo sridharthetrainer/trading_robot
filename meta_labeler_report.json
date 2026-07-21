@@ -1,105 +1,105 @@
 {
-  "n_total": 17513,
-  "n_train": 12948,
-  "n_test": 4565,
+  "n_total": 18804,
+  "n_train": 14223,
+  "n_test": 4581,
   "n_features": 42,
-  "base_win_rate": 0.0749,
-  "auc": 0.7064,
+  "base_win_rate": 0.0666,
+  "auc": 0.7051,
   "cost_pct": 0.12,
   "by_threshold": [
     {
       "threshold": 0.5,
-      "n_selected": 2294,
-      "coverage": 0.5025,
-      "precision": 0.1151,
-      "lift_vs_base": 0.0402
+      "n_selected": 2231,
+      "coverage": 0.487,
+      "precision": 0.108,
+      "lift_vs_base": 0.0414
     },
     {
       "threshold": 0.55,
-      "n_selected": 1474,
-      "coverage": 0.3229,
-      "precision": 0.1465,
-      "lift_vs_base": 0.0716
+      "n_selected": 1496,
+      "coverage": 0.3266,
+      "precision": 0.1303,
+      "lift_vs_base": 0.0638
     },
     {
       "threshold": 0.6,
-      "n_selected": 646,
-      "coverage": 0.1415,
-      "precision": 0.1811,
-      "lift_vs_base": 0.1062
+      "n_selected": 765,
+      "coverage": 0.167,
+      "precision": 0.1438,
+      "lift_vs_base": 0.0772
     },
     {
       "threshold": 0.65,
-      "n_selected": 174,
-      "coverage": 0.0381,
-      "precision": 0.1897,
-      "lift_vs_base": 0.1147
+      "n_selected": 226,
+      "coverage": 0.0493,
+      "precision": 0.1416,
+      "lift_vs_base": 0.075
     },
     {
       "threshold": 0.7,
-      "n_selected": 1,
-      "coverage": 0.0002,
+      "n_selected": 3,
+      "coverage": 0.0007,
       "precision": 0.0,
-      "lift_vs_base": -0.0749
+      "lift_vs_base": -0.0666
     }
   ],
   "top_features": [
     {
-      "feature": "time_bucket_wt",
-      "importance": 0.1278
+      "feature": "hour_of_day",
+      "importance": 0.1319
     },
     {
-      "feature": "hour_of_day",
-      "importance": 0.1176
+      "feature": "time_bucket_wt",
+      "importance": 0.1315
     },
     {
       "feature": "mtf_pivot_mod",
-      "importance": 0.0909
+      "importance": 0.0853
     },
     {
       "feature": "volume_ratio",
-      "importance": 0.0746
+      "importance": 0.0761
     },
     {
       "feature": "fii_cum_5d",
-      "importance": 0.0707
-    },
-    {
-      "feature": "india_vix",
-      "importance": 0.0559
-    },
-    {
-      "feature": "fii_fut_ratio",
-      "importance": 0.0441
+      "importance": 0.0756
     },
     {
       "feature": "fii_net_cash",
-      "importance": 0.042
+      "importance": 0.0488
+    },
+    {
+      "feature": "india_vix",
+      "importance": 0.0485
     },
     {
       "feature": "side_buy",
-      "importance": 0.0416
+      "importance": 0.0458
     },
     {
-      "feature": "day_of_week",
-      "importance": 0.0414
-    },
-    {
-      "feature": "sr_level_mod",
-      "importance": 0.0333
+      "feature": "fii_fut_ratio",
+      "importance": 0.0437
     },
     {
       "feature": "participant_mod",
-      "importance": 0.0331
+      "importance": 0.0433
+    },
+    {
+      "feature": "day_of_week",
+      "importance": 0.0388
+    },
+    {
+      "feature": "expiry_dte",
+      "importance": 0.0363
     }
   ],
   "best_threshold": {
     "threshold": 0.6,
-    "n_selected": 646,
-    "coverage": 0.1415,
-    "precision": 0.1811,
-    "lift_vs_base": 0.1062
+    "n_selected": 765,
+    "coverage": 0.167,
+    "precision": 0.1438,
+    "lift_vs_base": 0.0772
   },
-  "conclusion": "AUC=0.706. Gating at P(win)>=0.6 lifts precision 7.5%\u219218.1% (+10.6%) at 14% coverage. PROMISING \u2014 requires a locked-holdout pass + beating round-trip cost before any live gating.",
+  "conclusion": "AUC=0.705. Gating at P(win)>=0.6 lifts precision 6.7%\u219214.4% (+7.7%) at 17% coverage. PROMISING \u2014 requires a locked-holdout pass + beating round-trip cost before any live gating.",
   "model_saved": "ml_models/meta_labeler.joblib"
 }

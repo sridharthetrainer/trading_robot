@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-20T16:39:39",
-  "overall_wr": 0.307,
-  "n_signals": 3880,
+  "version": "2026-07-21T17:03:59",
+  "overall_wr": 0.308,
+  "n_signals": 4050,
   "training_contract": "all_generated_signals_v4_causal_representations",
   "model_promoted": false,
   "active": false,
@@ -25,28 +25,15 @@
     },
     {
       "id": "strategy_candlestick_spinning_top_white",
-      "description": "strategy candlestick_spinning_top_white \u2192 loss rate 95%",
+      "description": "strategy candlestick_spinning_top_white \u2192 loss rate 96%",
       "condition": {
         "feature": "strategy",
         "eq": "candlestick_spinning_top_white"
       },
       "mult": 0.2,
       "evidence": {
-        "n": 21,
-        "loss_rate": 0.952
-      }
-    },
-    {
-      "id": "strategy_cci_trend",
-      "description": "strategy cci_trend \u2192 loss rate 94%",
-      "condition": {
-        "feature": "strategy",
-        "eq": "cci_trend"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 18,
-        "loss_rate": 0.944
+        "n": 22,
+        "loss_rate": 0.955
       }
     },
     {
@@ -58,8 +45,8 @@
       },
       "mult": 0.2,
       "evidence": {
-        "n": 25,
-        "loss_rate": 0.92
+        "n": 26,
+        "loss_rate": 0.923
       }
     },
     {
@@ -115,6 +102,19 @@
       }
     },
     {
+      "id": "strategy\u00d7htf_bias_enc_failed_bull_breako",
+      "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 1.0 \u2192 loss rate 86%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "failed_bull_breakout \u00d7 1.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 22,
+        "loss_rate": 0.864
+      }
+    },
+    {
       "id": "strategy\u00d7htf_bias_enc_chart_pattern_doub",
       "description": "strategy\u00d7htf_bias_enc chart_pattern_double_top \u00d7 -1.0 \u2192 loss rate 86%",
       "condition": {
@@ -128,29 +128,42 @@
       }
     },
     {
-      "id": "strategy\u00d7htf_bias_enc_failed_bull_breako",
-      "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 1.0 \u2192 loss rate 85%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "failed_bull_breakout \u00d7 1.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 20,
-        "loss_rate": 0.85
-      }
-    },
-    {
       "id": "strategy\u00d7htf_bias_enc_ma_cross_\u00d7_-1.0",
-      "description": "strategy\u00d7htf_bias_enc ma_cross \u00d7 -1.0 \u2192 loss rate 84%",
+      "description": "strategy\u00d7htf_bias_enc ma_cross \u00d7 -1.0 \u2192 loss rate 85%",
       "condition": {
         "feature": "strategy\u00d7htf_bias_enc",
         "eq": "ma_cross \u00d7 -1.0"
       },
       "mult": 0.2,
       "evidence": {
-        "n": 38,
-        "loss_rate": 0.842
+        "n": 41,
+        "loss_rate": 0.854
+      }
+    },
+    {
+      "id": "strategy_cci_trend",
+      "description": "strategy cci_trend \u2192 loss rate 84%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "cci_trend"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 25,
+        "loss_rate": 0.84
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_aroon_trend_\u00d7_0.0",
+      "description": "strategy\u00d7regime_enc aroon_trend \u00d7 0.0 \u2192 loss rate 83%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "aroon_trend \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 24,
+        "loss_rate": 0.833
       }
     },
     {
@@ -167,16 +180,42 @@
       }
     },
     {
-      "id": "strategy_rsi2_mr",
-      "description": "strategy rsi2_mr \u2192 loss rate 83%",
+      "id": "strategy\u00d7htf_bias_enc_vp_breakout_\u00d7_-1.0",
+      "description": "strategy\u00d7htf_bias_enc vp_breakout \u00d7 -1.0 \u2192 loss rate 83%",
       "condition": {
-        "feature": "strategy",
-        "eq": "rsi2_mr"
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "vp_breakout \u00d7 -1.0"
       },
       "mult": 0.2,
       "evidence": {
-        "n": 35,
-        "loss_rate": 0.829
+        "n": 18,
+        "loss_rate": 0.833
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_aroon_trend_\u00d7_0.0",
+      "description": "strategy\u00d7htf_bias_enc aroon_trend \u00d7 0.0 \u2192 loss rate 83%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "aroon_trend \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 24,
+        "loss_rate": 0.833
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_rsi2_mr_\u00d7_0.0",
+      "description": "strategy\u00d7htf_bias_enc rsi2_mr \u00d7 0.0 \u2192 loss rate 83%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "rsi2_mr \u00d7 0.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 24,
+        "loss_rate": 0.833
       }
     },
     {
@@ -190,45 +229,6 @@
       "evidence": {
         "n": 35,
         "loss_rate": 0.829
-      }
-    },
-    {
-      "id": "strategy\u00d7regime_enc_aroon_trend_\u00d7_0.0",
-      "description": "strategy\u00d7regime_enc aroon_trend \u00d7 0.0 \u2192 loss rate 83%",
-      "condition": {
-        "feature": "strategy\u00d7regime_enc",
-        "eq": "aroon_trend \u00d7 0.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 23,
-        "loss_rate": 0.826
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_aroon_trend_\u00d7_0.0",
-      "description": "strategy\u00d7htf_bias_enc aroon_trend \u00d7 0.0 \u2192 loss rate 83%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "aroon_trend \u00d7 0.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 23,
-        "loss_rate": 0.826
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_rsi2_mr_\u00d7_0.0",
-      "description": "strategy\u00d7htf_bias_enc rsi2_mr \u00d7 0.0 \u2192 loss rate 83%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "rsi2_mr \u00d7 0.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 23,
-        "loss_rate": 0.826
       }
     },
     {
@@ -284,6 +284,19 @@
       }
     },
     {
+      "id": "strategy\u00d7regime_enc_failed_bull_breakout",
+      "description": "strategy\u00d7regime_enc failed_bull_breakout \u00d7 2.0 \u2192 loss rate 81%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "failed_bull_breakout \u00d7 2.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 32,
+        "loss_rate": 0.812
+      }
+    },
+    {
       "id": "strategy\u00d7regime_enc_chart_pattern_rising",
       "description": "strategy\u00d7regime_enc chart_pattern_rising_wedge \u00d7 0.0 \u2192 loss rate 81%",
       "condition": {
@@ -310,16 +323,16 @@
       }
     },
     {
-      "id": "strategy\u00d7htf_bias_enc_vp_breakout_\u00d7_-1.0",
-      "description": "strategy\u00d7htf_bias_enc vp_breakout \u00d7 -1.0 \u2192 loss rate 81%",
+      "id": "strategy_rsi2_mr",
+      "description": "strategy rsi2_mr \u2192 loss rate 81%",
       "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "vp_breakout \u00d7 -1.0"
+        "feature": "strategy",
+        "eq": "rsi2_mr"
       },
       "mult": 0.2,
       "evidence": {
-        "n": 16,
-        "loss_rate": 0.812
+        "n": 37,
+        "loss_rate": 0.811
       }
     },
     {
@@ -333,6 +346,19 @@
       "evidence": {
         "n": 21,
         "loss_rate": 0.81
+      }
+    },
+    {
+      "id": "strategy_aroon_trend",
+      "description": "strategy aroon_trend \u2192 loss rate 81%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "aroon_trend"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 36,
+        "loss_rate": 0.806
       }
     },
     {
@@ -362,80 +388,54 @@
       }
     },
     {
-      "id": "strategy_aroon_trend",
-      "description": "strategy aroon_trend \u2192 loss rate 80%",
+      "id": "strategy_candlestick_evening_star",
+      "description": "strategy candlestick_evening_star \u2192 loss rate 80%",
       "condition": {
         "feature": "strategy",
-        "eq": "aroon_trend"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 35,
-        "loss_rate": 0.8
-      }
-    },
-    {
-      "id": "strategy\u00d7regime_enc_chart_pattern_range_",
-      "description": "strategy\u00d7regime_enc chart_pattern_range_expansion \u00d7 0.0 \u2192 loss rate 80%",
-      "condition": {
-        "feature": "strategy\u00d7regime_enc",
-        "eq": "chart_pattern_range_expansion \u00d7 0.0"
+        "eq": "candlestick_evening_star"
       },
       "mult": 0.2,
       "evidence": {
         "n": 25,
         "loss_rate": 0.8
       }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_mean_reversion_\u00d7_1",
-      "description": "strategy\u00d7htf_bias_enc mean_reversion \u00d7 1.0 \u2192 loss rate 80%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "mean_reversion \u00d7 1.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 15,
-        "loss_rate": 0.8
-      }
     }
   ],
   "candidate_boosts": [
     {
-      "id": "boost_strategy\u00d7htf_bias_enc_failed_bear_",
-      "description": "strategy\u00d7htf_bias_enc failed_bear_breakout \u00d7 1.0 \u2192 win rate 73%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "failed_bear_breakout \u00d7 1.0"
-      },
-      "mult": 1.2,
-      "evidence": {
-        "n": 22,
-        "win_rate": 0.727
-      }
-    },
-    {
       "id": "boost_strategy\u00d7htf_bias_enc_weinstein_st",
-      "description": "strategy\u00d7htf_bias_enc weinstein_stage \u00d7 0.0 \u2192 win rate 72%",
+      "description": "strategy\u00d7htf_bias_enc weinstein_stage \u00d7 0.0 \u2192 win rate 74%",
       "condition": {
         "feature": "strategy\u00d7htf_bias_enc",
         "eq": "weinstein_stage \u00d7 0.0"
       },
       "mult": 1.2,
       "evidence": {
-        "n": 18,
-        "win_rate": 0.722
+        "n": 19,
+        "win_rate": 0.737
+      }
+    },
+    {
+      "id": "boost_strategy\u00d7htf_bias_enc_failed_bear_",
+      "description": "strategy\u00d7htf_bias_enc failed_bear_breakout \u00d7 1.0 \u2192 win rate 67%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "failed_bear_breakout \u00d7 1.0"
+      },
+      "mult": 1.2,
+      "evidence": {
+        "n": 24,
+        "win_rate": 0.667
       }
     }
   ],
-  "ml_model_auc": 0.7019,
+  "ml_model_auc": 0.6997,
   "forward_validation": {
-    "validated": 0,
+    "validated": 43,
     "promoted_filters": 0,
     "promoted_boosts": 0,
-    "ledger_size": 69,
+    "ledger_size": 70,
     "skipped": 0,
-    "alpha_corrected": 0.05
+    "alpha_corrected": 0.001163
   }
 }
