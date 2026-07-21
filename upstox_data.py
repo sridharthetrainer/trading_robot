@@ -181,6 +181,7 @@ def get_candles(
             logger.debug("Upstox V3 %s: %s", symbol, e)
     
     # V2 historical (NO auth needed)
+    hist_df = None
     try:
         v2_interval = _INTERVAL_MAP_V2.get(interval, "day")
         url = f"{_BASE_V2}/{encoded_key}/{v2_interval}/{end_date}/{start_date}"
@@ -189,30 +190,63 @@ def get_candles(
             df = _parse_candles(r.json())
             df = _resample_v2(df, interval, v2_interval) if df is not None else None
             if df is not None and len(df) >= 2:
-                logger.info("Upstox V2 ✅ %s %s: %d bars", symbol, interval, len(df))
-                return df
+                hist_df = df
             else:
                 logger.debug("Upstox V2 %s: empty response", symbol)
         else:
             logger.debug("Upstox V2 %s: HTTP %d", symbol, r.status_code)
     except Exception as e:
         logger.debug("Upstox V2 %s: %s", symbol, e)
-    
-    # V2 intraday (today only, NO auth)
-    if interval in ("1m", "5m", "15m", "30m"):
+
+    # 2026-07-21: Upstox's historical-candle endpoint NEVER includes today's
+    # in-progress session by design (that is what the dedicated /intraday/
+    # endpoint below is for) -- but a multi-day `days=` request against a
+    # reliable instrument (every NSE/BSE index) always has plenty of PAST
+    # days to satisfy `len(df) >= 2`, so the code below was unreachable in
+    # practice: the historical call "succeeded" every single day and the
+    # function returned before ever trying /intraday/. Confirmed live: 6
+    # major indices were frozen at the prior day's close across every
+    # intraday interval for 2+ consecutive trading days, while individual
+    # equities (whose historical call more often genuinely fails/empties,
+    # e.g. an ISIN resolution miss) fell through to Angel and stayed fresh.
+    # Fix: if the historical response's last bar isn't from today, ALSO
+    # fetch /intraday/ and merge today's forming bars in -- rather than
+    # trusting "historical succeeded" as proof today's data was included.
+    # NOTE: "1h" belongs in this set too (it resamples from a 30minute base
+    # fetch via _INTERVAL_MAP_V2, same granularity the intraday endpoint
+    # already accepts for "30m") -- the original code's pre-fix intraday
+    # check excluded it as well, carried the same gap forward the first
+    # time round and confirmed live: 1h stayed stuck a day behind even
+    # after 1m/5m/15m were fixed, for exactly this reason.
+    need_intraday = interval in ("1m", "5m", "15m", "30m", "1h") and (
+        hist_df is None or hist_df.index[-1].date() < datetime.now().date()
+    )
+    intra_df = None
+    if need_intraday:
         try:
             v2_intra = _INTERVAL_MAP_V2.get(interval, "1minute")
             url = f"{_BASE_V2}/intraday/{encoded_key}/{v2_intra}"
             r = requests.get(url, headers=_HEADERS, timeout=10)
             if r.status_code == 200:
                 df = _parse_candles(r.json())
-                df = _resample_v2(df, interval, v2_intra) if df is not None else None
-                if df is not None and len(df) >= 2:
-                    logger.info("Upstox intraday ✅ %s: %d bars", symbol, len(df))
-                    return df
+                intra_df = _resample_v2(df, interval, v2_intra) if df is not None else None
         except Exception as e:
             logger.debug("Upstox intraday %s: %s", symbol, e)
-    
+
+    if hist_df is not None and intra_df is not None and len(intra_df):
+        merged = pd.concat([hist_df, intra_df])
+        merged = merged[~merged.index.duplicated(keep="last")].sort_index()
+        logger.info("Upstox V2+intraday ✅ %s %s: %d bars (merged, last=%s)",
+                    symbol, interval, len(merged), merged.index[-1])
+        return merged
+    if intra_df is not None and len(intra_df) >= 2:
+        logger.info("Upstox intraday ✅ %s %s: %d bars", symbol, interval, len(intra_df))
+        return intra_df
+    if hist_df is not None:
+        logger.info("Upstox V2 ✅ %s %s: %d bars (no fresher intraday available)",
+                    symbol, interval, len(hist_df))
+        return hist_df
+
     return None
 
 
