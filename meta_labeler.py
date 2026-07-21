@@ -41,6 +41,7 @@ MIN_DAYS    = int(os.getenv("META_MIN_DAYS", "10"))        # distinct trading da
 # still required before any live gating. Raise via META_MIN_DAYS for more rigour.
 TEST_FRAC   = float(os.getenv("META_TEST_FRAC", "0.30"))   # newest fraction = OOS
 COST_PCT    = float(os.getenv("EDGE_ANALYZER_COST_PCT", "0.12"))  # round-trip %, context
+NET_R_COL   = "tb_r_multiple_net"   # cost+slippage-included R-multiple (house standard)
 THRESHOLDS  = (0.50, 0.55, 0.60, 0.65, 0.70)
 MODEL_DIR   = "ml_models"
 MODEL_FILE  = os.path.join(MODEL_DIR, "meta_labeler.joblib")
@@ -79,7 +80,8 @@ def _load(days: int = 800):
     try:
         existing = {r[1] for r in con.execute("PRAGMA table_info(signal_log)").fetchall()}
         feats = [c for c in _FEATURES if c in existing]
-        extra = [c for c in ("side", "signal_date", "entry_price", "outcome_price") if c in existing]
+        extra = [c for c in ("side", "signal_date", "entry_price", "outcome_price",
+                              NET_R_COL) if c in existing]
         cols = ", ".join(feats + extra + ["tb_label"])
         df = pd.read_sql(
             f"SELECT {cols} FROM signal_log "
@@ -102,6 +104,7 @@ def analyze(days: int = 800) -> Dict[str, Any]:
     """Train the meta-model on the older split, evaluate on the newer split, and
     report precision/coverage vs baseline. Returns a structured report."""
     import numpy as np
+    import pandas as pd
     df, feats = _load(days)
     if df is None or len(df) < MIN_SAMPLES:
         return {"error": f"insufficient labelled signals "
@@ -147,26 +150,50 @@ def analyze(days: int = 800) -> Dict[str, Any]:
     except Exception:
         auc = float("nan")
 
+    # tb_r_multiple_net is the house-standard cost+slippage-included R-multiple
+    # (see nightly_edge_monitor.py: "judged on tb_r_multiple_net, costs are the
+    # one certain number"). "precision" (P(tb_label==1) i.e. hit the FULL target)
+    # says nothing about loss size -- a threshold can raise precision while the
+    # gated subset still loses money on average if losses/timeouts are larger
+    # than wins. Both must be reported so a precision lift alone can't read as
+    # promising when the real, cost-adjusted expectancy stays negative.
+    net_r_te = (pd.to_numeric(df[NET_R_COL], errors="coerce").values[te_mask]
+                if NET_R_COL in df.columns else None)
+    baseline_net_r = float(np.nanmean(net_r_te)) if net_r_te is not None else None
+
     by_threshold = []
     for t in THRESHOLDS:
         sel = proba >= t
         n_sel = int(sel.sum())
         prec = float(np.mean(yte[sel])) if n_sel else 0.0   # actual win rate among selected
+        avg_net_r = (float(np.nanmean(net_r_te[sel])) if n_sel and net_r_te is not None
+                     else None)
         by_threshold.append({
             "threshold": t,
             "n_selected": n_sel,
             "coverage": round(n_sel / len(yte), 4),
             "precision": round(prec, 4),
             "lift_vs_base": round(prec - base_rate, 4),
+            "avg_net_r": round(avg_net_r, 4) if avg_net_r is not None else None,
         })
 
     # feature importances (top 12)
     imp = sorted(zip(feats, clf.feature_importances_), key=lambda kv: -kv[1])[:12]
 
-    # best usable threshold: precision beats base by a clear margin AND keeps >=10% coverage
-    usable = [b for b in by_threshold
-              if b["lift_vs_base"] > 0.02 and b["coverage"] >= 0.10 and b["n_selected"] >= 20]
+    # best usable threshold: precision beats base by a clear margin, keeps >=10%
+    # coverage, AND -- 2026-07-21 -- actually beats cost in real R-multiple terms.
+    # Precision alone (P(hit full target)) says nothing about loss size: a
+    # threshold can raise precision while the gated subset still loses money on
+    # average if losses/timeouts outweigh wins. Require avg_net_r > 0 too when
+    # that data is available, so a precision-only lift can't be reported as
+    # PROMISING while the cost-adjusted expectancy is still negative.
+    precision_usable = [b for b in by_threshold
+                         if b["lift_vs_base"] > 0.02 and b["coverage"] >= 0.10
+                         and b["n_selected"] >= 20]
+    usable = [b for b in precision_usable if b["avg_net_r"] is None or b["avg_net_r"] > 0]
     best = max(usable, key=lambda b: b["lift_vs_base"]) if usable else None
+    best_precision_only = (max(precision_usable, key=lambda b: b["lift_vs_base"])
+                            if precision_usable and not best else None)
 
     rep = {
         "n_total": int(len(df)),
@@ -174,6 +201,7 @@ def analyze(days: int = 800) -> Dict[str, Any]:
         "n_test": int(len(Xte)),
         "n_features": len(feats),
         "base_win_rate": round(base_rate, 4),
+        "baseline_net_r": round(baseline_net_r, 4) if baseline_net_r is not None else None,
         "auc": round(auc, 4),
         "cost_pct": COST_PCT,
         "by_threshold": by_threshold,
@@ -189,8 +217,16 @@ def analyze(days: int = 800) -> Dict[str, Any]:
         rep["conclusion"] = (
             f"AUC={auc:.3f}. Gating at P(win)>={best['threshold']} lifts precision "
             f"{base_rate:.1%}→{best['precision']:.1%} (+{best['lift_vs_base']:.1%}) at "
-            f"{best['coverage']:.0%} coverage. PROMISING — requires a locked-holdout "
-            "pass + beating round-trip cost before any live gating.")
+            f"{best['coverage']:.0%} coverage AND clears cost (avg net_R="
+            f"{best['avg_net_r']:+.3f} vs baseline {baseline_net_r:+.3f}). PROMISING — "
+            "still requires a further locked-holdout pass before any live gating.")
+    elif best_precision_only:
+        rep["conclusion"] = (
+            f"AUC={auc:.3f}. Gating at P(win)>={best_precision_only['threshold']} lifts "
+            f"precision {base_rate:.1%}→{best_precision_only['precision']:.1%} but avg "
+            f"net_R stays NEGATIVE at every threshold (best {best_precision_only['avg_net_r']:+.3f} "
+            f"vs baseline {baseline_net_r:+.3f}). Gating reduces how much is lost, it does "
+            "NOT create profit. REJECTED for live gating on cost-adjusted evidence.")
     else:
         rep["conclusion"] = (
             f"AUC={auc:.3f} but no threshold clears base rate by >2% at usable coverage "
@@ -206,7 +242,7 @@ def train_and_save(days: int = 800) -> Dict[str, Any]:
         return rep
     if rep.get("auc", 0.0) < 0.55 or not rep.get("best_threshold"):
         rep["model_saved"] = False
-        rep["model_save_reason"] = "no_locked_holdout_precision_lift"
+        rep["model_save_reason"] = "no_threshold_clears_precision_lift_and_net_cost"
         return rep
     try:
         import joblib
@@ -233,11 +269,12 @@ def format_report(rep: Dict[str, Any]) -> str:
         f"train={rep['n_train']} test={rep['n_test']} feats={rep['n_features']} "
         f"base_win={rep['base_win_rate']:.1%} AUC={rep['auc']}",
         "",
-        "  thresh  cover  precision  lift",
+        "  thresh  cover  precision  lift    net_R",
     ]
     for b in rep["by_threshold"]:
+        net_r_str = f"{b['avg_net_r']:+.3f}" if b.get("avg_net_r") is not None else "n/a"
         lines.append(f"  {b['threshold']:.2f}   {b['coverage']:.0%}    "
-                     f"{b['precision']:.1%}    {b['lift_vs_base']:+.1%}")
+                     f"{b['precision']:.1%}    {b['lift_vs_base']:+.1%}   {net_r_str}")
     lines += ["", "top features: " + ", ".join(f["feature"] for f in rep["top_features"][:6])]
     lines += ["", f"<b>{rep['conclusion']}</b>"]
     return "\n".join(lines)

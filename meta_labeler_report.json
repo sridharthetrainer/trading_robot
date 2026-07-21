@@ -4,6 +4,7 @@
   "n_test": 4581,
   "n_features": 42,
   "base_win_rate": 0.0666,
+  "baseline_net_r": -0.1805,
   "auc": 0.7051,
   "cost_pct": 0.12,
   "by_threshold": [
@@ -12,35 +13,40 @@
       "n_selected": 2231,
       "coverage": 0.487,
       "precision": 0.108,
-      "lift_vs_base": 0.0414
+      "lift_vs_base": 0.0414,
+      "avg_net_r": -0.1223
     },
     {
       "threshold": 0.55,
       "n_selected": 1496,
       "coverage": 0.3266,
       "precision": 0.1303,
-      "lift_vs_base": 0.0638
+      "lift_vs_base": 0.0638,
+      "avg_net_r": -0.0758
     },
     {
       "threshold": 0.6,
       "n_selected": 765,
       "coverage": 0.167,
       "precision": 0.1438,
-      "lift_vs_base": 0.0772
+      "lift_vs_base": 0.0772,
+      "avg_net_r": -0.1111
     },
     {
       "threshold": 0.65,
       "n_selected": 226,
       "coverage": 0.0493,
       "precision": 0.1416,
-      "lift_vs_base": 0.075
+      "lift_vs_base": 0.075,
+      "avg_net_r": -0.1161
     },
     {
       "threshold": 0.7,
       "n_selected": 3,
       "coverage": 0.0007,
       "precision": 0.0,
-      "lift_vs_base": -0.0666
+      "lift_vs_base": -0.0666,
+      "avg_net_r": -0.7116
     }
   ],
   "top_features": [
@@ -93,13 +99,8 @@
       "importance": 0.0363
     }
   ],
-  "best_threshold": {
-    "threshold": 0.6,
-    "n_selected": 765,
-    "coverage": 0.167,
-    "precision": 0.1438,
-    "lift_vs_base": 0.0772
-  },
-  "conclusion": "AUC=0.705. Gating at P(win)>=0.6 lifts precision 6.7%\u219214.4% (+7.7%) at 17% coverage. PROMISING \u2014 requires a locked-holdout pass + beating round-trip cost before any live gating.",
-  "model_saved": "ml_models/meta_labeler.joblib"
+  "best_threshold": null,
+  "conclusion": "AUC=0.705. Gating at P(win)>=0.6 lifts precision 6.7%\u219214.4% but avg net_R stays NEGATIVE at every threshold (best -0.111 vs baseline -0.180). Gating reduces how much is lost, it does NOT create profit. REJECTED for live gating on cost-adjusted evidence.",
+  "model_saved": false,
+  "model_save_reason": "no_threshold_clears_precision_lift_and_net_cost"
 }

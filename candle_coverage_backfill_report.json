@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T20:15:34+0530",
+  "generated_at": "2026-07-21T20:16:46+0530",
   "symbols_requested": 194,
   "intervals": [
     "1m",
@@ -8,76 +8,76 @@
     "1h",
     "1d"
   ],
-  "duration_sec": 1115.537,
+  "duration_sec": 1225.971,
   "before": {
     "exists": true,
-    "total": 3391301,
+    "total": 3487047,
     "intervals": {
       "15m": {
-        "rows": 185578,
+        "rows": 190469,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-20 15:15:00+05:30"
+        "last": "2026-07-21 15:15:00+05:30"
       },
       "1d": {
-        "rows": 74847,
+        "rows": 75053,
         "symbols": 196,
         "first": "2022-05-18 00:00:00+05:30",
-        "last": "2026-07-20 00:00:00+05:30"
+        "last": "2026-07-21 00:00:00+05:30"
       },
       "1h": {
-        "rows": 80278,
+        "rows": 81636,
         "symbols": 193,
         "first": "2026-04-01 09:15:00+05:30",
-        "last": "2026-07-20 15:15:00+05:30"
+        "last": "2026-07-21 15:15:00+05:30"
       },
       "1m": {
-        "rows": 2620348,
+        "rows": 2694922,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-20 15:29:00+05:30"
+        "last": "2026-07-21 15:29:00+05:30"
       },
       "5m": {
-        "rows": 430250,
+        "rows": 444967,
         "symbols": 194,
         "first": "2025-05-19 09:15:00+05:30",
-        "last": "2026-07-20 15:25:00+05:30"
+        "last": "2026-07-21 15:25:00+05:30"
       }
     }
   },
   "after": {
     "exists": true,
-    "total": 3396507,
+    "total": 3487873,
     "intervals": {
       "15m": {
-        "rows": 185600,
+        "rows": 190537,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-20 15:15:00+05:30"
+        "last": "2026-07-21 15:15:00+05:30"
       },
       "1d": {
-        "rows": 74863,
+        "rows": 75055,
         "symbols": 196,
         "first": "2022-05-18 00:00:00+05:30",
-        "last": "2026-07-20 00:00:00+05:30"
+        "last": "2026-07-21 00:00:00+05:30"
       },
       "1h": {
-        "rows": 80461,
+        "rows": 81847,
         "symbols": 193,
         "first": "2026-04-01 09:15:00+05:30",
-        "last": "2026-07-20 15:15:00+05:30"
+        "last": "2026-07-21 15:15:00+05:30"
       },
       "1m": {
-        "rows": 2625223,
+        "rows": 2695379,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-20 15:29:00+05:30"
+        "last": "2026-07-21 15:29:00+05:30"
       },
       "5m": {
-        "rows": 430360,
+        "rows": 445055,
         "symbols": 194,
         "first": "2025-05-19 09:15:00+05:30",
-        "last": "2026-07-20 15:25:00+05:30"
+        "last": "2026-07-21 15:25:00+05:30"
       }
     }
   },
@@ -86,38 +86,31 @@
       "interval": "1m",
       "days": 5,
       "requested": 194,
-      "ok_count": 186,
+      "ok_count": 191,
       "sample_failures": [
         {
-          "symbol": "NIFTY",
+          "symbol": "LTIM",
           "reason": "no_verified_intraday_data",
           "bars": 0
         },
         {
-          "symbol": "BANKNIFTY",
+          "symbol": "HPCL",
           "reason": "no_verified_intraday_data",
           "bars": 0
         },
         {
-          "symbol": "FINNIFTY",
+          "symbol": "PNC",
           "reason": "no_verified_intraday_data",
           "bars": 0
-        },
-        {
-          "symbol": "MIDCPNIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "SENSEX",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "NIFTYNEXT50",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
+        }
+      ]
+    },
+    {
+      "interval": "5m",
+      "days": 15,
+      "requested": 194,
+      "ok_count": 192,
+      "sample_failures": [
         {
           "symbol": "LTIM",
           "reason": "no_verified_intraday_data",
@@ -131,84 +124,11 @@
       ]
     },
     {
-      "interval": "5m",
-      "days": 15,
-      "requested": 194,
-      "ok_count": 187,
-      "sample_failures": [
-        {
-          "symbol": "NIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "BANKNIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "FINNIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "MIDCPNIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "SENSEX",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "NIFTYNEXT50",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "LTIM",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        }
-      ]
-    },
-    {
       "interval": "15m",
       "days": 30,
       "requested": 194,
-      "ok_count": 186,
+      "ok_count": 192,
       "sample_failures": [
-        {
-          "symbol": "NIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "BANKNIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "FINNIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "MIDCPNIFTY",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "SENSEX",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
-        {
-          "symbol": "NIFTYNEXT50",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
-        },
         {
           "symbol": "LTIM",
           "reason": "no_verified_intraday_data",
