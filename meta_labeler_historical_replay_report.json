@@ -1,0 +1,145 @@
+{
+  "universe_symbols": [
+    "HPCL",
+    "BPCL",
+    "DRREDDY",
+    "GRASIM",
+    "HINDALCO",
+    "INFY",
+    "IOC",
+    "JSWSTEEL",
+    "M&M",
+    "MARUTI",
+    "SUNPHARMA",
+    "TCS",
+    "ULTRACEMCO",
+    "AXISBANK",
+    "CIPLA",
+    "HCLTECH",
+    "HDFCBANK",
+    "HDFCLIFE",
+    "ICICIBANK",
+    "KOTAKBANK",
+    "ONGC",
+    "SBIN",
+    "TATASTEEL",
+    "TECHM",
+    "WIPRO",
+    "BANKBARODA",
+    "ICICIPRULI",
+    "OIL",
+    "SHREECEM"
+  ],
+  "n_symbols": 29,
+  "n_total": 4775,
+  "n_train": 3338,
+  "n_test": 1437,
+  "distinct_days_total": 950,
+  "distinct_days_train": 665,
+  "distinct_days_test": 285,
+  "date_range": [
+    "2022-07-12",
+    "2026-07-07"
+  ],
+  "cutoff_date": "2025-04-29",
+  "base_win_rate": 0.3925,
+  "auc": 0.5318,
+  "by_threshold": [
+    {
+      "threshold": 0.5,
+      "n_selected": 703,
+      "coverage": 0.4892,
+      "precision": 0.4154,
+      "lift_vs_base": 0.0229
+    },
+    {
+      "threshold": 0.55,
+      "n_selected": 178,
+      "coverage": 0.1239,
+      "precision": 0.4157,
+      "lift_vs_base": 0.0232
+    },
+    {
+      "threshold": 0.6,
+      "n_selected": 17,
+      "coverage": 0.0118,
+      "precision": 0.4706,
+      "lift_vs_base": 0.0781
+    },
+    {
+      "threshold": 0.65,
+      "n_selected": 0,
+      "coverage": 0.0,
+      "precision": 0.0,
+      "lift_vs_base": -0.3925
+    },
+    {
+      "threshold": 0.7,
+      "n_selected": 0,
+      "coverage": 0.0,
+      "precision": 0.0,
+      "lift_vs_base": -0.3925
+    }
+  ],
+  "best_threshold": {
+    "threshold": 0.55,
+    "n_selected": 178,
+    "coverage": 0.1239,
+    "precision": 0.4157,
+    "lift_vs_base": 0.0232
+  },
+  "top_features": [
+    {
+      "feature": "atr_pct",
+      "importance": 0.1927
+    },
+    {
+      "feature": "pct_from_monthly_r1",
+      "importance": 0.1675
+    },
+    {
+      "feature": "pct_from_weekly_r1",
+      "importance": 0.1667
+    },
+    {
+      "feature": "momentum_roc10",
+      "importance": 0.1619
+    },
+    {
+      "feature": "trend_ema_ratio",
+      "importance": 0.1357
+    },
+    {
+      "feature": "volume_ratio",
+      "importance": 0.0853
+    },
+    {
+      "feature": "day_of_week",
+      "importance": 0.0743
+    },
+    {
+      "feature": "above_weekly_pvt",
+      "importance": 0.0084
+    },
+    {
+      "feature": "above_monthly_pvt",
+      "importance": 0.0039
+    },
+    {
+      "feature": "side_buy",
+      "importance": 0.0036
+    }
+  ],
+  "params": {
+    "target_pct": 0.02,
+    "stop_pct": 0.015,
+    "max_bars": 10,
+    "breakout_lookback": 10
+  },
+  "caveats": [
+    "Daily-bar replay with a simple N-day-breakout signal rule -- NOT the live 57-strategy confluence engine.",
+    "Excludes VIX/FII/OI/news-derived features entirely (historical archives for those are only 7-8 rows deep regardless of price-history depth).",
+    "Triple-barrier target/stop/max_bars are illustrative, not fit to this data."
+  ],
+  "conclusion": "AUC=0.532 over 950 distinct days (665 train / 285 test, vs meta_labeler.py's ~14 total). Best threshold 0.55: precision 39.2%->41.6% (+2.3%) at 12% coverage. Report-only -- requires a separate holdout pass and cost-adjustment before this means anything."
+}
