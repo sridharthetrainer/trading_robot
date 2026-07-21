@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T15:49:07+0530",
+  "generated_at": "2026-07-21T06:08:52+0530",
   "mode": {
     "paper_training_only": true,
     "live_ready_count": 0,
@@ -13,20 +13,20 @@
     "institutional": 59.0,
     "institutional_grade": "F",
     "institutional_raw_capability": 83.0,
-    "option_bot": 95.0,
+    "option_bot": 91.0,
     "option_bot_grade": "A",
-    "option_bot_capability": 95.0,
-    "option_bot_evidence": 95.0
+    "option_bot_capability": 91.0,
+    "option_bot_evidence": 91.0
   },
   "data": {
     "candle_1m_symbols": 193,
     "candle_1d_symbols": 196,
     "derived_daily_symbols": 193,
-    "bad_candle_groups": 36,
-    "stale_candle_groups": 35,
+    "bad_candle_groups": 773,
+    "stale_candle_groups": 773,
     "total_candle_groups": 969,
     "latest_option_snapshot_ok": "2026-07-20T15:33:59+0530",
-    "latest_option_snapshot_age_hours": 0.25
+    "latest_option_snapshot_age_hours": 14.58
   },
   "execution": {
     "trades": 12,
@@ -46,33 +46,33 @@
     "gross_pnl": -26.42,
     "net_pnl": -625.47,
     "profitable_trades": 0,
-    "broker_connected": true,
+    "broker_connected": false,
     "role": "execution_infrastructure_validation_only"
   },
   "learning": {
     "experiments_logged": 18,
-    "labelled_rows": 17513,
-    "labelled_days": 13,
+    "labelled_rows": 17993,
+    "labelled_days": 14,
     "target_labelled": 5000,
     "target_days": 15,
-    "custom_barrier_labels": 17515,
+    "custom_barrier_labels": 17995,
     "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
     "sample_source": "all_training_eligible_generated_signals",
-    "legacy_labelled_rows": 26593,
+    "legacy_labelled_rows": 27073,
     "shadow_portfolio": {
-      "generated_at": "2026-07-20T15:48:56+0530",
+      "generated_at": "2026-07-21T06:08:29+0530",
       "ok": true,
       "days": 30,
       "top_per_day": 5,
-      "labelled_seen": 17513,
-      "shadow_trades": 65,
+      "labelled_seen": 17993,
+      "shadow_trades": 70,
       "wins": 3,
-      "losses": 12,
-      "timeouts": 50,
-      "target_rate": 0.0462,
+      "losses": 13,
+      "timeouts": 54,
+      "target_rate": 0.0429,
       "rejected_wins": 3,
-      "total_net_r": -20.0747,
-      "average_net_r": -0.3088,
+      "total_net_r": -22.8162,
+      "average_net_r": -0.3259,
       "after_cost_positive": false,
       "top": [
         {
@@ -532,6 +532,7 @@
     "no_live_ready_strategy",
     "no_after_cost_statistical_edge",
     "paper_live_fill_comparisons_below_100",
+    "broker_connectivity_unverified",
     "release_integrity_unverified",
     "labelled_days_below_target",
     "generated_signal_after_cost_edge_not_positive"
@@ -544,10 +545,10 @@
     "ok": false,
     "reason": "release_files_changed",
     "manifest_git_head": "d1cbb672d2ce989b4acb997d8aef64d7981909f9",
-    "current_git_head": "73e2f532fee95f1506f860606f383b3f3dbf9a13",
+    "current_git_head": "dcc46463b41c0d239955c3f7d2ce44891d107d14",
     "git_head_matches": false,
     "content_digest_matches": false,
-    "file_count": 579,
+    "file_count": 581,
     "missing": [],
     "added": [
       "autonomous_edge_policy.py",
@@ -557,6 +558,7 @@
       "cross_sectional_factor_test.py",
       "ema_pattern_miner.py",
       "eod_setup_edge_analyzer.py",
+      "get_option_chat_id.py",
       "job_catchup.py",
       "logging_security.py",
       "ml_effective_n_bootstrap.py",
@@ -573,17 +575,18 @@
       "option_strategy_risk_checks.py",
       "option_underlying_context.py",
       "option_underlying_decomposition.py",
-      "pipeline_sensitivity_floor.py",
-      "pnl_reporting.py"
+      "pipeline_sensitivity_floor.py"
     ],
     "changed": [
       "angel.py",
       "angel_option_chain.py",
       "autonomous_learning_cycle.py",
+      "candle_cache.py",
       "candle_coverage_backfill.py",
       "capital_compounder.py",
       "chaos_tests.py",
       "config.py",
+      "data_fetcher.py",
       "data_quality_watchdog.py",
       "diag_option_strike_selection.py",
       "edge_report.py",
@@ -599,14 +602,12 @@
       "manual_trade_tracker.py",
       "ml_feature_builder.py",
       "ml_trainer.py",
-      "modifier_edge_analyzer.py",
-      "nightly_edge_monitor.py",
-      "oi_tracker.py"
+      "modifier_edge_analyzer.py"
     ]
   },
   "assurance": {
     "indicator_lookahead": {
-      "generated_at": "2026-07-20T15:49:03+0530",
+      "generated_at": "2026-07-21T06:08:36+0530",
       "method": "full_history_vs_truncated_prefix",
       "sample": {
         "source": "candle_cache",
@@ -721,7 +722,7 @@
       "ok": true,
       "databases": 19,
       "tables": 45,
-      "rows": 7016133,
+      "rows": 7035874,
       "issues": [],
       "empty_databases": [
         "historical_options.db"
@@ -730,13 +731,13 @@
     "execution_audit_chain": {
       "ok": true,
       "path": "execution_compliance.jsonl",
-      "chained_rows": 16,
+      "chained_rows": 17,
       "legacy_rows": 0,
       "invalid_rows": 0,
-      "last_hash": "34dd8054ef3c58177053051cef21d132a71d422cd786a7599b5dbb2bd83d9b59"
+      "last_hash": "e84b0089ac51312fcc5deb07de752032cb5b0fe7bafd58e753703536cc6ad3ba"
     },
     "ml_training_contract": {
-      "generated_at": "2026-07-20T15:49:07+0530",
+      "generated_at": "2026-07-21T06:08:52+0530",
       "training_contract": "all_generated_signals_v4_causal_representations",
       "checks": {
         "outcome_fields_excluded": true,
@@ -758,9 +759,9 @@
         "reason": "legacy_training_contract"
       },
       "clean_evidence": {
-        "legacy_labelled": 26593,
-        "clean_labelled": 17513,
-        "clean_days": 13
+        "legacy_labelled": 27073,
+        "clean_labelled": 17993,
+        "clean_days": 14
       },
       "promotion_targets": {
         "samples": 5000,
