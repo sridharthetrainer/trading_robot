@@ -123,7 +123,7 @@ def test_entry_window_one_shot_dedup_prevents_repeat_fires(monkeypatch):
     reg.OPTION_STRATEGY_CATALOG[idx] = patched
     reg._BY_ID["C1"] = patched
     try:
-        reg._ONE_SHOT_FIRED.clear()
+        reg._SELECTED_TODAY.clear()
         for _ in range(4):   # simulate several scan cycles in the same window
             reg.evaluate_catalog(symbol="NIFTY", df=None, df_htf=None,
                                   option_data={}, regime={})
@@ -131,7 +131,53 @@ def test_entry_window_one_shot_dedup_prevents_repeat_fires(monkeypatch):
     finally:
         reg.OPTION_STRATEGY_CATALOG[idx] = original
         reg._BY_ID["C1"] = original
-        reg._ONE_SHOT_FIRED.clear()
+        reg._SELECTED_TODAY.clear()
+
+
+def test_range_window_strategy_also_capped_at_one_selected_fire_per_day(monkeypatch):
+    """2026-07-21 regression: C3 (range window "09:30-11:00", NOT a one-shot)
+    selected 4 separate iron condors on the same symbol in one live morning
+    as the underlying drifted -- each individually well-formed, but stacking
+    multiple positions on the same underlying in one session isn't how this
+    would be traded, and inflates the evidence table with correlated
+    observations. Dedup must now apply to every strategy once it reaches
+    "selected", not just one-shot ones -- while still letting a BLOCKED
+    result keep retrying within the window (e.g. VIX clears mid-morning)."""
+    assert reg.is_one_shot_window("09:30-11:00") is False  # still a range window, not one-shot
+
+    class _FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 7, 21, 10, 0)
+
+    monkeypatch.setattr(reg, "datetime", _FixedDateTime)
+
+    calls = []
+
+    def _fake_c3(**kw):
+        calls.append(1)
+        return {"id": "C3", "status": "selected", "combo_id": f"combo-{len(calls)}"}
+
+    original = reg.get_strategy("C3")
+    patched = reg.OptionStrategyDef(**{**original.__dict__, "evaluate_fn": _fake_c3})
+    idx = next(i for i, d in enumerate(reg.OPTION_STRATEGY_CATALOG) if d.id == "C3")
+    reg.OPTION_STRATEGY_CATALOG[idx] = patched
+    reg._BY_ID["C3"] = patched
+    try:
+        reg._SELECTED_TODAY.clear()
+        results = []
+        for _ in range(4):   # simulate re-evaluation cycles across the open window
+            results.extend(r for r in reg.evaluate_catalog(
+                symbol="NIFTY", df=None, df_htf=None, option_data={}, regime={})
+                if r.get("id") == "C3")
+        assert len(calls) == 1, "range-window strategy fired more than once/day after first selection"
+        statuses = [r["status"] for r in results]
+        assert statuses == ["selected", "already_fired_today",
+                             "already_fired_today", "already_fired_today"]
+    finally:
+        reg.OPTION_STRATEGY_CATALOG[idx] = original
+        reg._BY_ID["C3"] = original
+        reg._SELECTED_TODAY.clear()
 
 
 def test_entry_window_comma_separated_multiples():

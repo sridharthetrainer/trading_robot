@@ -292,13 +292,22 @@ def _placeholder_result(strategy_def: OptionStrategyDef, symbol: str) -> Dict[st
     }
 
 
-# One-shot ("_sharp") strategies must fire at most once per (strategy, symbol,
-# day) even though their catch-up window now spans several scan cycles --
-# without this, C1 could sell a fresh straddle every ~20s for 16 minutes
-# straight. Keyed on a "selected" result only: a blocked/error result must
-# NOT be marked done, so the strategy keeps retrying within its catch-up
-# window (e.g. still-too-high VIX at 09:20 clearing by 09:28).
-_ONE_SHOT_FIRED: set = set()
+# 2026-07-21: EVERY strategy fires at most once per (strategy, symbol, day)
+# once it reaches "selected" -- not just one-shot ("_sharp") strategies.
+# Confirmed live: C3 (a range window, 09:30-11:00, no "_sharp" semantics)
+# selected 4 SEPARATE iron condors on the same symbol in one morning as
+# the underlying drifted -- each individually well-formed (strikes
+# genuinely shifted, not a duplicate-fire bug), but stacking 4 overlapping
+# positions on the same underlying in one session isn't how this would be
+# traded for real, and it inflates the evidence table with correlated,
+# non-independent observations for the SAME symbol-day. A range window's
+# actual purpose -- keep trying while blocked (VIX too high, wrong regime)
+# until conditions clear -- is preserved: only a "selected" result marks
+# the day done; blocked/error results keep retrying for the rest of the
+# window, same as before. Was previously gated to one-shot strategies only
+# via is_one_shot_window(); that function is kept (tested, may still be
+# useful for future window-parsing needs) but no longer gates this.
+_SELECTED_TODAY: set = set()
 
 
 def evaluate_catalog(symbol: str, df, df_htf, option_data, regime: Dict[str, Any],
@@ -315,8 +324,7 @@ def evaluate_catalog(symbol: str, df, df_htf, option_data, regime: Dict[str, Any
             results.append(_placeholder_result(strategy_def, symbol))
             continue
         fire_key = (strategy_def.id, symbol, today)
-        one_shot = is_one_shot_window(strategy_def.entry_window)
-        if one_shot and fire_key in _ONE_SHOT_FIRED:
+        if fire_key in _SELECTED_TODAY:
             results.append({"id": strategy_def.id, "status": "already_fired_today"})
             continue
         try:
@@ -326,8 +334,8 @@ def evaluate_catalog(symbol: str, df, df_htf, option_data, regime: Dict[str, Any
             result = strategy_def.evaluate_fn(
                 symbol=symbol, df=df, df_htf=df_htf, option_data=option_data,
                 regime=regime, **kw)
-            if one_shot and result.get("status") == "selected":
-                _ONE_SHOT_FIRED.add(fire_key)
+            if result.get("status") == "selected":
+                _SELECTED_TODAY.add(fire_key)
             results.append(result)
         except Exception as exc:
             logger.debug("evaluate_catalog(%s): %s", strategy_def.id, exc)
