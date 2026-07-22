@@ -191,8 +191,9 @@ def analyze(days: int = 800) -> Dict[str, Any]:
         import json
         full_rep = json.loads(open("meta_labeler_report.json").read())
         full_model_auc = full_rep.get("auc")
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("regime_meta_labeler: full_model_report unavailable for "
+                     "comparison context: %s", exc)
 
     rep = {
         "features": feats,
