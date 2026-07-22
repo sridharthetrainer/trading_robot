@@ -1,28 +1,47 @@
 {
-  "generated_at": "2026-07-15T01:27:49",
-  "labelled_days": 17,
-  "train_days": 11,
+  "generated_at": "2026-07-22T05:56:34",
+  "labelled_days": 20,
+  "train_days": 14,
   "holdout_days": 6,
-  "cutoff_day": "2026-07-06",
-  "bonferroni_tests": 76,
+  "cutoff_day": "2026-07-09",
+  "bonferroni_tests": 77,
   "candidates": [],
   "hurts": [
     {
-      "dimension": "underlying_x_flow",
-      "cohort": "NIFTY:LONG_UNWINDING",
+      "dimension": "signal",
+      "cohort": "WATCH",
       "train": {
-        "n": 522,
-        "mean_net_r": -0.00832,
-        "win_rate": 0.015,
-        "t": -3.65,
-        "p": 0.00026
+        "n": 9012,
+        "mean_net_r": -0.0058,
+        "win_rate": 0.1,
+        "t": -3.73,
+        "p": 0.00019
       },
       "holdout": {
-        "n": 169,
-        "mean_net_r": -0.03529,
-        "win_rate": 0.32,
-        "t": -2.97,
-        "p": 0.00298
+        "n": 5563,
+        "mean_net_r": -0.02294,
+        "win_rate": 0.311,
+        "t": -26.58,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "flow_x_score",
+      "cohort": "SHORT_COVERING:score:70-85",
+      "train": {
+        "n": 326,
+        "mean_net_r": -0.01944,
+        "win_rate": 0.074,
+        "t": -3.78,
+        "p": 0.00016
+      },
+      "holdout": {
+        "n": 37,
+        "mean_net_r": -0.0643,
+        "win_rate": 0.405,
+        "t": -1.99,
+        "p": 0.04645
       },
       "verdict": "HURTS"
     },
@@ -37,25 +56,29 @@
         "p": 8e-05
       },
       "holdout": {
-        "n": 0
+        "n": 442,
+        "mean_net_r": -0.02964,
+        "win_rate": 0.269,
+        "t": -11.38,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "underlying",
-      "cohort": "NIFTY",
+      "dimension": "flow_x_score",
+      "cohort": "SHORT_BUILDUP:score:lt50",
       "train": {
-        "n": 4028,
-        "mean_net_r": -0.00903,
-        "win_rate": 0.081,
-        "t": -4.07,
-        "p": 5e-05
+        "n": 2954,
+        "mean_net_r": -0.00681,
+        "win_rate": 0.116,
+        "t": -3.99,
+        "p": 7e-05
       },
       "holdout": {
-        "n": 3076,
-        "mean_net_r": -0.02819,
-        "win_rate": 0.286,
-        "t": -13.5,
+        "n": 2401,
+        "mean_net_r": -0.02011,
+        "win_rate": 0.327,
+        "t": -15.49,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -64,36 +87,93 @@
       "dimension": "underlying_x_flow",
       "cohort": "FINNIFTY:LONG_UNWINDING",
       "train": {
-        "n": 473,
-        "mean_net_r": -0.01343,
-        "win_rate": 0.03,
-        "t": -4.21,
-        "p": 3e-05
+        "n": 525,
+        "mean_net_r": -0.01327,
+        "win_rate": 0.067,
+        "t": -4.29,
+        "p": 2e-05
       },
       "holdout": {
-        "n": 169,
-        "mean_net_r": -0.02139,
-        "win_rate": 0.349,
-        "t": -4.09,
-        "p": 4e-05
+        "n": 343,
+        "mean_net_r": -0.03133,
+        "win_rate": 0.297,
+        "t": -9.52,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "dimension": "underlying_x_flow",
-      "cohort": "NIFTY:LONG_BUILDUP",
+      "cohort": "NIFTY:LONG_UNWINDING",
       "train": {
-        "n": 771,
-        "mean_net_r": -0.01178,
-        "win_rate": 0.071,
-        "t": -4.51,
+        "n": 608,
+        "mean_net_r": -0.01575,
+        "win_rate": 0.054,
+        "t": -4.43,
         "p": 1e-05
       },
       "holdout": {
-        "n": 408,
-        "mean_net_r": -0.02792,
-        "win_rate": 0.279,
-        "t": -6.04,
+        "n": 161,
+        "mean_net_r": -0.01304,
+        "win_rate": 0.342,
+        "t": -1.7,
+        "p": 0.08877
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "score_band",
+      "cohort": "score:50-70",
+      "train": {
+        "n": 1292,
+        "mean_net_r": -0.0244,
+        "win_rate": 0.215,
+        "t": -4.5,
+        "p": 1e-05
+      },
+      "holdout": {
+        "n": 1033,
+        "mean_net_r": -0.02362,
+        "win_rate": 0.339,
+        "t": -9.57,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "option_type",
+      "cohort": "PE",
+      "train": {
+        "n": 7218,
+        "mean_net_r": -0.0086,
+        "win_rate": 0.099,
+        "t": -4.52,
+        "p": 1e-05
+      },
+      "holdout": {
+        "n": 4955,
+        "mean_net_r": -0.02436,
+        "win_rate": 0.337,
+        "t": -25.05,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "direction",
+      "cohort": "BEARISH",
+      "train": {
+        "n": 7218,
+        "mean_net_r": -0.0086,
+        "win_rate": 0.099,
+        "t": -4.52,
+        "p": 1e-05
+      },
+      "holdout": {
+        "n": 4955,
+        "mean_net_r": -0.02436,
+        "win_rate": 0.337,
+        "t": -25.05,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -102,18 +182,18 @@
       "dimension": "flow_x_score",
       "cohort": "LONG_BUILDUP:score:70-85",
       "train": {
-        "n": 204,
-        "mean_net_r": -0.0331,
-        "win_rate": 0.054,
-        "t": -4.54,
-        "p": 1e-05
+        "n": 218,
+        "mean_net_r": -0.0339,
+        "win_rate": 0.078,
+        "t": -4.64,
+        "p": 0.0
       },
       "holdout": {
-        "n": 39,
-        "mean_net_r": -0.00397,
-        "win_rate": 0.513,
-        "t": -0.21,
-        "p": 0.83151
+        "n": 40,
+        "mean_net_r": -0.04581,
+        "win_rate": 0.375,
+        "t": -2.04,
+        "p": 0.04108
       },
       "verdict": "HURTS"
     },
@@ -128,7 +208,30 @@
         "p": 0.0
       },
       "holdout": {
-        "n": 0
+        "n": 589,
+        "mean_net_r": -0.02091,
+        "win_rate": 0.334,
+        "t": -9.08,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "underlying_x_flow",
+      "cohort": "NIFTY:LONG_BUILDUP",
+      "train": {
+        "n": 908,
+        "mean_net_r": -0.01447,
+        "win_rate": 0.104,
+        "t": -5.04,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 756,
+        "mean_net_r": -0.03076,
+        "win_rate": 0.283,
+        "t": -11.87,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
@@ -136,150 +239,55 @@
       "dimension": "flow_x_score",
       "cohort": "SHORT_COVERING:score:50-70",
       "train": {
-        "n": 318,
-        "mean_net_r": -0.04784,
-        "win_rate": 0.198,
-        "t": -4.87,
+        "n": 428,
+        "mean_net_r": -0.04422,
+        "win_rate": 0.217,
+        "t": -5.15,
         "p": 0.0
       },
       "holdout": {
-        "n": 268,
-        "mean_net_r": -0.02472,
-        "win_rate": 0.325,
-        "t": -3.15,
-        "p": 0.00163
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow_x_score",
-      "cohort": "LONG_BUILDUP:score:50-70",
-      "train": {
-        "n": 178,
-        "mean_net_r": -0.03711,
-        "win_rate": 0.135,
-        "t": -5.08,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 145,
-        "mean_net_r": -0.05066,
-        "win_rate": 0.248,
-        "t": -6.59,
+        "n": 477,
+        "mean_net_r": -0.02059,
+        "win_rate": 0.342,
+        "t": -6.13,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "flow_x_score",
-      "cohort": "SHORT_BUILDUP:score:lt50",
+      "dimension": "flow_x_dte",
+      "cohort": "SHORT_BUILDUP:dte:8plus",
       "train": {
-        "n": 2671,
-        "mean_net_r": -0.00766,
-        "win_rate": 0.089,
+        "n": 1539,
+        "mean_net_r": -0.00895,
+        "win_rate": 0.193,
         "t": -5.22,
         "p": 0.0
       },
       "holdout": {
-        "n": 1010,
-        "mean_net_r": -0.01162,
-        "win_rate": 0.348,
-        "t": -3.39,
-        "p": 0.0007
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "underlying_x_flow",
-      "cohort": "FINNIFTY:SHORT_COVERING",
-      "train": {
-        "n": 653,
-        "mean_net_r": -0.0214,
-        "win_rate": 0.025,
-        "t": -5.38,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 249,
-        "mean_net_r": -0.0348,
-        "win_rate": 0.269,
-        "t": -7.1,
+        "n": 2058,
+        "mean_net_r": -0.01992,
+        "win_rate": 0.328,
+        "t": -13.31,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "dimension": "underlying_x_flow",
-      "cohort": "BANKNIFTY:LONG_BUILDUP",
+      "cohort": "NIFTY:SHORT_COVERING",
       "train": {
-        "n": 791,
-        "mean_net_r": -0.0171,
-        "win_rate": 0.091,
-        "t": -5.59,
+        "n": 1159,
+        "mean_net_r": -0.02215,
+        "win_rate": 0.167,
+        "t": -5.73,
         "p": 0.0
       },
       "holdout": {
-        "n": 218,
-        "mean_net_r": -0.01745,
-        "win_rate": 0.307,
-        "t": -4.44,
-        "p": 1e-05
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "underlying",
-      "cohort": "FINNIFTY",
-      "train": {
-        "n": 4077,
-        "mean_net_r": -0.01028,
-        "win_rate": 0.049,
-        "t": -5.7,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1232,
-        "mean_net_r": -0.02854,
-        "win_rate": 0.262,
-        "t": -11.45,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow",
-      "cohort": "LONG_UNWINDING",
-      "train": {
-        "n": 1487,
-        "mean_net_r": -0.00854,
-        "win_rate": 0.038,
-        "t": -5.95,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 442,
-        "mean_net_r": -0.02336,
-        "win_rate": 0.339,
-        "t": -4.5,
-        "p": 1e-05
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "tradable",
-      "cohort": "0",
-      "train": {
-        "n": 12311,
-        "mean_net_r": -0.00683,
-        "win_rate": 0.071,
-        "t": -5.95,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 5543,
-        "mean_net_r": -0.02534,
-        "win_rate": 0.289,
-        "t": -18.6,
+        "n": 1019,
+        "mean_net_r": -0.02859,
+        "win_rate": 0.286,
+        "t": -12.81,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -290,37 +298,33 @@
       "dimension": "flow_x_dte",
       "cohort": "SHORT_BUILDUP:dte:0",
       "train": {
-        "n": 468,
-        "mean_net_r": 0.09473,
-        "win_rate": 0.244,
-        "t": 3.61,
-        "p": 0.0003
+        "n": 514,
+        "mean_net_r": 0.07104,
+        "win_rate": 0.247,
+        "t": 2.86,
+        "p": 0.00424
       },
       "holdout": {
-        "n": 46,
-        "mean_net_r": -0.16995,
-        "win_rate": 0.283,
-        "t": -2.49,
-        "p": 0.01268
+        "n": 0
       },
-      "verdict": "TRAIN_ONLY_OVERFIT"
+      "verdict": "NOISE"
     },
     {
       "dimension": "flow_x_score",
       "cohort": "SHORT_BUILDUP:score:70-85",
       "train": {
-        "n": 472,
-        "mean_net_r": 0.07021,
-        "win_rate": 0.097,
-        "t": 3.06,
-        "p": 0.00223
+        "n": 502,
+        "mean_net_r": 0.06201,
+        "win_rate": 0.118,
+        "t": 2.84,
+        "p": 0.00446
       },
       "holdout": {
-        "n": 52,
-        "mean_net_r": -0.04968,
-        "win_rate": 0.346,
-        "t": -1.78,
-        "p": 0.07571
+        "n": 44,
+        "mean_net_r": -0.0228,
+        "win_rate": 0.318,
+        "t": -1.65,
+        "p": 0.09902
       },
       "verdict": "NOISE"
     },
@@ -328,36 +332,17 @@
       "dimension": "underlying_x_flow",
       "cohort": "BANKNIFTY:SHORT_BUILDUP",
       "train": {
-        "n": 1277,
-        "mean_net_r": 0.01208,
-        "win_rate": 0.114,
-        "t": 2.05,
-        "p": 0.0403
+        "n": 1403,
+        "mean_net_r": 0.01087,
+        "win_rate": 0.143,
+        "t": 1.99,
+        "p": 0.04652
       },
       "holdout": {
-        "n": 420,
-        "mean_net_r": -0.00953,
-        "win_rate": 0.35,
-        "t": -2.27,
-        "p": 0.02303
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "flow_x_score",
-      "cohort": "SHORT_BUILDUP:score:50-70",
-      "train": {
-        "n": 413,
-        "mean_net_r": 0.02351,
-        "win_rate": 0.228,
-        "t": 1.93,
-        "p": 0.05411
-      },
-      "holdout": {
-        "n": 213,
-        "mean_net_r": -0.04853,
-        "win_rate": 0.319,
-        "t": -4.67,
+        "n": 969,
+        "mean_net_r": -0.0139,
+        "win_rate": 0.345,
+        "t": -7.11,
         "p": 0.0
       },
       "verdict": "NOISE"
@@ -366,18 +351,18 @@
       "dimension": "score_band",
       "cohort": "score:70-85",
       "train": {
-        "n": 1106,
-        "mean_net_r": 0.01883,
-        "win_rate": 0.068,
-        "t": 1.87,
-        "p": 0.06199
+        "n": 1166,
+        "mean_net_r": 0.01464,
+        "win_rate": 0.088,
+        "t": 1.51,
+        "p": 0.13041
       },
       "holdout": {
-        "n": 130,
-        "mean_net_r": -0.0274,
-        "win_rate": 0.438,
-        "t": -1.93,
-        "p": 0.05323
+        "n": 129,
+        "mean_net_r": -0.0396,
+        "win_rate": 0.372,
+        "t": -3.07,
+        "p": 0.00216
       },
       "verdict": "NOISE"
     },
@@ -385,17 +370,17 @@
       "dimension": "flow",
       "cohort": "SHORT_BUILDUP",
       "train": {
-        "n": 3562,
-        "mean_net_r": 0.00616,
-        "win_rate": 0.107,
-        "t": 1.73,
-        "p": 0.08337
+        "n": 3995,
+        "mean_net_r": 0.0028,
+        "win_rate": 0.135,
+        "t": 0.84,
+        "p": 0.40139
       },
       "holdout": {
-        "n": 1280,
-        "mean_net_r": -0.01955,
-        "win_rate": 0.342,
-        "t": -5.7,
+        "n": 2647,
+        "mean_net_r": -0.02014,
+        "win_rate": 0.329,
+        "t": -15.84,
         "p": 0.0
       },
       "verdict": "NOISE"
@@ -404,37 +389,37 @@
       "dimension": "underlying_x_flow",
       "cohort": "FINNIFTY:SHORT_BUILDUP",
       "train": {
-        "n": 1028,
-        "mean_net_r": 0.00557,
-        "win_rate": 0.079,
-        "t": 0.91,
-        "p": 0.36388
+        "n": 1098,
+        "mean_net_r": 0.00401,
+        "win_rate": 0.097,
+        "t": 0.69,
+        "p": 0.48708
       },
       "holdout": {
-        "n": 247,
-        "mean_net_r": -0.01963,
-        "win_rate": 0.312,
-        "t": -5.11,
+        "n": 623,
+        "mean_net_r": -0.02751,
+        "win_rate": 0.283,
+        "t": -11.27,
         "p": 0.0
       },
       "verdict": "NOISE"
     },
     {
-      "dimension": "underlying_x_flow",
-      "cohort": "NIFTY:SHORT_BUILDUP",
+      "dimension": "flow_x_score",
+      "cohort": "SHORT_BUILDUP:score:50-70",
       "train": {
-        "n": 1257,
-        "mean_net_r": 0.00064,
-        "win_rate": 0.122,
-        "t": 0.1,
-        "p": 0.92035
+        "n": 528,
+        "mean_net_r": 0.00186,
+        "win_rate": 0.254,
+        "t": 0.18,
+        "p": 0.8585
       },
       "holdout": {
-        "n": 613,
-        "mean_net_r": -0.02638,
-        "win_rate": 0.349,
-        "t": -4.15,
-        "p": 3e-05
+        "n": 202,
+        "mean_net_r": -0.01999,
+        "win_rate": 0.361,
+        "t": -3.6,
+        "p": 0.00031
       },
       "verdict": "NOISE"
     },
@@ -472,56 +457,18 @@
       "dimension": "premium_bucket",
       "cohort": "premium:15-35",
       "train": {
-        "n": 742,
-        "mean_net_r": -0.00237,
-        "win_rate": 0.084,
-        "t": -0.24,
-        "p": 0.81145
+        "n": 753,
+        "mean_net_r": -0.00315,
+        "win_rate": 0.086,
+        "t": -0.31,
+        "p": 0.75741
       },
       "holdout": {
-        "n": 11,
-        "mean_net_r": -0.05579,
-        "win_rate": 0.273,
-        "t": -0.27,
-        "p": 0.78421
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "signal",
-      "cohort": "WATCH",
-      "train": {
-        "n": 7656,
-        "mean_net_r": -0.00065,
-        "win_rate": 0.067,
-        "t": -0.39,
-        "p": 0.6993
-      },
-      "holdout": {
-        "n": 3331,
-        "mean_net_r": -0.0261,
-        "win_rate": 0.295,
-        "t": -14.68,
+        "n": 148,
+        "mean_net_r": -0.04765,
+        "win_rate": 0.23,
+        "t": -7.13,
         "p": 0.0
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "premium_bucket",
-      "cohort": "premium:5-15",
-      "train": {
-        "n": 493,
-        "mean_net_r": -0.01134,
-        "win_rate": 0.065,
-        "t": -0.68,
-        "p": 0.49642
-      },
-      "holdout": {
-        "n": 12,
-        "mean_net_r": -0.34017,
-        "win_rate": 0.25,
-        "t": -2.59,
-        "p": 0.00948
       },
       "verdict": "NOISE"
     },
@@ -536,49 +483,30 @@
         "p": 0.44654
       },
       "holdout": {
-        "n": 1,
-        "mean_net_r": 0.29151,
-        "win_rate": 1.0,
-        "t": 0.0,
-        "p": 1.0
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "dte_bucket",
-      "cohort": "dte:0",
-      "train": {
-        "n": 1506,
-        "mean_net_r": -0.00771,
-        "win_rate": 0.088,
-        "t": -0.85,
-        "p": 0.39654
-      },
-      "holdout": {
-        "n": 93,
-        "mean_net_r": -0.13867,
-        "win_rate": 0.387,
-        "t": -3.4,
-        "p": 0.00068
+        "n": 8,
+        "mean_net_r": 0.01322,
+        "win_rate": 0.5,
+        "t": 0.25,
+        "p": 0.80376
       },
       "verdict": "NOISE"
     },
     {
       "dimension": "underlying_x_flow",
-      "cohort": "BANKNIFTY:NEUTRAL",
+      "cohort": "NIFTY:SHORT_BUILDUP",
       "train": {
-        "n": 795,
-        "mean_net_r": -0.0003,
-        "win_rate": 0.024,
-        "t": -0.93,
-        "p": 0.35104
+        "n": 1494,
+        "mean_net_r": -0.00567,
+        "win_rate": 0.157,
+        "t": -0.96,
+        "p": 0.33915
       },
       "holdout": {
-        "n": 119,
-        "mean_net_r": -0.01585,
-        "win_rate": 0.353,
-        "t": -2.94,
-        "p": 0.00325
+        "n": 1055,
+        "mean_net_r": -0.02152,
+        "win_rate": 0.343,
+        "t": -9.81,
+        "p": 0.0
       },
       "verdict": "NOISE"
     },
@@ -599,58 +527,50 @@
     },
     {
       "dimension": "premium_bucket",
-      "cohort": "premium:lt5",
+      "cohort": "premium:5-15",
       "train": {
-        "n": 648,
-        "mean_net_r": -0.00577,
-        "win_rate": 0.005,
-        "t": -1.64,
-        "p": 0.10066
+        "n": 505,
+        "mean_net_r": -0.01915,
+        "win_rate": 0.069,
+        "t": -1.15,
+        "p": 0.2513
       },
       "holdout": {
-        "n": 9,
-        "mean_net_r": -0.5631,
-        "win_rate": 0.111,
-        "t": -3.75,
-        "p": 0.00018
+        "n": 0
       },
       "verdict": "NOISE"
     },
     {
-      "dimension": "flow_x_score",
-      "cohort": "LONG_UNWINDING:score:50-70",
+      "dimension": "underlying_x_flow",
+      "cohort": "BANKNIFTY:NEUTRAL",
       "train": {
-        "n": 76,
-        "mean_net_r": -0.03224,
-        "win_rate": 0.079,
-        "t": -1.72,
-        "p": 0.08466
+        "n": 796,
+        "mean_net_r": -0.0005,
+        "win_rate": 0.024,
+        "t": -1.32,
+        "p": 0.18617
       },
       "holdout": {
-        "n": 49,
-        "mean_net_r": -0.01282,
-        "win_rate": 0.367,
-        "t": -0.64,
-        "p": 0.52526
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "underlying",
-      "cohort": "BANKNIFTY",
-      "train": {
-        "n": 4247,
-        "mean_net_r": -0.00366,
-        "win_rate": 0.082,
-        "t": -1.85,
-        "p": 0.06417
-      },
-      "holdout": {
-        "n": 1235,
-        "mean_net_r": -0.01505,
-        "win_rate": 0.323,
-        "t": -7.48,
+        "n": 413,
+        "mean_net_r": -0.01846,
+        "win_rate": 0.329,
+        "t": -6.53,
         "p": 0.0
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "dimension": "dte_bucket",
+      "cohort": "dte:0",
+      "train": {
+        "n": 1599,
+        "mean_net_r": -0.01532,
+        "win_rate": 0.106,
+        "t": -1.72,
+        "p": 0.08561
+      },
+      "holdout": {
+        "n": 0
       },
       "verdict": "NOISE"
     },
@@ -670,6 +590,25 @@
       "verdict": "NOISE"
     },
     {
+      "dimension": "underlying_x_flow",
+      "cohort": "BANKNIFTY:LONG_UNWINDING",
+      "train": {
+        "n": 512,
+        "mean_net_r": -0.00398,
+        "win_rate": 0.078,
+        "t": -2.11,
+        "p": 0.03519
+      },
+      "holdout": {
+        "n": 285,
+        "mean_net_r": -0.01623,
+        "win_rate": 0.382,
+        "t": -4.4,
+        "p": 1e-05
+      },
+      "verdict": "NOISE"
+    },
+    {
       "dimension": "flow_x_dte",
       "cohort": "NEUTRAL:dte:3-7",
       "train": {
@@ -680,45 +619,30 @@
         "p": 0.03213
       },
       "holdout": {
-        "n": 0
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "underlying_x_flow",
-      "cohort": "NIFTY:NEUTRAL",
-      "train": {
-        "n": 614,
-        "mean_net_r": -0.00115,
-        "win_rate": 0.011,
-        "t": -2.15,
-        "p": 0.03184
-      },
-      "holdout": {
-        "n": 1175,
-        "mean_net_r": -0.03465,
-        "win_rate": 0.245,
-        "t": -16.21,
+        "n": 456,
+        "mean_net_r": -0.03063,
+        "win_rate": 0.268,
+        "t": -11.97,
         "p": 0.0
       },
       "verdict": "NOISE"
     },
     {
-      "dimension": "underlying_x_flow",
-      "cohort": "BANKNIFTY:LONG_UNWINDING",
+      "dimension": "flow_x_score",
+      "cohort": "LONG_UNWINDING:score:50-70",
       "train": {
-        "n": 492,
-        "mean_net_r": -0.00409,
-        "win_rate": 0.069,
-        "t": -2.18,
-        "p": 0.02913
+        "n": 99,
+        "mean_net_r": -0.03298,
+        "win_rate": 0.141,
+        "t": -2.17,
+        "p": 0.03029
       },
       "holdout": {
-        "n": 104,
-        "mean_net_r": -0.0072,
-        "win_rate": 0.356,
-        "t": -1.15,
-        "p": 0.24946
+        "n": 44,
+        "mean_net_r": -0.01646,
+        "win_rate": 0.295,
+        "t": -0.8,
+        "p": 0.42635
       },
       "verdict": "NOISE"
     },
@@ -738,77 +662,20 @@
       "verdict": "NOISE"
     },
     {
-      "dimension": "score_band",
-      "cohort": "score:50-70",
+      "dimension": "underlying",
+      "cohort": "BANKNIFTY",
       "train": {
-        "n": 988,
-        "mean_net_r": -0.01482,
-        "win_rate": 0.19,
-        "t": -2.32,
-        "p": 0.02039
+        "n": 4530,
+        "mean_net_r": -0.00444,
+        "win_rate": 0.098,
+        "t": -2.35,
+        "p": 0.01888
       },
       "holdout": {
-        "n": 680,
-        "mean_net_r": -0.03725,
-        "win_rate": 0.31,
-        "t": -7.42,
-        "p": 0.0
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "flow_x_dte",
-      "cohort": "LONG_UNWINDING:dte:0",
-      "train": {
-        "n": 187,
-        "mean_net_r": -0.02342,
-        "win_rate": 0.027,
-        "t": -2.48,
-        "p": 0.01316
-      },
-      "holdout": {
-        "n": 8,
-        "mean_net_r": -0.42141,
-        "win_rate": 0.125,
-        "t": -2.58,
-        "p": 0.00979
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "option_type",
-      "cohort": "PE",
-      "train": {
-        "n": 6178,
-        "mean_net_r": -0.0055,
-        "win_rate": 0.07,
-        "t": -2.75,
-        "p": 0.00591
-      },
-      "holdout": {
-        "n": 2754,
-        "mean_net_r": -0.02374,
-        "win_rate": 0.299,
-        "t": -10.1,
-        "p": 0.0
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "direction",
-      "cohort": "BEARISH",
-      "train": {
-        "n": 6178,
-        "mean_net_r": -0.0055,
-        "win_rate": 0.07,
-        "t": -2.75,
-        "p": 0.00591
-      },
-      "holdout": {
-        "n": 2754,
-        "mean_net_r": -0.02374,
-        "win_rate": 0.299,
-        "t": -10.1,
+        "n": 3122,
+        "mean_net_r": -0.0182,
+        "win_rate": 0.331,
+        "t": -16.62,
         "p": 0.0
       },
       "verdict": "NOISE"
@@ -829,6 +696,21 @@
       "verdict": "NOISE"
     },
     {
+      "dimension": "premium_bucket",
+      "cohort": "premium:lt5",
+      "train": {
+        "n": 657,
+        "mean_net_r": -0.0134,
+        "win_rate": 0.006,
+        "t": -2.85,
+        "p": 0.00442
+      },
+      "holdout": {
+        "n": 0
+      },
+      "verdict": "NOISE"
+    },
+    {
       "dimension": "flow_x_dte",
       "cohort": "LONG_UNWINDING:dte:3-7",
       "train": {
@@ -839,45 +721,64 @@
         "p": 0.00295
       },
       "holdout": {
+        "n": 181,
+        "mean_net_r": -0.01627,
+        "win_rate": 0.348,
+        "t": -4.41,
+        "p": 1e-05
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "dimension": "flow_x_dte",
+      "cohort": "LONG_UNWINDING:dte:0",
+      "train": {
+        "n": 195,
+        "mean_net_r": -0.03975,
+        "win_rate": 0.031,
+        "t": -3.21,
+        "p": 0.00134
+      },
+      "holdout": {
         "n": 0
       },
       "verdict": "NOISE"
     },
     {
+      "dimension": "signal",
+      "cohort": "WATCH",
+      "train": {
+        "n": 9012,
+        "mean_net_r": -0.0058,
+        "win_rate": 0.1,
+        "t": -3.73,
+        "p": 0.00019
+      },
+      "holdout": {
+        "n": 5563,
+        "mean_net_r": -0.02294,
+        "win_rate": 0.311,
+        "t": -26.58,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
       "dimension": "flow_x_score",
       "cohort": "SHORT_COVERING:score:70-85",
       "train": {
-        "n": 310,
-        "mean_net_r": -0.01686,
-        "win_rate": 0.048,
-        "t": -3.27,
-        "p": 0.00107
+        "n": 326,
+        "mean_net_r": -0.01944,
+        "win_rate": 0.074,
+        "t": -3.78,
+        "p": 0.00016
       },
       "holdout": {
-        "n": 38,
-        "mean_net_r": -0.02936,
-        "win_rate": 0.474,
-        "t": -1.39,
-        "p": 0.16562
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "dimension": "underlying_x_flow",
-      "cohort": "NIFTY:LONG_UNWINDING",
-      "train": {
-        "n": 522,
-        "mean_net_r": -0.00832,
-        "win_rate": 0.015,
-        "t": -3.65,
-        "p": 0.00026
-      },
-      "holdout": {
-        "n": 169,
-        "mean_net_r": -0.03529,
-        "win_rate": 0.32,
-        "t": -2.97,
-        "p": 0.00298
+        "n": 37,
+        "mean_net_r": -0.0643,
+        "win_rate": 0.405,
+        "t": -1.99,
+        "p": 0.04645
       },
       "verdict": "HURTS"
     },
@@ -892,25 +793,29 @@
         "p": 8e-05
       },
       "holdout": {
-        "n": 0
+        "n": 442,
+        "mean_net_r": -0.02964,
+        "win_rate": 0.269,
+        "t": -11.38,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "underlying",
-      "cohort": "NIFTY",
+      "dimension": "flow_x_score",
+      "cohort": "SHORT_BUILDUP:score:lt50",
       "train": {
-        "n": 4028,
-        "mean_net_r": -0.00903,
-        "win_rate": 0.081,
-        "t": -4.07,
-        "p": 5e-05
+        "n": 2954,
+        "mean_net_r": -0.00681,
+        "win_rate": 0.116,
+        "t": -3.99,
+        "p": 7e-05
       },
       "holdout": {
-        "n": 3076,
-        "mean_net_r": -0.02819,
-        "win_rate": 0.286,
-        "t": -13.5,
+        "n": 2401,
+        "mean_net_r": -0.02011,
+        "win_rate": 0.327,
+        "t": -15.49,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -919,36 +824,93 @@
       "dimension": "underlying_x_flow",
       "cohort": "FINNIFTY:LONG_UNWINDING",
       "train": {
-        "n": 473,
-        "mean_net_r": -0.01343,
-        "win_rate": 0.03,
-        "t": -4.21,
-        "p": 3e-05
+        "n": 525,
+        "mean_net_r": -0.01327,
+        "win_rate": 0.067,
+        "t": -4.29,
+        "p": 2e-05
       },
       "holdout": {
-        "n": 169,
-        "mean_net_r": -0.02139,
-        "win_rate": 0.349,
-        "t": -4.09,
-        "p": 4e-05
+        "n": 343,
+        "mean_net_r": -0.03133,
+        "win_rate": 0.297,
+        "t": -9.52,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "dimension": "underlying_x_flow",
-      "cohort": "NIFTY:LONG_BUILDUP",
+      "cohort": "NIFTY:LONG_UNWINDING",
       "train": {
-        "n": 771,
-        "mean_net_r": -0.01178,
-        "win_rate": 0.071,
-        "t": -4.51,
+        "n": 608,
+        "mean_net_r": -0.01575,
+        "win_rate": 0.054,
+        "t": -4.43,
         "p": 1e-05
       },
       "holdout": {
-        "n": 408,
-        "mean_net_r": -0.02792,
-        "win_rate": 0.279,
-        "t": -6.04,
+        "n": 161,
+        "mean_net_r": -0.01304,
+        "win_rate": 0.342,
+        "t": -1.7,
+        "p": 0.08877
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "score_band",
+      "cohort": "score:50-70",
+      "train": {
+        "n": 1292,
+        "mean_net_r": -0.0244,
+        "win_rate": 0.215,
+        "t": -4.5,
+        "p": 1e-05
+      },
+      "holdout": {
+        "n": 1033,
+        "mean_net_r": -0.02362,
+        "win_rate": 0.339,
+        "t": -9.57,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "option_type",
+      "cohort": "PE",
+      "train": {
+        "n": 7218,
+        "mean_net_r": -0.0086,
+        "win_rate": 0.099,
+        "t": -4.52,
+        "p": 1e-05
+      },
+      "holdout": {
+        "n": 4955,
+        "mean_net_r": -0.02436,
+        "win_rate": 0.337,
+        "t": -25.05,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "direction",
+      "cohort": "BEARISH",
+      "train": {
+        "n": 7218,
+        "mean_net_r": -0.0086,
+        "win_rate": 0.099,
+        "t": -4.52,
+        "p": 1e-05
+      },
+      "holdout": {
+        "n": 4955,
+        "mean_net_r": -0.02436,
+        "win_rate": 0.337,
+        "t": -25.05,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -957,18 +919,18 @@
       "dimension": "flow_x_score",
       "cohort": "LONG_BUILDUP:score:70-85",
       "train": {
-        "n": 204,
-        "mean_net_r": -0.0331,
-        "win_rate": 0.054,
-        "t": -4.54,
-        "p": 1e-05
+        "n": 218,
+        "mean_net_r": -0.0339,
+        "win_rate": 0.078,
+        "t": -4.64,
+        "p": 0.0
       },
       "holdout": {
-        "n": 39,
-        "mean_net_r": -0.00397,
-        "win_rate": 0.513,
-        "t": -0.21,
-        "p": 0.83151
+        "n": 40,
+        "mean_net_r": -0.04581,
+        "win_rate": 0.375,
+        "t": -2.04,
+        "p": 0.04108
       },
       "verdict": "HURTS"
     },
@@ -983,7 +945,30 @@
         "p": 0.0
       },
       "holdout": {
-        "n": 0
+        "n": 589,
+        "mean_net_r": -0.02091,
+        "win_rate": 0.334,
+        "t": -9.08,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "underlying_x_flow",
+      "cohort": "NIFTY:LONG_BUILDUP",
+      "train": {
+        "n": 908,
+        "mean_net_r": -0.01447,
+        "win_rate": 0.104,
+        "t": -5.04,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 756,
+        "mean_net_r": -0.03076,
+        "win_rate": 0.283,
+        "t": -11.87,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
@@ -991,74 +976,74 @@
       "dimension": "flow_x_score",
       "cohort": "SHORT_COVERING:score:50-70",
       "train": {
-        "n": 318,
-        "mean_net_r": -0.04784,
-        "win_rate": 0.198,
-        "t": -4.87,
+        "n": 428,
+        "mean_net_r": -0.04422,
+        "win_rate": 0.217,
+        "t": -5.15,
         "p": 0.0
       },
       "holdout": {
-        "n": 268,
-        "mean_net_r": -0.02472,
-        "win_rate": 0.325,
-        "t": -3.15,
-        "p": 0.00163
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow_x_score",
-      "cohort": "LONG_BUILDUP:score:50-70",
-      "train": {
-        "n": 178,
-        "mean_net_r": -0.03711,
-        "win_rate": 0.135,
-        "t": -5.08,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 145,
-        "mean_net_r": -0.05066,
-        "win_rate": 0.248,
-        "t": -6.59,
+        "n": 477,
+        "mean_net_r": -0.02059,
+        "win_rate": 0.342,
+        "t": -6.13,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "flow_x_score",
-      "cohort": "SHORT_BUILDUP:score:lt50",
+      "dimension": "flow_x_dte",
+      "cohort": "SHORT_BUILDUP:dte:8plus",
       "train": {
-        "n": 2671,
-        "mean_net_r": -0.00766,
-        "win_rate": 0.089,
+        "n": 1539,
+        "mean_net_r": -0.00895,
+        "win_rate": 0.193,
         "t": -5.22,
         "p": 0.0
       },
       "holdout": {
-        "n": 1010,
-        "mean_net_r": -0.01162,
-        "win_rate": 0.348,
-        "t": -3.39,
-        "p": 0.0007
+        "n": 2058,
+        "mean_net_r": -0.01992,
+        "win_rate": 0.328,
+        "t": -13.31,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "dimension": "underlying_x_flow",
-      "cohort": "FINNIFTY:SHORT_COVERING",
+      "cohort": "NIFTY:SHORT_COVERING",
       "train": {
-        "n": 653,
-        "mean_net_r": -0.0214,
-        "win_rate": 0.025,
-        "t": -5.38,
+        "n": 1159,
+        "mean_net_r": -0.02215,
+        "win_rate": 0.167,
+        "t": -5.73,
         "p": 0.0
       },
       "holdout": {
-        "n": 249,
-        "mean_net_r": -0.0348,
-        "win_rate": 0.269,
-        "t": -7.1,
+        "n": 1019,
+        "mean_net_r": -0.02859,
+        "win_rate": 0.286,
+        "t": -12.81,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "flow_x_dte",
+      "cohort": "SHORT_COVERING:dte:8plus",
+      "train": {
+        "n": 1218,
+        "mean_net_r": -0.01609,
+        "win_rate": 0.156,
+        "t": -5.78,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 1971,
+        "mean_net_r": -0.02366,
+        "win_rate": 0.321,
+        "t": -14.73,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1067,93 +1052,36 @@
       "dimension": "underlying_x_flow",
       "cohort": "BANKNIFTY:LONG_BUILDUP",
       "train": {
-        "n": 791,
-        "mean_net_r": -0.0171,
+        "n": 854,
+        "mean_net_r": -0.01688,
+        "win_rate": 0.11,
+        "t": -5.85,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 572,
+        "mean_net_r": -0.02312,
+        "win_rate": 0.313,
+        "t": -10.08,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "flow_x_score",
+      "cohort": "LONG_BUILDUP:score:lt50",
+      "train": {
+        "n": 2094,
+        "mean_net_r": -0.00882,
         "win_rate": 0.091,
-        "t": -5.59,
+        "t": -6.02,
         "p": 0.0
       },
       "holdout": {
-        "n": 218,
-        "mean_net_r": -0.01745,
-        "win_rate": 0.307,
-        "t": -4.44,
-        "p": 1e-05
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "underlying",
-      "cohort": "FINNIFTY",
-      "train": {
-        "n": 4077,
-        "mean_net_r": -0.01028,
-        "win_rate": 0.049,
-        "t": -5.7,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1232,
-        "mean_net_r": -0.02854,
-        "win_rate": 0.262,
-        "t": -11.45,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow",
-      "cohort": "LONG_UNWINDING",
-      "train": {
-        "n": 1487,
-        "mean_net_r": -0.00854,
-        "win_rate": 0.038,
-        "t": -5.95,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 442,
-        "mean_net_r": -0.02336,
-        "win_rate": 0.339,
-        "t": -4.5,
-        "p": 1e-05
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "tradable",
-      "cohort": "0",
-      "train": {
-        "n": 12311,
-        "mean_net_r": -0.00683,
-        "win_rate": 0.071,
-        "t": -5.95,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 5543,
-        "mean_net_r": -0.02534,
-        "win_rate": 0.289,
-        "t": -18.6,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "underlying_x_flow",
-      "cohort": "BANKNIFTY:SHORT_COVERING",
-      "train": {
-        "n": 892,
-        "mean_net_r": -0.01701,
-        "win_rate": 0.086,
-        "t": -5.97,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 374,
-        "mean_net_r": -0.02177,
-        "win_rate": 0.283,
-        "t": -6.68,
+        "n": 1559,
+        "mean_net_r": -0.02901,
+        "win_rate": 0.274,
+        "t": -18.95,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1174,6 +1102,25 @@
       "verdict": "HURTS"
     },
     {
+      "dimension": "flow_x_score",
+      "cohort": "LONG_UNWINDING:score:lt50",
+      "train": {
+        "n": 1426,
+        "mean_net_r": -0.01051,
+        "win_rate": 0.064,
+        "t": -6.24,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 737,
+        "mean_net_r": -0.02287,
+        "win_rate": 0.338,
+        "t": -9.8,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
       "dimension": "flow_x_dte",
       "cohort": "SHORT_COVERING:dte:3-7",
       "train": {
@@ -1184,44 +1131,124 @@
         "p": 0.0
       },
       "holdout": {
-        "n": 0
+        "n": 518,
+        "mean_net_r": -0.03909,
+        "win_rate": 0.178,
+        "t": -17.62,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "flow_x_score",
-      "cohort": "LONG_BUILDUP:score:lt50",
+      "dimension": "underlying",
+      "cohort": "FINNIFTY",
       "train": {
-        "n": 1887,
-        "mean_net_r": -0.00814,
-        "win_rate": 0.07,
-        "t": -6.36,
+        "n": 4379,
+        "mean_net_r": -0.01108,
+        "win_rate": 0.065,
+        "t": -6.25,
         "p": 0.0
       },
       "holdout": {
-        "n": 693,
-        "mean_net_r": -0.02419,
-        "win_rate": 0.258,
-        "t": -7.51,
+        "n": 3102,
+        "mean_net_r": -0.03222,
+        "win_rate": 0.267,
+        "t": -27.97,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "flow_x_score",
-      "cohort": "LONG_UNWINDING:score:lt50",
+      "dimension": "underlying_x_flow",
+      "cohort": "FINNIFTY:SHORT_COVERING",
       "train": {
-        "n": 1291,
-        "mean_net_r": -0.00768,
+        "n": 716,
+        "mean_net_r": -0.02428,
         "win_rate": 0.036,
-        "t": -6.51,
+        "t": -6.33,
         "p": 0.0
       },
       "holdout": {
-        "n": 392,
-        "mean_net_r": -0.02549,
+        "n": 587,
+        "mean_net_r": -0.03388,
+        "win_rate": 0.271,
+        "t": -13.02,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "flow_x_dte",
+      "cohort": "LONG_UNWINDING:dte:8plus",
+      "train": {
+        "n": 716,
+        "mean_net_r": -0.00984,
+        "win_rate": 0.133,
+        "t": -6.4,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 608,
+        "mean_net_r": -0.02389,
         "win_rate": 0.334,
-        "t": -4.87,
+        "t": -7.78,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "flow_x_score",
+      "cohort": "LONG_BUILDUP:score:50-70",
+      "train": {
+        "n": 232,
+        "mean_net_r": -0.04243,
+        "win_rate": 0.155,
+        "t": -6.43,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 305,
+        "mean_net_r": -0.0321,
+        "win_rate": 0.321,
+        "t": -7.22,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "flow",
+      "cohort": "LONG_UNWINDING",
+      "train": {
+        "n": 1645,
+        "mean_net_r": -0.0113,
+        "win_rate": 0.066,
+        "t": -6.46,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 789,
+        "mean_net_r": -0.02214,
+        "win_rate": 0.337,
+        "t": -8.8,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "flow_x_dte",
+      "cohort": "LONG_BUILDUP:dte:8plus",
+      "train": {
+        "n": 1095,
+        "mean_net_r": -0.01283,
+        "win_rate": 0.161,
+        "t": -6.62,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 1463,
+        "mean_net_r": -0.02988,
+        "win_rate": 0.288,
+        "t": -16.52,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1230,94 +1257,56 @@
       "dimension": "underlying_x_flow",
       "cohort": "FINNIFTY:LONG_BUILDUP",
       "train": {
-        "n": 725,
-        "mean_net_r": -0.01933,
-        "win_rate": 0.055,
-        "t": -6.85,
+        "n": 800,
+        "mean_net_r": -0.02007,
+        "win_rate": 0.07,
+        "t": -6.62,
         "p": 0.0
       },
       "holdout": {
-        "n": 252,
-        "mean_net_r": -0.03589,
-        "win_rate": 0.218,
-        "t": -5.69,
+        "n": 577,
+        "mean_net_r": -0.03525,
+        "win_rate": 0.256,
+        "t": -12.3,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "dimension": "underlying_x_flow",
-      "cohort": "NIFTY:SHORT_COVERING",
+      "cohort": "FINNIFTY:NEUTRAL",
       "train": {
-        "n": 864,
-        "mean_net_r": -0.02666,
-        "win_rate": 0.119,
-        "t": -7.53,
+        "n": 1240,
+        "mean_net_r": -0.01009,
+        "win_rate": 0.048,
+        "t": -6.67,
         "p": 0.0
       },
       "holdout": {
-        "n": 711,
-        "mean_net_r": -0.01755,
-        "win_rate": 0.295,
-        "t": -3.59,
-        "p": 0.00033
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow_x_dte",
-      "cohort": "LONG_BUILDUP:dte:0",
-      "train": {
-        "n": 132,
-        "mean_net_r": -0.16146,
-        "win_rate": 0.053,
-        "t": -7.68,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 18,
-        "mean_net_r": -0.09579,
-        "win_rate": 0.5,
-        "t": -1.82,
-        "p": 0.0685
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow_x_dte",
-      "cohort": "LONG_UNWINDING:dte:8plus",
-      "train": {
-        "n": 566,
-        "mean_net_r": -0.00801,
-        "win_rate": 0.078,
-        "t": -7.79,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 434,
-        "mean_net_r": -0.01603,
-        "win_rate": 0.343,
-        "t": -4.42,
-        "p": 1e-05
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "score_band",
-      "cohort": "score:85plus",
-      "train": {
-        "n": 47,
-        "mean_net_r": -0.33159,
-        "win_rate": 0.085,
-        "t": -8.11,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 8,
-        "mean_net_r": -0.06129,
+        "n": 972,
+        "mean_net_r": -0.03276,
         "win_rate": 0.25,
-        "t": -2.7,
-        "p": 0.007
+        "t": -15.71,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "underlying_x_flow",
+      "cohort": "BANKNIFTY:SHORT_COVERING",
+      "train": {
+        "n": 965,
+        "mean_net_r": -0.01917,
+        "win_rate": 0.093,
+        "t": -7.07,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 883,
+        "mean_net_r": -0.02023,
+        "win_rate": 0.311,
+        "t": -9.07,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
@@ -1325,55 +1314,104 @@
       "dimension": "flow_x_dte",
       "cohort": "SHORT_COVERING:dte:0",
       "train": {
-        "n": 188,
-        "mean_net_r": -0.16088,
-        "win_rate": 0.037,
-        "t": -8.12,
+        "n": 209,
+        "mean_net_r": -0.14463,
+        "win_rate": 0.096,
+        "t": -7.66,
         "p": 0.0
       },
       "holdout": {
-        "n": 21,
-        "mean_net_r": 0.00079,
-        "win_rate": 0.619,
-        "t": 0.01,
-        "p": 0.98804
+        "n": 0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "option_type",
-      "cohort": "CE",
+      "dimension": "flow_x_score",
+      "cohort": "SHORT_COVERING:score:lt50",
       "train": {
-        "n": 6174,
-        "mean_net_r": -0.00969,
-        "win_rate": 0.072,
-        "t": -8.31,
+        "n": 2061,
+        "mean_net_r": -0.01402,
+        "win_rate": 0.093,
+        "t": -7.78,
         "p": 0.0
       },
       "holdout": {
-        "n": 2789,
-        "mean_net_r": -0.02692,
-        "win_rate": 0.279,
-        "t": -19.33,
+        "n": 1975,
+        "mean_net_r": -0.02769,
+        "win_rate": 0.277,
+        "t": -20.07,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "direction",
-      "cohort": "BULLISH",
+      "dimension": "flow_x_dte",
+      "cohort": "LONG_BUILDUP:dte:0",
       "train": {
-        "n": 6174,
-        "mean_net_r": -0.00969,
-        "win_rate": 0.072,
-        "t": -8.31,
+        "n": 150,
+        "mean_net_r": -0.15358,
+        "win_rate": 0.107,
+        "t": -7.85,
         "p": 0.0
       },
       "holdout": {
-        "n": 2789,
-        "mean_net_r": -0.02692,
-        "win_rate": 0.279,
-        "t": -19.33,
+        "n": 0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "score_band",
+      "cohort": "score:85plus",
+      "train": {
+        "n": 54,
+        "mean_net_r": -0.29823,
+        "win_rate": 0.093,
+        "t": -7.94,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 1,
+        "mean_net_r": 0.02904,
+        "win_rate": 1.0,
+        "t": 0.0,
+        "p": 1.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "underlying",
+      "cohort": "NIFTY",
+      "train": {
+        "n": 5505,
+        "mean_net_r": -0.01614,
+        "win_rate": 0.132,
+        "t": -8.23,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 3733,
+        "mean_net_r": -0.02533,
+        "win_rate": 0.304,
+        "t": -22.2,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "signal",
+      "cohort": "BUY_PE",
+      "train": {
+        "n": 2720,
+        "mean_net_r": -0.01673,
+        "win_rate": 0.099,
+        "t": -8.36,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 2170,
+        "mean_net_r": -0.02887,
+        "win_rate": 0.319,
+        "t": -19.88,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1389,25 +1427,48 @@
         "p": 0.0
       },
       "holdout": {
-        "n": 0
+        "n": 2186,
+        "mean_net_r": -0.02863,
+        "win_rate": 0.271,
+        "t": -24.72,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "premium_bucket",
-      "cohort": "premium:ge35",
+      "dimension": "tradable",
+      "cohort": "0",
       "train": {
-        "n": 10469,
-        "mean_net_r": -0.0079,
-        "win_rate": 0.074,
-        "t": -9.41,
+        "n": 14373,
+        "mean_net_r": -0.01028,
+        "win_rate": 0.101,
+        "t": -9.43,
         "p": 0.0
       },
       "holdout": {
-        "n": 5511,
-        "mean_net_r": -0.02372,
-        "win_rate": 0.289,
-        "t": -19.54,
+        "n": 9957,
+        "mean_net_r": -0.02524,
+        "win_rate": 0.301,
+        "t": -38.37,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "strategy",
+      "cohort": "single_strike_flow",
+      "train": {
+        "n": 14414,
+        "mean_net_r": -0.01092,
+        "win_rate": 0.101,
+        "t": -9.95,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 9957,
+        "mean_net_r": -0.02524,
+        "win_rate": 0.301,
+        "t": -38.37,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1416,112 +1477,17 @@
       "dimension": "flow",
       "cohort": "LONG_BUILDUP",
       "train": {
-        "n": 2287,
-        "mean_net_r": -0.01601,
-        "win_rate": 0.073,
-        "t": -9.75,
+        "n": 2562,
+        "mean_net_r": -0.01702,
+        "win_rate": 0.095,
+        "t": -10.07,
         "p": 0.0
       },
       "holdout": {
-        "n": 878,
-        "mean_net_r": -0.0276,
-        "win_rate": 0.269,
-        "t": -9.27,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow_x_dte",
-      "cohort": "LONG_BUILDUP:dte:8plus",
-      "train": {
-        "n": 838,
-        "mean_net_r": -0.01048,
-        "win_rate": 0.129,
-        "t": -9.77,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 860,
-        "mean_net_r": -0.02618,
-        "win_rate": 0.264,
-        "t": -9.26,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "signal",
-      "cohort": "BUY_CE",
-      "train": {
-        "n": 2342,
-        "mean_net_r": -0.01923,
-        "win_rate": 0.084,
-        "t": -9.88,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1119,
-        "mean_net_r": -0.03036,
-        "win_rate": 0.256,
-        "t": -15.13,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow_x_score",
-      "cohort": "SHORT_COVERING:score:lt50",
-      "train": {
-        "n": 1758,
-        "mean_net_r": -0.01394,
-        "win_rate": 0.067,
-        "t": -10.02,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1026,
-        "mean_net_r": -0.02085,
-        "win_rate": 0.271,
-        "t": -6.76,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "flow_x_dte",
-      "cohort": "SHORT_BUILDUP:dte:8plus",
-      "train": {
-        "n": 1152,
-        "mean_net_r": -0.0094,
-        "win_rate": 0.129,
-        "t": -10.36,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1234,
-        "mean_net_r": -0.01394,
-        "win_rate": 0.344,
-        "t": -5.88,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "signal",
-      "cohort": "BUY_PE",
-      "train": {
-        "n": 2354,
-        "mean_net_r": -0.01859,
-        "win_rate": 0.071,
-        "t": -10.96,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1093,
-        "mean_net_r": -0.01788,
-        "win_rate": 0.304,
-        "t": -4.77,
+        "n": 1905,
+        "mean_net_r": -0.02983,
+        "win_rate": 0.284,
+        "t": -19.69,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1530,36 +1496,112 @@
       "dimension": "flow",
       "cohort": "SHORT_COVERING",
       "train": {
-        "n": 2409,
-        "mean_net_r": -0.02166,
-        "win_rate": 0.081,
-        "t": -10.98,
+        "n": 2840,
+        "mean_net_r": -0.02168,
+        "win_rate": 0.109,
+        "t": -10.49,
         "p": 0.0
       },
       "holdout": {
-        "n": 1334,
-        "mean_net_r": -0.02195,
-        "win_rate": 0.287,
-        "t": -7.54,
+        "n": 2489,
+        "mean_net_r": -0.02687,
+        "win_rate": 0.291,
+        "t": -19.77,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
-      "dimension": "flow_x_dte",
-      "cohort": "SHORT_COVERING:dte:8plus",
+      "dimension": "option_type",
+      "cohort": "CE",
       "train": {
-        "n": 808,
-        "mean_net_r": -0.01264,
-        "win_rate": 0.11,
-        "t": -11.41,
+        "n": 7196,
+        "mean_net_r": -0.01326,
+        "win_rate": 0.103,
+        "t": -12.13,
         "p": 0.0
       },
       "holdout": {
-        "n": 1313,
-        "mean_net_r": -0.02232,
-        "win_rate": 0.282,
-        "t": -7.87,
+        "n": 5002,
+        "mean_net_r": -0.02611,
+        "win_rate": 0.265,
+        "t": -29.46,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "direction",
+      "cohort": "BULLISH",
+      "train": {
+        "n": 7196,
+        "mean_net_r": -0.01326,
+        "win_rate": 0.103,
+        "t": -12.13,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 5002,
+        "mean_net_r": -0.02611,
+        "win_rate": 0.265,
+        "t": -29.46,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "signal",
+      "cohort": "BUY_CE",
+      "train": {
+        "n": 2682,
+        "mean_net_r": -0.02224,
+        "win_rate": 0.107,
+        "t": -12.29,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 2224,
+        "mean_net_r": -0.02746,
+        "win_rate": 0.258,
+        "t": -19.45,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "underlying_x_flow",
+      "cohort": "NIFTY:NEUTRAL",
+      "train": {
+        "n": 1336,
+        "mean_net_r": -0.02394,
+        "win_rate": 0.129,
+        "t": -12.87,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 742,
+        "mean_net_r": -0.0234,
+        "win_rate": 0.288,
+        "t": -11.68,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "dimension": "premium_bucket",
+      "cohort": "premium:ge35",
+      "train": {
+        "n": 12499,
+        "mean_net_r": -0.01093,
+        "win_rate": 0.108,
+        "t": -12.99,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 9809,
+        "mean_net_r": -0.0249,
+        "win_rate": 0.302,
+        "t": -37.76,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1568,17 +1610,17 @@
       "dimension": "flow_x_score",
       "cohort": "NEUTRAL:score:lt50",
       "train": {
-        "n": 2604,
-        "mean_net_r": -0.00543,
-        "win_rate": 0.028,
-        "t": -13.45,
+        "n": 3367,
+        "mean_net_r": -0.01319,
+        "win_rate": 0.075,
+        "t": -14.04,
         "p": 0.0
       },
       "holdout": {
-        "n": 1604,
-        "mean_net_r": -0.03191,
-        "win_rate": 0.245,
-        "t": -15.87,
+        "n": 2122,
+        "mean_net_r": -0.02677,
+        "win_rate": 0.278,
+        "t": -20.42,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1587,36 +1629,17 @@
       "dimension": "flow",
       "cohort": "NEUTRAL",
       "train": {
-        "n": 2607,
-        "mean_net_r": -0.00546,
-        "win_rate": 0.029,
-        "t": -13.5,
+        "n": 3372,
+        "mean_net_r": -0.01331,
+        "win_rate": 0.075,
+        "t": -14.14,
         "p": 0.0
       },
       "holdout": {
-        "n": 1609,
-        "mean_net_r": -0.03206,
-        "win_rate": 0.245,
-        "t": -15.95,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "dimension": "underlying_x_flow",
-      "cohort": "FINNIFTY:NEUTRAL",
-      "train": {
-        "n": 1198,
-        "mean_net_r": -0.01109,
-        "win_rate": 0.041,
-        "t": -14.27,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 315,
-        "mean_net_r": -0.02852,
-        "win_rate": 0.206,
-        "t": -4.66,
+        "n": 2127,
+        "mean_net_r": -0.02671,
+        "win_rate": 0.279,
+        "t": -20.42,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1625,17 +1648,17 @@
       "dimension": "flow_x_dte",
       "cohort": "NEUTRAL:dte:8plus",
       "train": {
-        "n": 632,
-        "mean_net_r": -0.02139,
-        "win_rate": 0.108,
-        "t": -15.21,
+        "n": 1397,
+        "mean_net_r": -0.03163,
+        "win_rate": 0.175,
+        "t": -14.59,
         "p": 0.0
       },
       "holdout": {
-        "n": 1609,
-        "mean_net_r": -0.03206,
-        "win_rate": 0.245,
-        "t": -15.95,
+        "n": 1671,
+        "mean_net_r": -0.02564,
+        "win_rate": 0.282,
+        "t": -16.97,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1644,17 +1667,17 @@
       "dimension": "score_band",
       "cohort": "score:lt50",
       "train": {
-        "n": 10211,
-        "mean_net_r": -0.00826,
-        "win_rate": 0.059,
-        "t": -15.23,
+        "n": 11902,
+        "mean_net_r": -0.01066,
+        "win_rate": 0.09,
+        "t": -15.8,
         "p": 0.0
       },
       "holdout": {
-        "n": 4725,
-        "mean_net_r": -0.02351,
-        "win_rate": 0.282,
-        "t": -17.17,
+        "n": 8794,
+        "mean_net_r": -0.02523,
+        "win_rate": 0.295,
+        "t": -38.26,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -1663,17 +1686,17 @@
       "dimension": "dte_bucket",
       "cohort": "dte:8plus",
       "train": {
-        "n": 3996,
-        "mean_net_r": -0.01198,
-        "win_rate": 0.115,
-        "t": -24.24,
+        "n": 5965,
+        "mean_net_r": -0.01654,
+        "win_rate": 0.168,
+        "t": -16.97,
         "p": 0.0
       },
       "holdout": {
-        "n": 5450,
-        "mean_net_r": -0.02341,
-        "win_rate": 0.287,
-        "t": -19.8,
+        "n": 7771,
+        "mean_net_r": -0.02429,
+        "win_rate": 0.309,
+        "t": -31.26,
         "p": 0.0
       },
       "verdict": "HURTS"

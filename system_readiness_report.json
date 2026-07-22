@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-21T15:49:30+0530",
+  "generated_at": "2026-07-22T05:43:01+0530",
   "mode": {
     "paper_training_only": true,
     "live_ready_count": 0,
@@ -7,26 +7,26 @@
     "live_block_reason": "no_strategy_passed_live_eligibility_manifest"
   },
   "scores": {
-    "data_pipeline": 91.5,
-    "data_pipeline_grade": "A",
-    "data_pipeline_raw_capability": 91.5,
+    "data_pipeline": 85.0,
+    "data_pipeline_grade": "B",
+    "data_pipeline_raw_capability": 85.0,
     "institutional": 59.0,
     "institutional_grade": "F",
-    "institutional_raw_capability": 83.0,
-    "option_bot": 95.0,
+    "institutional_raw_capability": 89.0,
+    "option_bot": 91.0,
     "option_bot_grade": "A",
-    "option_bot_capability": 95.0,
-    "option_bot_evidence": 95.0
+    "option_bot_capability": 91.0,
+    "option_bot_evidence": 91.0
   },
   "data": {
     "candle_1m_symbols": 193,
     "candle_1d_symbols": 196,
     "derived_daily_symbols": 193,
-    "bad_candle_groups": 30,
-    "stale_candle_groups": 30,
+    "bad_candle_groups": 773,
+    "stale_candle_groups": 773,
     "total_candle_groups": 969,
     "latest_option_snapshot_ok": "2026-07-21T15:30:26+0530",
-    "latest_option_snapshot_age_hours": 0.32
+    "latest_option_snapshot_age_hours": 14.21
   },
   "execution": {
     "trades": 12,
@@ -46,33 +46,33 @@
     "gross_pnl": -26.42,
     "net_pnl": -625.47,
     "profitable_trades": 0,
-    "broker_connected": true,
+    "broker_connected": false,
     "role": "execution_infrastructure_validation_only"
   },
   "learning": {
     "experiments_logged": 18,
-    "labelled_rows": 17993,
-    "labelled_days": 14,
+    "labelled_rows": 18804,
+    "labelled_days": 15,
     "target_labelled": 5000,
     "target_days": 15,
-    "custom_barrier_labels": 17995,
+    "custom_barrier_labels": 18806,
     "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
     "sample_source": "all_training_eligible_generated_signals",
-    "legacy_labelled_rows": 27073,
+    "legacy_labelled_rows": 27884,
     "shadow_portfolio": {
-      "generated_at": "2026-07-21T15:49:09+0530",
+      "generated_at": "2026-07-22T05:42:40+0530",
       "ok": true,
       "days": 30,
       "top_per_day": 5,
-      "labelled_seen": 17993,
-      "shadow_trades": 70,
-      "wins": 3,
-      "losses": 13,
-      "timeouts": 54,
-      "target_rate": 0.0429,
-      "rejected_wins": 3,
-      "total_net_r": -22.8162,
-      "average_net_r": -0.3259,
+      "labelled_seen": 18804,
+      "shadow_trades": 75,
+      "wins": 4,
+      "losses": 14,
+      "timeouts": 57,
+      "target_rate": 0.0533,
+      "rejected_wins": 4,
+      "total_net_r": -22.0107,
+      "average_net_r": -0.2935,
       "after_cost_positive": false,
       "top": [
         {
@@ -532,8 +532,8 @@
     "no_live_ready_strategy",
     "no_after_cost_statistical_edge",
     "paper_live_fill_comparisons_below_100",
+    "broker_connectivity_unverified",
     "release_integrity_unverified",
-    "labelled_days_below_target",
     "generated_signal_after_cost_edge_not_positive"
   ],
   "warnings": [
@@ -544,10 +544,10 @@
     "ok": false,
     "reason": "release_files_changed",
     "manifest_git_head": "d1cbb672d2ce989b4acb997d8aef64d7981909f9",
-    "current_git_head": "aa6d277251c17110efe86062ebbd85c1ed5df5d8",
+    "current_git_head": "5b2b18b3e7799b3e30ada5e4d124c7d697836221",
     "git_head_matches": false,
     "content_digest_matches": false,
-    "file_count": 583,
+    "file_count": 584,
     "missing": [],
     "added": [
       "autonomous_edge_policy.py",
@@ -599,14 +599,14 @@
       "live_signal_engine.py",
       "main_autonomous.py",
       "manual_trade_tracker.py",
+      "meta_labeler.py",
       "ml_feature_builder.py",
-      "ml_trainer.py",
-      "modifier_edge_analyzer.py"
+      "ml_trainer.py"
     ]
   },
   "assurance": {
     "indicator_lookahead": {
-      "generated_at": "2026-07-21T15:49:16+0530",
+      "generated_at": "2026-07-22T05:42:47+0530",
       "method": "full_history_vs_truncated_prefix",
       "sample": {
         "source": "candle_cache",
@@ -719,24 +719,25 @@
     },
     "stored_data_catalog": {
       "ok": true,
-      "databases": 19,
+      "databases": 20,
       "tables": 45,
-      "rows": 7133310,
+      "rows": 7153300,
       "issues": [],
       "empty_databases": [
-        "historical_options.db"
+        "historical_options.db",
+        "option_metrics.db"
       ]
     },
     "execution_audit_chain": {
       "ok": true,
       "path": "execution_compliance.jsonl",
-      "chained_rows": 17,
+      "chained_rows": 18,
       "legacy_rows": 0,
       "invalid_rows": 0,
-      "last_hash": "e84b0089ac51312fcc5deb07de752032cb5b0fe7bafd58e753703536cc6ad3ba"
+      "last_hash": "2db41081d2d5d4bf2bcee3d307a3514a443f32dd1da853ad6969c80d993fd410"
     },
     "ml_training_contract": {
-      "generated_at": "2026-07-21T15:49:30+0530",
+      "generated_at": "2026-07-22T05:43:01+0530",
       "training_contract": "all_generated_signals_v4_causal_representations",
       "checks": {
         "outcome_fields_excluded": true,
@@ -758,9 +759,9 @@
         "reason": "legacy_training_contract"
       },
       "clean_evidence": {
-        "legacy_labelled": 27073,
-        "clean_labelled": 17993,
-        "clean_days": 14
+        "legacy_labelled": 27884,
+        "clean_labelled": 18804,
+        "clean_days": 15
       },
       "promotion_targets": {
         "samples": 5000,

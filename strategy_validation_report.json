@@ -1,9 +1,10 @@
 {
-  "generated_at": "2026-07-21T15:45:11.071605",
+  "generated_at": "2026-07-21T22:26:34.472227",
   "breakeven_wr": 0.42,
   "total_strategies": 100,
   "edge_confirmed": [],
   "marginal": [
+    "breakout",
     "failed_bear_breakout",
     "chart_pattern_diamond_bottom"
   ],
@@ -18,7 +19,6 @@
     "chart_pattern_double_top",
     "chart_pattern_head_and_shoulders",
     "chart_pattern_inverse_head_shoulders",
-    "breakout",
     "alligator_ao",
     "vrvp_zone",
     "chart_pattern_diamond_top",
@@ -126,7 +126,7 @@
       "significant_edge": false,
       "max_consec_loss": 23,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:08.410704"
+      "generated_at": "2026-07-21T22:26:31.519987"
     },
     "chart_pattern_descending_triangle": {
       "strategy": "chart_pattern_descending_triangle",
@@ -144,25 +144,25 @@
       "significant_edge": false,
       "max_consec_loss": 15,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:08.543514"
+      "generated_at": "2026-07-21T22:26:31.665111"
     },
     "failed_bull_breakout": {
       "strategy": "failed_bull_breakout",
       "status": "NEGATIVE_EDGE",
-      "n": 78,
+      "n": 84,
       "n_days": 14,
-      "wins": 22,
-      "losses": 56,
-      "win_rate": 0.2821,
-      "ci_90_lo": 0.2051,
-      "ci_90_hi": 0.3718,
-      "profit_factor": 0.393,
-      "edge_score": -0.3284,
-      "p_value": 0.99511,
+      "wins": 23,
+      "losses": 61,
+      "win_rate": 0.2738,
+      "ci_90_lo": 0.2024,
+      "ci_90_hi": 0.3571,
+      "profit_factor": 0.377,
+      "edge_score": -0.3481,
+      "p_value": 0.99764,
       "significant_edge": false,
       "max_consec_loss": 16,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:08.597057"
+      "generated_at": "2026-07-21T22:26:31.726536"
     },
     "trend": {
       "strategy": "trend",
@@ -180,7 +180,7 @@
       "significant_edge": false,
       "max_consec_loss": 16,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:08.748174"
+      "generated_at": "2026-07-21T22:26:31.892276"
     },
     "rsi_divergence": {
       "strategy": "rsi_divergence",
@@ -190,7 +190,7 @@
       "wins": 42,
       "losses": 167,
       "win_rate": 0.201,
-      "ci_90_lo": 0.1579,
+      "ci_90_lo": 0.1627,
       "ci_90_hi": 0.2488,
       "profit_factor": 0.251,
       "edge_score": -0.5215,
@@ -198,43 +198,43 @@
       "significant_edge": false,
       "max_consec_loss": 47,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:08.885596"
+      "generated_at": "2026-07-21T22:26:32.039554"
     },
     "price_structure": {
       "strategy": "price_structure",
       "status": "NEGATIVE_EDGE",
-      "n": 693,
-      "n_days": 14,
-      "wins": 241,
-      "losses": 452,
-      "win_rate": 0.3478,
-      "ci_90_lo": 0.3189,
-      "ci_90_hi": 0.3795,
-      "profit_factor": 0.533,
-      "edge_score": -0.172,
-      "p_value": 0.99995,
+      "n": 700,
+      "n_days": 15,
+      "wins": 244,
+      "losses": 456,
+      "win_rate": 0.3486,
+      "ci_90_lo": 0.32,
+      "ci_90_hi": 0.38,
+      "profit_factor": 0.535,
+      "edge_score": -0.1701,
+      "p_value": 0.99994,
       "significant_edge": false,
       "max_consec_loss": 36,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.414602"
+      "generated_at": "2026-07-21T22:26:32.619609"
     },
     "chart_pattern_range_expansion": {
       "strategy": "chart_pattern_range_expansion",
       "status": "NEGATIVE_EDGE",
-      "n": 46,
-      "n_days": 13,
-      "wins": 14,
+      "n": 47,
+      "n_days": 14,
+      "wins": 15,
       "losses": 32,
-      "win_rate": 0.3043,
-      "ci_90_lo": 0.1957,
-      "ci_90_hi": 0.413,
-      "profit_factor": 0.438,
-      "edge_score": -0.2754,
-      "p_value": 0.95895,
+      "win_rate": 0.3191,
+      "ci_90_lo": 0.2128,
+      "ci_90_hi": 0.4255,
+      "profit_factor": 0.469,
+      "edge_score": -0.2401,
+      "p_value": 0.93926,
       "significant_edge": false,
       "max_consec_loss": 10,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.445347"
+      "generated_at": "2026-07-21T22:26:32.653019"
     },
     "chart_pattern_double_top": {
       "strategy": "chart_pattern_double_top",
@@ -245,32 +245,32 @@
       "losses": 56,
       "win_rate": 0.1884,
       "ci_90_lo": 0.1159,
-      "ci_90_hi": 0.2609,
+      "ci_90_hi": 0.2754,
       "profit_factor": 0.232,
       "edge_score": -0.5514,
       "p_value": 0.99997,
       "significant_edge": false,
       "max_consec_loss": 12,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.493486"
+      "generated_at": "2026-07-21T22:26:32.704248"
     },
     "chart_pattern_head_and_shoulders": {
       "strategy": "chart_pattern_head_and_shoulders",
       "status": "NEGATIVE_EDGE",
-      "n": 102,
-      "n_days": 14,
-      "wins": 25,
-      "losses": 77,
-      "win_rate": 0.2451,
-      "ci_90_lo": 0.1765,
-      "ci_90_hi": 0.3137,
+      "n": 106,
+      "n_days": 15,
+      "wins": 26,
+      "losses": 80,
+      "win_rate": 0.2453,
+      "ci_90_lo": 0.1792,
+      "ci_90_hi": 0.3208,
       "profit_factor": 0.325,
-      "edge_score": -0.4164,
-      "p_value": 0.99988,
+      "edge_score": -0.416,
+      "p_value": 0.99991,
       "significant_edge": false,
       "max_consec_loss": 17,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.560187"
+      "generated_at": "2026-07-21T22:26:32.779757"
     },
     "chart_pattern_inverse_head_shoulders": {
       "strategy": "chart_pattern_inverse_head_shoulders",
@@ -288,25 +288,25 @@
       "significant_edge": false,
       "max_consec_loss": 10,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.597643"
+      "generated_at": "2026-07-21T22:26:32.822327"
     },
     "breakout": {
       "strategy": "breakout",
-      "status": "NEGATIVE_EDGE",
-      "n": 110,
-      "n_days": 14,
-      "wins": 45,
-      "losses": 65,
-      "win_rate": 0.4091,
-      "ci_90_lo": 0.3364,
-      "ci_90_hi": 0.4909,
-      "profit_factor": 0.692,
-      "edge_score": -0.026,
-      "p_value": 0.6287,
+      "status": "MARGINAL",
+      "n": 116,
+      "n_days": 15,
+      "wins": 49,
+      "losses": 67,
+      "win_rate": 0.4224,
+      "ci_90_lo": 0.3534,
+      "ci_90_hi": 0.5,
+      "profit_factor": 0.731,
+      "edge_score": 0.0057,
+      "p_value": 0.51651,
       "significant_edge": false,
       "max_consec_loss": 10,
-      "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.669787"
+      "edge_above_breakeven": true,
+      "generated_at": "2026-07-21T22:26:32.903303"
     },
     "alligator_ao": {
       "strategy": "alligator_ao",
@@ -324,7 +324,7 @@
       "significant_edge": false,
       "max_consec_loss": 19,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.784859"
+      "generated_at": "2026-07-21T22:26:33.027963"
     },
     "vrvp_zone": {
       "strategy": "vrvp_zone",
@@ -342,61 +342,61 @@
       "significant_edge": false,
       "max_consec_loss": 14,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.910218"
+      "generated_at": "2026-07-21T22:26:33.164948"
     },
     "chart_pattern_diamond_top": {
       "strategy": "chart_pattern_diamond_top",
       "status": "NEGATIVE_EDGE",
-      "n": 21,
-      "n_days": 12,
+      "n": 22,
+      "n_days": 13,
       "wins": 5,
-      "losses": 16,
-      "win_rate": 0.2381,
-      "ci_90_lo": 0.0952,
-      "ci_90_hi": 0.381,
-      "profit_factor": 0.312,
-      "edge_score": -0.4331,
-      "p_value": 0.97193,
+      "losses": 17,
+      "win_rate": 0.2273,
+      "ci_90_lo": 0.0909,
+      "ci_90_hi": 0.3636,
+      "profit_factor": 0.294,
+      "edge_score": -0.4589,
+      "p_value": 0.9797,
       "significant_edge": false,
       "max_consec_loss": 7,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:09.924747"
+      "generated_at": "2026-07-21T22:26:33.181431"
     },
     "failed_bear_breakout": {
       "strategy": "failed_bear_breakout",
       "status": "MARGINAL",
-      "n": 76,
+      "n": 78,
       "n_days": 14,
       "wins": 39,
-      "losses": 37,
-      "win_rate": 0.5132,
-      "ci_90_lo": 0.4211,
-      "ci_90_hi": 0.6053,
-      "profit_factor": 1.054,
-      "edge_score": 0.2218,
-      "p_value": 0.0631,
+      "losses": 39,
+      "win_rate": 0.5,
+      "ci_90_lo": 0.3974,
+      "ci_90_hi": 0.5897,
+      "profit_factor": 1.0,
+      "edge_score": 0.1905,
+      "p_value": 0.09395,
       "significant_edge": false,
-      "max_consec_loss": 4,
+      "max_consec_loss": 6,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:09.976978"
+      "generated_at": "2026-07-21T22:26:33.239747"
     },
     "chart_pattern_ascending_triangle": {
       "strategy": "chart_pattern_ascending_triangle",
       "status": "NEGATIVE_EDGE",
-      "n": 206,
-      "n_days": 14,
-      "wins": 76,
-      "losses": 130,
-      "win_rate": 0.3689,
-      "ci_90_lo": 0.3107,
-      "ci_90_hi": 0.4223,
-      "profit_factor": 0.585,
-      "edge_score": -0.1216,
-      "p_value": 0.9401,
+      "n": 217,
+      "n_days": 15,
+      "wins": 79,
+      "losses": 138,
+      "win_rate": 0.3641,
+      "ci_90_lo": 0.3088,
+      "ci_90_hi": 0.4194,
+      "profit_factor": 0.572,
+      "edge_score": -0.1332,
+      "p_value": 0.95894,
       "significant_edge": false,
       "max_consec_loss": 22,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.111271"
+      "generated_at": "2026-07-21T22:26:33.392161"
     },
     "ttm_squeeze": {
       "strategy": "ttm_squeeze",
@@ -414,43 +414,43 @@
       "significant_edge": false,
       "max_consec_loss": 14,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.138723"
+      "generated_at": "2026-07-21T22:26:33.421794"
     },
     "cpr": {
       "strategy": "cpr",
       "status": "NEGATIVE_EDGE",
-      "n": 45,
-      "n_days": 12,
+      "n": 49,
+      "n_days": 13,
       "wins": 14,
-      "losses": 31,
-      "win_rate": 0.3111,
-      "ci_90_lo": 0.2,
-      "ci_90_hi": 0.4222,
-      "profit_factor": 0.452,
-      "edge_score": -0.2593,
-      "p_value": 0.94855,
+      "losses": 35,
+      "win_rate": 0.2857,
+      "ci_90_lo": 0.1837,
+      "ci_90_hi": 0.3878,
+      "profit_factor": 0.4,
+      "edge_score": -0.3197,
+      "p_value": 0.97978,
       "significant_edge": false,
       "max_consec_loss": 23,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.169058"
+      "generated_at": "2026-07-21T22:26:33.456925"
     },
     "chart_pattern_diamond_bottom": {
       "strategy": "chart_pattern_diamond_bottom",
       "status": "MARGINAL",
-      "n": 19,
-      "n_days": 7,
-      "wins": 10,
+      "n": 21,
+      "n_days": 8,
+      "wins": 12,
       "losses": 9,
-      "win_rate": 0.5263,
-      "ci_90_lo": 0.3158,
-      "ci_90_hi": 0.7368,
-      "profit_factor": 1.111,
-      "edge_score": 0.2531,
-      "p_value": 0.23993,
+      "win_rate": 0.5714,
+      "ci_90_lo": 0.381,
+      "ci_90_hi": 0.7619,
+      "profit_factor": 1.333,
+      "edge_score": 0.3605,
+      "p_value": 0.11803,
       "significant_edge": false,
       "max_consec_loss": 4,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:10.182500"
+      "generated_at": "2026-07-21T22:26:33.472606"
     },
     "candlestick_bullish_engulfing": {
       "strategy": "candlestick_bullish_engulfing",
@@ -460,7 +460,7 @@
       "wins": 14,
       "losses": 20,
       "win_rate": 0.4118,
-      "ci_90_lo": 0.2647,
+      "ci_90_lo": 0.2941,
       "ci_90_hi": 0.5588,
       "profit_factor": 0.7,
       "edge_score": -0.0196,
@@ -468,25 +468,25 @@
       "significant_edge": false,
       "max_consec_loss": 6,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.206741"
+      "generated_at": "2026-07-21T22:26:33.498570"
     },
     "candlestick_bullish_separating_lines": {
       "strategy": "candlestick_bullish_separating_lines",
       "status": "INSUFFICIENT_DATA",
-      "n": 2,
-      "n_days": 2,
-      "wins": 0,
-      "losses": 2,
-      "win_rate": 0.0,
+      "n": 4,
+      "n_days": 3,
+      "wins": 1,
+      "losses": 3,
+      "win_rate": 0.25,
       "ci_90_lo": 0.0,
-      "ci_90_hi": 0.0,
-      "profit_factor": 0.0,
-      "edge_score": -1.0,
-      "p_value": 0.97256,
+      "ci_90_hi": 0.75,
+      "profit_factor": 0.333,
+      "edge_score": -0.4048,
+      "p_value": 0.88403,
       "significant_edge": false,
-      "max_consec_loss": 2,
+      "max_consec_loss": 3,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.208563"
+      "generated_at": "2026-07-21T22:26:33.502105"
     },
     "chart_pattern_double_bottom": {
       "strategy": "chart_pattern_double_bottom",
@@ -497,32 +497,32 @@
       "losses": 58,
       "win_rate": 0.3256,
       "ci_90_lo": 0.2442,
-      "ci_90_hi": 0.4186,
+      "ci_90_hi": 0.407,
       "profit_factor": 0.483,
       "edge_score": -0.2248,
       "p_value": 0.97017,
       "significant_edge": false,
       "max_consec_loss": 14,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.266379"
+      "generated_at": "2026-07-21T22:26:33.564345"
     },
     "elder_triple_screen": {
       "strategy": "elder_triple_screen",
       "status": "NEGATIVE_EDGE",
-      "n": 93,
-      "n_days": 14,
-      "wins": 38,
-      "losses": 55,
-      "win_rate": 0.4086,
-      "ci_90_lo": 0.3226,
-      "ci_90_hi": 0.4946,
-      "profit_factor": 0.691,
-      "edge_score": -0.0271,
-      "p_value": 0.62845,
+      "n": 100,
+      "n_days": 15,
+      "wins": 39,
+      "losses": 61,
+      "win_rate": 0.39,
+      "ci_90_lo": 0.31,
+      "ci_90_hi": 0.47,
+      "profit_factor": 0.639,
+      "edge_score": -0.0714,
+      "p_value": 0.76088,
       "significant_edge": false,
       "max_consec_loss": 15,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.328205"
+      "generated_at": "2026-07-21T22:26:33.635141"
     },
     "candlestick_morning_star": {
       "strategy": "candlestick_morning_star",
@@ -540,7 +540,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.336623"
+      "generated_at": "2026-07-21T22:26:33.644199"
     },
     "td_sequential": {
       "strategy": "td_sequential",
@@ -558,79 +558,79 @@
       "significant_edge": false,
       "max_consec_loss": 7,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.345033"
+      "generated_at": "2026-07-21T22:26:33.653233"
     },
     "candlestick_spinning_top_white": {
       "strategy": "candlestick_spinning_top_white",
       "status": "NEGATIVE_EDGE",
-      "n": 21,
-      "n_days": 8,
+      "n": 22,
+      "n_days": 9,
       "wins": 1,
-      "losses": 20,
-      "win_rate": 0.0476,
+      "losses": 21,
+      "win_rate": 0.0455,
       "ci_90_lo": 0.0,
-      "ci_90_hi": 0.1429,
-      "profit_factor": 0.05,
-      "edge_score": -0.8866,
-      "p_value": 0.99988,
+      "ci_90_hi": 0.1364,
+      "profit_factor": 0.048,
+      "edge_score": -0.8918,
+      "p_value": 0.99992,
       "significant_edge": false,
-      "max_consec_loss": 18,
+      "max_consec_loss": 19,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.359587"
+      "generated_at": "2026-07-21T22:26:33.669494"
     },
     "elder_ray": {
       "strategy": "elder_ray",
       "status": "NEGATIVE_EDGE",
-      "n": 36,
-      "n_days": 10,
-      "wins": 12,
-      "losses": 24,
-      "win_rate": 0.3333,
-      "ci_90_lo": 0.2222,
-      "ci_90_hi": 0.4722,
-      "profit_factor": 0.5,
-      "edge_score": -0.2063,
-      "p_value": 0.88922,
+      "n": 40,
+      "n_days": 11,
+      "wins": 14,
+      "losses": 26,
+      "win_rate": 0.35,
+      "ci_90_lo": 0.225,
+      "ci_90_hi": 0.475,
+      "profit_factor": 0.538,
+      "edge_score": -0.1667,
+      "p_value": 0.85478,
       "significant_edge": false,
       "max_consec_loss": 9,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.384874"
+      "generated_at": "2026-07-21T22:26:33.699003"
     },
     "donchian_breakout": {
       "strategy": "donchian_breakout",
       "status": "NEGATIVE_EDGE",
-      "n": 31,
+      "n": 34,
       "n_days": 12,
-      "wins": 10,
-      "losses": 21,
-      "win_rate": 0.3226,
-      "ci_90_lo": 0.1935,
-      "ci_90_hi": 0.4516,
-      "profit_factor": 0.476,
-      "edge_score": -0.232,
-      "p_value": 0.89989,
+      "wins": 12,
+      "losses": 22,
+      "win_rate": 0.3529,
+      "ci_90_lo": 0.2059,
+      "ci_90_hi": 0.5,
+      "profit_factor": 0.545,
+      "edge_score": -0.1597,
+      "p_value": 0.83297,
       "significant_edge": false,
       "max_consec_loss": 9,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.405086"
+      "generated_at": "2026-07-21T22:26:33.724887"
     },
     "candlestick_evening_star": {
       "strategy": "candlestick_evening_star",
       "status": "NEGATIVE_EDGE",
-      "n": 22,
-      "n_days": 11,
+      "n": 25,
+      "n_days": 13,
       "wins": 5,
-      "losses": 17,
-      "win_rate": 0.2273,
-      "ci_90_lo": 0.0909,
-      "ci_90_hi": 0.4091,
-      "profit_factor": 0.294,
-      "edge_score": -0.4589,
-      "p_value": 0.9797,
+      "losses": 20,
+      "win_rate": 0.2,
+      "ci_90_lo": 0.08,
+      "ci_90_hi": 0.32,
+      "profit_factor": 0.25,
+      "edge_score": -0.5238,
+      "p_value": 0.99248,
       "significant_edge": false,
       "max_consec_loss": 8,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.420259"
+      "generated_at": "2026-07-21T22:26:33.742968"
     },
     "candlestick_three_black_soldiers": {
       "strategy": "candlestick_three_black_soldiers",
@@ -648,133 +648,133 @@
       "significant_edge": false,
       "max_consec_loss": 8,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.445454"
+      "generated_at": "2026-07-21T22:26:33.770083"
     },
     "ichimoku": {
       "strategy": "ichimoku",
       "status": "NEGATIVE_EDGE",
-      "n": 64,
+      "n": 66,
       "n_days": 11,
       "wins": 24,
-      "losses": 40,
-      "win_rate": 0.375,
-      "ci_90_lo": 0.2812,
-      "ci_90_hi": 0.4688,
-      "profit_factor": 0.6,
-      "edge_score": -0.1071,
-      "p_value": 0.80401,
+      "losses": 42,
+      "win_rate": 0.3636,
+      "ci_90_lo": 0.2727,
+      "ci_90_hi": 0.4697,
+      "profit_factor": 0.571,
+      "edge_score": -0.1342,
+      "p_value": 0.8537,
       "significant_edge": false,
       "max_consec_loss": 14,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.490583"
+      "generated_at": "2026-07-21T22:26:33.819983"
     },
     "candlestick_bearish_engulfing": {
       "strategy": "candlestick_bearish_engulfing",
       "status": "NEGATIVE_EDGE",
-      "n": 64,
-      "n_days": 13,
+      "n": 68,
+      "n_days": 14,
       "wins": 23,
-      "losses": 41,
-      "win_rate": 0.3594,
-      "ci_90_lo": 0.2656,
-      "ci_90_hi": 0.4531,
-      "profit_factor": 0.561,
-      "edge_score": -0.1443,
-      "p_value": 0.86635,
+      "losses": 45,
+      "win_rate": 0.3382,
+      "ci_90_lo": 0.25,
+      "ci_90_hi": 0.4265,
+      "profit_factor": 0.511,
+      "edge_score": -0.1947,
+      "p_value": 0.93175,
       "significant_edge": false,
       "max_consec_loss": 29,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.535733"
+      "generated_at": "2026-07-21T22:26:33.871027"
     },
     "vp_breakout": {
       "strategy": "vp_breakout",
       "status": "NEGATIVE_EDGE",
-      "n": 34,
-      "n_days": 11,
-      "wins": 12,
-      "losses": 22,
-      "win_rate": 0.3529,
-      "ci_90_lo": 0.2059,
+      "n": 38,
+      "n_days": 13,
+      "wins": 14,
+      "losses": 24,
+      "win_rate": 0.3684,
+      "ci_90_lo": 0.2368,
       "ci_90_hi": 0.5,
-      "profit_factor": 0.545,
-      "edge_score": -0.1597,
-      "p_value": 0.83297,
+      "profit_factor": 0.583,
+      "edge_score": -0.1228,
+      "p_value": 0.79061,
       "significant_edge": false,
       "max_consec_loss": 7,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.559830"
+      "generated_at": "2026-07-21T22:26:33.899299"
     },
     "mean_reversion": {
       "strategy": "mean_reversion",
       "status": "NEGATIVE_EDGE",
-      "n": 40,
-      "n_days": 12,
-      "wins": 9,
+      "n": 41,
+      "n_days": 13,
+      "wins": 10,
       "losses": 31,
-      "win_rate": 0.225,
-      "ci_90_lo": 0.125,
-      "ci_90_hi": 0.325,
-      "profit_factor": 0.29,
-      "edge_score": -0.4643,
-      "p_value": 0.99608,
+      "win_rate": 0.2439,
+      "ci_90_lo": 0.1463,
+      "ci_90_hi": 0.3659,
+      "profit_factor": 0.323,
+      "edge_score": -0.4193,
+      "p_value": 0.99271,
       "significant_edge": false,
       "max_consec_loss": 15,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.587195"
+      "generated_at": "2026-07-21T22:26:33.929251"
     },
     "candlestick_tweezer_bottom": {
       "strategy": "candlestick_tweezer_bottom",
       "status": "NEGATIVE_EDGE",
-      "n": 26,
-      "n_days": 9,
+      "n": 27,
+      "n_days": 10,
       "wins": 8,
-      "losses": 18,
-      "win_rate": 0.3077,
-      "ci_90_lo": 0.1538,
-      "ci_90_hi": 0.4615,
-      "profit_factor": 0.444,
-      "edge_score": -0.2674,
-      "p_value": 0.91292,
+      "losses": 19,
+      "win_rate": 0.2963,
+      "ci_90_lo": 0.1481,
+      "ci_90_hi": 0.4444,
+      "profit_factor": 0.421,
+      "edge_score": -0.2945,
+      "p_value": 0.93284,
       "significant_edge": false,
       "max_consec_loss": 6,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.604683"
+      "generated_at": "2026-07-21T22:26:33.948616"
     },
     "candlestick_spinning_top_black": {
       "strategy": "candlestick_spinning_top_black",
       "status": "NEGATIVE_EDGE",
-      "n": 36,
-      "n_days": 12,
+      "n": 37,
+      "n_days": 13,
       "wins": 10,
-      "losses": 26,
-      "win_rate": 0.2778,
-      "ci_90_lo": 0.1667,
-      "ci_90_hi": 0.3889,
-      "profit_factor": 0.385,
-      "edge_score": -0.3386,
-      "p_value": 0.97114,
+      "losses": 27,
+      "win_rate": 0.2703,
+      "ci_90_lo": 0.1622,
+      "ci_90_hi": 0.4054,
+      "profit_factor": 0.37,
+      "edge_score": -0.3565,
+      "p_value": 0.97788,
       "significant_edge": false,
       "max_consec_loss": 7,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.630071"
+      "generated_at": "2026-07-21T22:26:33.976334"
     },
     "ma_cross": {
       "strategy": "ma_cross",
       "status": "NEGATIVE_EDGE",
-      "n": 97,
+      "n": 104,
       "n_days": 13,
-      "wins": 29,
-      "losses": 68,
-      "win_rate": 0.299,
-      "ci_90_lo": 0.2268,
-      "ci_90_hi": 0.3814,
-      "profit_factor": 0.426,
-      "edge_score": -0.2882,
-      "p_value": 0.9941,
+      "wins": 32,
+      "losses": 72,
+      "win_rate": 0.3077,
+      "ci_90_lo": 0.2404,
+      "ci_90_hi": 0.3846,
+      "profit_factor": 0.444,
+      "edge_score": -0.2674,
+      "p_value": 0.99224,
       "significant_edge": false,
       "max_consec_loss": 15,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.694273"
+      "generated_at": "2026-07-21T22:26:34.049527"
     },
     "candlestick_shooting_star": {
       "strategy": "candlestick_shooting_star",
@@ -784,7 +784,7 @@
       "wins": 4,
       "losses": 9,
       "win_rate": 0.3077,
-      "ci_90_lo": 0.1538,
+      "ci_90_lo": 0.0769,
       "ci_90_hi": 0.5385,
       "profit_factor": 0.444,
       "edge_score": -0.2674,
@@ -792,7 +792,7 @@
       "significant_edge": false,
       "max_consec_loss": 5,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.703375"
+      "generated_at": "2026-07-21T22:26:34.059169"
     },
     "candlestick_hammer": {
       "strategy": "candlestick_hammer",
@@ -810,25 +810,25 @@
       "significant_edge": false,
       "max_consec_loss": 9,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.717553"
+      "generated_at": "2026-07-21T22:26:34.074266"
     },
     "aroon_trend": {
       "strategy": "aroon_trend",
       "status": "NEGATIVE_EDGE",
-      "n": 35,
-      "n_days": 10,
+      "n": 36,
+      "n_days": 11,
       "wins": 7,
-      "losses": 28,
-      "win_rate": 0.2,
-      "ci_90_lo": 0.0857,
-      "ci_90_hi": 0.3143,
-      "profit_factor": 0.25,
-      "edge_score": -0.5238,
-      "p_value": 0.99751,
+      "losses": 29,
+      "win_rate": 0.1944,
+      "ci_90_lo": 0.0833,
+      "ci_90_hi": 0.3056,
+      "profit_factor": 0.241,
+      "edge_score": -0.537,
+      "p_value": 0.9982,
       "significant_edge": false,
       "max_consec_loss": 10,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.742367"
+      "generated_at": "2026-07-21T22:26:34.101369"
     },
     "heikin_ashi": {
       "strategy": "heikin_ashi",
@@ -846,25 +846,25 @@
       "significant_edge": true,
       "max_consec_loss": 2,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:10.751914"
+      "generated_at": "2026-07-21T22:26:34.111605"
     },
     "rsi2_mr": {
       "strategy": "rsi2_mr",
       "status": "NEGATIVE_EDGE",
-      "n": 35,
-      "n_days": 10,
-      "wins": 6,
-      "losses": 29,
-      "win_rate": 0.1714,
-      "ci_90_lo": 0.0571,
-      "ci_90_hi": 0.2857,
-      "profit_factor": 0.207,
-      "edge_score": -0.5918,
-      "p_value": 0.99919,
+      "n": 37,
+      "n_days": 11,
+      "wins": 7,
+      "losses": 30,
+      "win_rate": 0.1892,
+      "ci_90_lo": 0.0811,
+      "ci_90_hi": 0.2973,
+      "profit_factor": 0.233,
+      "edge_score": -0.5495,
+      "p_value": 0.9987,
       "significant_edge": false,
       "max_consec_loss": 13,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.776835"
+      "generated_at": "2026-07-21T22:26:34.139223"
     },
     "candlestick_fred_tam_black_inside_out": {
       "strategy": "candlestick_fred_tam_black_inside_out",
@@ -882,25 +882,25 @@
       "significant_edge": false,
       "max_consec_loss": 5,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.785311"
+      "generated_at": "2026-07-21T22:26:34.148232"
     },
     "cci_trend": {
       "strategy": "cci_trend",
       "status": "NEGATIVE_EDGE",
-      "n": 19,
-      "n_days": 8,
-      "wins": 1,
-      "losses": 18,
-      "win_rate": 0.0526,
-      "ci_90_lo": 0.0,
-      "ci_90_hi": 0.1579,
-      "profit_factor": 0.056,
-      "edge_score": -0.8747,
-      "p_value": 0.99975,
+      "n": 25,
+      "n_days": 9,
+      "wins": 4,
+      "losses": 21,
+      "win_rate": 0.16,
+      "ci_90_lo": 0.04,
+      "ci_90_hi": 0.28,
+      "profit_factor": 0.19,
+      "edge_score": -0.619,
+      "p_value": 0.99772,
       "significant_edge": false,
-      "max_consec_loss": 10,
+      "max_consec_loss": 11,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.798865"
+      "generated_at": "2026-07-21T22:26:34.166339"
     },
     "candlestick_tweezer_top": {
       "strategy": "candlestick_tweezer_top",
@@ -918,43 +918,43 @@
       "significant_edge": false,
       "max_consec_loss": 10,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.810633"
+      "generated_at": "2026-07-21T22:26:34.178930"
     },
     "candlestick_doji": {
       "strategy": "candlestick_doji",
       "status": "INSUFFICIENT_DATA",
-      "n": 6,
-      "n_days": 5,
+      "n": 7,
+      "n_days": 6,
       "wins": 4,
-      "losses": 2,
-      "win_rate": 0.6667,
-      "ci_90_lo": 0.3333,
-      "ci_90_hi": 1.0,
-      "profit_factor": 2.0,
-      "edge_score": 0.5873,
-      "p_value": 0.20879,
+      "losses": 3,
+      "win_rate": 0.5714,
+      "ci_90_lo": 0.2857,
+      "ci_90_hi": 0.8571,
+      "profit_factor": 1.333,
+      "edge_score": 0.3605,
+      "p_value": 0.33402,
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:10.815119"
+      "generated_at": "2026-07-21T22:26:34.184355"
     },
     "kama_trend": {
       "strategy": "kama_trend",
       "status": "INSUFFICIENT_DATA",
-      "n": 5,
-      "n_days": 3,
-      "wins": 1,
+      "n": 6,
+      "n_days": 4,
+      "wins": 2,
       "losses": 4,
-      "win_rate": 0.2,
+      "win_rate": 0.3333,
       "ci_90_lo": 0.0,
-      "ci_90_hi": 0.6,
-      "profit_factor": 0.25,
-      "edge_score": -0.5238,
-      "p_value": 0.92644,
+      "ci_90_hi": 0.6667,
+      "profit_factor": 0.5,
+      "edge_score": -0.2063,
+      "p_value": 0.80058,
       "significant_edge": false,
       "max_consec_loss": 4,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.819049"
+      "generated_at": "2026-07-21T22:26:34.189171"
     },
     "candlestick_advance_block": {
       "strategy": "candlestick_advance_block",
@@ -972,25 +972,25 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.819055"
+      "generated_at": "2026-07-21T22:26:34.189178"
     },
     "supertrend_mtf": {
       "strategy": "supertrend_mtf",
       "status": "NEGATIVE_EDGE",
-      "n": 23,
-      "n_days": 9,
-      "wins": 5,
+      "n": 25,
+      "n_days": 10,
+      "wins": 7,
       "losses": 18,
-      "win_rate": 0.2174,
-      "ci_90_lo": 0.087,
-      "ci_90_hi": 0.3478,
-      "profit_factor": 0.278,
-      "edge_score": -0.4824,
-      "p_value": 0.98537,
+      "win_rate": 0.28,
+      "ci_90_lo": 0.12,
+      "ci_90_hi": 0.44,
+      "profit_factor": 0.389,
+      "edge_score": -0.3333,
+      "p_value": 0.94748,
       "significant_edge": false,
       "max_consec_loss": 9,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.834772"
+      "generated_at": "2026-07-21T22:26:34.207406"
     },
     "candlestick_three_white_soldiers": {
       "strategy": "candlestick_three_white_soldiers",
@@ -1008,25 +1008,25 @@
       "significant_edge": false,
       "max_consec_loss": 10,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.858682"
+      "generated_at": "2026-07-21T22:26:34.233414"
     },
     "candlestick_fred_tam_white_inside_out": {
       "strategy": "candlestick_fred_tam_white_inside_out",
       "status": "INSUFFICIENT_DATA",
-      "n": 3,
-      "n_days": 2,
+      "n": 4,
+      "n_days": 3,
       "wins": 1,
-      "losses": 2,
-      "win_rate": 0.3333,
+      "losses": 3,
+      "win_rate": 0.25,
       "ci_90_lo": 0.0,
-      "ci_90_hi": 0.6667,
-      "profit_factor": 0.5,
-      "edge_score": -0.2063,
-      "p_value": 0.81301,
+      "ci_90_hi": 0.75,
+      "profit_factor": 0.333,
+      "edge_score": -0.4048,
+      "p_value": 0.88403,
       "significant_edge": false,
-      "max_consec_loss": 2,
+      "max_consec_loss": 3,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.861161"
+      "generated_at": "2026-07-21T22:26:34.236967"
     },
     "order_flow": {
       "strategy": "order_flow",
@@ -1044,7 +1044,7 @@
       "significant_edge": false,
       "max_consec_loss": 3,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.865112"
+      "generated_at": "2026-07-21T22:26:34.241204"
     },
     "candlestick_bullish_marubozu": {
       "strategy": "candlestick_bullish_marubozu",
@@ -1054,7 +1054,7 @@
       "wins": 4,
       "losses": 7,
       "win_rate": 0.3636,
-      "ci_90_lo": 0.1818,
+      "ci_90_lo": 0.0909,
       "ci_90_hi": 0.6364,
       "profit_factor": 0.571,
       "edge_score": -0.1342,
@@ -1062,7 +1062,7 @@
       "significant_edge": false,
       "max_consec_loss": 3,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.873016"
+      "generated_at": "2026-07-21T22:26:34.249719"
     },
     "candlestick_bullish_harami": {
       "strategy": "candlestick_bullish_harami",
@@ -1080,25 +1080,25 @@
       "significant_edge": false,
       "max_consec_loss": 4,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.880924"
+      "generated_at": "2026-07-21T22:26:34.258227"
     },
     "weinstein_stage": {
       "strategy": "weinstein_stage",
       "status": "NEGATIVE_EDGE",
-      "n": 55,
+      "n": 56,
       "n_days": 12,
-      "wins": 22,
+      "wins": 23,
       "losses": 33,
-      "win_rate": 0.4,
-      "ci_90_lo": 0.2909,
-      "ci_90_hi": 0.5091,
-      "profit_factor": 0.667,
-      "edge_score": -0.0476,
-      "p_value": 0.66899,
+      "win_rate": 0.4107,
+      "ci_90_lo": 0.3036,
+      "ci_90_hi": 0.5179,
+      "profit_factor": 0.697,
+      "edge_score": -0.0221,
+      "p_value": 0.60879,
       "significant_edge": false,
       "max_consec_loss": 13,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.916932"
+      "generated_at": "2026-07-21T22:26:34.297775"
     },
     "candlestick_bearish_separating_lines": {
       "strategy": "candlestick_bearish_separating_lines",
@@ -1116,7 +1116,7 @@
       "significant_edge": false,
       "max_consec_loss": 3,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.919331"
+      "generated_at": "2026-07-21T22:26:34.300377"
     },
     "chart_pattern_rising_wedge": {
       "strategy": "chart_pattern_rising_wedge",
@@ -1134,46 +1134,10 @@
       "significant_edge": false,
       "max_consec_loss": 7,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.933869"
+      "generated_at": "2026-07-21T22:26:34.316178"
     },
     "candlestick_bearish_harami": {
       "strategy": "candlestick_bearish_harami",
-      "status": "INSUFFICIENT_DATA",
-      "n": 4,
-      "n_days": 4,
-      "wins": 2,
-      "losses": 2,
-      "win_rate": 0.5,
-      "ci_90_lo": 0.0,
-      "ci_90_hi": 1.0,
-      "profit_factor": 1.0,
-      "edge_score": 0.1905,
-      "p_value": 0.57235,
-      "significant_edge": false,
-      "max_consec_loss": 1,
-      "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:10.937194"
-    },
-    "gap_fill": {
-      "strategy": "gap_fill",
-      "status": "INSUFFICIENT_DATA",
-      "n": 11,
-      "n_days": 8,
-      "wins": 3,
-      "losses": 8,
-      "win_rate": 0.2727,
-      "ci_90_lo": 0.0909,
-      "ci_90_hi": 0.5455,
-      "profit_factor": 0.375,
-      "edge_score": -0.3506,
-      "p_value": 0.90236,
-      "significant_edge": false,
-      "max_consec_loss": 4,
-      "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.945038"
-    },
-    "orb": {
-      "strategy": "orb",
       "status": "INSUFFICIENT_DATA",
       "n": 6,
       "n_days": 5,
@@ -1188,7 +1152,43 @@
       "significant_edge": false,
       "max_consec_loss": 3,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.949522"
+      "generated_at": "2026-07-21T22:26:34.321055"
+    },
+    "gap_fill": {
+      "strategy": "gap_fill",
+      "status": "INSUFFICIENT_DATA",
+      "n": 11,
+      "n_days": 8,
+      "wins": 3,
+      "losses": 8,
+      "win_rate": 0.2727,
+      "ci_90_lo": 0.0909,
+      "ci_90_hi": 0.4545,
+      "profit_factor": 0.375,
+      "edge_score": -0.3506,
+      "p_value": 0.90236,
+      "significant_edge": false,
+      "max_consec_loss": 4,
+      "edge_above_breakeven": false,
+      "generated_at": "2026-07-21T22:26:34.329557"
+    },
+    "orb": {
+      "strategy": "orb",
+      "status": "INSUFFICIENT_DATA",
+      "n": 7,
+      "n_days": 6,
+      "wins": 2,
+      "losses": 5,
+      "win_rate": 0.2857,
+      "ci_90_lo": 0.0,
+      "ci_90_hi": 0.5714,
+      "profit_factor": 0.4,
+      "edge_score": -0.3197,
+      "p_value": 0.86493,
+      "significant_edge": false,
+      "max_consec_loss": 3,
+      "edge_above_breakeven": false,
+      "generated_at": "2026-07-21T22:26:34.334997"
     },
     "uo_overbought": {
       "strategy": "uo_overbought",
@@ -1206,25 +1206,25 @@
       "significant_edge": true,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:10.953346"
+      "generated_at": "2026-07-21T22:26:34.339145"
     },
     "chart_pattern_cup_and_handle": {
       "strategy": "chart_pattern_cup_and_handle",
       "status": "INSUFFICIENT_DATA",
-      "n": 4,
-      "n_days": 3,
+      "n": 5,
+      "n_days": 4,
       "wins": 2,
-      "losses": 2,
-      "win_rate": 0.5,
+      "losses": 3,
+      "win_rate": 0.4,
       "ci_90_lo": 0.0,
-      "ci_90_hi": 1.0,
-      "profit_factor": 1.0,
-      "edge_score": 0.1905,
-      "p_value": 0.57235,
+      "ci_90_hi": 0.8,
+      "profit_factor": 0.667,
+      "edge_score": -0.0476,
+      "p_value": 0.70666,
       "significant_edge": false,
-      "max_consec_loss": 1,
-      "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:10.956647"
+      "max_consec_loss": 2,
+      "edge_above_breakeven": false,
+      "generated_at": "2026-07-21T22:26:34.343372"
     },
     "expiry_scalp": {
       "strategy": "expiry_scalp",
@@ -1242,7 +1242,7 @@
       "significant_edge": false,
       "max_consec_loss": 12,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.966120"
+      "generated_at": "2026-07-21T22:26:34.353702"
     },
     "candlestick_three_river_evening_star": {
       "strategy": "candlestick_three_river_evening_star",
@@ -1260,25 +1260,25 @@
       "significant_edge": false,
       "max_consec_loss": 4,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.969336"
+      "generated_at": "2026-07-21T22:26:34.357189"
     },
     "candlestick_on_neck_pattern": {
       "strategy": "candlestick_on_neck_pattern",
       "status": "INSUFFICIENT_DATA",
-      "n": 10,
-      "n_days": 4,
+      "n": 11,
+      "n_days": 5,
       "wins": 6,
-      "losses": 4,
-      "win_rate": 0.6,
-      "ci_90_lo": 0.3,
-      "ci_90_hi": 0.8,
-      "profit_factor": 1.5,
-      "edge_score": 0.4286,
-      "p_value": 0.20244,
+      "losses": 5,
+      "win_rate": 0.5455,
+      "ci_90_lo": 0.2727,
+      "ci_90_hi": 0.8182,
+      "profit_factor": 1.2,
+      "edge_score": 0.2987,
+      "p_value": 0.29543,
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:10.976627"
+      "generated_at": "2026-07-21T22:26:34.365697"
     },
     "candlestick_in_neck_pattern": {
       "strategy": "candlestick_in_neck_pattern",
@@ -1296,7 +1296,7 @@
       "significant_edge": false,
       "max_consec_loss": 5,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.980475"
+      "generated_at": "2026-07-21T22:26:34.369837"
     },
     "candlestick_three_river_morning_star": {
       "strategy": "candlestick_three_river_morning_star",
@@ -1314,7 +1314,7 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.980481"
+      "generated_at": "2026-07-21T22:26:34.369843"
     },
     "pivot_scalping": {
       "strategy": "pivot_scalping",
@@ -1332,7 +1332,7 @@
       "significant_edge": false,
       "max_consec_loss": 8,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.986566"
+      "generated_at": "2026-07-21T22:26:34.376372"
     },
     "candlestick_hanging_man": {
       "strategy": "candlestick_hanging_man",
@@ -1350,7 +1350,7 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.986574"
+      "generated_at": "2026-07-21T22:26:34.376382"
     },
     "candlestick_bearish_marubozu": {
       "strategy": "candlestick_bearish_marubozu",
@@ -1368,7 +1368,7 @@
       "significant_edge": false,
       "max_consec_loss": 5,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:10.998929"
+      "generated_at": "2026-07-21T22:26:34.389723"
     },
     "candlestick_inverted_hammer": {
       "strategy": "candlestick_inverted_hammer",
@@ -1386,7 +1386,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.000738"
+      "generated_at": "2026-07-21T22:26:34.391671"
     },
     "candlestick_homing_pigeon_bullish": {
       "strategy": "candlestick_homing_pigeon_bullish",
@@ -1404,7 +1404,7 @@
       "significant_edge": false,
       "max_consec_loss": 3,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.003117"
+      "generated_at": "2026-07-21T22:26:34.394255"
     },
     "chart_pattern_bear_flag": {
       "strategy": "chart_pattern_bear_flag",
@@ -1422,7 +1422,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.004913"
+      "generated_at": "2026-07-21T22:26:34.396211"
     },
     "chart_pattern_bear_pennant": {
       "strategy": "chart_pattern_bear_pennant",
@@ -1440,43 +1440,43 @@
       "significant_edge": false,
       "max_consec_loss": 4,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.008107"
+      "generated_at": "2026-07-21T22:26:34.399668"
     },
     "chart_pattern_rectangle": {
       "strategy": "chart_pattern_rectangle",
       "status": "INSUFFICIENT_DATA",
-      "n": 12,
-      "n_days": 5,
+      "n": 13,
+      "n_days": 6,
       "wins": 2,
-      "losses": 10,
-      "win_rate": 0.1667,
+      "losses": 11,
+      "win_rate": 0.1538,
       "ci_90_lo": 0.0,
-      "ci_90_hi": 0.3333,
-      "profit_factor": 0.2,
-      "edge_score": -0.6032,
-      "p_value": 0.9808,
+      "ci_90_hi": 0.3077,
+      "profit_factor": 0.182,
+      "edge_score": -0.6337,
+      "p_value": 0.98697,
       "significant_edge": false,
-      "max_consec_loss": 5,
+      "max_consec_loss": 6,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.016554"
+      "generated_at": "2026-07-21T22:26:34.409343"
     },
     "chart_pattern_cup_handle": {
       "strategy": "chart_pattern_cup_handle",
       "status": "INSUFFICIENT_DATA",
-      "n": 3,
-      "n_days": 2,
-      "wins": 1,
+      "n": 4,
+      "n_days": 3,
+      "wins": 2,
       "losses": 2,
-      "win_rate": 0.3333,
+      "win_rate": 0.5,
       "ci_90_lo": 0.0,
-      "ci_90_hi": 0.6667,
-      "profit_factor": 0.5,
-      "edge_score": -0.2063,
-      "p_value": 0.81301,
+      "ci_90_hi": 1.0,
+      "profit_factor": 1.0,
+      "edge_score": 0.1905,
+      "p_value": 0.57235,
       "significant_edge": false,
       "max_consec_loss": 2,
-      "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.019017"
+      "edge_above_breakeven": true,
+      "generated_at": "2026-07-21T22:26:34.412917"
     },
     "canslim": {
       "strategy": "canslim",
@@ -1494,25 +1494,25 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.019022"
+      "generated_at": "2026-07-21T22:26:34.412923"
     },
     "williams_r": {
       "strategy": "williams_r",
       "status": "INSUFFICIENT_DATA",
-      "n": 8,
-      "n_days": 5,
-      "wins": 2,
+      "n": 9,
+      "n_days": 6,
+      "wins": 3,
       "losses": 6,
-      "win_rate": 0.25,
-      "ci_90_lo": 0.0,
-      "ci_90_hi": 0.5,
-      "profit_factor": 0.333,
-      "edge_score": -0.4048,
-      "p_value": 0.90863,
+      "win_rate": 0.3333,
+      "ci_90_lo": 0.1111,
+      "ci_90_hi": 0.5556,
+      "profit_factor": 0.5,
+      "edge_score": -0.2063,
+      "p_value": 0.80634,
       "significant_edge": false,
       "max_consec_loss": 6,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.025165"
+      "generated_at": "2026-07-21T22:26:34.420241"
     },
     "vwap_reversion": {
       "strategy": "vwap_reversion",
@@ -1530,7 +1530,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.031286"
+      "generated_at": "2026-07-21T22:26:34.426895"
     },
     "cci_zero_cross": {
       "strategy": "cci_zero_cross",
@@ -1548,7 +1548,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.034589"
+      "generated_at": "2026-07-21T22:26:34.430458"
     },
     "candlestick_mat_hold_pattern": {
       "strategy": "candlestick_mat_hold_pattern",
@@ -1566,25 +1566,25 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.034595"
+      "generated_at": "2026-07-21T22:26:34.430464"
     },
     "chart_pattern_falling_wedge": {
       "strategy": "chart_pattern_falling_wedge",
       "status": "INSUFFICIENT_DATA",
-      "n": 6,
-      "n_days": 5,
-      "wins": 4,
-      "losses": 2,
-      "win_rate": 0.6667,
-      "ci_90_lo": 0.3333,
-      "ci_90_hi": 1.0,
-      "profit_factor": 2.0,
-      "edge_score": 0.5873,
-      "p_value": 0.20879,
+      "n": 8,
+      "n_days": 6,
+      "wins": 5,
+      "losses": 3,
+      "win_rate": 0.625,
+      "ci_90_lo": 0.375,
+      "ci_90_hi": 0.875,
+      "profit_factor": 1.667,
+      "edge_score": 0.4881,
+      "p_value": 0.20707,
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.039093"
+      "generated_at": "2026-07-21T22:26:34.437080"
     },
     "ehlers_fisher": {
       "strategy": "ehlers_fisher",
@@ -1602,7 +1602,7 @@
       "significant_edge": false,
       "max_consec_loss": 4,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.043047"
+      "generated_at": "2026-07-21T22:26:34.441306"
     },
     "range_bar_momentum": {
       "strategy": "range_bar_momentum",
@@ -1620,7 +1620,7 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.043052"
+      "generated_at": "2026-07-21T22:26:34.441312"
     },
     "vwap_bands": {
       "strategy": "vwap_bands",
@@ -1638,7 +1638,7 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.045512"
+      "generated_at": "2026-07-21T22:26:34.443989"
     },
     "elliott_wave": {
       "strategy": "elliott_wave",
@@ -1656,7 +1656,7 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.049414"
+      "generated_at": "2026-07-21T22:26:34.448235"
     },
     "candlestick_low_price_gapping_play_bearish": {
       "strategy": "candlestick_low_price_gapping_play_bearish",
@@ -1674,7 +1674,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.051214"
+      "generated_at": "2026-07-21T22:26:34.450193"
     },
     "chaikin_mf": {
       "strategy": "chaikin_mf",
@@ -1692,7 +1692,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.053032"
+      "generated_at": "2026-07-21T22:26:34.452144"
     },
     "candlestick_deliberation": {
       "strategy": "candlestick_deliberation",
@@ -1710,7 +1710,7 @@
       "significant_edge": false,
       "max_consec_loss": 8,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.059117"
+      "generated_at": "2026-07-21T22:26:34.458701"
     },
     "candlestick_ladder_bottom": {
       "strategy": "candlestick_ladder_bottom",
@@ -1728,7 +1728,7 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.059122"
+      "generated_at": "2026-07-21T22:26:34.458707"
     },
     "waddah_attar": {
       "strategy": "waddah_attar",
@@ -1746,7 +1746,7 @@
       "significant_edge": false,
       "max_consec_loss": 5,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.062947"
+      "generated_at": "2026-07-21T22:26:34.462817"
     },
     "failed_auction": {
       "strategy": "failed_auction",
@@ -1764,7 +1764,7 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.062952"
+      "generated_at": "2026-07-21T22:26:34.462823"
     },
     "chart_pattern_bull_flag": {
       "strategy": "chart_pattern_bull_flag",
@@ -1782,7 +1782,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.065402"
+      "generated_at": "2026-07-21T22:26:34.465485"
     },
     "oops": {
       "strategy": "oops",
@@ -1800,7 +1800,7 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.065407"
+      "generated_at": "2026-07-21T22:26:34.465492"
     },
     "kst": {
       "strategy": "kst",
@@ -1818,7 +1818,7 @@
       "significant_edge": false,
       "max_consec_loss": 2,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.067879"
+      "generated_at": "2026-07-21T22:26:34.468172"
     },
     "uo_oversold": {
       "strategy": "uo_oversold",
@@ -1836,7 +1836,7 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.067884"
+      "generated_at": "2026-07-21T22:26:34.468178"
     },
     "volume_profile_full": {
       "strategy": "volume_profile_full",
@@ -1854,7 +1854,7 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.069771"
+      "generated_at": "2026-07-21T22:26:34.470218"
     },
     "anchored_vwap": {
       "strategy": "anchored_vwap",
@@ -1872,7 +1872,7 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.071575"
+      "generated_at": "2026-07-21T22:26:34.472191"
     },
     "chart_pattern_bull_pennant": {
       "strategy": "chart_pattern_bull_pennant",
@@ -1890,7 +1890,7 @@
       "significant_edge": false,
       "max_consec_loss": 0,
       "edge_above_breakeven": true,
-      "generated_at": "2026-07-21T15:45:11.071582"
+      "generated_at": "2026-07-21T22:26:34.472200"
     },
     "parabolic_sar": {
       "strategy": "parabolic_sar",
@@ -1908,7 +1908,7 @@
       "significant_edge": false,
       "max_consec_loss": 1,
       "edge_above_breakeven": false,
-      "generated_at": "2026-07-21T15:45:11.071587"
+      "generated_at": "2026-07-21T22:26:34.472206"
     }
   }
 }
