@@ -1,11 +1,11 @@
 {
-  "elapsed_sec": 1276.8,
+  "elapsed_sec": 477.8,
   "labels_updated": 0,
-  "signals_used": 4050,
-  "overall_wr": 0.308,
-  "danger_zones": 211,
-  "ml_auc": 0.6997,
-  "per_symbol_models": 47,
+  "signals_used": 2551,
+  "overall_wr": 0.328,
+  "danger_zones": 172,
+  "ml_auc": 0.671,
+  "per_symbol_models": 1,
   "filters_written": true,
   "filters_path": "learned_filters.json",
   "decay_strategies": [
@@ -18,12 +18,14 @@
     "ttm_squeeze",
     "mean_reversion",
     "chart_pattern_descending_triangle",
+    "failed_bull_breakout",
     "chart_pattern_range_expansion",
     "chart_pattern_head_and_shoulders",
+    "chart_pattern_ascending_triangle",
     "rsi_divergence",
     "donchian_breakout",
     "weinstein_stage",
-    "aroon_trend",
+    "cci_trend",
     "candlestick_bearish_engulfing",
     "rsi2_mr",
     "vp_breakout",
@@ -33,5 +35,5 @@
   "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
   "edge_candidates": [],
   "dry_run": false,
-  "timestamp": "2026-07-21T17:08:05.785762"
+  "timestamp": "2026-07-22T17:47:49.316230"
 }

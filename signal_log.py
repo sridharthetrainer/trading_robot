@@ -418,6 +418,40 @@ class SignalLogger:
                     "lifecycle_status": "TEXT DEFAULT 'OPEN'",
                     "lifecycle_updated_at": "TEXT DEFAULT ''",
                     "lifecycle_price": "REAL DEFAULT 0",
+                    # Real bid/ask spread at signal time (2026-07-22, external-review
+                    # follow-up): the equity-side cost model (cost_aware_r_multiple)
+                    # has always used a flat slippage assumption because no historical
+                    # spread data existed to condition it on -- the real depth-fetch
+                    # path only ever ran at order-routing time, which almost never
+                    # fires. This captures a REAL market-depth reading per signal so a
+                    # genuine time-of-day cost model becomes buildable after enough
+                    # days accrue. signal_spread_source records how it was obtained
+                    # ("live_depth"/"unavailable") so unavailable rows are distinguishable
+                    # from a genuine zero spread.
+                    "signal_spread_pct": "REAL DEFAULT 0",
+                    "signal_spread_source": "TEXT DEFAULT ''",
+                    # Prospective-holdout freeze (2026-07-22, external-review
+                    # follow-up): CPCV protects against overfitting one partition
+                    # of a fixed historical dataset, it does NOT protect against
+                    # the cumulative effect of the research process that shaped
+                    # which features/models to try. The only real fix is scoring
+                    # a genuinely FROZEN model (see prospective_freeze.py) against
+                    # data that didn't exist when it was built. NULL here (not 0)
+                    # means "not yet scored" -- distinguishable from a genuine
+                    # P(win)=0 reading.
+                    "frozen_regime_pwin": "REAL",
+                    "frozen_full_pwin": "REAL",
+                    "frozen_model_version": "TEXT DEFAULT ''",
+                    # 'historical_backfill' (signal_date <= freeze date, scored
+                    # retroactively so the scoring code path itself is exercised)
+                    # vs 'live_prospective' (signal_date > freeze date, genuinely
+                    # unseen when the model was built) -- an external review
+                    # correctly flagged that without a mechanical marker, someone
+                    # evaluating "prospective" performance later could accidentally
+                    # include already-seen historical rows as if they were fresh
+                    # evidence. This must be assigned at write time, not
+                    # reconstructed at analysis time.
+                    "prediction_origin": "TEXT DEFAULT ''",
                 }
                 for _c, _decl in _new_cols.items():
                     if _c not in cols:
@@ -441,6 +475,8 @@ class SignalLogger:
         client_ce_pct:    float = 0.0,
         cross_asset_bias: str   = "NEUTRAL",
         sensex_nifty_div: float = 0.0,
+        signal_spread_pct: float = 0.0,
+        signal_spread_source: str = "",
         # Pivot context
         weekly_pivot:     float = 0.0,
         monthly_pivot:    float = 0.0,
@@ -683,6 +719,8 @@ class SignalLogger:
                 "client_ce_pct":   client_ce_pct,
                 "cross_asset_bias":cross_asset_bias,
                 "sensex_nifty_div":sensex_nifty_div,
+                "signal_spread_pct": signal_spread_pct,
+                "signal_spread_source": signal_spread_source,
                 # Pivot context
                 "above_weekly_pvt": above_wpvt,
                 "above_monthly_pvt":above_mpvt,

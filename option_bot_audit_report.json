@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-21T19:37:52",
+  "generated_at": "2026-07-22T16:20:26",
   "option_chain_snapshots": {
     "exists": true,
-    "rows": 3088,
-    "ok_rows": 2784,
-    "verified_live_rows": 1725,
-    "latest_verified_live": "2026-07-21T15:30:26+0530",
-    "latest": "2026-07-21T15:30:26+0530",
-    "latest_ok": "2026-07-21T15:30:26+0530",
-    "latest_ok_age_hours": 4.12,
+    "rows": 3307,
+    "ok_rows": 3003,
+    "verified_live_rows": 1944,
+    "latest_verified_live": "2026-07-22T15:33:22+0530",
+    "latest": "2026-07-22T15:33:22+0530",
+    "latest_ok": "2026-07-22T15:33:22+0530",
+    "latest_ok_age_hours": 0.78,
     "recent_failures": [
       {
         "underlying": "NIFTY",
@@ -36,61 +36,61 @@
         "count": 3
       }
     ],
-    "strike_signal_rows": 27890,
-    "strike_signal_labelled": 22185,
-    "verified_strike_outcomes": 12970,
-    "today_strike_rows": 2410,
+    "strike_signal_rows": 30094,
+    "strike_signal_labelled": 24371,
+    "verified_strike_outcomes": 15156,
+    "today_strike_rows": 2204,
     "today_strike_tradable": 0,
     "today_strike_labelled": 0
   },
   "decision_journal": {
     "exists": true,
-    "rows": 4346,
+    "rows": 4743,
     "decisions": {
-      "selected": 826,
-      "blocked_quality": 77,
-      "chain_snapshot_evidence": 1967,
-      "chain_snapshot_neutral": 581,
-      "chain_signal": 195,
-      "chain_neutral": 37,
-      "blocked_no_chain_data": 662,
+      "selected": 919,
+      "blocked_quality": 92,
+      "chain_snapshot_evidence": 2200,
+      "chain_snapshot_neutral": 582,
+      "chain_signal": 217,
+      "chain_neutral": 66,
+      "blocked_no_chain_data": 666,
       "blocked_vix_too_high_for_theta": 1
     },
-    "today_rows": 90,
+    "today_rows": 83,
     "today_decisions": {
-      "chain_signal": 55,
-      "selected": 19,
-      "blocked_vix_too_high_for_theta": 1,
-      "blocked_quality": 14,
-      "chain_neutral": 1
+      "blocked_no_chain_data": 4,
+      "chain_neutral": 29,
+      "chain_signal": 22,
+      "selected": 13,
+      "blocked_quality": 15
     },
-    "today_selected": 19,
-    "today_blocked": 15,
-    "today_chain_signal": 56,
-    "selected_with_shadow": 807,
+    "today_selected": 13,
+    "today_blocked": 19,
+    "today_chain_signal": 51,
+    "selected_with_shadow": 892,
     "verified_selected": 0,
     "executed_selected": 0,
-    "synthetic_rows": 2204,
-    "research_rows": 2528,
+    "synthetic_rows": 2518,
+    "research_rows": 2842,
     "verified_outcomes": 0,
     "verified_shadow_outcomes": 0,
     "verified_generated_outcomes": 0
   },
   "strike_autotune": {
     "exists": true,
-    "labelled_selected": 807,
-    "labelled_shadow": 6463,
+    "labelled_selected": 887,
+    "labelled_shadow": 7103,
     "weights": 40,
     "verified_generated_outcomes": 8000
   },
   "option_structure_mining": {
     "report_exists": true,
     "db_exists": true,
-    "legs": 605,
+    "legs": 654,
     "symbols": 4,
-    "latest_session": "2026-07-20",
+    "latest_session": "2026-07-21",
     "top_edges": 10,
-    "report_legs": 70
+    "report_legs": 87
   },
   "hero_zero": {
     "module_exists": true,
@@ -155,18 +155,18 @@
   "historical_replay": {
     "exists": true,
     "ok": true,
-    "generated_at": "2026-07-20T19:56:02+0530",
+    "generated_at": "2026-07-21T19:55:20+0530",
     "written": 80,
     "shadow_outcomes": 640,
     "type_counts": {
-      "CE": 40,
-      "PE": 40
+      "PE": 41,
+      "CE": 39
     },
     "style_counts": {
-      "intraday": 51,
-      "swing": 16,
-      "scalping": 12,
-      "position": 1
+      "intraday": 47,
+      "swing": 22,
+      "position": 3,
+      "scalping": 8
     }
   },
   "quality_layer": {
@@ -180,14 +180,14 @@
   "signal_log": {
     "exists": true,
     "signal_log_option_rows": 0,
-    "today_option_rows": 90,
+    "today_option_rows": 83,
     "today_executed_option_rows": 0
   },
   "historical_options": {
     "exists": true,
-    "rows": 3171931,
+    "rows": 3173559,
     "first_date": "2020-01-01",
-    "last_date": "2026-07-20"
+    "last_date": "2026-07-21"
   },
   "telegram_oi_tools": {
     "telegram_commands": true,
@@ -248,7 +248,7 @@
         "historical_options": {
           "score": 20,
           "max": 20,
-          "detail": "3171931 historical option rows"
+          "detail": "3173559 historical option rows"
         },
         "source_modules": {
           "score": 20.0,
@@ -271,27 +271,27 @@
       "snapshot_capture": {
         "score": 25,
         "max": 25,
-        "detail": "verified_live=1725, ok_rows=2784, rows=3088, latest=2026-07-21T15:30:26+0530"
+        "detail": "verified_live=1944, ok_rows=3003, rows=3307, latest=2026-07-22T15:33:22+0530"
       },
       "decision_journal": {
         "score": 12.0,
         "max": 15,
-        "detail": "rows=4346, selected=826, verified=0, generated_outcomes=12970, executed=0, research=2528"
+        "detail": "rows=4743, selected=919, verified=0, generated_outcomes=15156, executed=0, research=2842"
       },
       "strike_autotune": {
         "score": 20,
         "max": 20,
-        "detail": "research_selected=807, research_shadow=6463, verified_generated=8000, weights=40"
+        "detail": "research_selected=887, research_shadow=7103, verified_generated=8000, weights=40"
       },
       "historical_options": {
         "score": 15,
         "max": 15,
-        "detail": "rows=3171931, range=2020-01-01..2026-07-20"
+        "detail": "rows=3173559, range=2020-01-01..2026-07-21"
       },
       "signal_activity": {
         "score": 8.0,
         "max": 10,
-        "detail": "today_option_rows=2410, executed=0, journal_rows=90, chain_rows=56, strike_rows=2410, signal_log_option_rows=0"
+        "detail": "today_option_rows=2204, executed=0, journal_rows=83, chain_rows=51, strike_rows=2204, signal_log_option_rows=0"
       },
       "telegram_oi_tools": {
         "score": 10.0,

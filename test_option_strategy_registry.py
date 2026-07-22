@@ -31,10 +31,10 @@ def test_activation_matrix_matches_spec():
     assert reg.get_strategy("D5").risk_profile == "not_implemented"
 
 
-def test_only_c1_and_c3_are_implemented_this_pass():
-    assert reg.implemented_ids() == ["C1", "C3"]
+def test_only_c1_c3_and_d1_are_implemented_this_pass():
+    assert reg.implemented_ids() == ["C1", "C3", "D1"]
     for strategy_def in reg.OPTION_STRATEGY_CATALOG:
-        if strategy_def.id in ("C1", "C3"):
+        if strategy_def.id in ("C1", "C3", "D1"):
             assert strategy_def.logic_status == "IMPLEMENTED"
             assert strategy_def.evaluate_fn is not None
         else:
@@ -208,3 +208,35 @@ def test_evaluate_catalog_never_raises_and_covers_every_id(monkeypatch):
         symbol="NIFTY", df=None, df_htf=None, option_data={}, regime={"primary": "RANGE"})
     ids = {r["id"] for r in results if "id" in r}
     assert ids == set(_EXPECTED_IDS)
+
+
+def test_evaluate_catalog_threads_gap_risk_manager_to_evaluate_fn():
+    """2026-07-22: D1 needs a gap-risk-manager reference (for IV percentile)
+    that C1/C3 never needed. evaluate_catalog() takes no explicit
+    gap_risk_manager parameter -- it doesn't need one, since its existing
+    **kw pass-through already forwards any extra kwarg to evaluate_fn
+    verbatim. This locks in that a caller-supplied gap_risk_manager= kwarg
+    actually reaches the strategy function, not just that evaluate_catalog()
+    accepts it without raising."""
+    captured = {}
+
+    def _fake_d1(**kw):
+        captured.update(kw)
+        return {"id": "D1", "status": "selected"}
+
+    original = reg.get_strategy("D1")
+    patched = reg.OptionStrategyDef(**{**original.__dict__, "evaluate_fn": _fake_d1,
+                                        "logic_status": "IMPLEMENTED", "entry_window": "00:00-23:59"})
+    idx = next(i for i, d in enumerate(reg.OPTION_STRATEGY_CATALOG) if d.id == "D1")
+    reg.OPTION_STRATEGY_CATALOG[idx] = patched
+    reg._BY_ID["D1"] = patched
+    sentinel = object()
+    try:
+        reg._SELECTED_TODAY.clear()
+        reg.evaluate_catalog(symbol="NIFTY", df=None, df_htf=None, option_data={}, regime={},
+                              gap_risk_manager=sentinel)
+        assert captured.get("gap_risk_manager") is sentinel
+    finally:
+        reg.OPTION_STRATEGY_CATALOG[idx] = original
+        reg._BY_ID["D1"] = original
+        reg._SELECTED_TODAY.clear()

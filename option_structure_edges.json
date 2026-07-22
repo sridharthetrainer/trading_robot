@@ -1,117 +1,124 @@
 {
-  "generated_at": "2026-07-21T20:18:09",
+  "generated_at": "2026-07-22T20:17:33",
   "edges": [
     {
-      "feature": "leg_type:vwap_reclaim",
-      "samples": 19,
-      "avg_profit_pct": 0.3116,
-      "avg_adverse_pct": 0.0407,
-      "quality_rate": 0.5789
-    },
-    {
-      "feature": "direction:BUY",
-      "samples": 46,
-      "avg_profit_pct": 0.2595,
-      "avg_adverse_pct": 0.0307,
-      "quality_rate": 0.4783
-    },
-    {
-      "feature": "ema_state:mixed",
-      "samples": 51,
-      "avg_profit_pct": 0.2535,
-      "avg_adverse_pct": 0.0344,
-      "quality_rate": 0.4706
-    },
-    {
-      "feature": "rsi_bucket:neutral",
-      "samples": 34,
-      "avg_profit_pct": 0.2339,
-      "avg_adverse_pct": 0.0299,
-      "quality_rate": 0.4412
+      "feature": "pcr_bias:put_heavy",
+      "samples": 3,
+      "avg_profit_pct": 0.3389,
+      "avg_adverse_pct": 0.0332,
+      "quality_rate": 0.6667
     },
     {
       "feature": "pcr_bias:balanced",
-      "samples": 33,
-      "avg_profit_pct": 0.2129,
-      "avg_adverse_pct": 0.0334,
-      "quality_rate": 0.4242
-    },
-    {
-      "feature": "rsi_bucket:bear",
-      "samples": 22,
-      "avg_profit_pct": 0.2548,
-      "avg_adverse_pct": 0.0363,
-      "quality_rate": 0.4091
-    },
-    {
-      "feature": "leg_type:trend_continuation_hh_hl",
-      "samples": 27,
-      "avg_profit_pct": 0.2229,
-      "avg_adverse_pct": 0.0236,
-      "quality_rate": 0.4074
-    },
-    {
-      "feature": "vwap_state:above",
-      "samples": 87,
-      "avg_profit_pct": 0.2173,
-      "avg_adverse_pct": 0.0297,
-      "quality_rate": 0.3908
-    },
-    {
-      "feature": "volume_bucket:normal",
-      "samples": 87,
-      "avg_profit_pct": 0.2173,
-      "avg_adverse_pct": 0.0297,
-      "quality_rate": 0.3908
-    },
-    {
-      "feature": "pcr_bias:call_heavy",
-      "samples": 53,
-      "avg_profit_pct": 0.2121,
-      "avg_adverse_pct": 0.0273,
-      "quality_rate": 0.3585
-    },
-    {
-      "feature": "leg_type:trend_continuation_lh_ll",
-      "samples": 24,
-      "avg_profit_pct": 0.1787,
-      "avg_adverse_pct": 0.0276,
-      "quality_rate": 0.3333
-    },
-    {
-      "feature": "ema_state:bull",
-      "samples": 30,
-      "avg_profit_pct": 0.1736,
-      "avg_adverse_pct": 0.024,
-      "quality_rate": 0.3333
-    },
-    {
-      "feature": "rsi_bucket:bull",
-      "samples": 31,
-      "avg_profit_pct": 0.1726,
-      "avg_adverse_pct": 0.0249,
-      "quality_rate": 0.3226
-    },
-    {
-      "feature": "direction:SELL",
-      "samples": 41,
-      "avg_profit_pct": 0.1699,
-      "avg_adverse_pct": 0.0286,
-      "quality_rate": 0.2927
+      "samples": 48,
+      "avg_profit_pct": 0.2233,
+      "avg_adverse_pct": 0.0316,
+      "quality_rate": 0.5208
     },
     {
       "feature": "leg_type:vwap_reject",
-      "samples": 17,
-      "avg_profit_pct": 0.1576,
-      "avg_adverse_pct": 0.0299,
-      "quality_rate": 0.2353
+      "samples": 15,
+      "avg_profit_pct": 0.1982,
+      "avg_adverse_pct": 0.0258,
+      "quality_rate": 0.4667
+    },
+    {
+      "feature": "rsi_bucket:neutral",
+      "samples": 33,
+      "avg_profit_pct": 0.2306,
+      "avg_adverse_pct": 0.029,
+      "quality_rate": 0.4545
+    },
+    {
+      "feature": "ema_state:mixed",
+      "samples": 64,
+      "avg_profit_pct": 0.221,
+      "avg_adverse_pct": 0.0277,
+      "quality_rate": 0.4531
+    },
+    {
+      "feature": "leg_type:trend_continuation_hh_hl",
+      "samples": 23,
+      "avg_profit_pct": 0.2258,
+      "avg_adverse_pct": 0.0239,
+      "quality_rate": 0.4348
+    },
+    {
+      "feature": "direction:BUY",
+      "samples": 42,
+      "avg_profit_pct": 0.2223,
+      "avg_adverse_pct": 0.0255,
+      "quality_rate": 0.4286
+    },
+    {
+      "feature": "leg_type:vwap_reclaim",
+      "samples": 19,
+      "avg_profit_pct": 0.2182,
+      "avg_adverse_pct": 0.0274,
+      "quality_rate": 0.4211
+    },
+    {
+      "feature": "vwap_state:above",
+      "samples": 89,
+      "avg_profit_pct": 0.2078,
+      "avg_adverse_pct": 0.0271,
+      "quality_rate": 0.4045
+    },
+    {
+      "feature": "volume_bucket:normal",
+      "samples": 89,
+      "avg_profit_pct": 0.2078,
+      "avg_adverse_pct": 0.0271,
+      "quality_rate": 0.4045
+    },
+    {
+      "feature": "rsi_bucket:bull",
+      "samples": 23,
+      "avg_profit_pct": 0.1963,
+      "avg_adverse_pct": 0.0239,
+      "quality_rate": 0.3913
+    },
+    {
+      "feature": "direction:SELL",
+      "samples": 47,
+      "avg_profit_pct": 0.1949,
+      "avg_adverse_pct": 0.0284,
+      "quality_rate": 0.383
+    },
+    {
+      "feature": "rsi_bucket:bear",
+      "samples": 33,
+      "avg_profit_pct": 0.1931,
+      "avg_adverse_pct": 0.0273,
+      "quality_rate": 0.3636
+    },
+    {
+      "feature": "ema_state:bull",
+      "samples": 14,
+      "avg_profit_pct": 0.1888,
+      "avg_adverse_pct": 0.0208,
+      "quality_rate": 0.3571
+    },
+    {
+      "feature": "leg_type:trend_continuation_lh_ll",
+      "samples": 32,
+      "avg_profit_pct": 0.1933,
+      "avg_adverse_pct": 0.0297,
+      "quality_rate": 0.3438
+    },
+    {
+      "feature": "pcr_bias:call_heavy",
+      "samples": 38,
+      "avg_profit_pct": 0.1779,
+      "avg_adverse_pct": 0.0208,
+      "quality_rate": 0.2368
     },
     {
       "feature": "ema_state:bear",
-      "samples": 6,
-      "avg_profit_pct": 0.1283,
-      "avg_adverse_pct": 0.0183,
-      "quality_rate": 0.0
+      "samples": 11,
+      "avg_profit_pct": 0.1555,
+      "avg_adverse_pct": 0.0312,
+      "quality_rate": 0.1818
     }
   ]
 }

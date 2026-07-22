@@ -162,7 +162,9 @@ assert sorted(_BY_ID) == sorted(_EXPECTED_IDS), "catalog ID set drifted from the
 # imports _param from this module, so this module can only import that one
 # back after its own top-level definitions are complete) ──────────────────
 try:
-    from option_core_strategies import evaluate_c1_short_straddle, evaluate_c3_iron_condor
+    from option_core_strategies import (
+        evaluate_c1_short_straddle, evaluate_c3_iron_condor, evaluate_d1_pre_event_strangle,
+    )
     _CORE_STRATEGIES_AVAIL = True
 except Exception as exc:
     _CORE_STRATEGIES_AVAIL = False
@@ -173,6 +175,8 @@ if _CORE_STRATEGIES_AVAIL:
         **{**_BY_ID["C1"].__dict__, "logic_status": "IMPLEMENTED", "evaluate_fn": evaluate_c1_short_straddle})
     _BY_ID["C3"] = OptionStrategyDef(
         **{**_BY_ID["C3"].__dict__, "logic_status": "IMPLEMENTED", "evaluate_fn": evaluate_c3_iron_condor})
+    _BY_ID["D1"] = OptionStrategyDef(
+        **{**_BY_ID["D1"].__dict__, "logic_status": "IMPLEMENTED", "evaluate_fn": evaluate_d1_pre_event_strangle})
     OPTION_STRATEGY_CATALOG = [_BY_ID[d.id] for d in OPTION_STRATEGY_CATALOG]
 
 

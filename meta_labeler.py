@@ -150,6 +150,24 @@ def analyze(days: int = 800) -> Dict[str, Any]:
     except Exception:
         auc = float("nan")
 
+    # CPCV (López de Prado, AFML ch.12) over C(6,2)=15 combinatorial paths from
+    # one fixed 6-block partition (2026-07-22, external-review follow-up): the
+    # single day-split AUC above is one particular partition of the timeline --
+    # this repo saw the mean purged-CV AUC swing ~0.09 just from changing
+    # n_splits/horizon/embargo, with no way to tell if that was a better config
+    # or just which rows landed in which fold. CPCV's path distribution is the
+    # number to trust over the single day-split AUC.
+    cpcv_rep = None
+    try:
+        from purged_cv import cpcv_score
+        clf_cpcv = RandomForestClassifier(
+            n_estimators=300, max_depth=5, min_samples_leaf=50,
+            class_weight="balanced", random_state=42, n_jobs=-1)
+        cpcv_rep = cpcv_score(clf_cpcv, X, y, n_groups=6, n_test_groups=2,
+                               horizon=15, embargo=18)
+    except Exception as exc:
+        logger.debug("meta_labeler CPCV skipped: %s", exc)
+
     # tb_r_multiple_net is the house-standard cost+slippage-included R-multiple
     # (see nightly_edge_monitor.py: "judged on tb_r_multiple_net, costs are the
     # one certain number"). "precision" (P(tb_label==1) i.e. hit the FULL target)
@@ -203,34 +221,43 @@ def analyze(days: int = 800) -> Dict[str, Any]:
         "base_win_rate": round(base_rate, 4),
         "baseline_net_r": round(baseline_net_r, 4) if baseline_net_r is not None else None,
         "auc": round(auc, 4),
+        "cpcv": cpcv_rep,
         "cost_pct": COST_PCT,
         "by_threshold": by_threshold,
         "top_features": [{"feature": f, "importance": round(float(i), 4)} for f, i in imp],
         "best_threshold": best,
     }
+    cpcv_note = ""
+    if cpcv_rep and cpcv_rep.get("n_paths_used"):
+        cpcv_note = (f" CPCV over {cpcv_rep['n_paths_used']}/{cpcv_rep['n_paths_total']} "
+                     f"paths: mean={cpcv_rep['mean']:.3f} median={cpcv_rep['median']:.3f} "
+                     f"iqr={cpcv_rep['iqr']:.3f} min={cpcv_rep['min']:.3f} -- trust this "
+                     f"over the single day-split AUC above, which is one partition of many.")
     if auc < 0.55:
         rep["conclusion"] = (
             f"AUC={auc:.3f} — meta-model has ~no signal; meta-labeling adds nothing on "
             "the current data (consistent with an edgeless primary). Do NOT gate live. "
-            "Re-run as the 17 modifiers accrue real values over trading days.")
+            f"Re-run as the 17 modifiers accrue real values over trading days.{cpcv_note}")
     elif best:
         rep["conclusion"] = (
             f"AUC={auc:.3f}. Gating at P(win)>={best['threshold']} lifts precision "
             f"{base_rate:.1%}→{best['precision']:.1%} (+{best['lift_vs_base']:.1%}) at "
             f"{best['coverage']:.0%} coverage AND clears cost (avg net_R="
-            f"{best['avg_net_r']:+.3f} vs baseline {baseline_net_r:+.3f}). PROMISING — "
-            "still requires a further locked-holdout pass before any live gating.")
+            f"{best['avg_net_r']:+.3f} vs baseline {baseline_net_r:+.3f}).{cpcv_note} "
+            "PROMISING — still requires a further locked-holdout pass before any live "
+            "gating.")
     elif best_precision_only:
         rep["conclusion"] = (
             f"AUC={auc:.3f}. Gating at P(win)>={best_precision_only['threshold']} lifts "
             f"precision {base_rate:.1%}→{best_precision_only['precision']:.1%} but avg "
             f"net_R stays NEGATIVE at every threshold (best {best_precision_only['avg_net_r']:+.3f} "
-            f"vs baseline {baseline_net_r:+.3f}). Gating reduces how much is lost, it does "
-            "NOT create profit. REJECTED for live gating on cost-adjusted evidence.")
+            f"vs baseline {baseline_net_r:+.3f}).{cpcv_note} Gating reduces how much is "
+            "lost, it does NOT create profit. REJECTED for live gating on cost-adjusted "
+            "evidence.")
     else:
         rep["conclusion"] = (
             f"AUC={auc:.3f} but no threshold clears base rate by >2% at usable coverage "
-            "— no actionable precision lift yet. Report-only.")
+            f"— no actionable precision lift yet.{cpcv_note} Report-only.")
     return rep
 
 

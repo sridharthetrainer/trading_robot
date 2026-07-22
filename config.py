@@ -431,6 +431,16 @@ OPTION_STRATEGY_VIX_BLOCK_NONDIRECTIONAL = _fenv("OPTION_STRATEGY_VIX_BLOCK_NOND
 OPTION_STRATEGY_GAP_PCT_THRESHOLD = _fenv("OPTION_STRATEGY_GAP_PCT_THRESHOLD", 0.006)
 OPTION_STRATEGY_API_LATENCY_BLOCK_SEC = _fenv("OPTION_STRATEGY_API_LATENCY_BLOCK_SEC", 2.0)
 
+# 2026-07-22 (external-review follow-up): the equity-side cost model has always
+# used a flat slippage assumption because no historical real bid/ask spread data
+# existed to condition it on -- capture a REAL market-depth reading at signal
+# time (logged to signal_log.signal_spread_pct) so a genuine time-of-day cost
+# model becomes buildable once enough days accrue. Bounded to PRIORITY_SYMBOLS
+# only (5 indices, not the full ~200-symbol universe) to avoid repeating the
+# 2026-06-15 searchScrip rate-limit storm from adding a new per-cycle API call
+# across the whole scan.
+ENABLE_SIGNAL_SPREAD_CAPTURE = _benv("ENABLE_SIGNAL_SPREAD_CAPTURE", True)
+
 OPTION_MAX_HOLD_MINUTES = _ienv("OPTION_MAX_HOLD_MINUTES", 120)
 CLOSE_OPTIONS_BEFORE_MARKET_END = os.getenv(
     "CLOSE_OPTIONS_BEFORE_MARKET_END", "true"

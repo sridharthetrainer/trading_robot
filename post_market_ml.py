@@ -454,6 +454,36 @@ def run_pipeline(
     except Exception as _mle:
         logger.debug("Meta-labeling failed: %s", _mle)
 
+    # ── Regime meta-labeler (2026-07-22, external-review follow-up): a narrow
+    # 4-feature (hour_of_day, india_vix, fii_cum_5d, mtf_pivot_mod) check on
+    # whether the full 79-strategy/17-modifier confluence engine adds anything
+    # beyond session-timing + macro context. Report-only, same discipline as
+    # meta_labeler.py. Writes regime_meta_labeler_report.json.
+    logger.info("[+] Regime meta-labeling (4-feature comparison) …")
+    try:
+        from regime_meta_labeler import run_nightly as _regime_run
+        _regime = _regime_run()
+        logger.info("  regime-meta-labeler: %s",
+                    _regime.get("conclusion", _regime.get("error", "n/a")))
+    except Exception as _rle:
+        logger.debug("Regime meta-labeling failed: %s", _rle)
+
+    # ── Prospective-holdout freeze (2026-07-22, external-review follow-up):
+    # scores new signal_log rows with the FROZEN (never retrained since
+    # 2026-07-22) 4-feature/42-feature models, so genuine prospective
+    # predictions accrue day by day. See prospective_freeze.py's module
+    # docstring for the full evaluation protocol (120-trading-day window,
+    # pre-committed pass/fail, no early stopping). Report-only, never gates
+    # anything -- this is the ONLY thing that can resolve the meta-overfitting
+    # concern every CPCV/day-split check on this system's history shares.
+    logger.info("[+] Prospective freeze: scoring new signals with frozen models …")
+    try:
+        from prospective_freeze import run_nightly as _freeze_run
+        _freeze = _freeze_run()
+        logger.info("  prospective-freeze: %s", _freeze)
+    except Exception as _fze:
+        logger.debug("Prospective-freeze scoring failed: %s", _fze)
+
     # ── Capture FII/DII + sector snapshots (historical series for analysis) ────
     logger.info("[+] EOD market capture (FII/DII + sector) …")
     _capture: Dict[str, Any] = {}

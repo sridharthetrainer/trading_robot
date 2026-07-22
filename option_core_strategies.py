@@ -1,8 +1,9 @@
 """
 option_core_strategies.py — full entry/exit/strike-selection/adjustment
-logic for exactly 2 of the 12 CORE option strategies from the 2026-07-16
-user spec: C1 (09:20 Short Straddle) and C3 (Iron Condor). The remaining 10
-CORE ids get full logic in follow-up turns, one at a time.
+logic for exactly 3 of the 12 CORE option strategies from the 2026-07-16
+user spec: C1 (09:20 Short Straddle), C3 (Iron Condor), and D1 (Pre-Event
+Long Strangle). The remaining 9 CORE ids get full logic in follow-up turns,
+one at a time.
 
 SHADOW/JOURNAL-ONLY: neither function places an order, not real, not
 paper. Each computes a would-be entry, logs it through the existing
@@ -465,3 +466,143 @@ def evaluate_c3_adjustment(legs: List[Dict[str, Any]], current_spot: float,
     else:
         recs.append("no_adjustment_needed")
     return {"recommendations": recs}
+
+
+# ── D1: Pre-Event Long Strangle ─────────────────────────────────────────────
+# Direction-agnostic long-vega bet ahead of a known market-moving event
+# (RBI/FOMC/Budget/CPI/NFP): buy an OTM CE + OTM PE, both ~0.30-0.35 delta,
+# betting on a big move in EITHER direction. Unlike C1/C3, this does NOT gate
+# on regime["primary"]/regime["gap"] -- a trending or gapped day is not a
+# reason to skip an event straddle-like bet, that's the whole thesis. What it
+# needs INSTEAD of a trend/range regime check is (a) independent confirmation
+# today is a real high-impact event day, beyond what entry_window_ok()'s
+# clock-time check alone can tell you, and (b) an IV percentile ceiling so
+# this doesn't overpay for vega that's already rich pre-event.
+#
+# Scoped to the event-morning window (09:15-09:30) only this pass -- the
+# spec's T-1 14:00-15:00 pre-position variant is a deliberate, stated
+# follow-up, not built here (entry_window_ok() doesn't parse "T-1_..."
+# compound forms yet, and that's a shared parser used by all 42 strategies --
+# out of scope for a single-strategy addition).
+
+def _todays_high_impact_events() -> List[Dict[str, Any]]:
+    """D1-only event-day check. Deliberately uses event_calendar.EventCalendar
+    (clean get_today_events() against HIGH_IMPACT_EVENTS_2026 with impact
+    levels) instead of regime["event"]/regime["events"] (greeks_live.
+    get_event_playbook()'s fuzzy TOMORROW/TODAY string-matching, shared by
+    every strategy via option_strategy_regime.detect_regime()). Kept local to
+    this module rather than threaded through detect_regime() so this change
+    stays contained to D1 and doesn't touch option_strategy_regime.py, which
+    C1/C3 already depend on. Named generically (not "_d1_...") since other
+    long_vega_event-family strategies are natural future callers of the same
+    check. Returns the raw event list (not just a bool) so a firing decision
+    can log WHICH event triggered it."""
+    try:
+        from event_calendar import get_event_calendar
+        return list(get_event_calendar().get_today_events() or [])
+    except Exception as exc:
+        logger.debug("event_calendar unavailable for D1: %s", exc)
+        return []
+
+
+def evaluate_d1_pre_event_strangle(symbol: str, df=None, df_htf=None, option_data=None,
+                                    regime: Optional[Dict[str, Any]] = None,
+                                    conn: Optional[sqlite3.Connection] = None,
+                                    gap_risk_manager: Any = None, **kw) -> Dict[str, Any]:
+    from option_strategy_registry import _param
+    strategy_id = "D1"
+    regime = regime or {}
+
+    rows = extract_chain_rows(option_data)
+    spot = extract_spot(option_data)
+    age = chain_age_sec(option_data)
+
+    def _blocked(reason: str) -> Dict[str, Any]:
+        odj.record_option_decision(
+            strategy=strategy_id, symbol=symbol, decision=f"blocked_{reason}", reason=reason,
+            side="BUY", spot=spot, metadata={"regime": regime, "unvalidated": True})
+        return {"id": strategy_id, "status": f"blocked_{reason}"}
+
+    if not rows or spot <= 0:
+        return _blocked("no_chain_data")
+    if age is not None and age > _param(strategy_id, "max_chain_age_sec", 180):
+        return _blocked("stale_chain")
+
+    # Event-day gate (beyond entry_window_ok()'s pure clock-time check).
+    todays_events = _todays_high_impact_events()
+    if not todays_events:
+        return _blocked("no_event_today")
+
+    # IVP gate (spec: ivp_max=35). Fails CLOSED, not open, when no
+    # gap_risk_manager is wired in or it lacks the method -- matching C3's
+    # own note that it has "no IV-percentile calculator surfaced to this
+    # call path yet" (D1 now does, via this kwarg).
+    if gap_risk_manager is None or not hasattr(gap_risk_manager, "get_iv_percentile"):
+        return _blocked("ivp_unavailable_fail_closed")
+    ivp_max = float(_param(strategy_id, "ivp_max", 35))
+    try:
+        ivp = float(gap_risk_manager.get_iv_percentile(symbol) or 0.0)
+    except Exception as exc:
+        logger.debug("D1 get_iv_percentile(%s): %s", symbol, exc)
+        return _blocked("ivp_unavailable_fail_closed")
+    # NOTE: GapRiskManager.get_iv_percentile() returns the same neutral 50.0
+    # both when history is <20 points AND when it's genuinely computed at
+    # 50 -- no way to distinguish them from the return value alone. That's
+    # fine here: 50.0 > 35 already fails this gate on its own, so the
+    # "insufficient data" case fails closed for free, without needing a
+    # separate sentinel check.
+    if ivp > ivp_max:
+        return _blocked("ivp_too_high")
+
+    gap_pts = _strike_gap(symbol)
+    t_years = _dte_years(regime)
+    delta_min = float(_param(strategy_id, "delta_min", 0.30))
+    delta_max = float(_param(strategy_id, "delta_max", 0.35))
+
+    ce_pick = _select_delta_strike(rows, spot, gap_pts, delta_max, "CE", t_years)
+    pe_pick = _select_delta_strike(rows, spot, gap_pts, delta_max, "PE", t_years)
+    if ce_pick is None or pe_pick is None:
+        return _blocked("no_valid_strike_at_target_delta")
+    if ce_pick["delta"] < delta_min or pe_pick["delta"] < delta_min:
+        return _blocked("delta_out_of_target_band")
+
+    ce_q, pe_q = ce_pick["quote"], pe_pick["quote"]
+    net_debit = round(ce_q["last_price"] + pe_q["last_price"], 2)
+
+    legs = [
+        {"strike": ce_pick["strike"], "option_type": "CE", "price": ce_q["last_price"],
+         "delta": round(ce_pick["delta"], 4), **_oi_direction(ce_q["oi"], ce_q.get("oi_change", 0.0))},
+        {"strike": pe_pick["strike"], "option_type": "PE", "price": pe_q["last_price"],
+         "delta": round(pe_pick["delta"], 4), **_oi_direction(pe_q["oi"], pe_q.get("oi_change", 0.0))},
+    ]
+    ts = time.time()
+    combo_id = _combo_id(symbol, strategy_id, ts)
+    snapshot_time = datetime.now().isoformat()
+
+    payload = odj.record_option_decision(
+        strategy=strategy_id, symbol=symbol, decision="selected",
+        reason="pre_event_long_strangle", side="BUY", spot=spot,
+        selected={
+            "legs": legs, "net_debit": net_debit, "max_loss": net_debit,
+            "risk_profile": "defined_risk", "combo_id": combo_id,
+        },
+        metadata={
+            "regime": regime,
+            "event_calendar_events": todays_events,
+            "ivp": ivp, "ivp_max": ivp_max,
+            "oi_context_unvalidated": True,
+            "sl_desc": _param(strategy_id, "sl_desc", "25% combined debit"),
+            "target_desc": _param(strategy_id, "target_desc", "50% combined gain OR one leg +100%"),
+            "exit_after_event_min": _param(strategy_id, "exit_after_event_min", [15, 30]),
+            "risk_pct_capital": _param(strategy_id, "risk_pct_capital", 0.5),
+            "max_hold": _param(strategy_id, "max_hold", "1_session"),
+            "unvalidated": True,
+        },
+    )
+
+    _persist_shadow_legs(
+        _get_conn(conn), legs, symbol=symbol, expiry=str(regime.get("next_expiry", "")),
+        strategy=strategy_id, combo_id=combo_id, side="BUY", snapshot_time=snapshot_time)
+
+    return {"id": strategy_id, "status": "selected", "combo_id": combo_id,
+            "net_debit": net_debit, "decision": payload.get("decision")}

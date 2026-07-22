@@ -1803,6 +1803,7 @@ class LiveSignalEngine:
                 _bias_ctx = {"cross_asset_bias":
                              str(_INTEL_CACHE.get("cross_asset_bias", "NEUTRAL"))}
                 _ivp_log_cache: Dict[str, float] = {}
+                _spread_log_cache: Dict[str, tuple] = {}
                 try:
                     from autonomous_signal_lifecycle import active_generated_symbols
                     _active_generated = active_generated_symbols()
@@ -1829,6 +1830,29 @@ class LiveSignalEngine:
                             _cand_ctx["iv_percentile"] = _ivp_log_cache[_symbol]
                     except Exception as _ivpe:
                         logger.debug("ivp log ctx %s: %s", _symbol, _ivpe)
+                    # Real bid/ask spread at signal time (2026-07-22): bounded to
+                    # PRIORITY_SYMBOLS (5 indices) so this doesn't add a new
+                    # per-symbol API call across the whole ~200-symbol scan --
+                    # see config.ENABLE_SIGNAL_SPREAD_CAPTURE docstring.
+                    try:
+                        if (getattr(cfg, "ENABLE_SIGNAL_SPREAD_CAPTURE", True)
+                                and _symbol in PRIORITY_SYMBOLS
+                                and self._angel):
+                            if _symbol not in _spread_log_cache:
+                                _depth = self._angel.get_market_depth(_symbol, force_live=True)
+                                _bid = float((_depth or {}).get("bid", 0) or 0)
+                                _ask = float((_depth or {}).get("ask", 0) or 0)
+                                _mid = (_bid + _ask) / 2.0
+                                if _bid > 0 and _ask > 0 and _mid > 0:
+                                    _spread_log_cache[_symbol] = (
+                                        round((_ask - _bid) / _mid, 6), "live_depth")
+                                else:
+                                    _spread_log_cache[_symbol] = (0.0, "unavailable")
+                            _sp, _src = _spread_log_cache[_symbol]
+                            _cand_ctx["signal_spread_pct"] = _sp
+                            _cand_ctx["signal_spread_source"] = _src
+                    except Exception as _spe:
+                        logger.debug("signal spread log ctx %s: %s", _symbol, _spe)
                     _meta_sig = _sig.get("signal_meta") if isinstance(_sig.get("signal_meta"), dict) else {}
                     for _src, _dst in (("pcr", "pcr_atm"), ("pcr_oi", "pcr_atm"),
                                        ("weekly_pivot", "weekly_pivot"),
@@ -3043,7 +3067,8 @@ class LiveSignalEngine:
             # when df_daily is None, rather than needing one.
             regime = detect_regime(df, df_daily=None, vix=vix, symbol=symbol)
             results = evaluate_catalog(symbol=symbol, df=df, df_htf=df_htf,
-                                        option_data=catalog_chain_data, regime=regime)
+                                        option_data=catalog_chain_data, regime=regime,
+                                        gap_risk_manager=self._gap_risk_manager)
             # 2026-07-20: results were computed and discarded here -- the
             # exact "computed but discarded" bug class this project keeps
             # finding elsewhere. "selected" and "error" are now visible;

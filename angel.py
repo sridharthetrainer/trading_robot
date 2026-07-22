@@ -986,7 +986,8 @@ class AngelOne:
                 logger.error(f"LTP fetch failed for {symbol}: {e}")
                 return None
 
-    def get_market_depth(self, symbol: str, exchange: str = "NSE") -> Dict[str, float]:
+    def get_market_depth(self, symbol: str, exchange: str = "NSE",
+                          force_live: bool = False) -> Dict[str, float]:
         """
         Return best bid and ask prices.
 
@@ -994,11 +995,17 @@ class AngelOne:
         Live mode:  calls SmartAPI getMarketData (LTP mode) and reads
                     best bid/ask from the depth response.
 
+        force_live=True bypasses the paper-mode simulation and always calls the
+        real SmartAPI depth endpoint, regardless of self.paper_trade -- for
+        research/logging callers that want a genuine market reading (e.g.
+        capturing real spread at signal time) without affecting any order-
+        routing or P&L-simulation caller, whose behavior is unchanged.
+
         Returns {"bid": float, "ask": float}.
         If the API call fails or returns no depth, returns {"bid": 0.0, "ask": 0.0}
         so callers can detect "unknown" as bid == ask == 0.
         """
-        if self.paper_trade:
+        if self.paper_trade and not force_live:
             base_price  = PAPER_OPTION_LTP if ("CE" in symbol or "PE" in symbol) else PAPER_SPOT_LTP
             half_spread = base_price * PAPER_SPREAD_PCT / 100
             return {

@@ -224,3 +224,179 @@ def test_c1_legs_carry_oi_direction_fields(monkeypatch):
     for leg in legs:
         assert leg["oi_direction"] in {"BUILDUP", "UNWINDING", "FLAT"}
         assert leg["oi_emoji"] in {"🟢", "🔴", "⚪"}
+
+
+# ── D1: Pre-Event Long Strangle ─────────────────────────────────────────────
+
+class _FakeEventCalendar:
+    def __init__(self, has_event: bool):
+        self._has_event = has_event
+
+    def get_today_events(self):
+        if not self._has_event:
+            return []
+        return [{"date": "2026-07-30", "event": "US Fed FOMC", "impact": "HIGH"}]
+
+
+def _mock_event(monkeypatch, has_event=True):
+    monkeypatch.setattr("event_calendar.get_event_calendar",
+                         lambda: _FakeEventCalendar(has_event))
+
+
+class _FakeGapRiskManager:
+    def __init__(self, ivp=20.0):
+        self._ivp = ivp
+
+    def get_iv_percentile(self, underlying):
+        return self._ivp
+
+
+def test_d1_selects_long_strangle_in_delta_band_and_journals_buy_side(monkeypatch):
+    fake = _RecorderFake()
+    monkeypatch.setattr(ocs.odj, "record_option_decision", fake)
+    _mock_event(monkeypatch, True)
+    option_data = _synthetic_chain()
+    conn = sqlite3.connect(":memory:")
+
+    result = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+
+    assert result["status"] == "selected"
+    assert result["net_debit"] > 0
+    assert len(fake.calls) == 1
+    call = fake.calls[0]
+    assert call["side"] == "BUY"
+    assert call["selected"]["risk_profile"] == "defined_risk"
+    legs = call["selected"]["legs"]
+    assert {leg["option_type"] for leg in legs} == {"CE", "PE"}
+    ce = next(leg for leg in legs if leg["option_type"] == "CE")
+    pe = next(leg for leg in legs if leg["option_type"] == "PE")
+    assert ce["strike"] != pe["strike"]  # strangle, not a straddle
+    for leg in (ce, pe):
+        assert 0.30 - 1e-6 <= leg["delta"] <= 0.35 + 1e-6
+
+
+def test_d1_blocked_when_no_event_today(monkeypatch):
+    fake = _RecorderFake()
+    monkeypatch.setattr(ocs.odj, "record_option_decision", fake)
+    _mock_event(monkeypatch, False)
+    option_data = _synthetic_chain()
+
+    result = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+
+    assert result["status"] == "blocked_no_event_today"
+    assert fake.calls[0]["side"] == "BUY"
+    assert fake.calls[0]["decision"] == "blocked_no_event_today"
+
+
+def test_d1_blocked_when_gap_risk_manager_missing_or_incompatible(monkeypatch):
+    monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
+    _mock_event(monkeypatch, True)
+    option_data = _synthetic_chain()
+
+    result_none = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, gap_risk_manager=None)
+    assert result_none["status"] == "blocked_ivp_unavailable_fail_closed"
+
+    result_incompatible = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, gap_risk_manager=object())
+    assert result_incompatible["status"] == "blocked_ivp_unavailable_fail_closed"
+
+
+def test_d1_blocked_when_ivp_above_max_including_neutral_default(monkeypatch):
+    monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
+    _mock_event(monkeypatch, True)
+    option_data = _synthetic_chain()
+
+    # 50.0 is GapRiskManager.get_iv_percentile()'s neutral default for BOTH a
+    # genuinely-computed 50 and "insufficient IV history" -- both must block.
+    blocked_neutral = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME,
+        gap_risk_manager=_FakeGapRiskManager(50.0))
+    assert blocked_neutral["status"] == "blocked_ivp_too_high"
+
+    blocked_high = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME,
+        gap_risk_manager=_FakeGapRiskManager(36.0))
+    assert blocked_high["status"] == "blocked_ivp_too_high"
+
+    at_boundary = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME,
+        gap_risk_manager=_FakeGapRiskManager(35.0))
+    assert at_boundary["status"] != "blocked_ivp_too_high"
+
+
+def test_d1_blocked_on_missing_chain_data(monkeypatch):
+    monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
+    result = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data={}, regime=_CALM_REGIME,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+    assert result["status"] == "blocked_no_chain_data"
+
+
+def test_d1_delta_band_enforced_via_delta_min_param(monkeypatch):
+    monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
+    monkeypatch.setenv("OPT_STRAT_D1_DELTA_MIN", "0.45")  # impossible: delta_max stays 0.35
+    _mock_event(monkeypatch, True)
+    option_data = _synthetic_chain()
+
+    result = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+
+    assert result["status"] == "blocked_delta_out_of_target_band"
+
+
+def test_d1_persists_buy_side_legs_with_shared_combo_id(monkeypatch):
+    monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
+    _mock_event(monkeypatch, True)
+    option_data = _synthetic_chain()
+    conn = sqlite3.connect(":memory:")
+
+    ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+
+    rows_db = conn.execute(
+        "SELECT strike, option_type, side, combo_id FROM option_strike_signals "
+        "WHERE strategy='D1'").fetchall()
+    assert len(rows_db) == 2
+    assert all(side == "BUY" for _, _, side, _ in rows_db)
+    combo_ids = {combo_id for *_, combo_id in rows_db}
+    assert len(combo_ids) == 1
+    strikes = {strike for strike, *_ in rows_db}
+    assert len(strikes) == 2
+
+
+def test_d1_legs_carry_oi_direction_fields(monkeypatch):
+    fake = _RecorderFake()
+    monkeypatch.setattr(ocs.odj, "record_option_decision", fake)
+    _mock_event(monkeypatch, True)
+    conn = sqlite3.connect(":memory:")
+
+    result = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=_synthetic_chain(), regime=_CALM_REGIME, conn=conn,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+
+    assert result["status"] == "selected"
+    legs = fake.calls[0]["selected"]["legs"]
+    assert len(legs) == 2
+    for leg in legs:
+        assert leg["oi_direction"] in {"BUILDUP", "UNWINDING", "FLAT"}
+        assert leg["oi_emoji"] in {"🟢", "🔴", "⚪"}
+
+
+def test_d1_net_debit_equals_max_loss_defined_risk(monkeypatch):
+    fake = _RecorderFake()
+    monkeypatch.setattr(ocs.odj, "record_option_decision", fake)
+    _mock_event(monkeypatch, True)
+
+    result = ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=_synthetic_chain(), regime=_CALM_REGIME,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+
+    assert result["status"] == "selected"
+    assert fake.calls[0]["selected"]["max_loss"] == result["net_debit"]

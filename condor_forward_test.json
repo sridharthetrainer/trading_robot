@@ -1,5 +1,40 @@
 {
-  "open": null,
+  "open": {
+    "entry_date": "2026-07-22",
+    "expiry_date": "2026-07-28",
+    "spot_entry": 23996.25,
+    "vix_entry": 13.29,
+    "T_entry": 0.01643835616438356,
+    "width": 400,
+    "legs": [
+      {
+        "strike": 24400,
+        "opt_type": "call",
+        "qty": -1,
+        "entry_prem": 40.15
+      },
+      {
+        "strike": 23600,
+        "opt_type": "put",
+        "qty": -1,
+        "entry_prem": 31.28
+      },
+      {
+        "strike": 24800,
+        "opt_type": "call",
+        "qty": 1,
+        "entry_prem": 4.95
+      },
+      {
+        "strike": 23200,
+        "opt_type": "put",
+        "qty": 1,
+        "entry_prem": 3.04
+      }
+    ],
+    "credit_rs": 4124.0,
+    "max_loss_rs": 21876.0
+  },
   "closed": [
     {
       "entry_date": "2026-06-10",
