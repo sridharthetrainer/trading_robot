@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22T20:16:05+0530",
+  "generated_at": "2026-07-23T21:38:49+0530",
   "symbols_requested": 194,
   "intervals": [
     "1m",
@@ -8,76 +8,76 @@
     "1h",
     "1d"
   ],
-  "duration_sec": 1137.144,
+  "duration_sec": 5967.94,
   "before": {
     "exists": true,
-    "total": 3561056,
+    "total": 3664116,
     "intervals": {
       "15m": {
-        "rows": 195299,
+        "rows": 200165,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-22 15:15:00+05:30"
+        "last": "2026-07-23 15:15:00+05:30"
       },
       "1d": {
-        "rows": 75202,
+        "rows": 75425,
         "symbols": 196,
         "first": "2022-05-18 00:00:00+05:30",
-        "last": "2026-07-22 00:00:00+05:30"
+        "last": "2026-07-23 00:00:00+05:30"
       },
       "1h": {
-        "rows": 83086,
+        "rows": 84408,
         "symbols": 193,
         "first": "2026-04-01 09:15:00+05:30",
-        "last": "2026-07-22 15:15:00+05:30"
+        "last": "2026-07-23 15:15:00+05:30"
       },
       "1m": {
-        "rows": 2748295,
+        "rows": 2830282,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-22 15:29:00+05:30"
+        "last": "2026-07-23 15:29:00+05:30"
       },
       "5m": {
-        "rows": 459174,
+        "rows": 473836,
         "symbols": 194,
         "first": "2025-05-19 09:15:00+05:30",
-        "last": "2026-07-22 15:25:00+05:30"
+        "last": "2026-07-23 15:25:00+05:30"
       }
     }
   },
   "after": {
     "exists": true,
-    "total": 3578987,
+    "total": 3670008,
     "intervals": {
       "15m": {
-        "rows": 195403,
+        "rows": 200197,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-22 15:15:00+05:30"
+        "last": "2026-07-23 15:15:00+05:30"
       },
       "1d": {
-        "rows": 75249,
+        "rows": 75426,
         "symbols": 196,
         "first": "2022-05-18 00:00:00+05:30",
-        "last": "2026-07-22 00:00:00+05:30"
+        "last": "2026-07-23 00:00:00+05:30"
       },
       "1h": {
-        "rows": 83245,
+        "rows": 84492,
         "symbols": 193,
         "first": "2026-04-01 09:15:00+05:30",
-        "last": "2026-07-22 15:15:00+05:30"
+        "last": "2026-07-23 15:15:00+05:30"
       },
       "1m": {
-        "rows": 2765567,
+        "rows": 2835925,
         "symbols": 193,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-22 15:29:00+05:30"
+        "last": "2026-07-23 15:29:00+05:30"
       },
       "5m": {
-        "rows": 459523,
+        "rows": 473968,
         "symbols": 194,
         "first": "2025-05-19 09:15:00+05:30",
-        "last": "2026-07-22 15:25:00+05:30"
+        "last": "2026-07-23 15:25:00+05:30"
       }
     }
   },
@@ -122,10 +122,15 @@
       "interval": "15m",
       "days": 30,
       "requested": 194,
-      "ok_count": 193,
+      "ok_count": 192,
       "sample_failures": [
         {
           "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "HPCL",
           "reason": "no_verified_intraday_data",
           "bars": 0
         }
@@ -148,25 +153,55 @@
       "interval": "1d",
       "days": 365,
       "requested": 194,
-      "ok_count": 190,
+      "ok_count": 177,
       "sample_failures": [
         {
-          "symbol": "SENSEX",
+          "symbol": "RELIANCE",
           "reason": "no_verified_intraday_data",
           "bars": 0
         },
         {
-          "symbol": "NIFTYNEXT50",
+          "symbol": "TCS",
           "reason": "no_verified_intraday_data",
           "bars": 0
         },
         {
-          "symbol": "LTIM",
+          "symbol": "HDFCBANK",
           "reason": "no_verified_intraday_data",
           "bars": 0
         },
         {
-          "symbol": "HPCL",
+          "symbol": "INFY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "ICICIBANK",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "HINDUNILVR",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "SBIN",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "BAJFINANCE",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "BHARTIARTL",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "ITC",
           "reason": "no_verified_intraday_data",
           "bars": 0
         }

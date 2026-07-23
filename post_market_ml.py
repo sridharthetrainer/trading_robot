@@ -60,6 +60,47 @@ def _is_post_market() -> bool:
     return t >= _dt.time(15, 30)
 
 
+# ── PID lock: prevent job_catchup.py's subprocess from racing the regular cron ─
+# 2026-07-23 incident: cron started post_market_ml.py at 16:30, still running at
+# 16:47:30 (single-run time has grown 438s→1603s over recent weeks); job_catchup's
+# 15-min-grace freshness check couldn't see the in-progress run yet, so it launched
+# a SECOND copy that fought the first for CPU/sqlite locks and hit the 1800s
+# subprocess timeout, skipping every downstream nightly job for the rest of the
+# day. job_catchup.py has no visibility into a crontab-launched process, so the
+# lock must live here, in the process being duplicated.
+_LOCK_FILE = Path("post_market_ml.pid")
+
+
+def _acquire_lock() -> bool:
+    """True if this process now holds the lock. False if another instance is
+    still alive (caller should skip its run, not wait or retry)."""
+    if _LOCK_FILE.exists():
+        try:
+            other_pid = int(_LOCK_FILE.read_text().strip())
+        except (ValueError, OSError):
+            other_pid = None
+        if other_pid is not None:
+            try:
+                os.kill(other_pid, 0)
+                return False   # still alive — another run owns the lock
+            except ProcessLookupError:
+                pass           # stale lock (process gone) — safe to take over
+            except PermissionError:
+                return False   # alive, owned by a different user
+    try:
+        _LOCK_FILE.write_text(str(os.getpid()))
+    except OSError:
+        pass
+    return True
+
+
+def _release_lock() -> None:
+    try:
+        _LOCK_FILE.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
 # ── Signal labeller: update pending tb_label = -99 → actual outcome ───────────
 
 def _update_pending_labels() -> int:
@@ -718,6 +759,11 @@ def main() -> int:
                     help="Run even if market is still open")
     args = ap.parse_args()
 
+    if not _acquire_lock():
+        logger.warning("post_market_ml already running (pid lock held) — "
+                       "skipping duplicate launch")
+        return 0
+
     # Benign reasons the pipeline legitimately produces no output — do NOT alert
     # on these (avoids nightly false alarms, e.g. the expected data-gated state).
     _BENIGN_SKIPS = {"market_open"}
@@ -733,6 +779,8 @@ def main() -> int:
         logger.exception("post_market_ml pipeline crashed")
         _alert_pipeline_failure(f"crashed: {exc}")
         return 1
+    finally:
+        _release_lock()
     _err = result.get("error")
     if _err and _err not in _BENIGN_SKIPS:
         _alert_pipeline_failure(f"error: {_err}")

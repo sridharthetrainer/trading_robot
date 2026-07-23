@@ -1313,3 +1313,13 @@ SNAPSHOT_OPTION_UNDERLYINGS = [
 ]
 ML_MIN_SAMPLES = int(os.getenv("ML_MIN_SAMPLES","50"))
 MAX_SAME_SECTOR_POSITIONS = int(os.getenv("MAX_SAME_SECTOR_POSITIONS","3"))
+
+# 2026-07-23 edge-thesis decision document (research-admission policy, 3-round
+# GPT-5.6-audited): "MAINTENANCE" means no new historical alpha research (new
+# predictor/strategy/feature/threshold/combination/subgroup/regime-split/
+# trade-expression/ranking/sizing/entry-exit rule) may start without an
+# approved, cooling-off-period-elapsed proposal -- see research_admission.py.
+# Permitted maintenance (data correctness/test continuity/security/risk
+# enforcement/logging integrity/reproducibility/operational fixes) is NOT
+# gated by this flag.
+ALPHA_RESEARCH_MODE = _env("ALPHA_RESEARCH_MODE", "MAINTENANCE")

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-22T17:47:47",
-  "n_modules": 496,
+  "generated_at": "2026-07-23T16:56:42",
+  "n_modules": 499,
   "orphan_modules": [
     "check_connections",
     "comprehensive_news_engine",
@@ -276,6 +276,10 @@
     {
       "module": "pivot_boss",
       "name": "analyse_cpr_trend"
+    },
+    {
+      "module": "prospective_freeze",
+      "name": "record_backfill_hash"
     },
     {
       "module": "pruning",
@@ -1442,9 +1446,10 @@
       "imported_by": [
         "live_signal_engine",
         "main_autonomous",
-        "off_hours_engine"
+        "off_hours_engine",
+        "option_core_strategies"
       ],
-      "n_importers": 3
+      "n_importers": 4
     },
     "execution_algo": {
       "status": "imported",
@@ -2083,9 +2088,10 @@
     "meta_labeler": {
       "status": "imported",
       "imported_by": [
-        "post_market_ml"
+        "post_market_ml",
+        "prospective_freeze"
       ],
-      "n_importers": 1
+      "n_importers": 2
     },
     "meta_labeler_historical_replay": {
       "status": "imported",
@@ -2424,10 +2430,11 @@
     "option_core_strategies": {
       "status": "imported",
       "imported_by": [
+        "option_oi_chart",
         "option_strategy_registry",
         "test_option_core_strategies"
       ],
-      "n_importers": 2
+      "n_importers": 3
     },
     "option_decision_journal": {
       "status": "imported",
@@ -2851,6 +2858,14 @@
       ],
       "n_importers": 1
     },
+    "prospective_freeze": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml",
+        "test_prospective_freeze"
+      ],
+      "n_importers": 2
+    },
     "prune_invalid_candles": {
       "status": "entrypoint",
       "imported_by": [],
@@ -2878,14 +2893,16 @@
     "purged_cv": {
       "status": "imported",
       "imported_by": [
+        "meta_labeler",
         "ml_effective_n_bootstrap",
         "ml_trainer",
         "model_champion",
         "model_quality",
+        "regime_meta_labeler",
         "signal_calibrator",
         "test_purged_cv"
       ],
-      "n_importers": 6
+      "n_importers": 8
     },
     "quality_gate": {
       "status": "imported",
@@ -2913,6 +2930,14 @@
       "imported_by": [
         "signal_engine",
         "strategy_scanner"
+      ],
+      "n_importers": 2
+    },
+    "regime_meta_labeler": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml",
+        "prospective_freeze"
       ],
       "n_importers": 2
     },
@@ -3128,9 +3153,9 @@
         "main_autonomous",
         "nightly_edge_monitor",
         "post_market_ml",
-        "self_learning_engine"
+        "prospective_freeze"
       ],
-      "n_importers": 17
+      "n_importers": 19
     },
     "signal_quality": {
       "status": "imported",
@@ -3138,11 +3163,12 @@
         "meta_labeler",
         "ml_feature_builder",
         "modifier_edge_analyzer",
+        "regime_meta_labeler",
         "signal_log",
         "strategy_edge_analyzer",
         "test_data_quality_upgrades"
       ],
-      "n_importers": 6
+      "n_importers": 7
     },
     "signal_refinements": {
       "status": "imported",
@@ -3773,6 +3799,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_prospective_freeze": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_purged_cv": {
       "status": "test",
       "imported_by": [],
@@ -3982,9 +4013,9 @@
         "off_hours_engine",
         "option_bot_audit",
         "post_market_ml",
-        "self_learning_engine"
+        "prospective_freeze"
       ],
-      "n_importers": 15
+      "n_importers": 16
     },
     "tradingview_strategies": {
       "status": "imported",

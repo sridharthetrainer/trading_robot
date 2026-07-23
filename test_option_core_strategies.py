@@ -160,6 +160,34 @@ def test_c1_and_c3_combos_persist_with_shared_combo_id(monkeypatch):
     assert c1_combo_ids != c3_combo_ids
 
 
+def test_c1_and_c3_persist_real_volume_and_spread_not_zero_default(monkeypatch):
+    """2026-07-23 bug: _persist_shadow_legs/_persist_multi_side_shadow_legs
+    dropped the volume/spread_pct that _leg_quote() already computes, so every
+    C1/C3 leg landed with the schema's volume=0/spread_pct=NULL defaults. The
+    nightly labeller (option_multistrike_signals.label_multistrike_outcomes)
+    then fed volume=0.0 into shadow_execution.simulate_option_round_trip(),
+    which reads observed_volume=0.0 as "confirmed zero liquidity" (not
+    "unknown") and marks the leg REJECTED/insufficient_observed_volume even
+    though real volume existed in the chain at signal time -- 3 days of
+    shadow trades produced zero usable evidence as a result. This asserts the
+    real chain volume/spread survive into the persisted row."""
+    monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
+    option_data = _synthetic_chain()  # _mk_row's default vol=10000, bid/ask 1% apart
+    conn = sqlite3.connect(":memory:")
+    ocs.evaluate_c1_short_straddle(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
+    ocs.evaluate_c3_iron_condor(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
+
+    for strategy in ("C1", "C3"):
+        rows_db = conn.execute(
+            "SELECT volume, spread_pct FROM option_strike_signals WHERE strategy=?",
+            (strategy,)).fetchall()
+        assert rows_db, f"no rows persisted for {strategy}"
+        for volume, spread_pct in rows_db:
+            assert volume > 0, f"{strategy} leg persisted with volume<=0: {volume}"
+            assert spread_pct is not None and spread_pct > 0, \
+                f"{strategy} leg persisted with spread_pct not captured: {spread_pct}"
+
+
 # ── Adjustment functions: pure, independently testable, never called live ──
 
 def test_c1_adjustment_flags_delta_hedge_on_breach():
@@ -387,6 +415,25 @@ def test_d1_legs_carry_oi_direction_fields(monkeypatch):
     for leg in legs:
         assert leg["oi_direction"] in {"BUILDUP", "UNWINDING", "FLAT"}
         assert leg["oi_emoji"] in {"🟢", "🔴", "⚪"}
+
+
+def test_d1_persists_real_volume_and_spread_not_zero_default(monkeypatch):
+    """Same 2026-07-23 fix as C1/C3 -- see test_c1_and_c3_persist_real_volume_
+    and_spread_not_zero_default's docstring."""
+    monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
+    _mock_event(monkeypatch, True)
+    conn = sqlite3.connect(":memory:")
+
+    ocs.evaluate_d1_pre_event_strangle(
+        symbol="NIFTY", option_data=_synthetic_chain(), regime=_CALM_REGIME, conn=conn,
+        gap_risk_manager=_FakeGapRiskManager(20.0))
+
+    rows_db = conn.execute(
+        "SELECT volume, spread_pct FROM option_strike_signals WHERE strategy='D1'").fetchall()
+    assert rows_db
+    for volume, spread_pct in rows_db:
+        assert volume > 0
+        assert spread_pct is not None and spread_pct > 0
 
 
 def test_d1_net_debit_equals_max_loss_defined_risk(monkeypatch):

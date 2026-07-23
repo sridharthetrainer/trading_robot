@@ -4749,12 +4749,35 @@ class AutonomousTradingSystem:
             self._notify_mode_change("LIVE")
             self._heartbeat("LIVE")
             # Zero-signal detector
+            # BUG FIX 2026-07-23: _last_signal_ts was set ONCE via a `not
+            # hasattr` guard and never refreshed anywhere else in the
+            # codebase (grep confirmed only these 2 lines touch it) -- so it
+            # measured "time since this branch first ran today", not "time
+            # since a real signal", and was guaranteed to false-alarm every
+            # day once ~2h had passed regardless of actual activity. Caught
+            # live: signal_log showed fresh rows every few minutes (965
+            # scanned, 416 passed today) while this fired "no signals for
+            # 2.1h". Now reads the real ground truth (signal_log.log_time)
+            # instead of a dead counter.
             try:
                 from datetime import time as _dtz
                 _now_tz = datetime.now().time()
                 if _dtz(10,0) <= _now_tz <= _dtz(14,30):
-                    if not hasattr(self,"_last_signal_ts"): self._last_signal_ts=__import__("time").time()
                     if not hasattr(self,"_zero_alerted"):   self._zero_alerted=False
+                    _last_real_ts = None
+                    try:
+                        import sqlite3 as _sq3z
+                        with _sq3z.connect("signal_log.db") as _conn_z:
+                            _row_z = _conn_z.execute(
+                                "SELECT MAX(log_time) FROM signal_log WHERE signal_date=?",
+                                (datetime.now().strftime("%Y-%m-%d"),)).fetchone()
+                        if _row_z and _row_z[0]:
+                            _last_real_ts = float(_row_z[0])
+                    except Exception as _sig_exc:
+                        logger.debug("zero-signal detector: signal_log read failed: %s", _sig_exc)
+                    if _last_real_ts is None:
+                        _last_real_ts = getattr(self, "_last_signal_ts", __import__("time").time())
+                    self._last_signal_ts = _last_real_ts
                     _age = (__import__("time").time()-self._last_signal_ts)/3600
                     if _age>2.0 and not self._zero_alerted:
                         self._zero_alerted=True

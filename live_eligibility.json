@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22T20:18:02.209751+05:30",
+  "generated_at": "2026-07-23T21:42:25.923832+05:30",
   "policy": "validation_pass_required",
   "cohort_file": "frozen_strategy_cohort.json",
   "cohort_size": 5,
@@ -21,16 +21,16 @@
     "validation": {
       "path": "validation_results.json",
       "exists": true,
-      "mtime": "2026-07-22T14:24:02.705890+00:00",
-      "age_days": 0.017,
-      "sha256": "7522dd56641353cceb526156cc29074da913dbb970acf189a98aeaa1dd50a1be"
+      "mtime": "2026-07-23T10:18:34.802913+00:00",
+      "age_days": 0.246,
+      "sha256": "be8c72b1869a2bebde0937c11e004cb449f3a501a4b7b476dacaf103e58498a3"
     },
     "edge": {
       "path": "strategy_validation_report.json",
       "exists": true,
-      "mtime": "2026-07-22T14:24:02.697891+00:00",
-      "age_days": 0.017,
-      "sha256": "f35def7b381c2c5f34d98046317c987f1054504b39c03a3de86a3daa8bbf0e56"
+      "mtime": "2026-07-23T10:15:04.259332+00:00",
+      "age_days": 0.248,
+      "sha256": "571329440092a2c3e534df8e3f946a269d8231f55b7b5e1e37182b77d1fe75a4"
     }
   },
   "live_ready_count": 0,
@@ -100,9 +100,9 @@
       "block_reason": "edge_negative_edge",
       "validation_verdict": "INSUFFICIENT_DATA",
       "edge_status": "NEGATIVE_EDGE",
-      "dev_avg_sharpe": 5.3583,
-      "dev_avg_pnl": 151637.1,
-      "dev_avg_trades": 101.0,
+      "dev_avg_sharpe": 5.123,
+      "dev_avg_pnl": 143736.66,
+      "dev_avg_trades": 100.0,
       "deflated_sharpe": 1.0,
       "min_trade_ok": true,
       "stability_ok": false,
@@ -1432,10 +1432,10 @@
       "block_reason": "edge_negative_edge",
       "validation_verdict": "INSUFFICIENT_DATA",
       "edge_status": "NEGATIVE_EDGE",
-      "dev_avg_sharpe": 2.0801,
-      "dev_avg_pnl": 28998.86,
-      "dev_avg_trades": 63.0,
-      "deflated_sharpe": 0.0173,
+      "dev_avg_sharpe": 2.5397,
+      "dev_avg_pnl": 34999.82,
+      "dev_avg_trades": 59.0,
+      "deflated_sharpe": 0.4736,
       "min_trade_ok": true,
       "stability_ok": false,
       "dev_pct_profitable": 1.0,
@@ -1666,8 +1666,8 @@
       "block_reason": "edge_negative_edge",
       "validation_verdict": "INSUFFICIENT_DATA",
       "edge_status": "NEGATIVE_EDGE",
-      "dev_avg_sharpe": 6.6413,
-      "dev_avg_pnl": 134900.78,
+      "dev_avg_sharpe": 5.605,
+      "dev_avg_pnl": 109400.66,
       "dev_avg_trades": 74.0,
       "deflated_sharpe": 1.0,
       "min_trade_ok": true,

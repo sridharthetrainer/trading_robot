@@ -243,5 +243,40 @@
     "sha256_of_id_and_scores": "6ceaba90cce8efaef4d3dead42b17d284ca3a2c930f7795f11cb9d6d22b8425e",
     "recorded_at": "2026-07-22T22:39:04.787899",
     "purpose": "detect accidental silent re-scoring of historical_backfill rows -- these must never change after this point"
+  },
+  "auxiliary_hypotheses": {
+    "trend_cluster_2026-07-23": {
+      "registered_at": "2026-07-23T21:38:43.104023",
+      "git_commit_at_registration": "17d99cb37a1f102cb20831c8133088af17c76d6f",
+      "source": "strategy_pair_edge_miner.py (298 pairs, 2191 triples, top-25 strategies, signal_log 2026-06-29..2026-07-23) + a 5-AI 2-round cross-review",
+      "cluster_strategies": [
+        "ma_cross",
+        "trend",
+        "alligator_ao",
+        "cpr",
+        "supertrend_mtf",
+        "ema_ribbon"
+      ],
+      "historical_evidence": {
+        "verdict_in_historical_sample": "NO_GROSS_EDGE / net-negative after cost drag (not WRONG_DIRECTION, not a demonstrated pair-specific negative interaction)",
+        "worst_pairs_gross_mean_range": [
+          -0.034,
+          -0.003
+        ],
+        "worst_pairs_cost_drag": 0.1826,
+        "day_level_check": "negative on every active day for all 8 worst pairs (9/9 or 16/17), sign-test p<=0.0039, leave-one-day-out stayed negative after dropping the worst day",
+        "redundancy_caveat": "several top pairs are highly non-independent (e.g. ma_cross present in 98.8% of all trend-tagged signals) -- the pair count overstates how many distinct discoveries this represents"
+      },
+      "hypothesis": "Over genuinely prospective signals (prediction_origin='live_prospective') where >=2 of cluster_strategies co-fire, gross tb_r_multiple will remain within +/-0.05R of zero (NO_GROSS_EDGE, an equivalence-margin test, not merely failing to reject zero) and mean tb_r_multiple_net will stay negative, consistent with a cost-driven (not directional) explanation.",
+      "min_active_prospective_days_before_evaluation": 10,
+      "evaluate_no_earlier_than": "2027-01-15",
+      "aggregations_required": [
+        "signal_weighted_mean",
+        "equal_day_weighted_mean"
+      ],
+      "confirmation_rule": "CONFIRMED if |gross_mean| < 0.05 AND net_mean < 0, in BOTH aggregations. REJECTED otherwise.",
+      "not_evaluated_early": "no interim peeking before evaluate_no_earlier_than -- same discipline as the primary/secondary models",
+      "production_impact": "NONE -- no confluence weighting, gating, or scoring change was made as a result of this finding; this entry exists solely to be checked against prospective data later"
+    }
   }
 }

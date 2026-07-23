@@ -1,122 +1,124 @@
-# Strategy keep/prune — 2026-07-22 (nightly, NET-of-cost R)
+# Strategy keep/prune — 2026-07-23 (nightly, NET-of-cost R)
 
-Ranked by tb_r_multiple_net (costs+slippage included). CONFIRMED requires n>=150 AND distinct days>=8 (max days so far: 16).
+Ranked by tb_r_multiple_net (costs+slippage included). CONFIRMED requires n>=150 AND distinct days>=8 (max days so far: 17).
 Rigorous gate is validation_harness (DSR). Reversible prune via pruning.py.
 
 ## CONFIRMED KEEP (net-R>=0.1, n>=150, days>=8)
   (none yet)
 
 ## CONFIRMED PRUNE (net-R<=-0.03, n>=150, days>=8)
-  failed_bear_breakout                   n=358  days=16 netR=-0.049 (gross +0.134) win=12.0%
-  donchian_breakout                      n=200  days=16 netR=-0.050 (gross +0.133) win=7.0%
-  candlestick_bullish_engulfing          n=185  days=16 netR=-0.073 (gross +0.109) win=9.2%
-  breakout                               n=483  days=16 netR=-0.102 (gross +0.081) win=11.0%
-  elder_triple_screen                    n=583  days=16 netR=-0.105 (gross +0.078) win=6.9%
-  candlestick_three_black_soldiers       n=212  days=16 netR=-0.132 (gross +0.051) win=6.6%
-  vp_breakout                            n=159  days=16 netR=-0.142 (gross +0.040) win=8.8%
-  elder_ray                              n=272  days=16 netR=-0.146 (gross +0.037) win=5.5%
-  chart_pattern_ascending_triangle       n=1048 days=16 netR=-0.159 (gross +0.024) win=7.9%
-  ma_cross                               n=729  days=16 netR=-0.168 (gross +0.015) win=4.5%
-  ichimoku                               n=354  days=16 netR=-0.174 (gross +0.009) win=7.3%
-  price_structure                        n=3204 days=16 netR=-0.184 (gross -0.001) win=7.9%
-  chart_pattern_double_bottom            n=352  days=16 netR=-0.198 (gross -0.015) win=8.0%
+  donchian_breakout                      n=219  days=17 netR=-0.033 (gross +0.149) win=6.4%
+  failed_bear_breakout                   n=381  days=17 netR=-0.074 (gross +0.109) win=11.8%
+  candlestick_bullish_engulfing          n=189  days=16 netR=-0.075 (gross +0.108) win=9.5%
+  breakout                               n=556  days=17 netR=-0.095 (gross +0.087) win=10.6%
+  elder_triple_screen                    n=630  days=17 netR=-0.104 (gross +0.079) win=7.0%
+  candlestick_three_black_soldiers       n=231  days=17 netR=-0.114 (gross +0.068) win=6.5%
+  vp_breakout                            n=174  days=17 netR=-0.165 (gross +0.018) win=8.0%
+  ichimoku                               n=412  days=17 netR=-0.167 (gross +0.015) win=6.8%
+  candlestick_three_white_soldiers       n=152  days=16 netR=-0.169 (gross +0.014) win=5.3%
+  elder_ray                              n=304  days=17 netR=-0.173 (gross +0.010) win=5.3%
+  ma_cross                               n=823  days=17 netR=-0.174 (gross +0.008) win=4.3%
+  chart_pattern_ascending_triangle       n=1122 days=17 netR=-0.181 (gross +0.002) win=7.4%
+  price_structure                        n=3373 days=17 netR=-0.186 (gross -0.003) win=7.8%
+  candlestick_bearish_engulfing          n=346  days=17 netR=-0.193 (gross -0.011) win=6.9%
+  chart_pattern_head_and_shoulders       n=664  days=17 netR=-0.193 (gross -0.011) win=4.1%
+  chart_pattern_double_bottom            n=356  days=16 netR=-0.197 (gross -0.014) win=8.1%
+  candlestick_spinning_top_black         n=218  days=17 netR=-0.199 (gross -0.017) win=8.3%
   trend                                  n=1047 days=9  netR=-0.206 (gross -0.023) win=6.7%
-  chart_pattern_head_and_shoulders       n=620  days=16 netR=-0.209 (gross -0.027) win=4.2%
-  candlestick_spinning_top_black         n=213  days=16 netR=-0.211 (gross -0.029) win=8.0%
-  weinstein_stage                        n=199  days=16 netR=-0.215 (gross -0.032) win=12.6%
   chart_pattern_descending_triangle      n=1188 days=9  netR=-0.216 (gross -0.034) win=4.5%
-  candlestick_bearish_engulfing          n=313  days=16 netR=-0.218 (gross -0.035) win=7.7%
-  ttm_squeeze                            n=183  days=15 netR=-0.225 (gross -0.042) win=6.6%
+  ttm_squeeze                            n=188  days=16 netR=-0.221 (gross -0.038) win=6.4%
   chart_pattern_inverse_head_shoulders   n=281  days=9  netR=-0.230 (gross -0.047) win=7.1%
+  pivot_scalping                         n=211  days=10 netR=-0.230 (gross -0.048) win=0.0%
+  mean_reversion                         n=314  days=17 netR=-0.247 (gross -0.064) win=3.5%
   holy_grail                             n=339  days=9  netR=-0.250 (gross -0.068) win=6.8%
-  pivot_scalping                         n=177  days=8  netR=-0.253 (gross -0.070) win=0.0%
+  failed_bull_breakout                   n=389  days=17 netR=-0.254 (gross -0.071) win=6.7%
+  cci_trend                              n=284  days=16 netR=-0.256 (gross -0.073) win=2.8%
   rsi_divergence                         n=1275 days=9  netR=-0.258 (gross -0.075) win=3.3%
-  failed_bull_breakout                   n=359  days=16 netR=-0.263 (gross -0.080) win=6.7%
-  mean_reversion                         n=296  days=16 netR=-0.263 (gross -0.081) win=3.4%
+  weinstein_stage                        n=214  days=16 netR=-0.271 (gross -0.089) win=12.1%
   alligator_ao                           n=754  days=9  netR=-0.272 (gross -0.090) win=5.3%
-  cci_trend                              n=241  days=15 netR=-0.294 (gross -0.111) win=2.9%
-  cpr                                    n=278  days=16 netR=-0.300 (gross -0.117) win=6.1%
-  aroon_trend                            n=205  days=16 netR=-0.302 (gross -0.119) win=4.9%
-  chart_pattern_range_expansion          n=161  days=16 netR=-0.327 (gross -0.145) win=9.9%
+  cpr                                    n=318  days=17 netR=-0.276 (gross -0.093) win=6.0%
+  aroon_trend                            n=226  days=17 netR=-0.289 (gross -0.106) win=4.4%
+  supertrend_mtf                         n=156  days=15 netR=-0.307 (gross -0.124) win=7.1%
   chart_pattern_double_top               n=264  days=9  netR=-0.335 (gross -0.152) win=4.9%
   vrvp_zone                              n=583  days=9  netR=-0.402 (gross -0.220) win=7.4%
+  chart_pattern_range_expansion          n=173  days=17 netR=-0.414 (gross -0.231) win=9.8%
 
 ## ALL (ranked by net-R)
-  chart_pattern_falling_wedge            n=22   days=9  netR=+0.954 (gross +1.137) win=22.7%
+  chart_pattern_falling_wedge            n=23   days=10 netR=+0.904 (gross +1.087) win=21.7%
+  candlestick_three_river_evening_star   n=37   days=11 netR=+0.250 (gross +0.432) win=16.2%
   uo_overbought                          n=27   days=10 netR=+0.248 (gross +0.430) win=18.5%
-  vwap_reversion                         n=30   days=9  netR=+0.139 (gross +0.322) win=13.3%
-  volume_profile_full                    n=20   days=7  netR=+0.109 (gross +0.292) win=5.0%
-  anchored_vwap                          n=16   days=5  netR=+0.106 (gross +0.288) win=12.5%
-  chart_pattern_diamond_bottom           n=52   days=12 netR=+0.097 (gross +0.280) win=23.1%
-  heikin_ashi                            n=116  days=16 netR=+0.052 (gross +0.235) win=10.3%
+  vwap_reversion                         n=33   days=11 netR=+0.174 (gross +0.357) win=15.2%
+  chart_pattern_diamond_bottom           n=54   days=14 netR=+0.080 (gross +0.263) win=22.2%
+  anchored_vwap                          n=18   days=5  netR=+0.071 (gross +0.253) win=11.1%
+  volume_profile_full                    n=25   days=9  netR=+0.069 (gross +0.252) win=4.0%
+  heikin_ashi                            n=126  days=17 netR=+0.058 (gross +0.240) win=9.5%
   candlestick_bearish_harami             n=41   days=13 netR=+0.034 (gross +0.217) win=4.9%
-  candlestick_hammer                     n=85   days=16 netR=+0.016 (gross +0.199) win=7.1%
-  failed_bear_breakout                   n=358  days=16 netR=-0.049 (gross +0.134) win=12.0%
-  donchian_breakout                      n=200  days=16 netR=-0.050 (gross +0.133) win=7.0%
-  candlestick_bullish_marubozu           n=35   days=12 netR=-0.065 (gross +0.118) win=14.3%
-  candlestick_on_neck_pattern            n=96   days=16 netR=-0.068 (gross +0.115) win=6.2%
-  candlestick_bullish_engulfing          n=185  days=16 netR=-0.073 (gross +0.109) win=9.2%
-  candlestick_tweezer_bottom             n=116  days=16 netR=-0.073 (gross +0.110) win=7.8%
+  candlestick_hammer                     n=90   days=17 netR=+0.002 (gross +0.185) win=6.7%
+  donchian_breakout                      n=219  days=17 netR=-0.033 (gross +0.149) win=6.4%
+  candlestick_on_neck_pattern            n=100  days=17 netR=-0.039 (gross +0.143) win=8.0%
+  candlestick_bullish_marubozu           n=36   days=13 netR=-0.048 (gross +0.135) win=13.9%
+  candlestick_tweezer_bottom             n=122  days=17 netR=-0.070 (gross +0.112) win=7.4%
+  failed_bear_breakout                   n=381  days=17 netR=-0.074 (gross +0.109) win=11.8%
+  candlestick_bullish_engulfing          n=189  days=16 netR=-0.075 (gross +0.108) win=9.5%
+  elliott_wave                           n=66   days=12 netR=-0.086 (gross +0.097) win=3.0%
+  breakout                               n=556  days=17 netR=-0.095 (gross +0.087) win=10.6%
   chart_pattern_cup_handle               n=25   days=6  netR=-0.099 (gross +0.083) win=8.0%
-  breakout                               n=483  days=16 netR=-0.102 (gross +0.081) win=11.0%
-  elder_triple_screen                    n=583  days=16 netR=-0.105 (gross +0.078) win=6.9%
-  candlestick_doji                       n=54   days=16 netR=-0.111 (gross +0.072) win=7.4%
-  td_sequential                          n=91   days=15 netR=-0.116 (gross +0.066) win=3.3%
-  candlestick_shooting_star              n=78   days=16 netR=-0.131 (gross +0.051) win=5.1%
-  candlestick_three_black_soldiers       n=212  days=16 netR=-0.132 (gross +0.051) win=6.6%
-  elliott_wave                           n=60   days=12 netR=-0.136 (gross +0.046) win=3.3%
-  vp_breakout                            n=159  days=16 netR=-0.142 (gross +0.040) win=8.8%
-  elder_ray                              n=272  days=16 netR=-0.146 (gross +0.037) win=5.5%
-  chart_pattern_ascending_triangle       n=1048 days=16 netR=-0.159 (gross +0.024) win=7.9%
-  ma_cross                               n=729  days=16 netR=-0.168 (gross +0.015) win=4.5%
-  candlestick_three_white_soldiers       n=140  days=16 netR=-0.171 (gross +0.012) win=5.7%
-  ichimoku                               n=354  days=16 netR=-0.174 (gross +0.009) win=7.3%
-  candlestick_bearish_marubozu           n=63   days=16 netR=-0.179 (gross +0.003) win=9.5%
-  williams_r                             n=32   days=10 netR=-0.180 (gross +0.002) win=9.4%
-  candlestick_fred_tam_black_inside_out  n=85   days=15 netR=-0.184 (gross -0.002) win=4.7%
-  price_structure                        n=3204 days=16 netR=-0.184 (gross -0.001) win=7.9%
+  candlestick_shooting_star              n=81   days=16 netR=-0.103 (gross +0.080) win=6.2%
+  elder_triple_screen                    n=630  days=17 netR=-0.104 (gross +0.079) win=7.0%
+  candlestick_doji                       n=57   days=16 netR=-0.105 (gross +0.078) win=7.0%
+  candlestick_three_black_soldiers       n=231  days=17 netR=-0.114 (gross +0.068) win=6.5%
+  td_sequential                          n=95   days=17 netR=-0.125 (gross +0.058) win=4.2%
+  candlestick_fred_tam_black_inside_out  n=87   days=16 netR=-0.149 (gross +0.033) win=5.7%
+  candlestick_bearish_marubozu           n=65   days=16 netR=-0.156 (gross +0.026) win=9.2%
+  candlestick_bullish_separating_lines   n=21   days=10 netR=-0.163 (gross +0.021) win=9.5%
+  williams_r                             n=35   days=10 netR=-0.163 (gross +0.019) win=8.6%
+  vp_breakout                            n=174  days=17 netR=-0.165 (gross +0.018) win=8.0%
+  ichimoku                               n=412  days=17 netR=-0.167 (gross +0.015) win=6.8%
+  candlestick_three_white_soldiers       n=152  days=16 netR=-0.169 (gross +0.014) win=5.3%
+  elder_ray                              n=304  days=17 netR=-0.173 (gross +0.010) win=5.3%
+  ma_cross                               n=823  days=17 netR=-0.174 (gross +0.008) win=4.3%
+  chart_pattern_ascending_triangle       n=1122 days=17 netR=-0.181 (gross +0.002) win=7.4%
+  price_structure                        n=3373 days=17 netR=-0.186 (gross -0.003) win=7.8%
+  candlestick_bearish_engulfing          n=346  days=17 netR=-0.193 (gross -0.011) win=6.9%
+  chart_pattern_head_and_shoulders       n=664  days=17 netR=-0.193 (gross -0.011) win=4.1%
   chart_pattern_bear_flag                n=25   days=4  netR=-0.196 (gross -0.013) win=0.0%
-  chart_pattern_double_bottom            n=352  days=16 netR=-0.198 (gross -0.015) win=8.0%
-  order_flow                             n=25   days=10 netR=-0.200 (gross -0.017) win=4.0%
+  chart_pattern_double_bottom            n=356  days=16 netR=-0.197 (gross -0.014) win=8.1%
+  candlestick_spinning_top_black         n=218  days=17 netR=-0.199 (gross -0.017) win=8.3%
+  order_flow                             n=26   days=10 netR=-0.206 (gross -0.024) win=3.8%
   trend                                  n=1047 days=9  netR=-0.206 (gross -0.023) win=6.7%
-  chart_pattern_head_and_shoulders       n=620  days=16 netR=-0.209 (gross -0.027) win=4.2%
-  candlestick_spinning_top_black         n=213  days=16 netR=-0.211 (gross -0.029) win=8.0%
-  weinstein_stage                        n=199  days=16 netR=-0.215 (gross -0.032) win=12.6%
+  candlestick_evening_star               n=118  days=16 netR=-0.216 (gross -0.033) win=5.1%
   chart_pattern_descending_triangle      n=1188 days=9  netR=-0.216 (gross -0.034) win=4.5%
-  candlestick_bearish_engulfing          n=313  days=16 netR=-0.218 (gross -0.035) win=7.7%
-  ttm_squeeze                            n=183  days=15 netR=-0.225 (gross -0.042) win=6.6%
-  candlestick_evening_star               n=112  days=15 netR=-0.226 (gross -0.044) win=4.5%
-  cci_zero_cross                         n=22   days=7  netR=-0.226 (gross -0.043) win=9.1%
+  ttm_squeeze                            n=188  days=16 netR=-0.221 (gross -0.038) win=6.4%
+  cci_zero_cross                         n=25   days=8  netR=-0.225 (gross -0.042) win=8.0%
+  kama_trend                             n=73   days=15 netR=-0.229 (gross -0.047) win=5.5%
   chart_pattern_inverse_head_shoulders   n=281  days=9  netR=-0.230 (gross -0.047) win=7.1%
-  candlestick_bullish_separating_lines   n=20   days=10 netR=-0.233 (gross -0.049) win=5.0%
-  gap_fill                               n=34   days=14 netR=-0.233 (gross -0.051) win=8.8%
-  kama_trend                             n=70   days=15 netR=-0.236 (gross -0.054) win=4.3%
+  pivot_scalping                         n=211  days=10 netR=-0.230 (gross -0.048) win=0.0%
+  mean_reversion                         n=314  days=17 netR=-0.247 (gross -0.064) win=3.5%
   holy_grail                             n=339  days=9  netR=-0.250 (gross -0.068) win=6.8%
-  candlestick_morning_star               n=67   days=14 netR=-0.252 (gross -0.069) win=7.5%
-  pivot_scalping                         n=177  days=8  netR=-0.253 (gross -0.070) win=0.0%
+  candlestick_morning_star               n=72   days=16 netR=-0.251 (gross -0.068) win=6.9%
+  failed_bull_breakout                   n=389  days=17 netR=-0.254 (gross -0.071) win=6.7%
+  cci_trend                              n=284  days=16 netR=-0.256 (gross -0.073) win=2.8%
   rsi_divergence                         n=1275 days=9  netR=-0.258 (gross -0.075) win=3.3%
-  candlestick_inverted_hammer            n=25   days=13 netR=-0.259 (gross -0.077) win=0.0%
-  failed_bull_breakout                   n=359  days=16 netR=-0.263 (gross -0.080) win=6.7%
-  mean_reversion                         n=296  days=16 netR=-0.263 (gross -0.081) win=3.4%
-  candlestick_fred_tam_white_inside_out  n=37   days=13 netR=-0.264 (gross -0.081) win=2.7%
+  weinstein_stage                        n=214  days=16 netR=-0.271 (gross -0.089) win=12.1%
   alligator_ao                           n=754  days=9  netR=-0.272 (gross -0.090) win=5.3%
-  cci_trend                              n=241  days=15 netR=-0.294 (gross -0.111) win=2.9%
-  cpr                                    n=278  days=16 netR=-0.300 (gross -0.117) win=6.1%
-  aroon_trend                            n=205  days=16 netR=-0.302 (gross -0.119) win=4.9%
-  chart_pattern_range_expansion          n=161  days=16 netR=-0.327 (gross -0.145) win=9.9%
-  supertrend_mtf                         n=136  days=14 netR=-0.332 (gross -0.150) win=7.4%
+  cpr                                    n=318  days=17 netR=-0.276 (gross -0.093) win=6.0%
+  aroon_trend                            n=226  days=17 netR=-0.289 (gross -0.106) win=4.4%
+  candlestick_fred_tam_white_inside_out  n=42   days=14 netR=-0.289 (gross -0.106) win=2.4%
+  gap_fill                               n=51   days=15 netR=-0.299 (gross -0.117) win=5.9%
+  candlestick_inverted_hammer            n=26   days=13 netR=-0.300 (gross -0.118) win=0.0%
+  candlestick_bearish_separating_lines   n=25   days=14 netR=-0.306 (gross -0.124) win=0.0%
+  supertrend_mtf                         n=156  days=15 netR=-0.307 (gross -0.124) win=7.1%
+  chart_pattern_rising_wedge             n=96   days=15 netR=-0.312 (gross -0.129) win=5.2%
   chart_pattern_double_top               n=264  days=9  netR=-0.335 (gross -0.152) win=4.9%
-  chart_pattern_rising_wedge             n=92   days=15 netR=-0.342 (gross -0.159) win=4.3%
-  candlestick_bearish_separating_lines   n=23   days=13 netR=-0.343 (gross -0.161) win=0.0%
-  chaikin_mf                             n=23   days=7  netR=-0.350 (gross -0.168) win=0.0%
-  candlestick_bullish_harami             n=31   days=15 netR=-0.395 (gross -0.212) win=12.9%
+  chaikin_mf                             n=24   days=8  netR=-0.343 (gross -0.161) win=0.0%
   vrvp_zone                              n=583  days=9  netR=-0.402 (gross -0.220) win=7.4%
-  candlestick_three_river_evening_star   n=27   days=9  netR=-0.409 (gross -0.226) win=0.0%
-  rsi2_mr                                n=125  days=16 netR=-0.445 (gross -0.262) win=5.6%
-  candlestick_spinning_top_white         n=88   days=15 netR=-0.468 (gross -0.286) win=1.1%
-  chart_pattern_rectangle                n=38   days=11 netR=-0.486 (gross -0.304) win=10.5%
+  chart_pattern_range_expansion          n=173  days=17 netR=-0.414 (gross -0.231) win=9.8%
+  candlestick_bullish_harami             n=32   days=15 netR=-0.416 (gross -0.233) win=12.5%
+  chart_pattern_rectangle                n=40   days=11 netR=-0.443 (gross -0.261) win=10.0%
+  rsi2_mr                                n=129  days=17 netR=-0.443 (gross -0.260) win=5.4%
+  candlestick_spinning_top_white         n=90   days=15 netR=-0.465 (gross -0.282) win=1.1%
+  candlestick_tweezer_top                n=64   days=17 netR=-0.528 (gross -0.346) win=6.2%
   chart_pattern_diamond_top              n=57   days=14 netR=-0.551 (gross -0.369) win=12.3%
-  candlestick_tweezer_top                n=56   days=15 netR=-0.562 (gross -0.379) win=7.1%
   candlestick_deliberation               n=18   days=6  netR=-0.611 (gross -0.427) win=0.0%
-  waddah_attar                           n=20   days=8  netR=-0.736 (gross -0.553) win=0.0%
-  expiry_scalp                           n=30   days=4  netR=-0.775 (gross -0.591) win=3.3%
+  waddah_attar                           n=22   days=9  netR=-0.667 (gross -0.484) win=0.0%
+  expiry_scalp                           n=31   days=5  netR=-0.710 (gross -0.526) win=3.2%

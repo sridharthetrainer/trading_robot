@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22T17:39:51+0530",
+  "generated_at": "2026-07-23T15:49:22+0530",
   "mode": {
     "paper_training_only": true,
     "live_ready_count": 0,
@@ -22,11 +22,11 @@
     "candle_1m_symbols": 193,
     "candle_1d_symbols": 196,
     "derived_daily_symbols": 193,
-    "bad_candle_groups": 49,
-    "stale_candle_groups": 49,
+    "bad_candle_groups": 20,
+    "stale_candle_groups": 20,
     "total_candle_groups": 969,
-    "latest_option_snapshot_ok": "2026-07-22T15:33:22+0530",
-    "latest_option_snapshot_age_hours": 2.11
+    "latest_option_snapshot_ok": "2026-07-23T15:35:56+0530",
+    "latest_option_snapshot_age_hours": 0.22
   },
   "execution": {
     "trades": 12,
@@ -60,7 +60,7 @@
     "sample_source": "all_training_eligible_generated_signals",
     "legacy_labelled_rows": 28882,
     "shadow_portfolio": {
-      "generated_at": "2026-07-22T17:39:32+0530",
+      "generated_at": "2026-07-23T15:49:02+0530",
       "ok": true,
       "days": 30,
       "top_per_day": 5,
@@ -535,18 +535,15 @@
     "release_integrity_unverified",
     "generated_signal_after_cost_edge_not_positive"
   ],
-  "warnings": [
-    "candle_quality_bad_groups_high",
-    "intraday_candle_cache_stale"
-  ],
+  "warnings": [],
   "release_integrity": {
     "ok": false,
     "reason": "release_files_changed",
     "manifest_git_head": "d1cbb672d2ce989b4acb997d8aef64d7981909f9",
-    "current_git_head": "b8d3ba9b157c45e8557fb373086b1d061b7e7861",
+    "current_git_head": "17d99cb37a1f102cb20831c8133088af17c76d6f",
     "git_head_matches": false,
     "content_digest_matches": false,
-    "file_count": 584,
+    "file_count": 587,
     "missing": [],
     "added": [
       "autonomous_edge_policy.py",
@@ -605,7 +602,7 @@
   },
   "assurance": {
     "indicator_lookahead": {
-      "generated_at": "2026-07-22T17:39:39+0530",
+      "generated_at": "2026-07-23T15:49:08+0530",
       "method": "full_history_vs_truncated_prefix",
       "sample": {
         "source": "candle_cache",
@@ -718,25 +715,26 @@
     },
     "stored_data_catalog": {
       "ok": true,
-      "databases": 20,
+      "databases": 21,
       "tables": 45,
-      "rows": 7236427,
+      "rows": 7359718,
       "issues": [],
       "empty_databases": [
         "historical_options.db",
-        "option_metrics.db"
+        "option_metrics.db",
+        "trading.db"
       ]
     },
     "execution_audit_chain": {
       "ok": true,
       "path": "execution_compliance.jsonl",
-      "chained_rows": 18,
+      "chained_rows": 19,
       "legacy_rows": 0,
       "invalid_rows": 0,
-      "last_hash": "2db41081d2d5d4bf2bcee3d307a3514a443f32dd1da853ad6969c80d993fd410"
+      "last_hash": "472d24f4df6aa6356533741ffba869c2d02cc721a7aa00d943c0874ce76cee0f"
     },
     "ml_training_contract": {
-      "generated_at": "2026-07-22T17:39:51+0530",
+      "generated_at": "2026-07-23T15:49:22+0530",
       "training_contract": "all_generated_signals_v4_causal_representations",
       "checks": {
         "outcome_fields_excluded": true,

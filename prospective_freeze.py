@@ -152,6 +152,108 @@ def record_backfill_hash(db_path: str = "signal_log.db") -> Dict[str, Any]:
     return {"n_rows": len(rows), "sha256": digest}
 
 
+TREND_CLUSTER_STRATEGIES = [
+    "ma_cross", "trend", "alligator_ao", "cpr", "supertrend_mtf", "ema_ribbon",
+]
+TREND_CLUSTER_GROSS_EQUIVALENCE_MARGIN = 0.05  # R; pre-specified, not fitted post-hoc
+TREND_CLUSTER_MIN_ACTIVE_PROSPECTIVE_DAYS = 10
+
+
+def register_trend_cluster_hypothesis() -> Dict[str, Any]:
+    """One-time (idempotent): logs a pre-registered, falsifiable prediction
+    about strategy_pair_edge_miner.py's 2026-07-23 finding into the SAME
+    manifest.json as the frozen models, so it can be checked against
+    genuinely prospective data instead of re-mined against this same
+    17-day historical window.
+
+    ORIGIN: 298 pairs / 2,191 triples among the top-25 most frequent
+    strategies were tested for cost-adjusted net_R edge (strategy_pair_edge_
+    miner.py). Zero showed a positive edge; the strongest, most statistically
+    extreme findings (t ~ -16 to -19) all involved TREND_CLUSTER_STRATEGIES.
+    A follow-up diagnostic (gross tb_r_multiple vs net tb_r_multiple_net) on
+    the 8 worst pairs showed gross means near zero (-0.003 to -0.034) against
+    an almost perfectly constant ~0.1826R cost drag across every pair -- a
+    5-AI, 2-round cross-review (Grok, Gemini 2.5 Pro, Claude 3.5 Sonnet,
+    Kimi, GPT-5.6 Thinking) converged that this fully explains the HURTS
+    verdicts without needing a genuine negative-interaction term, and
+    unanimously recommended pre-registering the finding for this freeze
+    rather than mining this same dataset further.
+
+    CATEGORY (GPT-5.6's refinement, the most precise of the round): this is
+    NO_GROSS_EDGE (gross ~ 0), NOT "cost-eaten" in the sense of a genuinely
+    positive gross edge insufficient to cover costs -- that distinction
+    matters because the two would call for different fixes (there is no
+    edge here to preserve via cheaper execution).
+
+    DECISION RULE (equivalence-margin test, not a mere fail-to-reject-zero):
+    computed once genuinely prospective data clears
+    TREND_CLUSTER_MIN_ACTIVE_PROSPECTIVE_DAYS, over signals where >=2 of
+    TREND_CLUSTER_STRATEGIES co-fire (via signal_log.agreeing_strats):
+      - CONFIRMED (NO_GROSS_EDGE) if |mean tb_r_multiple| <
+        TREND_CLUSTER_GROSS_EQUIVALENCE_MARGIN (0.05R) AND mean
+        tb_r_multiple_net stays negative, on BOTH the signal-weighted and
+        equal-day-weighted aggregation.
+      - REJECTED if mean tb_r_multiple falls outside +/-0.05R in either
+        aggregation -- i.e. a real gross edge (positive or negative)
+        emerged that this historical sample did not show.
+    Not evaluated before the SAME EVAL_WINDOW_END_DATE as the primary/
+    secondary models -- no separate early-peek schedule for this hypothesis.
+    """
+    if not os.path.exists(MANIFEST_FILE):
+        return {"error": "not_frozen_yet", "detail": "run freeze_today() first"}
+    with open(MANIFEST_FILE) as fh:
+        manifest = json.load(fh)
+
+    manifest.setdefault("auxiliary_hypotheses", {})["trend_cluster_2026-07-23"] = {
+        "registered_at": datetime.now().isoformat(),
+        "git_commit_at_registration": _git_commit_hash(),
+        "source": "strategy_pair_edge_miner.py (298 pairs, 2191 triples, top-25 "
+                  "strategies, signal_log 2026-06-29..2026-07-23) + a 5-AI "
+                  "2-round cross-review",
+        "cluster_strategies": TREND_CLUSTER_STRATEGIES,
+        "historical_evidence": {
+            "verdict_in_historical_sample": "NO_GROSS_EDGE / net-negative after "
+                "cost drag (not WRONG_DIRECTION, not a demonstrated pair-specific "
+                "negative interaction)",
+            "worst_pairs_gross_mean_range": [-0.034, -0.003],
+            "worst_pairs_cost_drag": 0.1826,
+            "day_level_check": "negative on every active day for all 8 worst "
+                "pairs (9/9 or 16/17), sign-test p<=0.0039, leave-one-day-out "
+                "stayed negative after dropping the worst day",
+            "redundancy_caveat": "several top pairs are highly non-independent "
+                "(e.g. ma_cross present in 98.8% of all trend-tagged signals) "
+                "-- the pair count overstates how many distinct discoveries "
+                "this represents",
+        },
+        "hypothesis": (
+            "Over genuinely prospective signals (prediction_origin="
+            "'live_prospective') where >=2 of cluster_strategies co-fire, "
+            "gross tb_r_multiple will remain within "
+            f"+/-{TREND_CLUSTER_GROSS_EQUIVALENCE_MARGIN}R of zero (NO_GROSS_EDGE, "
+            "an equivalence-margin test, not merely failing to reject zero) and "
+            "mean tb_r_multiple_net will stay negative, consistent with a "
+            "cost-driven (not directional) explanation."
+        ),
+        "min_active_prospective_days_before_evaluation": TREND_CLUSTER_MIN_ACTIVE_PROSPECTIVE_DAYS,
+        "evaluate_no_earlier_than": EVAL_WINDOW_END_DATE,
+        "aggregations_required": ["signal_weighted_mean", "equal_day_weighted_mean"],
+        "confirmation_rule": (
+            f"CONFIRMED if |gross_mean| < {TREND_CLUSTER_GROSS_EQUIVALENCE_MARGIN} "
+            "AND net_mean < 0, in BOTH aggregations. REJECTED otherwise."
+        ),
+        "not_evaluated_early": "no interim peeking before evaluate_no_earlier_than "
+                               "-- same discipline as the primary/secondary models",
+        "production_impact": "NONE -- no confluence weighting, gating, or scoring "
+                              "change was made as a result of this finding; this "
+                              "entry exists solely to be checked against "
+                              "prospective data later",
+    }
+    with open(MANIFEST_FILE, "w") as fh:
+        json.dump(manifest, fh, indent=2, default=str)
+    return {"registered": "trend_cluster_2026-07-23",
+            "manifest": manifest["auxiliary_hypotheses"]["trend_cluster_2026-07-23"]}
+
+
 def freeze_today(days: int = 800) -> Dict[str, Any]:
     """Train both models on ALL data through today and save them where no
     future nightly retraining run will ever touch them, plus a manifest

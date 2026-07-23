@@ -6,7 +6,7 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-from option_oi_chart import generate_option_oi_chart
+from option_oi_chart import generate_option_oi_chart, generate_oi_strike_profile_chart
 
 
 def _make_db(path: Path) -> None:
@@ -164,6 +164,64 @@ def test_top_multi_strike_chart() -> None:
         assert "multi-strike" in result.caption
         assert "Key support" in result.caption
         assert "Key resistance" in result.caption
+
+
+def _fake_chain_row(strike, ce_oi, ce_chg, pe_oi, pe_chg, expiry="2026-06-25"):
+    return {
+        "strikePrice": strike, "expiryDate": expiry,
+        "CE": {"openInterest": ce_oi, "changeinOpenInterest": ce_chg},
+        "PE": {"openInterest": pe_oi, "changeinOpenInterest": pe_chg},
+    }
+
+
+class _FakeChainFetcher:
+    """Stands in for NSEOptionChainFetcher: fixed spot=23500, one expiry,
+    5 strikes with a mix of BUILDUP/UNWINDING/FLAT OI on both sides, and a
+    known chain-wide PCR so the computation can be checked exactly."""
+
+    def __init__(self, underlying: str = "NIFTY") -> None:
+        self.underlying = underlying
+
+    def fetch(self):
+        rows = [
+            _fake_chain_row(23300, ce_oi=1_000_000, ce_chg=5_000,     # CE FLAT
+                             pe_oi=2_000_000, pe_chg=100_000),        # PE BUILDUP
+            _fake_chain_row(23400, ce_oi=1_200_000, ce_chg=-50_000,   # CE UNWINDING
+                             pe_oi=1_500_000, pe_chg=10_000),         # PE FLAT
+            _fake_chain_row(23500, ce_oi=1_800_000, ce_chg=200_000,   # CE BUILDUP
+                             pe_oi=1_800_000, pe_chg=200_000),        # PE BUILDUP
+            _fake_chain_row(23600, ce_oi=2_500_000, ce_chg=300_000,   # CE BUILDUP (resistance)
+                             pe_oi=900_000, pe_chg=5_000),            # PE FLAT
+            _fake_chain_row(23700, ce_oi=1_100_000, ce_chg=10_000,    # CE FLAT
+                             pe_oi=700_000, pe_chg=-80_000),          # PE UNWINDING
+        ]
+        return {"records": {"underlyingValue": 23500.0,
+                             "expiryDates": ["2026-06-25"], "data": rows}}
+
+
+def test_strike_profile_chart_shows_pcr_and_oi_direction(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "option_chain_fetcher.NSEOptionChainFetcher", _FakeChainFetcher)
+
+    with tempfile.TemporaryDirectory() as td:
+        result = generate_oi_strike_profile_chart(
+            underlying="NIFTY", n_strikes=4, output_dir=td)
+        assert result.ok, result.reason
+        assert Path(result.path).exists()
+
+        # PCR = total PE OI / total CE OI over the 5 fake strikes.
+        total_ce = 1_000_000 + 1_200_000 + 1_800_000 + 2_500_000 + 1_100_000
+        total_pe = 2_000_000 + 1_500_000 + 1_800_000 + 900_000 + 700_000
+        expected_pcr = round(total_pe / total_ce, 2)
+        assert f"PCR (chain-wide): {expected_pcr:.2f}" in result.caption
+
+        # Resistance strike (max CE OI) is 23600; support (max PE OI) is 23300.
+        assert "Resistance 23600" in result.caption
+        assert "Support 23300" in result.caption
+
+        # OI-direction legend/emoji present in the caption.
+        assert "buildup" in result.caption and "unwinding" in result.caption
+        assert "🟢" in result.caption and "🔴" in result.caption
 
 
 def main() -> int:

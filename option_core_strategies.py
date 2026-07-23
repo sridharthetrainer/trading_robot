@@ -182,11 +182,13 @@ def _persist_shadow_legs(conn: sqlite3.Connection, legs: List[Dict[str, Any]], *
         conn.execute(
             """INSERT OR REPLACE INTO option_strike_signals
                (ts, snapshot_time, underlying, expiry, strike, option_type, flow, signal,
-                direction, score, tradable, price, reason, source, strategy, combo_id, side)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                direction, score, tradable, price, reason, source, strategy, combo_id, side,
+                volume, spread_pct)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (ts, snapshot_time, symbol.upper(), expiry, float(leg["strike"]), leg["option_type"],
              "SHADOW_STRATEGY", "SHADOW_ENTRY", "NEUTRAL", 0.0, 0, float(leg.get("price", 0.0) or 0.0),
-             f"shadow_{strategy}", "shadow_catalog", strategy, combo_id, side),
+             f"shadow_{strategy}", "shadow_catalog", strategy, combo_id, side,
+             float(leg.get("volume", 0.0) or 0.0), float(leg.get("spread_pct", 0.0) or 0.0)),
         )
         n += 1
     conn.commit()
@@ -246,8 +248,10 @@ def evaluate_c1_short_straddle(symbol: str, df=None, df_htf=None, option_data=No
 
     legs = [
         {"strike": strike, "option_type": "CE", "price": ce["last_price"], "delta": round(ce_delta, 4),
+         "volume": ce.get("volume", 0.0), "spread_pct": ce.get("spread_pct", 0.0),
          **_oi_direction(ce["oi"], ce.get("oi_change", 0.0))},
         {"strike": strike, "option_type": "PE", "price": pe["last_price"], "delta": round(pe_delta, 4),
+         "volume": pe.get("volume", 0.0), "spread_pct": pe.get("spread_pct", 0.0),
          **_oi_direction(pe["oi"], pe.get("oi_change", 0.0))},
     ]
     ts = time.time()
@@ -387,12 +391,16 @@ def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
 
     legs = [
         {"strike": short_ce["strike"], "option_type": "CE", "side": "SELL", "price": short_ce["quote"]["last_price"], "delta": round(short_ce["delta"], 4),
+         "volume": short_ce["quote"].get("volume", 0.0), "spread_pct": short_ce["quote"].get("spread_pct", 0.0),
          **_oi_direction(short_ce["quote"]["oi"], short_ce["quote"].get("oi_change", 0.0))},
         {"strike": long_ce_strike, "option_type": "CE", "side": "BUY", "price": long_ce["last_price"], "delta": 0.0,
+         "volume": long_ce.get("volume", 0.0), "spread_pct": long_ce.get("spread_pct", 0.0),
          **_oi_direction(long_ce["oi"], long_ce.get("oi_change", 0.0))},
         {"strike": short_pe["strike"], "option_type": "PE", "side": "SELL", "price": short_pe["quote"]["last_price"], "delta": round(short_pe["delta"], 4),
+         "volume": short_pe["quote"].get("volume", 0.0), "spread_pct": short_pe["quote"].get("spread_pct", 0.0),
          **_oi_direction(short_pe["quote"]["oi"], short_pe["quote"].get("oi_change", 0.0))},
         {"strike": long_pe_strike, "option_type": "PE", "side": "BUY", "price": long_pe["last_price"], "delta": 0.0,
+         "volume": long_pe.get("volume", 0.0), "spread_pct": long_pe.get("spread_pct", 0.0),
          **_oi_direction(long_pe["oi"], long_pe.get("oi_change", 0.0))},
     ]
     ts = time.time()
@@ -442,11 +450,13 @@ def _persist_multi_side_shadow_legs(conn: sqlite3.Connection, legs: List[Dict[st
         conn.execute(
             """INSERT OR REPLACE INTO option_strike_signals
                (ts, snapshot_time, underlying, expiry, strike, option_type, flow, signal,
-                direction, score, tradable, price, reason, source, strategy, combo_id, side)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                direction, score, tradable, price, reason, source, strategy, combo_id, side,
+                volume, spread_pct)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (ts, snapshot_time, symbol.upper(), expiry, float(leg["strike"]), leg["option_type"],
              "SHADOW_STRATEGY", "SHADOW_ENTRY", "NEUTRAL", 0.0, 0, float(leg.get("price", 0.0) or 0.0),
-             f"shadow_{strategy}", "shadow_catalog", strategy, combo_id, leg.get("side", "SELL")),
+             f"shadow_{strategy}", "shadow_catalog", strategy, combo_id, leg.get("side", "SELL"),
+             float(leg.get("volume", 0.0) or 0.0), float(leg.get("spread_pct", 0.0) or 0.0)),
         )
         n += 1
     conn.commit()
@@ -571,9 +581,13 @@ def evaluate_d1_pre_event_strangle(symbol: str, df=None, df_htf=None, option_dat
 
     legs = [
         {"strike": ce_pick["strike"], "option_type": "CE", "price": ce_q["last_price"],
-         "delta": round(ce_pick["delta"], 4), **_oi_direction(ce_q["oi"], ce_q.get("oi_change", 0.0))},
+         "delta": round(ce_pick["delta"], 4),
+         "volume": ce_q.get("volume", 0.0), "spread_pct": ce_q.get("spread_pct", 0.0),
+         **_oi_direction(ce_q["oi"], ce_q.get("oi_change", 0.0))},
         {"strike": pe_pick["strike"], "option_type": "PE", "price": pe_q["last_price"],
-         "delta": round(pe_pick["delta"], 4), **_oi_direction(pe_q["oi"], pe_q.get("oi_change", 0.0))},
+         "delta": round(pe_pick["delta"], 4),
+         "volume": pe_q.get("volume", 0.0), "spread_pct": pe_q.get("spread_pct", 0.0),
+         **_oi_direction(pe_q["oi"], pe_q.get("oi_change", 0.0))},
     ]
     ts = time.time()
     combo_id = _combo_id(symbol, strategy_id, ts)

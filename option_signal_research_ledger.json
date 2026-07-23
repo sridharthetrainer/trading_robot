@@ -1,26 +1,26 @@
 {
-  "generated_at": "2026-07-22T19:57:01",
+  "generated_at": "2026-07-23T19:59:13",
   "candidates": {
     "score_inverse_3hr": {
       "candidate": "score_inverse_3hr",
       "discovered_at": "2026-07-15",
-      "forward_days": 4,
-      "verdict": "ACCRUING",
+      "forward_days": 5,
+      "verdict": "REJECTED",
       "forward_low_tercile": {
-        "n": 1141,
-        "mean_bps": -17.81,
-        "win_rate": 0.209,
-        "t": -27.76,
+        "n": 1263,
+        "mean_bps": -16.63,
+        "win_rate": 0.221,
+        "t": -24.41,
         "p": 0.0
       },
       "forward_high_tercile": {
-        "n": 1816,
-        "mean_bps": 9.79,
-        "win_rate": 0.645,
-        "t": 17.95,
+        "n": 2182,
+        "mean_bps": 8.46,
+        "win_rate": 0.635,
+        "t": 13.99,
         "p": 0.0
       },
-      "checked_at": "2026-07-22T19:57:05"
+      "checked_at": "2026-07-23T19:59:18"
     }
   },
   "catalog_strategies_combo_unit": {
@@ -43,6 +43,22 @@
     "C3": {
       "status": "VALIDATING",
       "strategy": "C3",
+      "unit": "combo",
+      "outcomes": 0,
+      "days": 0,
+      "win_rate": 0.0,
+      "avg_net_pnl": 0.0,
+      "avg_net_r": 0.0,
+      "profit_factor": 0.0,
+      "live_ready": false,
+      "holdout_confirmed": false,
+      "holdout_outcomes": 0,
+      "holdout_days": 0,
+      "holdout_avg_net_r": 0.0
+    },
+    "D1": {
+      "status": "VALIDATING",
+      "strategy": "D1",
       "unit": "combo",
       "outcomes": 0,
       "days": 0,

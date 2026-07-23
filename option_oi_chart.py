@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sqlite3
 import tempfile
 from dataclasses import dataclass
@@ -20,6 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+logger = logging.getLogger(__name__)
 
 DB_PATH = "option_chain_snapshots.db"
 
@@ -222,8 +224,19 @@ def generate_oi_strike_profile_chart(
 
     Horizontal bars: total CE OI (right, red = resistance walls) + PE OI (left,
     green = support walls) for the n_strikes nearest spot; spot line + max-OI S/R
-    labelled. Caption also flags the biggest OI-CHANGE (fresh writing) strikes.
+    labelled. Each bar is additionally shaded by OI DIRECTION this session
+    (BUILDUP/UNWINDING/FLAT, via option_core_strategies._oi_direction --
+    changeinOpenInterest vs the previous close, no second snapshot needed):
+    bright = fresh buildup, muted/hatched = unwinding, mid = flat. PCR
+    (total PE OI / total CE OI, chain-wide) is shown in the title. This is
+    OBSERVED CONTEXT for a human reading the chart, same framing as the
+    OI-direction indicator already on the option Telegram cards -- NOT a
+    validated support/resistance or PCR trading signal (this project's own
+    mining found the underlying CPR/Camarilla/pivot level family has zero
+    edge on real NIFTY data; nothing here changes that finding).
     Uses the live chain via option_chain_fetcher (Angel fallback in-hours)."""
+    from option_core_strategies import _oi_direction
+
     underlying = str(underlying or "NIFTY").upper()
     try:
         from option_chain_fetcher import NSEOptionChainFetcher
@@ -258,54 +271,194 @@ def generate_oi_strike_profile_chart(
                      float(ce.get("changeinOpenInterest") or 0), float(pe.get("changeinOpenInterest") or 0)))
     if spot <= 0 or not rows:
         return OIChartResult(False, reason=f"{underlying} no spot/strikes in chain")
+
+    # Fallback Δ-OI: the Angel SmartAPI fallback path (used whenever NSE's own
+    # direct option-chain endpoint 404s, which has been the common case this
+    # session) does not carry a change-in-OI field in its quote data at all --
+    # confirmed by reading angel_option_chain.py's _extract_oi_fields_from_quote,
+    # which tries every plausible key name and still returns 0.0 when Angel's
+    # response simply has none of them. When that's happened (every row's
+    # change is exactly 0, chain-wide -- a real "nothing moved" reading would
+    # be astronomically unlikely across an entire chain), compute a genuine
+    # Δ-since-this-morning ourselves from option_chain_snapshots.db (populated
+    # continuously by the option-chain recorder regardless of which live path
+    # is otherwise failing), rather than show a misleading all-zero panel.
+    delta_label = "Δ OI today (broker feed)"
+    if all(r[3] == 0.0 and r[4] == 0.0 for r in rows):
+        try:
+            today = datetime.now().strftime("%Y-%m-%d")
+            earliest = _load_snapshot_rows(db_path=DB_PATH, underlying=underlying, day=today)
+            if earliest:
+                base_rows = _snapshot_rows(earliest[0])  # first snapshot of the day
+                base_oi = {}
+                for br in base_rows:
+                    bk = _row_strike(br)
+                    if bk > 0:
+                        base_oi[bk] = (_safe_float(br, "CE_openInterest", "CE_OI"),
+                                       _safe_float(br, "PE_openInterest", "PE_OI"))
+                if base_oi:
+                    rows = [
+                        (k, ce, pe,
+                         ce - base_oi.get(k, (ce, pe))[0],
+                         pe - base_oi.get(k, (ce, pe))[1])
+                        for (k, ce, pe, _cechg, _pechg) in rows
+                    ]
+                    base_time = _parse_time(str(earliest[0].get("snapshot_time") or "")).strftime("%H:%M")
+                    delta_label = f"Δ OI since {base_time} (computed, broker feed had no Δ field)"
+        except Exception as exc:
+            logger.debug("oi_strike_profile Δ-OI fallback failed: %s", exc)
+
+    # PCR: chain-wide (standard definition) -- purely descriptive context, not
+    # a gate/signal. NSE convention: PCR = total PE OI / total CE OI.
+    chain_ce_oi = sum(r[1] for r in rows)
+    chain_pe_oi = sum(r[2] for r in rows)
+    pcr_chain = round(chain_pe_oi / chain_ce_oi, 2) if chain_ce_oi > 0 else 0.0
+
+    # Top strikes by OI, CHAIN-WIDE (not limited to the n_strikes near spot) --
+    # a far-OTM strike can carry the single biggest OI wall on the whole chain
+    # (common for round numbers), which the near-spot bar panel alone would
+    # never show.
+    top_total_oi = sorted(rows, key=lambda x: x[1] + x[2], reverse=True)[:5]
+    top_ce_oi = sorted(rows, key=lambda x: x[1], reverse=True)[:3]
+    top_pe_oi = sorted(rows, key=lambda x: x[2], reverse=True)[:3]
+
     rows.sort(key=lambda x: abs(x[0] - spot))
     near = sorted(rows[:max(4, int(n_strikes))], key=lambda x: x[0])
     strikes = [r[0] for r in near]
     ce_oi = [r[1] for r in near]
     pe_oi = [r[2] for r in near]
+    near_ce_oi = sum(ce_oi)
+    near_pe_oi = sum(pe_oi)
+    pcr_near = round(near_pe_oi / near_ce_oi, 2) if near_ce_oi > 0 else 0.0
     resistance = max(near, key=lambda x: x[1])
     support = max(near, key=lambda x: x[2])
     fresh_res = max(near, key=lambda x: x[3])
     fresh_sup = max(near, key=lambda x: x[4])
+
+    # OI direction per strike/side -- shading intensity by BUILDUP/UNWINDING/FLAT.
+    ce_dir = [_oi_direction(r[1], r[3]) for r in near]
+    pe_dir = [_oi_direction(r[2], r[4]) for r in near]
+    # Still descending BUILDUP > FLAT > UNWINDING (most to least prominent),
+    # but floored at 0.55 (was 0.30) -- anything much darker blends into the
+    # near-black chart background and reads as a rendering glitch rather than
+    # a muted color, especially on compressed Telegram thumbnails.
+    _ALPHA_BY_DIR = {"BUILDUP": 1.0, "FLAT": 0.75, "UNWINDING": 0.55}
+    ce_alpha = [_ALPHA_BY_DIR[d["oi_direction"]] for d in ce_dir]
+    pe_alpha = [_ALPHA_BY_DIR[d["oi_direction"]] for d in pe_dir]
+
+    ce_chg = [r[3] for r in near]
+    pe_chg = [r[4] for r in near]
 
     import bisect
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots(figsize=(10, 8), dpi=130)
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(16, 8.5), dpi=130, sharey=True)
+    for _ax in (ax, ax2):
+        _ax.set_facecolor("#0d1117")
+        for sp in _ax.spines.values():
+            sp.set_color("#30363d")
+        _ax.tick_params(colors="#c9d1d9")
     fig.patch.set_facecolor("#0d1117")
-    ax.set_facecolor("#0d1117")
     y = list(range(len(strikes)))
-    ax.barh(y, [-v for v in pe_oi], color="#2ecc71", alpha=0.85, label="PE OI (support)")
-    ax.barh(y, ce_oi, color="#e74c3c", alpha=0.85, label="CE OI (resistance)")
+    # Per-bar alpha requires one barh call per bar (matplotlib barh doesn't
+    # take a list of alphas), grouped so the legend still shows once.
+    # Colored dot markers (not emoji text -- matplotlib's default font has no
+    # color-emoji glyphs, so emoji chars render as missing-glyph boxes on the
+    # actual PNG even though they display fine in the plain-text Telegram
+    # caption). Same BUILDUP/FLAT/UNWINDING color mapping either way.
+    _DOT_COLOR_BY_DIR = {"BUILDUP": "#2ecc71", "FLAT": "#8b949e", "UNWINDING": "#e74c3c"}
+    xmax = max(ce_oi + pe_oi) if (ce_oi + pe_oi) else 1.0
+    for i in y:
+        ax.barh(i, -pe_oi[i], color="#2ecc71", alpha=pe_alpha[i],
+                 label="PE OI (support)" if i == 0 else None)
+        ax.barh(i, ce_oi[i], color="#e74c3c", alpha=ce_alpha[i],
+                 label="CE OI (resistance)" if i == 0 else None)
+        # OI-direction dot marker at each bar end.
+        ax.scatter([-pe_oi[i] - xmax * 0.03], [i],
+                   color=_DOT_COLOR_BY_DIR[pe_dir[i]["oi_direction"]], s=40, zorder=3)
+        ax.scatter([ce_oi[i] + xmax * 0.03], [i],
+                   color=_DOT_COLOR_BY_DIR[ce_dir[i]["oi_direction"]], s=40, zorder=3)
     ax.set_yticks(y)
     ax.set_yticklabels([f"{int(s)}" for s in strikes], color="#c9d1d9", fontsize=9)
     pos = bisect.bisect_left(strikes, spot)
     spot_y = min(max(pos - 0.5, -0.5), len(strikes) - 0.5)
     ax.axhline(spot_y, color="#ffd43b", linestyle="--", linewidth=1.5, label=f"Spot {spot:.0f}")
     ax.axvline(0, color="#888888", linewidth=0.8)
-    ax.set_title(
-        f"{underlying} OI Profile  |  spot {spot:.0f}  |  exp {exp}\n"
-        f"Resistance {resistance[0]:.0f} (max CE OI)    Support {support[0]:.0f} (max PE OI)",
-        color="white", fontsize=12, fontweight="bold")
+    ax.set_title("OI levels  (bar length = open interest)", color="white", fontsize=11)
     ax.set_xlabel("← PE OI (support)          CE OI (resistance) →", color="#c9d1d9")
-    ax.tick_params(colors="#c9d1d9")
     ax.legend(facecolor="#161b22", labelcolor="#c9d1d9", loc="lower right", fontsize=8)
-    for sp in ax.spines.values():
-        sp.set_color("#30363d")
-    plt.tight_layout()
+
+    # ── Panel 2: OI CHANGE (delta) per strike, same strike rows, own scale --
+    # this is the actual "fresh writing" driver behind the direction dots on
+    # panel 1, made directly visible/readable (value labels), not just
+    # color-coded. Colored strictly by sign of the change (not the +/-2%
+    # BUILDUP/UNWINDING band used for the dots), so panel 2 shows the raw
+    # number even for a change too small to flip panel 1's direction dot.
+    # Position always denotes side (PE=left, CE=right, matching panel 1) --
+    # bar LENGTH is the magnitude of change, bar COLOR is the sign (green=
+    # build, red=unwind). A signed ce_chg/pe_chg used directly as the bar
+    # extent would make a negative CE change cross over into PE's side of
+    # the axis (and vice versa), which is confusing and also breaks the
+    # fixed label-offset math below -- abs() keeps both bars on their own
+    # side regardless of sign, exactly like panel 1's -pe_oi/ce_oi split.
+    xmax2 = max([abs(v) for v in (ce_chg + pe_chg)] or [1.0])
+    for i in y:
+        pe_color = "#2ecc71" if pe_chg[i] >= 0 else "#e74c3c"
+        ce_color = "#2ecc71" if ce_chg[i] >= 0 else "#e74c3c"
+        ax2.barh(i, -abs(pe_chg[i]), color=pe_color, alpha=0.85,
+                  label="PE Δ OI" if i == 0 else None)
+        ax2.barh(i, abs(ce_chg[i]), color=ce_color, alpha=0.55,
+                  label="CE Δ OI" if i == 0 else None)
+        ax2.text(-abs(pe_chg[i]) - xmax2 * 0.04, i, f"{pe_chg[i]:+,.0f}",
+                  ha="right", va="center", fontsize=7, color="#c9d1d9")
+        ax2.text(abs(ce_chg[i]) + xmax2 * 0.04, i, f"{ce_chg[i]:+,.0f}",
+                  ha="left", va="center", fontsize=7, color="#c9d1d9")
+    ax2.axhline(spot_y, color="#ffd43b", linestyle="--", linewidth=1.5)
+    ax2.axvline(0, color="#888888", linewidth=0.8)
+    ax2.set_title(f"{delta_label}\n(the 'delta' driving fresh writing)",
+                   color="white", fontsize=11)
+    ax2.set_xlabel("← PE Δ OI (unwind/build)   CE Δ OI (unwind/build) →", color="#c9d1d9")
+    ax2.legend(facecolor="#161b22", labelcolor="#c9d1d9", loc="lower right", fontsize=8)
+
+    # Kept to 2 lines deliberately -- a longer suptitle left a large dead
+    # gap above the panels (matplotlib's suptitle default y-position doesn't
+    # scale down to fill a shrunk rect, it just floats near the top and
+    # leaves whitespace below it). Top-OI-strikes / disclaimer text still
+    # goes out fully in the Telegram caption below, just not duplicated here.
+    fig.suptitle(
+        f"{underlying} OI Profile  |  spot {spot:.0f}  |  exp {exp}  |  PCR {pcr_chain:.2f}\n"
+        f"Resistance {resistance[0]:.0f} (max CE OI)    Support {support[0]:.0f} (max PE OI)   "
+        f"dots: green=buildup grey=flat red=unwinding",
+        color="white", fontsize=12, fontweight="bold", y=0.99)
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
 
     out_dir = output_dir or tempfile.gettempdir()
     out_path = str(Path(out_dir) / f"oi_profile_{underlying}_{datetime.now():%Y%m%d_%H%M}.png")
     fig.savefig(out_path, facecolor=fig.get_facecolor(), bbox_inches="tight")
     plt.close(fig)
+    pcr_read = ("more puts than calls" if pcr_chain > 1.1
+                else "more calls than puts" if pcr_chain < 0.9 else "balanced")
+    top_total_cap = ", ".join(f"{int(k)} ({(c+p)/1e7:.2f}Cr)" for k, c, p, *_ in top_total_oi[:5])
+    top_ce_cap = ", ".join(f"{int(k)} ({c/1e7:.2f}Cr)" for k, c, *_ in top_ce_oi)
+    top_pe_cap = ", ".join(f"{int(k)} ({p/1e7:.2f}Cr)" for k, _c, p, *_ in top_pe_oi)
     caption = (
         f"\U0001f4ca {underlying} OI S/R  |  spot {spot:.0f} (exp {exp})\n"
+        f"PCR (chain-wide): {pcr_chain:.2f} | PCR (near-money): {pcr_near:.2f} -- {pcr_read}\n"
         f"\U0001f534 Resistance {resistance[0]:.0f} (CE OI {resistance[1]:,.0f})\n"
         f"\U0001f7e2 Support {support[0]:.0f} (PE OI {support[2]:,.0f})\n"
         f"\U0001f195 Fresh CE write {fresh_res[0]:.0f} (+{fresh_res[3]:,.0f})\n"
-        f"\U0001f195 Fresh PE write {fresh_sup[0]:.0f} (+{fresh_sup[4]:,.0f})")
+        f"\U0001f195 Fresh PE write {fresh_sup[0]:.0f} (+{fresh_sup[4]:,.0f})\n"
+        f"\n\U0001f3af Top OI strikes chain-wide (CE+PE): {top_total_cap}\n"
+        f"   Top CE (resistance walls): {top_ce_cap}\n"
+        f"   Top PE (support walls): {top_pe_cap}\n"
+        f"\n🟢 buildup ⚪ flat 🔴 unwinding per strike | right panel: {delta_label}\n"
+        f"Observed context, not a validated support/resistance signal (this "
+        f"system's own mining found the CPR/Camarilla/pivot level family has "
+        f"zero edge on real NIFTY data) -- use as context alongside your own "
+        f"judgement, not as a standalone entry/exit trigger"
+    )
     return OIChartResult(True, path=out_path, caption=caption, points=len(strikes))
 
 
