@@ -83,22 +83,22 @@ def _acquire_lock() -> bool:
             try:
                 os.kill(other_pid, 0)
                 return False   # still alive — another run owns the lock
-            except ProcessLookupError:
-                pass           # stale lock (process gone) — safe to take over
+            except ProcessLookupError as exc:
+                logger.debug("post_market_ml lock: stale (process gone), taking over: %s", exc)
             except PermissionError:
                 return False   # alive, owned by a different user
     try:
         _LOCK_FILE.write_text(str(os.getpid()))
-    except OSError:
-        pass
+    except OSError as exc:
+        logger.debug("post_market_ml lock: could not write lock file: %s", exc)
     return True
 
 
 def _release_lock() -> None:
     try:
         _LOCK_FILE.unlink(missing_ok=True)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("post_market_ml lock: could not remove lock file: %s", exc)
 
 
 # ── Signal labeller: update pending tb_label = -99 → actual outcome ───────────
