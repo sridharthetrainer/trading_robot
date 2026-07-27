@@ -70,7 +70,14 @@ JOBS = (
         "last_run": _pipeline_last_run,
         "cmd": [sys.executable, "post_market_ml.py",
                 "--days", "90", "--candle-days", "30", "--force"],
-        "timeout": 1800,
+        # 1800s was set when typical runtime was ~400-800s; by 2026-07-27
+        # real runs were taking 2536.8s (signals_used grew ~1.6x over the
+        # same window while runtime grew ~6.8x -- per-run cost, not just data
+        # volume, is what's growing). A catch-up attempt was now GUARANTEED
+        # to time out even without the duplicate-run race the PID lock
+        # (post_market_ml.py's own _acquire_lock/_release_lock) already
+        # fixed. 3600s gives real headroom above the current worst case.
+        "timeout": 3600,
     },
     {
         "name": "condor_forward_test",

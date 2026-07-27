@@ -1,18 +1,20 @@
 {
-  "date": "2026-07-23",
-  "last_updated": "15:34:03",
-  "total_scanned": 579,
-  "passed": 287,
-  "rejected": 292,
-  "pass_rate": 0.496,
+  "date": "2026-07-27",
+  "last_updated": "15:16:55",
+  "total_scanned": 2316,
+  "passed": 856,
+  "rejected": 1460,
+  "pass_rate": 0.37,
   "top_rejection_reasons": {
-    "ai_prob_below_live_min": 287,
-    "filter_score_below_live_min": 287,
-    "score_below_live_min": 7,
-    "execution_plan_failed": 2,
-    "all_candidates_blocked": 2,
-    "entropy_too_high_noisy_market": 2,
-    "cost_hurdle_not_met": 1,
+    "ai_prob_below_live_min": 856,
+    "filter_score_below_live_min": 856,
+    "score_below_live_min": 25,
+    "execution_plan_failed": 19,
+    "all_candidates_blocked": 11,
+    "cost_hurdle_not_met": 9,
+    "entropy_too_high_noisy_market": 8,
+    "cash_last_resort_score_too_low": 1,
+    "economic_gate_win_probability_below_after_cost_breakeven": 1,
     "late_cash_entry_after_1445": 1
   }
 }

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-23T16:56:42",
-  "n_modules": 499,
+  "generated_at": "2026-07-27T17:12:16",
+  "n_modules": 504,
   "orphan_modules": [
     "check_connections",
     "comprehensive_news_engine",
@@ -1034,7 +1034,7 @@
         "daily_loss_limit",
         "data_fetcher"
       ],
-      "n_importers": 49
+      "n_importers": 51
     },
     "confluence_feature_store": {
       "status": "imported",
@@ -2314,9 +2314,10 @@
         "main_autonomous",
         "off_hours_engine",
         "signal_engine",
-        "telegram_commands"
+        "telegram_commands",
+        "test_oi_tracker_flip_alert"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "omnisource_news_engine": {
       "status": "imported",
@@ -2543,10 +2544,11 @@
     "option_oi_chart": {
       "status": "imported",
       "imported_by": [
+        "oi_tracker",
         "telegram_commands",
         "test_option_oi_chart"
       ],
-      "n_importers": 2
+      "n_importers": 3
     },
     "option_oi_intelligence": {
       "status": "dynamic",
@@ -2960,6 +2962,13 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "research_admission": {
+      "status": "imported",
+      "imported_by": [
+        "test_research_admission"
+      ],
+      "n_importers": 1
+    },
     "research_bias_audit": {
       "status": "imported",
       "imported_by": [
@@ -3299,6 +3308,13 @@
       "status": "imported",
       "imported_by": [
         "wiring_watchdog"
+      ],
+      "n_importers": 1
+    },
+    "strategy_pair_edge_miner": {
+      "status": "imported",
+      "imported_by": [
+        "test_strategy_pair_edge_miner"
       ],
       "n_importers": 1
     },
@@ -3664,6 +3680,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_oi_tracker_flip_alert": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_option_activity_sentiment": {
       "status": "test",
       "imported_by": [],
@@ -3814,6 +3835,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_research_admission": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_sahi_behavioral_layer": {
       "status": "test",
       "imported_by": [],
@@ -3855,6 +3881,11 @@
       "n_importers": 0
     },
     "test_strategy_evolution": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_strategy_pair_edge_miner": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0

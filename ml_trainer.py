@@ -16,9 +16,10 @@ import hashlib
 import logging
 import os
 import pickle
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -249,6 +250,38 @@ def _load_model(label: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def _train_one_symbol(
+    symbol: str, Xs: np.ndarray, ys: np.ndarray, feat_cols: List[str],
+    sym_days: int, sym_n: int, fingerprint: str,
+) -> Tuple[str, Optional[Dict[str, Any]]]:
+    """Runs in a worker process. Each symbol's training is fully independent
+    (its own data slice, its own model), so this is embarrassingly parallel
+    -- moved out of train_all()'s serial loop 2026-07-27 after that loop
+    alone grew to 2228 of 2537s total nightly runtime (~25s/symbol,
+    consistent across the observed history), driven by per_symbol_models
+    count growing 63->102 in 4 days as more symbols cross MIN_SYMBOL_SAMPLES.
+    Returns (symbol, None) on any failure -- one bad symbol must never lose
+    the whole nightly pipeline (2026-07-11 incident, same reasoning as the
+    prior serial loop's try/except/continue)."""
+    try:
+        sym_result = _train_model(Xs, ys, feat_cols, label=symbol)
+    except Exception as exc:
+        logger.warning("per-symbol model %s skipped: %s", symbol, exc)
+        return symbol, None
+    sym_result["distinct_days"] = sym_days
+    sym_result["promoted"] = bool(
+        sym_n >= MIN_PROMOTION_SAMPLES
+        and sym_days >= MIN_PROMOTION_DAYS
+        and sym_result.get("cv_method") == "purged_kfold"
+        and float(sym_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
+        and float(sym_result.get("purged_brier_skill") or -1) > 0
+        and sym_result.get("probability_calibration") == "sigmoid_purged_cv"
+    )
+    sym_result["training_data_fingerprint"] = fingerprint
+    sym_result["selected_features"] = list(feat_cols)
+    return symbol, sym_result
+
+
 def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     """
     Train cross-symbol model + per-symbol models.
@@ -307,8 +340,16 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
         saved_paths.append(str(_save_model(cross_result)))
 
     # ── Per-symbol models ─────────────────────────────────────────────────────
+    # 2026-07-11: a single sparse symbol (enough rows to pass MIN_SYMBOL_SAMPLES
+    # but too few distinct days for 2 valid purged folds) raised out of
+    # _train_model and killed the ENTIRE nightly pipeline (learned filters,
+    # forward-holdout, autopsy all lost for the day — caught by the
+    # job-catchup retry, rc=1 twice). Per-symbol models are optional extras;
+    # skip the symbol, keep going -- preserved below via _train_one_symbol's
+    # own try/except, now running in a worker process instead of inline.
     if "__symbol" in df_clean.columns:
         sym_counts = df_clean["__symbol"].value_counts()
+        eligible: List[tuple] = []
         for symbol, count in sym_counts.items():
             if count < MIN_SYMBOL_SAMPLES:
                 continue
@@ -317,34 +358,37 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             ys = sym_df["tb_outcome"].values.astype(int)
             if len(np.unique(ys)) < 2:
                 continue   # only one class — can't train
-            # 2026-07-11: a single sparse symbol (enough rows to pass
-            # MIN_SYMBOL_SAMPLES but too few distinct days for 2 valid purged
-            # folds) raised out of _train_model and killed the ENTIRE nightly
-            # pipeline (learned filters, forward-holdout, autopsy all lost for
-            # the day — caught by the job-catchup retry, rc=1 twice). Per-
-            # symbol models are optional extras; skip the symbol, keep going.
-            try:
-                sym_result = _train_model(Xs, ys, feat_cols, label=symbol)
-            except Exception as _sym_exc:
-                logger.warning("per-symbol model %s skipped: %s", symbol, _sym_exc)
-                continue
             sym_days = int(sym_df["__signal_date"].astype(str).nunique()) if "__signal_date" in sym_df else 0
-            sym_result["distinct_days"] = sym_days
-            sym_result["promoted"] = bool(
-                len(sym_df) >= MIN_PROMOTION_SAMPLES
-                and sym_days >= MIN_PROMOTION_DAYS
-                and sym_result.get("cv_method") == "purged_kfold"
-                and float(sym_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
-                and float(sym_result.get("purged_brier_skill") or -1) > 0
-                and sym_result.get("probability_calibration") == "sigmoid_purged_cv"
-            )
-            sym_result["training_data_fingerprint"] = _training_fingerprint(sym_df, feat_cols)
-            sym_result["selected_features"] = list(feat_cols)
-            results["per_symbol"][symbol] = {
-                k: v for k, v in sym_result.items() if k != "model"
-            }
-            if sym_result["promoted"]:
-                saved_paths.append(str(_save_model(sym_result)))
+            fingerprint = _training_fingerprint(sym_df, feat_cols)
+            eligible.append((symbol, Xs, ys, sym_days, len(sym_df), fingerprint))
+
+        # Each eligible symbol's training is fully independent (own data
+        # slice, own model) -- parallelize across processes rather than
+        # training them one at a time. Leaves 2 cores free for the live bot,
+        # which shares this box (post_market_ml is guarded to post-market
+        # hours, but the box itself isn't exclusively idle).
+        max_workers = max(1, min(len(eligible), (os.cpu_count() or 4) - 2))
+        if eligible:
+            with ProcessPoolExecutor(max_workers=max_workers) as pool:
+                futures = {
+                    pool.submit(_train_one_symbol, symbol, Xs, ys, feat_cols,
+                                sym_days, sym_n, fingerprint): symbol
+                    for symbol, Xs, ys, sym_days, sym_n, fingerprint in eligible
+                }
+                for future in as_completed(futures):
+                    symbol = futures[future]
+                    try:
+                        _, sym_result = future.result()
+                    except Exception as exc:
+                        logger.warning("per-symbol model %s worker failed: %s", symbol, exc)
+                        continue
+                    if sym_result is None:
+                        continue
+                    results["per_symbol"][symbol] = {
+                        k: v for k, v in sym_result.items() if k != "model"
+                    }
+                    if sym_result["promoted"]:
+                        saved_paths.append(str(_save_model(sym_result)))
 
     results["saved_paths"] = saved_paths
     results["training_contract"] = TRAINING_CONTRACT

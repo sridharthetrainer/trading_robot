@@ -5,104 +5,104 @@
     "fii_cum_5d",
     "mtf_pivot_mod"
   ],
-  "n_total": 20918,
-  "n_train": 15364,
-  "n_test": 5554,
-  "base_win_rate": 0.0603,
-  "baseline_net_r": -0.1706,
-  "auc": 0.683,
-  "purged_cv_auc": 0.6001,
+  "n_total": 22030,
+  "n_train": 16466,
+  "n_test": 5564,
+  "base_win_rate": 0.0694,
+  "baseline_net_r": -0.1863,
+  "auc": 0.6827,
+  "purged_cv_auc": 0.5843,
   "cpcv": {
-    "mean": 0.6388093811341949,
-    "median": 0.6300899950739204,
-    "std": 0.03266084101641262,
-    "min": 0.5613806728132014,
-    "max": 0.6867639141261188,
-    "iqr": 0.04406834264615145,
+    "mean": 0.6092183300024774,
+    "median": 0.6107607643881017,
+    "std": 0.05261525793757383,
+    "min": 0.5229785063198747,
+    "max": 0.6963252193146668,
+    "iqr": 0.08532560770696884,
     "paths": [
-      0.6661,
-      0.6128,
-      0.6134,
-      0.6797,
-      0.6824,
-      0.6384,
-      0.6301,
-      0.6573,
-      0.6868,
-      0.5614,
-      0.6186,
-      0.6262,
-      0.6224,
-      0.6238,
-      0.663
+      0.6523,
+      0.6597,
+      0.5336,
+      0.6581,
+      0.6714,
+      0.523,
+      0.5868,
+      0.6225,
+      0.6963,
+      0.5723,
+      0.5699,
+      0.6108,
+      0.5519,
+      0.575,
+      0.6548
     ],
     "n_paths_used": 15,
     "n_paths_total": 15
   },
-  "full_model_auc_for_comparison": 0.6699,
+  "full_model_auc_for_comparison": 0.6755,
   "cost_pct": 0.12,
   "by_threshold": [
     {
       "threshold": 0.5,
-      "n_selected": 1847,
-      "coverage": 0.3326,
-      "precision": 0.1083,
-      "lift_vs_base": 0.048,
-      "avg_net_r": -0.1089
+      "n_selected": 1818,
+      "coverage": 0.3267,
+      "precision": 0.1139,
+      "lift_vs_base": 0.0445,
+      "avg_net_r": -0.162
     },
     {
       "threshold": 0.55,
-      "n_selected": 1394,
-      "coverage": 0.251,
-      "precision": 0.1155,
-      "lift_vs_base": 0.0552,
-      "avg_net_r": -0.0991
+      "n_selected": 1335,
+      "coverage": 0.2399,
+      "precision": 0.1184,
+      "lift_vs_base": 0.049,
+      "avg_net_r": -0.1499
     },
     {
       "threshold": 0.6,
-      "n_selected": 909,
-      "coverage": 0.1637,
-      "precision": 0.11,
-      "lift_vs_base": 0.0497,
-      "avg_net_r": -0.0983
+      "n_selected": 937,
+      "coverage": 0.1684,
+      "precision": 0.1206,
+      "lift_vs_base": 0.0512,
+      "avg_net_r": -0.1615
     },
     {
       "threshold": 0.65,
-      "n_selected": 613,
-      "coverage": 0.1104,
-      "precision": 0.1028,
-      "lift_vs_base": 0.0425,
-      "avg_net_r": -0.0875
+      "n_selected": 577,
+      "coverage": 0.1037,
+      "precision": 0.1282,
+      "lift_vs_base": 0.0589,
+      "avg_net_r": -0.0704
     },
     {
       "threshold": 0.7,
-      "n_selected": 211,
-      "coverage": 0.038,
-      "precision": 0.1422,
-      "lift_vs_base": 0.0819,
-      "avg_net_r": -0.1233
+      "n_selected": 213,
+      "coverage": 0.0383,
+      "precision": 0.1408,
+      "lift_vs_base": 0.0715,
+      "avg_net_r": -0.1285
     }
   ],
   "feature_importances": [
     {
       "feature": "hour_of_day",
-      "importance": 0.3954
+      "importance": 0.3518
     },
     {
       "feature": "mtf_pivot_mod",
-      "importance": 0.2258
+      "importance": 0.2623
     },
     {
       "feature": "fii_cum_5d",
-      "importance": 0.2016
+      "importance": 0.1999
     },
     {
       "feature": "india_vix",
-      "importance": 0.1772
+      "importance": 0.1861
     }
   ],
   "best_threshold": null,
-  "conclusion": "AUC=0.683. Gating at P(win)>=0.55 lifts precision but avg net_R stays NEGATIVE at every threshold (best -0.099 vs baseline -0.171). (full 42-feature model AUC=0.670, delta=+0.013 -- simple model holds up) CPCV over 15/15 paths: mean=0.639 median=0.630 iqr=0.044 min=0.561 -- trust this over the single day-split AUC above, which is one partition of many. Reduces losses, does not create profit. REJECTED for live gating on cost-adjusted evidence.",
+  "conclusion": "AUC=0.683. Gating at P(win)>=0.65 lifts precision but avg net_R stays NEGATIVE at every threshold (best -0.070 vs baseline -0.186). (full 42-feature model AUC=0.675, delta=+0.007 -- simple model holds up) CPCV over 15/15 paths: mean=0.609 median=0.611 iqr=0.085 min=0.523 -- trust this over the single day-split AUC above, which is one partition of many. Reduces losses, does not create profit. REJECTED for live gating on cost-adjusted evidence.",
   "model_saved": false,
   "model_save_reason": "no_threshold_clears_precision_lift_and_net_cost"
 }

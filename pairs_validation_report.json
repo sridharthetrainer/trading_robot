@@ -6,31 +6,31 @@
     {
       "pair": "HINDALCO-JSWSTEEL",
       "verdict": "INSUFFICIENT_DATA",
-      "common_days": 1018,
-      "dev_days": 712,
+      "common_days": 1017,
+      "dev_days": 711,
       "holdout_days": 306,
-      "hedge_beta": 0.6771,
+      "hedge_beta": 0.6752,
       "cointegration": {
-        "adf_tstat": -3.068,
+        "adf_tstat": -2.952,
         "adf_crit_5pct": -2.86,
         "stationary": true,
-        "half_life_days": 24.9,
-        "corr": 0.94,
+        "half_life_days": 25.9,
+        "corr": 0.939,
         "cointegrated": true
       },
       "dev_backtest": {
-        "trades": 24,
-        "sharpe": 3.166,
-        "win_rate": 70.8,
-        "net": 0.3208,
-        "avg_ret": 0.01337
+        "trades": 26,
+        "sharpe": 2.884,
+        "win_rate": 73.1,
+        "net": 0.3267,
+        "avg_ret": 0.01257
       },
       "oos_backtest": {
         "trades": 9,
-        "sharpe": 4.767,
+        "sharpe": 4.784,
         "win_rate": 66.7,
-        "net": 0.1162,
-        "avg_ret": 0.01291
+        "net": 0.1164,
+        "avg_ret": 0.01293
       },
       "gate": {
         "min_oos_trades": 20,
@@ -42,16 +42,16 @@
     {
       "pair": "ULTRACEMCO-GRASIM",
       "verdict": "INSUFFICIENT_DATA",
-      "common_days": 1018,
-      "dev_days": 712,
+      "common_days": 1017,
+      "dev_days": 711,
       "holdout_days": 306,
-      "hedge_beta": 0.8947,
+      "hedge_beta": 0.8951,
       "cointegration": {
-        "adf_tstat": -2.679,
+        "adf_tstat": -2.644,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 33.8,
-        "corr": 0.96,
+        "half_life_days": 34.3,
+        "corr": 0.959,
         "cointegrated": false
       },
       "dev_backtest": {
@@ -63,10 +63,10 @@
       },
       "oos_backtest": {
         "trades": 9,
-        "sharpe": -1.457,
+        "sharpe": -1.458,
         "win_rate": 44.4,
-        "net": -0.0741,
-        "avg_ret": -0.00823
+        "net": -0.0742,
+        "avg_ret": -0.00824
       },
       "gate": {
         "min_oos_trades": 20,
@@ -78,31 +78,31 @@
     {
       "pair": "MARUTI-M&M",
       "verdict": "INSUFFICIENT_DATA",
-      "common_days": 1018,
-      "dev_days": 712,
+      "common_days": 1017,
+      "dev_days": 711,
       "holdout_days": 306,
-      "hedge_beta": 2.1912,
+      "hedge_beta": 2.1937,
       "cointegration": {
-        "adf_tstat": -2.193,
+        "adf_tstat": -2.313,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 47.6,
-        "corr": 0.91,
+        "half_life_days": 44.9,
+        "corr": 0.909,
         "cointegrated": false
       },
       "dev_backtest": {
-        "trades": 32,
-        "sharpe": 1.483,
-        "win_rate": 71.9,
-        "net": 0.4122,
-        "avg_ret": 0.01288
+        "trades": 33,
+        "sharpe": 1.712,
+        "win_rate": 72.7,
+        "net": 0.4919,
+        "avg_ret": 0.01491
       },
       "oos_backtest": {
         "trades": 12,
-        "sharpe": -1.633,
+        "sharpe": -1.634,
         "win_rate": 50.0,
-        "net": -0.2752,
-        "avg_ret": -0.02293
+        "net": -0.2757,
+        "avg_ret": -0.02298
       },
       "gate": {
         "min_oos_trades": 20,
@@ -114,28 +114,28 @@
     {
       "pair": "SUNPHARMA-DRREDDY",
       "verdict": "INSUFFICIENT_DATA",
-      "common_days": 1018,
-      "dev_days": 712,
+      "common_days": 1017,
+      "dev_days": 711,
       "holdout_days": 306,
-      "hedge_beta": 0.567,
+      "hedge_beta": 0.5666,
       "cointegration": {
-        "adf_tstat": -2.141,
+        "adf_tstat": -2.104,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 47.1,
-        "corr": 0.916,
+        "half_life_days": 48.1,
+        "corr": 0.915,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 26,
         "sharpe": -0.41,
         "win_rate": 61.5,
-        "net": -0.0484,
+        "net": -0.0483,
         "avg_ret": -0.00186
       },
       "oos_backtest": {
         "trades": 15,
-        "sharpe": 5.636,
+        "sharpe": 5.637,
         "win_rate": 80.0,
         "net": 0.3297,
         "avg_ret": 0.02198
@@ -150,28 +150,28 @@
     {
       "pair": "TCS-INFY",
       "verdict": "INSUFFICIENT_DATA",
-      "common_days": 1018,
-      "dev_days": 712,
+      "common_days": 1017,
+      "dev_days": 711,
       "holdout_days": 306,
-      "hedge_beta": 0.8704,
+      "hedge_beta": 0.8708,
       "cointegration": {
-        "adf_tstat": -1.976,
+        "adf_tstat": -1.982,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 63.1,
-        "corr": 0.803,
+        "half_life_days": 62.9,
+        "corr": 0.802,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 27,
-        "sharpe": -0.579,
+        "sharpe": -0.578,
         "win_rate": 59.3,
-        "net": -0.0828,
-        "avg_ret": -0.00307
+        "net": -0.0827,
+        "avg_ret": -0.00306
       },
       "oos_backtest": {
         "trades": 12,
-        "sharpe": 4.408,
+        "sharpe": 4.407,
         "win_rate": 75.0,
         "net": 0.1178,
         "avg_ret": 0.00982
@@ -186,30 +186,30 @@
     {
       "pair": "BPCL-IOC",
       "verdict": "INSUFFICIENT_DATA",
-      "common_days": 1018,
-      "dev_days": 712,
+      "common_days": 1017,
+      "dev_days": 711,
       "holdout_days": 306,
-      "hedge_beta": 1.1313,
+      "hedge_beta": 1.1303,
       "cointegration": {
-        "adf_tstat": -1.676,
+        "adf_tstat": -1.805,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 65.9,
+        "half_life_days": 61.3,
         "corr": 0.973,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 29,
-        "sharpe": 1.29,
+        "sharpe": 1.286,
         "win_rate": 72.4,
-        "net": 0.1712,
-        "avg_ret": 0.0059
+        "net": 0.1706,
+        "avg_ret": 0.00588
       },
       "oos_backtest": {
         "trades": 13,
-        "sharpe": 1.762,
+        "sharpe": 1.767,
         "win_rate": 84.6,
-        "net": 0.1054,
+        "net": 0.1055,
         "avg_ret": 0.00811
       },
       "gate": {

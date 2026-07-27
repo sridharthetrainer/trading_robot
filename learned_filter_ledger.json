@@ -2,7 +2,7 @@
   "strategy\u00d7htf_bias_enc_holy_grail_\u00d7_1.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "holy_grail \u00d7 1.0"
@@ -13,11 +13,11 @@
       "n": 30,
       "loss_rate": 0.9
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -35,22 +35,22 @@
       "n": 31,
       "loss_rate": 0.839
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 41,
-      "n_unmatched": 1259,
-      "checked": "2026-07-23",
-      "matched_wr": 0.5122,
-      "unmatched_wr": 0.3217,
-      "diff": 0.1905,
-      "p_one_sided": 0.01101,
+      "n_matched": 44,
+      "n_unmatched": 1657,
+      "checked": "2026-07-27",
+      "matched_wr": 0.5227,
+      "unmatched_wr": 0.3416,
+      "diff": 0.1811,
+      "p_one_sided": 0.011585,
       "status": "wrong_direction"
     }
   },
   "strategy\u00d7htf_bias_enc_vrvp_zone_\u00d7_-1.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "vrvp_zone \u00d7 -1.0"
@@ -61,11 +61,11 @@
       "n": 43,
       "loss_rate": 0.884
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -83,18 +83,22 @@
       "n": 19,
       "loss_rate": 0.789
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 26,
-      "n_unmatched": 1274,
-      "checked": "2026-07-23",
-      "status": "insufficient_forward_samples"
+      "n_matched": 42,
+      "n_unmatched": 1659,
+      "checked": "2026-07-27",
+      "matched_wr": 0.5,
+      "unmatched_wr": 0.3424,
+      "diff": 0.1576,
+      "p_one_sided": 0.026131,
+      "status": "wrong_direction"
     }
   },
   "strategy\u00d7htf_bias_enc_chart_pattern_desc": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "chart_pattern_descending_triangle \u00d7 1.0"
@@ -105,18 +109,18 @@
       "n": 31,
       "loss_rate": 0.871
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7regime_enc_chart_pattern_double": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "chart_pattern_double_top \u00d7 2.0"
@@ -127,18 +131,18 @@
       "n": 47,
       "loss_rate": 0.872
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_chart_pattern_doub": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "chart_pattern_double_top \u00d7 -1.0"
@@ -149,11 +153,11 @@
       "n": 36,
       "loss_rate": 0.861
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -171,44 +175,48 @@
       "n": 16,
       "loss_rate": 1.0
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 31,
-      "n_unmatched": 1269,
-      "checked": "2026-07-23",
-      "matched_wr": 0.4516,
-      "unmatched_wr": 0.3247,
-      "diff": 0.1269,
-      "p_one_sided": 0.088262,
+      "n_matched": 33,
+      "n_unmatched": 1668,
+      "checked": "2026-07-27",
+      "matched_wr": 0.4545,
+      "unmatched_wr": 0.3441,
+      "diff": 0.1104,
+      "p_one_sided": 0.11118,
       "status": "wrong_direction"
     }
   },
   "strategy\u00d7htf_bias_enc_ma_cross_\u00d7_-1.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "ma_cross \u00d7 -1.0"
     },
-    "mult": 0.2,
-    "description": "strategy\u00d7htf_bias_enc ma_cross \u00d7 -1.0 \u2192 loss rate 85%",
+    "mult": 0.35,
+    "description": "strategy\u00d7htf_bias_enc ma_cross \u00d7 -1.0 \u2192 loss rate 77%",
     "evidence": {
-      "n": 48,
-      "loss_rate": 0.854
+      "n": 35,
+      "loss_rate": 0.771
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 25,
-      "n_unmatched": 1275,
-      "checked": "2026-07-23",
-      "status": "insufficient_forward_samples"
+      "n_matched": 35,
+      "n_unmatched": 1666,
+      "checked": "2026-07-27",
+      "matched_wr": 0.2286,
+      "unmatched_wr": 0.3487,
+      "diff": -0.1202,
+      "p_one_sided": 0.054138,
+      "status": "not_significant"
     }
   },
   "strategy\u00d7regime_enc_chart_pattern_range_": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-21",
+    "last_seen": "2026-07-25",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "chart_pattern_range_expansion \u00d7 0.0"
@@ -216,14 +224,14 @@
     "mult": 0.2,
     "description": "strategy\u00d7regime_enc chart_pattern_range_expansion \u00d7 0.0 \u2192 loss rate 80%",
     "evidence": {
-      "n": 25,
+      "n": 15,
       "loss_rate": 0.8
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 10,
-      "n_unmatched": 1290,
-      "checked": "2026-07-23",
+      "n_matched": 14,
+      "n_unmatched": 1687,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -241,22 +249,22 @@
       "n": 95,
       "loss_rate": 0.8
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 54,
-      "n_unmatched": 1246,
-      "checked": "2026-07-23",
-      "matched_wr": 0.4074,
-      "unmatched_wr": 0.3242,
-      "diff": 0.0832,
-      "p_one_sided": 0.115791,
-      "status": "wrong_direction"
+      "n_matched": 78,
+      "n_unmatched": 1623,
+      "checked": "2026-07-27",
+      "matched_wr": 0.3462,
+      "unmatched_wr": 0.3463,
+      "diff": -0.0001,
+      "p_one_sided": 0.499151,
+      "status": "not_significant"
     }
   },
   "strategy\u00d7regime_enc_candlestick_three_bl": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "candlestick_three_black_soldiers \u00d7 2.0"
@@ -267,11 +275,11 @@
       "n": 18,
       "loss_rate": 0.833
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 1,
-      "n_unmatched": 1299,
-      "checked": "2026-07-23",
+      "n_unmatched": 1700,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -289,22 +297,22 @@
       "n": 22,
       "loss_rate": 0.818
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 59,
-      "n_unmatched": 1241,
-      "checked": "2026-07-23",
-      "matched_wr": 0.3729,
-      "unmatched_wr": 0.3255,
-      "diff": 0.0473,
-      "p_one_sided": 0.234145,
+      "n_matched": 83,
+      "n_unmatched": 1618,
+      "checked": "2026-07-27",
+      "matched_wr": 0.4337,
+      "unmatched_wr": 0.3418,
+      "diff": 0.092,
+      "p_one_sided": 0.051994,
       "status": "wrong_direction"
     }
   },
   "strategy\u00d7regime_enc_rsi_divergence_\u00d7_2.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "rsi_divergence \u00d7 2.0"
@@ -315,11 +323,11 @@
       "n": 35,
       "loss_rate": 0.829
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -337,22 +345,22 @@
       "n": 16,
       "loss_rate": 0.812
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 32,
-      "n_unmatched": 1268,
-      "checked": "2026-07-23",
-      "matched_wr": 0.3438,
-      "unmatched_wr": 0.3273,
-      "diff": 0.0165,
-      "p_one_sided": 0.424964,
-      "status": "wrong_direction"
+      "n_matched": 38,
+      "n_unmatched": 1663,
+      "checked": "2026-07-27",
+      "matched_wr": 0.3158,
+      "unmatched_wr": 0.347,
+      "diff": -0.0312,
+      "p_one_sided": 0.344486,
+      "status": "not_significant"
     }
   },
   "strategy\u00d7regime_enc_vrvp_zone_\u00d7_2.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "vrvp_zone \u00d7 2.0"
@@ -363,18 +371,18 @@
       "n": 91,
       "loss_rate": 0.802
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_rsi_divergence_\u00d7_1": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "rsi_divergence \u00d7 1.0"
@@ -385,11 +393,11 @@
       "n": 59,
       "loss_rate": 0.814
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -407,18 +415,18 @@
       "n": 25,
       "loss_rate": 0.8
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7regime_enc_alligator_ao_\u00d7_0.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "alligator_ao \u00d7 0.0"
@@ -429,18 +437,18 @@
       "n": 79,
       "loss_rate": 0.797
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy_chart_pattern_double_top": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "chart_pattern_double_top"
@@ -451,11 +459,11 @@
       "n": 69,
       "loss_rate": 0.812
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -473,18 +481,18 @@
       "n": 15,
       "loss_rate": 0.867
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy_rsi_divergence": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "rsi_divergence"
@@ -495,18 +503,18 @@
       "n": 209,
       "loss_rate": 0.799
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_rsi_divergence_\u00d7_0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "rsi_divergence \u00d7 0.0"
@@ -517,18 +525,18 @@
       "n": 96,
       "loss_rate": 0.802
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7regime_enc_failed_bull_breakout": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "failed_bull_breakout \u00d7 2.0"
@@ -536,36 +544,36 @@
     "mult": 0.2,
     "description": "strategy\u00d7regime_enc failed_bull_breakout \u00d7 2.0 \u2192 loss rate 83%",
     "evidence": {
-      "n": 36,
-      "loss_rate": 0.833
+      "n": 46,
+      "loss_rate": 0.826
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 16,
-      "n_unmatched": 1284,
-      "checked": "2026-07-23",
+      "n_matched": 26,
+      "n_unmatched": 1675,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7regime_enc_rsi_divergence_\u00d7_0.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-15",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "rsi_divergence \u00d7 0.0"
     },
     "mult": 0.2,
-    "description": "strategy\u00d7regime_enc rsi_divergence \u00d7 0.0 \u2192 loss rate 80%",
+    "description": "strategy\u00d7regime_enc rsi_divergence \u00d7 0.0 \u2192 loss rate 97%",
     "evidence": {
-      "n": 160,
-      "loss_rate": 0.8
+      "n": 36,
+      "loss_rate": 0.972
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -583,11 +591,11 @@
       "n": 38,
       "loss_rate": 0.789
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -605,11 +613,11 @@
       "n": 51,
       "loss_rate": 0.824
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -627,33 +635,33 @@
       "n": 30,
       "loss_rate": 0.867
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_rsi_divergence_\u00d7_-": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-11",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "rsi_divergence \u00d7 -1.0"
     },
-    "mult": 0.35,
-    "description": "strategy\u00d7htf_bias_enc rsi_divergence \u00d7 -1.0 \u2192 loss rate 77%",
+    "mult": 0.2,
+    "description": "strategy\u00d7htf_bias_enc rsi_divergence \u00d7 -1.0 \u2192 loss rate 89%",
     "evidence": {
-      "n": 48,
-      "loss_rate": 0.771
+      "n": 18,
+      "loss_rate": 0.889
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
       "n_matched": 0,
-      "n_unmatched": 1300,
-      "checked": "2026-07-23",
+      "n_unmatched": 1701,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -671,16 +679,16 @@
       "n": 926,
       "loss_rate": 0.77
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 132,
-      "n_unmatched": 1168,
-      "checked": "2026-07-23",
-      "matched_wr": 0.2955,
-      "unmatched_wr": 0.3313,
-      "diff": -0.0359,
-      "p_one_sided": 0.198079,
-      "status": "not_significant"
+      "n_matched": 161,
+      "n_unmatched": 1540,
+      "checked": "2026-07-27",
+      "matched_wr": 0.3478,
+      "unmatched_wr": 0.3461,
+      "diff": 0.0017,
+      "p_one_sided": 0.482659,
+      "status": "wrong_direction"
     }
   },
   "strategy\u00d7htf_bias_enc_candlestick_bearis": {
@@ -697,33 +705,37 @@
       "n": 18,
       "loss_rate": 0.778
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 29,
-      "n_unmatched": 1271,
-      "checked": "2026-07-23",
-      "status": "insufficient_forward_samples"
+      "n_matched": 30,
+      "n_unmatched": 1671,
+      "checked": "2026-07-27",
+      "matched_wr": 0.5333,
+      "unmatched_wr": 0.3429,
+      "diff": 0.1904,
+      "p_one_sided": 0.025156,
+      "status": "wrong_direction"
     }
   },
   "strategy\u00d7regime_enc_rsi2_mr_\u00d7_0.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "rsi2_mr \u00d7 0.0"
     },
     "mult": 0.2,
-    "description": "strategy\u00d7regime_enc rsi2_mr \u00d7 0.0 \u2192 loss rate 93%",
+    "description": "strategy\u00d7regime_enc rsi2_mr \u00d7 0.0 \u2192 loss rate 90%",
     "evidence": {
-      "n": 28,
-      "loss_rate": 0.929
+      "n": 29,
+      "loss_rate": 0.897
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 11,
-      "n_unmatched": 1289,
-      "checked": "2026-07-23",
+      "n_matched": 12,
+      "n_unmatched": 1689,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -741,18 +753,18 @@
       "n": 25,
       "loss_rate": 0.8
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 10,
-      "n_unmatched": 1290,
-      "checked": "2026-07-23",
+      "n_matched": 11,
+      "n_unmatched": 1690,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy_rsi2_mr": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "rsi2_mr"
@@ -760,21 +772,21 @@
     "mult": 0.2,
     "description": "strategy rsi2_mr \u2192 loss rate 82%",
     "evidence": {
-      "n": 39,
-      "loss_rate": 0.821
+      "n": 44,
+      "loss_rate": 0.818
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 12,
-      "n_unmatched": 1288,
-      "checked": "2026-07-23",
+      "n_matched": 17,
+      "n_unmatched": 1684,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_chart_pattern_rang": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "chart_pattern_range_expansion \u00d7 1.0"
@@ -785,18 +797,18 @@
       "n": 21,
       "loss_rate": 0.81
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 8,
-      "n_unmatched": 1292,
-      "checked": "2026-07-23",
+      "n_matched": 11,
+      "n_unmatched": 1690,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_vp_breakout_\u00d7_-1.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "vp_breakout \u00d7 -1.0"
@@ -807,18 +819,18 @@
       "n": 18,
       "loss_rate": 0.833
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 3,
-      "n_unmatched": 1297,
-      "checked": "2026-07-23",
+      "n_matched": 17,
+      "n_unmatched": 1684,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_candlestick_spinni": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "candlestick_spinning_top_white \u00d7 1.0"
@@ -826,102 +838,102 @@
     "mult": 0.2,
     "description": "strategy\u00d7htf_bias_enc candlestick_spinning_top_white \u00d7 1.0 \u2192 loss rate 100%",
     "evidence": {
-      "n": 15,
+      "n": 16,
       "loss_rate": 1.0
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 4,
-      "n_unmatched": 1296,
-      "checked": "2026-07-23",
+      "n_matched": 5,
+      "n_unmatched": 1696,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_rsi2_mr_\u00d7_0.0": {
     "first_seen": "2026-07-11",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "rsi2_mr \u00d7 0.0"
     },
     "mult": 0.2,
-    "description": "strategy\u00d7htf_bias_enc rsi2_mr \u00d7 0.0 \u2192 loss rate 85%",
+    "description": "strategy\u00d7htf_bias_enc rsi2_mr \u00d7 0.0 \u2192 loss rate 83%",
     "evidence": {
-      "n": 26,
-      "loss_rate": 0.846
+      "n": 29,
+      "loss_rate": 0.828
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 9,
-      "n_unmatched": 1291,
-      "checked": "2026-07-23",
+      "n_matched": 12,
+      "n_unmatched": 1689,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7regime_enc_aroon_trend_\u00d7_0.0": {
     "first_seen": "2026-07-12",
     "kind": "filter",
-    "last_seen": "2026-07-22",
+    "last_seen": "2026-07-25",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "aroon_trend \u00d7 0.0"
     },
-    "mult": 0.2,
-    "description": "strategy\u00d7regime_enc aroon_trend \u00d7 0.0 \u2192 loss rate 83%",
+    "mult": 0.35,
+    "description": "strategy\u00d7regime_enc aroon_trend \u00d7 0.0 \u2192 loss rate 76%",
     "evidence": {
-      "n": 24,
-      "loss_rate": 0.833
+      "n": 21,
+      "loss_rate": 0.762
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 13,
-      "n_unmatched": 1287,
-      "checked": "2026-07-23",
+      "n_matched": 17,
+      "n_unmatched": 1684,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_aroon_trend_\u00d7_0.0": {
     "first_seen": "2026-07-12",
     "kind": "filter",
-    "last_seen": "2026-07-22",
+    "last_seen": "2026-07-25",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "aroon_trend \u00d7 0.0"
     },
-    "mult": 0.2,
-    "description": "strategy\u00d7htf_bias_enc aroon_trend \u00d7 0.0 \u2192 loss rate 83%",
+    "mult": 0.35,
+    "description": "strategy\u00d7htf_bias_enc aroon_trend \u00d7 0.0 \u2192 loss rate 76%",
     "evidence": {
-      "n": 24,
-      "loss_rate": 0.833
+      "n": 21,
+      "loss_rate": 0.762
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 14,
-      "n_unmatched": 1286,
-      "checked": "2026-07-23",
+      "n_matched": 18,
+      "n_unmatched": 1683,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy_aroon_trend": {
     "first_seen": "2026-07-12",
     "kind": "filter",
-    "last_seen": "2026-07-22",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "aroon_trend"
     },
-    "mult": 0.2,
-    "description": "strategy aroon_trend \u2192 loss rate 81%",
+    "mult": 0.35,
+    "description": "strategy aroon_trend \u2192 loss rate 72%",
     "evidence": {
-      "n": 36,
-      "loss_rate": 0.806
+      "n": 25,
+      "loss_rate": 0.72
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 20,
-      "n_unmatched": 1280,
-      "checked": "2026-07-23",
+      "n_matched": 25,
+      "n_unmatched": 1676,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -939,12 +951,16 @@
       "n": 26,
       "loss_rate": 0.885
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 27,
-      "n_unmatched": 1273,
-      "checked": "2026-07-23",
-      "status": "insufficient_forward_samples"
+      "n_matched": 34,
+      "n_unmatched": 1667,
+      "checked": "2026-07-27",
+      "matched_wr": 0.4118,
+      "unmatched_wr": 0.3449,
+      "diff": 0.0668,
+      "p_one_sided": 0.222415,
+      "status": "wrong_direction"
     }
   },
   "boost_strategy\u00d7htf_bias_enc_failed_bear_": {
@@ -961,18 +977,18 @@
       "n": 24,
       "win_rate": 0.667
     },
-    "forward_days": 7,
+    "forward_days": 8,
     "forward": {
-      "n_matched": 13,
-      "n_unmatched": 1287,
-      "checked": "2026-07-23",
+      "n_matched": 17,
+      "n_unmatched": 1684,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7regime_enc_candlestick_three_wh": {
     "first_seen": "2026-07-14",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "candlestick_three_white_soldiers \u00d7 0.0"
@@ -983,40 +999,40 @@
       "n": 24,
       "loss_rate": 0.833
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
       "n_matched": 1,
-      "n_unmatched": 770,
-      "checked": "2026-07-23",
+      "n_unmatched": 1171,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_failed_bull_breako": {
     "first_seen": "2026-07-14",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "failed_bull_breakout \u00d7 1.0"
     },
     "mult": 0.2,
-    "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 1.0 \u2192 loss rate 89%",
+    "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 1.0 \u2192 loss rate 90%",
     "evidence": {
-      "n": 28,
-      "loss_rate": 0.893
+      "n": 38,
+      "loss_rate": 0.895
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
-      "n_matched": 9,
-      "n_unmatched": 762,
-      "checked": "2026-07-23",
+      "n_matched": 19,
+      "n_unmatched": 1153,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy\u00d7htf_bias_enc_candlestick_three_": {
     "first_seen": "2026-07-14",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "candlestick_three_white_soldiers \u00d7 0.0"
@@ -1027,11 +1043,11 @@
       "n": 17,
       "loss_rate": 0.824
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
       "n_matched": 1,
-      "n_unmatched": 770,
-      "checked": "2026-07-23",
+      "n_unmatched": 1171,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -1049,11 +1065,11 @@
       "n": 22,
       "loss_rate": 0.818
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
-      "n_matched": 9,
-      "n_unmatched": 762,
-      "checked": "2026-07-23",
+      "n_matched": 13,
+      "n_unmatched": 1159,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -1071,11 +1087,11 @@
       "n": 19,
       "win_rate": 0.737
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
-      "n_matched": 15,
-      "n_unmatched": 756,
-      "checked": "2026-07-23",
+      "n_matched": 16,
+      "n_unmatched": 1156,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -1093,11 +1109,11 @@
       "n": 19,
       "loss_rate": 0.842
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
-      "n_matched": 15,
-      "n_unmatched": 756,
-      "checked": "2026-07-23",
+      "n_matched": 20,
+      "n_unmatched": 1152,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -1115,11 +1131,11 @@
       "n": 17,
       "loss_rate": 0.824
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
-      "n_matched": 4,
-      "n_unmatched": 767,
-      "checked": "2026-07-23",
+      "n_matched": 5,
+      "n_unmatched": 1167,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
@@ -1137,18 +1153,18 @@
       "n": 26,
       "win_rate": 0.654
     },
-    "forward_days": 5,
+    "forward_days": 6,
     "forward": {
-      "n_matched": 14,
-      "n_unmatched": 757,
-      "checked": "2026-07-23",
+      "n_matched": 26,
+      "n_unmatched": 1146,
+      "checked": "2026-07-27",
       "status": "insufficient_forward_samples"
     }
   },
   "strategy_candlestick_spinning_top_white": {
     "first_seen": "2026-07-16",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "candlestick_spinning_top_white"
@@ -1156,10 +1172,16 @@
     "mult": 0.2,
     "description": "strategy candlestick_spinning_top_white \u2192 loss rate 96%",
     "evidence": {
-      "n": 23,
-      "loss_rate": 0.957
+      "n": 24,
+      "loss_rate": 0.958
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 3,
+      "n_unmatched": 957,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy_cci_trend": {
     "first_seen": "2026-07-16",
@@ -1175,12 +1197,22 @@
       "n": 31,
       "loss_rate": 0.774
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 36,
+      "n_unmatched": 924,
+      "checked": "2026-07-27",
+      "matched_wr": 0.3611,
+      "unmatched_wr": 0.3517,
+      "diff": 0.0094,
+      "p_one_sided": 0.45515,
+      "status": "wrong_direction"
+    }
   },
   "strategy\u00d7regime_enc_chart_pattern_rising": {
     "first_seen": "2026-07-16",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "chart_pattern_rising_wedge \u00d7 0.0"
@@ -1191,23 +1223,35 @@
       "n": 17,
       "loss_rate": 0.824
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 2,
+      "n_unmatched": 958,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7htf_bias_enc_chart_pattern_head": {
     "first_seen": "2026-07-16",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "chart_pattern_head_and_shoulders \u00d7 1.0"
     },
     "mult": 0.2,
-    "description": "strategy\u00d7htf_bias_enc chart_pattern_head_and_shoulders \u00d7 1.0 \u2192 loss rate 81%",
+    "description": "strategy\u00d7htf_bias_enc chart_pattern_head_and_shoulders \u00d7 1.0 \u2192 loss rate 84%",
     "evidence": {
-      "n": 16,
-      "loss_rate": 0.812
+      "n": 19,
+      "loss_rate": 0.842
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 3,
+      "n_unmatched": 957,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy_chart_pattern_rising_wedge": {
     "first_seen": "2026-07-16",
@@ -1223,7 +1267,13 @@
       "n": 22,
       "loss_rate": 0.818
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 5,
+      "n_unmatched": 955,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy_candlestick_tweezer_top": {
     "first_seen": "2026-07-16",
@@ -1239,39 +1289,57 @@
       "n": 15,
       "loss_rate": 0.8
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 7,
+      "n_unmatched": 953,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7htf_bias_enc_vrvp_zone_\u00d7_1.0": {
     "first_seen": "2026-07-18",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "vrvp_zone \u00d7 1.0"
     },
     "mult": 0.2,
-    "description": "strategy\u00d7htf_bias_enc vrvp_zone \u00d7 1.0 \u2192 loss rate 88%",
+    "description": "strategy\u00d7htf_bias_enc vrvp_zone \u00d7 1.0 \u2192 loss rate 93%",
     "evidence": {
-      "n": 33,
-      "loss_rate": 0.879
+      "n": 15,
+      "loss_rate": 0.933
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 0,
+      "n_unmatched": 960,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7regime_enc_chart_pattern_ascend": {
     "first_seen": "2026-07-18",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "chart_pattern_ascending_triangle \u00d7 2.0"
     },
     "mult": 0.2,
-    "description": "strategy\u00d7regime_enc chart_pattern_ascending_triangle \u00d7 2.0 \u2192 loss rate 82%",
+    "description": "strategy\u00d7regime_enc chart_pattern_ascending_triangle \u00d7 2.0 \u2192 loss rate 89%",
     "evidence": {
-      "n": 28,
-      "loss_rate": 0.821
+      "n": 36,
+      "loss_rate": 0.889
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 22,
+      "n_unmatched": 938,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7regime_enc_holy_grail_\u00d7_0.0": {
     "first_seen": "2026-07-18",
@@ -1287,7 +1355,13 @@
       "n": 16,
       "loss_rate": 0.812
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 0,
+      "n_unmatched": 960,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7regime_enc_alligator_ao_\u00d7_2.0": {
     "first_seen": "2026-07-18",
@@ -1303,71 +1377,101 @@
       "n": 40,
       "loss_rate": 0.8
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 0,
+      "n_unmatched": 960,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy_mean_reversion": {
     "first_seen": "2026-07-18",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy",
       "eq": "mean_reversion"
     },
-    "mult": 0.35,
-    "description": "strategy mean_reversion \u2192 loss rate 79%",
+    "mult": 0.2,
+    "description": "strategy mean_reversion \u2192 loss rate 88%",
     "evidence": {
-      "n": 29,
-      "loss_rate": 0.793
+      "n": 24,
+      "loss_rate": 0.875
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 7,
+      "n_unmatched": 953,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7regime_enc_chart_pattern_head_a": {
     "first_seen": "2026-07-18",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-25",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "chart_pattern_head_and_shoulders \u00d7 0.0"
     },
-    "mult": 0.35,
-    "description": "strategy\u00d7regime_enc chart_pattern_head_and_shoulders \u00d7 0.0 \u2192 loss rate 79%",
+    "mult": 0.2,
+    "description": "strategy\u00d7regime_enc chart_pattern_head_and_shoulders \u00d7 0.0 \u2192 loss rate 81%",
     "evidence": {
-      "n": 33,
-      "loss_rate": 0.788
+      "n": 31,
+      "loss_rate": 0.806
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 15,
+      "n_unmatched": 945,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7regime_enc_mean_reversion_\u00d7_0.0": {
     "first_seen": "2026-07-18",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-24",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "mean_reversion \u00d7 0.0"
     },
-    "mult": 0.35,
-    "description": "strategy\u00d7regime_enc mean_reversion \u00d7 0.0 \u2192 loss rate 79%",
+    "mult": 0.2,
+    "description": "strategy\u00d7regime_enc mean_reversion \u00d7 0.0 \u2192 loss rate 87%",
     "evidence": {
-      "n": 28,
-      "loss_rate": 0.786
+      "n": 23,
+      "loss_rate": 0.87
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 7,
+      "n_unmatched": 953,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy_candlestick_three_white_soldier": {
     "first_seen": "2026-07-18",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "candlestick_three_white_soldiers"
     },
     "mult": 0.2,
-    "description": "strategy candlestick_three_white_soldiers \u2192 loss rate 81%",
+    "description": "strategy candlestick_three_white_soldiers \u2192 loss rate 93%",
     "evidence": {
-      "n": 21,
-      "loss_rate": 0.81
+      "n": 15,
+      "loss_rate": 0.933
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 1,
+      "n_unmatched": 959,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7htf_bias_enc_mean_reversion_\u00d7_1": {
     "first_seen": "2026-07-18",
@@ -1383,39 +1487,51 @@
       "n": 15,
       "loss_rate": 0.8
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 2,
+      "n_unmatched": 958,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy\u00d7htf_bias_enc_weinstein_stage_\u00d7_": {
     "first_seen": "2026-07-18",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "weinstein_stage \u00d7 1.0"
     },
     "mult": 0.35,
-    "description": "strategy\u00d7htf_bias_enc weinstein_stage \u00d7 1.0 \u2192 loss rate 78%",
+    "description": "strategy\u00d7htf_bias_enc weinstein_stage \u00d7 1.0 \u2192 loss rate 74%",
     "evidence": {
-      "n": 36,
-      "loss_rate": 0.778
+      "n": 35,
+      "loss_rate": 0.743
     },
-    "forward_days": 4
+    "forward_days": 5,
+    "forward": {
+      "n_matched": 17,
+      "n_unmatched": 943,
+      "checked": "2026-07-27",
+      "status": "insufficient_forward_samples"
+    }
   },
   "strategy_chart_pattern_head_and_shoulder": {
     "first_seen": "2026-07-20",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "chart_pattern_head_and_shoulders"
     },
-    "mult": 0.2,
-    "description": "strategy chart_pattern_head_and_shoulders \u2192 loss rate 82%",
+    "mult": 0.35,
+    "description": "strategy chart_pattern_head_and_shoulders \u2192 loss rate 80%",
     "evidence": {
-      "n": 68,
-      "loss_rate": 0.824
+      "n": 39,
+      "loss_rate": 0.795
     },
-    "forward_days": 3
+    "forward_days": 4
   },
   "boost_strategy\u00d7htf_bias_enc_trend_\u00d7_0.0": {
     "first_seen": "2026-07-20",
@@ -1431,7 +1547,7 @@
       "n": 15,
       "win_rate": 0.8
     },
-    "forward_days": 3
+    "forward_days": 4
   },
   "strategy_supertrend_mtf": {
     "first_seen": "2026-07-21",
@@ -1447,7 +1563,7 @@
       "n": 20,
       "loss_rate": 0.8
     },
-    "forward_days": 2
+    "forward_days": 3
   },
   "strategy\u00d7regime_enc_vrvp_zone_\u00d7_0.0": {
     "first_seen": "2026-07-22",
@@ -1463,28 +1579,28 @@
       "n": 33,
       "loss_rate": 0.848
     },
-    "forward_days": 1
+    "forward_days": 2
   },
   "strategy\u00d7regime_enc_cci_trend_\u00d7_2.0": {
     "first_seen": "2026-07-22",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-25",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "cci_trend \u00d7 2.0"
     },
-    "mult": 0.2,
-    "description": "strategy\u00d7regime_enc cci_trend \u00d7 2.0 \u2192 loss rate 85%",
+    "mult": 0.35,
+    "description": "strategy\u00d7regime_enc cci_trend \u00d7 2.0 \u2192 loss rate 79%",
     "evidence": {
-      "n": 20,
-      "loss_rate": 0.85
+      "n": 24,
+      "loss_rate": 0.792
     },
-    "forward_days": 1
+    "forward_days": 2
   },
   "strategy\u00d7regime_enc_ttm_squeeze_\u00d7_0.0": {
     "first_seen": "2026-07-22",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7regime_enc",
       "eq": "ttm_squeeze \u00d7 0.0"
@@ -1495,28 +1611,28 @@
       "n": 30,
       "loss_rate": 0.8
     },
-    "forward_days": 1
+    "forward_days": 2
   },
   "boost_strategy_heikin_ashi": {
     "first_seen": "2026-07-22",
     "kind": "boost",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "heikin_ashi"
     },
     "mult": 1.25,
-    "description": "strategy heikin_ashi \u2192 win rate 75%",
+    "description": "strategy heikin_ashi \u2192 win rate 71%",
     "evidence": {
-      "n": 16,
-      "win_rate": 0.75
+      "n": 17,
+      "win_rate": 0.706
     },
-    "forward_days": 1
+    "forward_days": 2
   },
   "strategy\u00d7htf_bias_enc_breakout_\u00d7_0.0": {
     "first_seen": "2026-07-22",
     "kind": "filter",
-    "last_seen": "2026-07-22",
+    "last_seen": "2026-07-25",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "breakout \u00d7 0.0"
@@ -1527,7 +1643,7 @@
       "n": 15,
       "loss_rate": 0.8
     },
-    "forward_days": 1
+    "forward_days": 2
   },
   "strategy\u00d7htf_bias_enc_candlestick_bullis": {
     "first_seen": "2026-07-22",
@@ -1543,37 +1659,453 @@
       "n": 15,
       "loss_rate": 0.8
     },
-    "forward_days": 1
+    "forward_days": 2
   },
   "strategy\u00d7htf_bias_enc_elder_triple_scree": {
     "first_seen": "2026-07-23",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy\u00d7htf_bias_enc",
       "eq": "elder_triple_screen \u00d7 1.0"
     },
-    "mult": 0.2,
-    "description": "strategy\u00d7htf_bias_enc elder_triple_screen \u00d7 1.0 \u2192 loss rate 81%",
+    "mult": 0.35,
+    "description": "strategy\u00d7htf_bias_enc elder_triple_screen \u00d7 1.0 \u2192 loss rate 72%",
     "evidence": {
-      "n": 26,
-      "loss_rate": 0.808
+      "n": 18,
+      "loss_rate": 0.722
     },
-    "forward_days": 0
+    "forward_days": 1
   },
   "strategy_gap_fill": {
     "first_seen": "2026-07-23",
     "kind": "filter",
-    "last_seen": "2026-07-23",
+    "last_seen": "2026-07-27",
     "condition": {
       "feature": "strategy",
       "eq": "gap_fill"
     },
     "mult": 0.2,
-    "description": "strategy gap_fill \u2192 loss rate 81%",
+    "description": "strategy gap_fill \u2192 loss rate 82%",
     "evidence": {
-      "n": 16,
-      "loss_rate": 0.812
+      "n": 17,
+      "loss_rate": 0.824
+    },
+    "forward_days": 1
+  },
+  "strategy\u00d7htf_bias_enc_trend_\u00d7_-1.0": {
+    "first_seen": "2026-07-24",
+    "kind": "filter",
+    "last_seen": "2026-07-24",
+    "condition": {
+      "feature": "strategy\u00d7htf_bias_enc",
+      "eq": "trend \u00d7 -1.0"
+    },
+    "mult": 0.2,
+    "description": "strategy\u00d7htf_bias_enc trend \u00d7 -1.0 \u2192 loss rate 100%",
+    "evidence": {
+      "n": 27,
+      "loss_rate": 1.0
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_trend_\u00d7_2.0": {
+    "first_seen": "2026-07-24",
+    "kind": "filter",
+    "last_seen": "2026-07-24",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "trend \u00d7 2.0"
+    },
+    "mult": 0.2,
+    "description": "strategy\u00d7regime_enc trend \u00d7 2.0 \u2192 loss rate 85%",
+    "evidence": {
+      "n": 33,
+      "loss_rate": 0.848
+    },
+    "forward_days": 0
+  },
+  "strategy_trend": {
+    "first_seen": "2026-07-24",
+    "kind": "filter",
+    "last_seen": "2026-07-24",
+    "condition": {
+      "feature": "strategy",
+      "eq": "trend"
+    },
+    "mult": 0.2,
+    "description": "strategy trend \u2192 loss rate 84%",
+    "evidence": {
+      "n": 37,
+      "loss_rate": 0.838
+    },
+    "forward_days": 0
+  },
+  "strategy_alligator_ao": {
+    "first_seen": "2026-07-24",
+    "kind": "filter",
+    "last_seen": "2026-07-24",
+    "condition": {
+      "feature": "strategy",
+      "eq": "alligator_ao"
+    },
+    "mult": 0.2,
+    "description": "strategy alligator_ao \u2192 loss rate 83%",
+    "evidence": {
+      "n": 23,
+      "loss_rate": 0.826
+    },
+    "forward_days": 0
+  },
+  "flag_vol_thin_1": {
+    "first_seen": "2026-07-24",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "vol_thin",
+      "eq": 1.0
+    },
+    "mult": 0.35,
+    "description": "flag_vol_thin 1 \u2192 loss rate 79%",
+    "evidence": {
+      "n": 213,
+      "loss_rate": 0.789
+    },
+    "forward_days": 0
+  },
+  "strategy_failed_bull_breakout": {
+    "first_seen": "2026-07-24",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy",
+      "eq": "failed_bull_breakout"
+    },
+    "mult": 0.35,
+    "description": "strategy failed_bull_breakout \u2192 loss rate 76%",
+    "evidence": {
+      "n": 55,
+      "loss_rate": 0.764
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7htf_bias_enc_chart_pattern_asce": {
+    "first_seen": "2026-07-25",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7htf_bias_enc",
+      "eq": "chart_pattern_ascending_triangle \u00d7 1.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7htf_bias_enc chart_pattern_ascending_triangle \u00d7 1.0 \u2192 loss rate 73%",
+    "evidence": {
+      "n": 79,
+      "loss_rate": 0.734
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7htf_bias_enc_elder_ray_\u00d7_1.0": {
+    "first_seen": "2026-07-25",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7htf_bias_enc",
+      "eq": "elder_ray \u00d7 1.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7htf_bias_enc elder_ray \u00d7 1.0 \u2192 loss rate 76%",
+    "evidence": {
+      "n": 21,
+      "loss_rate": 0.762
+    },
+    "forward_days": 0
+  },
+  "volume_ratio_LOW_(<0.52)": {
+    "first_seen": "2026-07-25",
+    "kind": "filter",
+    "last_seen": "2026-07-25",
+    "condition": {
+      "feature": "volume_ratio",
+      "lt": 0.52
+    },
+    "mult": 0.35,
+    "description": "volume_ratio LOW (<0.52) \u2192 loss rate 75%",
+    "evidence": {
+      "n": 625,
+      "loss_rate": 0.75
+    },
+    "forward_days": 0
+  },
+  "strategy_chart_pattern_double_bottom": {
+    "first_seen": "2026-07-25",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy",
+      "eq": "chart_pattern_double_bottom"
+    },
+    "mult": 0.2,
+    "description": "strategy chart_pattern_double_bottom \u2192 loss rate 92%",
+    "evidence": {
+      "n": 26,
+      "loss_rate": 0.923
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7htf_bias_enc_failed_bear_breako": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7htf_bias_enc",
+      "eq": "failed_bear_breakout \u00d7 -1.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7htf_bias_enc failed_bear_breakout \u00d7 -1.0 \u2192 loss rate 72%",
+    "evidence": {
+      "n": 18,
+      "loss_rate": 0.722
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_weinstein_stage_\u00d7_2.": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "weinstein_stage \u00d7 2.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7regime_enc weinstein_stage \u00d7 2.0 \u2192 loss rate 76%",
+    "evidence": {
+      "n": 33,
+      "loss_rate": 0.758
+    },
+    "forward_days": 0
+  },
+  "strategy_candlestick_tweezer_bottom": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy",
+      "eq": "candlestick_tweezer_bottom"
+    },
+    "mult": 0.35,
+    "description": "strategy candlestick_tweezer_bottom \u2192 loss rate 75%",
+    "evidence": {
+      "n": 20,
+      "loss_rate": 0.75
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_failed_bear_breakout": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "failed_bear_breakout \u00d7 0.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7regime_enc failed_bear_breakout \u00d7 0.0 \u2192 loss rate 74%",
+    "evidence": {
+      "n": 31,
+      "loss_rate": 0.742
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_ma_cross_\u00d7_2.0": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "ma_cross \u00d7 2.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7regime_enc ma_cross \u00d7 2.0 \u2192 loss rate 74%",
+    "evidence": {
+      "n": 19,
+      "loss_rate": 0.737
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_elder_ray_\u00d7_2.0": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "elder_ray \u00d7 2.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7regime_enc elder_ray \u00d7 2.0 \u2192 loss rate 73%",
+    "evidence": {
+      "n": 15,
+      "loss_rate": 0.733
+    },
+    "forward_days": 0
+  },
+  "fii_cum_5d_LOW_(<-5898.15)": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "fii_cum_5d",
+      "eq": "LOW (<-5898.15)"
+    },
+    "mult": 0.35,
+    "description": "fii_cum_5d LOW (<-5898.15) \u2192 loss rate 73%",
+    "evidence": {
+      "n": 618,
+      "loss_rate": 0.73
+    },
+    "forward_days": 0
+  },
+  "strategy_ma_cross": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy",
+      "eq": "ma_cross"
+    },
+    "mult": 0.35,
+    "description": "strategy ma_cross \u2192 loss rate 73%",
+    "evidence": {
+      "n": 84,
+      "loss_rate": 0.726
+    },
+    "forward_days": 0
+  },
+  "volume_ratio_LOW_(<0.54)": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "volume_ratio",
+      "lt": 0.54
+    },
+    "mult": 0.35,
+    "description": "volume_ratio LOW (<0.54) \u2192 loss rate 72%",
+    "evidence": {
+      "n": 578,
+      "loss_rate": 0.725
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_ma_cross_\u00d7_0.0": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "ma_cross \u00d7 0.0"
+    },
+    "mult": 0.35,
+    "description": "strategy\u00d7regime_enc ma_cross \u00d7 0.0 \u2192 loss rate 72%",
+    "evidence": {
+      "n": 64,
+      "loss_rate": 0.719
+    },
+    "forward_days": 0
+  },
+  "strategy_chart_pattern_ascending_triangl": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy",
+      "eq": "chart_pattern_ascending_triangle"
+    },
+    "mult": 0.35,
+    "description": "strategy chart_pattern_ascending_triangle \u2192 loss rate 72%",
+    "evidence": {
+      "n": 158,
+      "loss_rate": 0.715
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7htf_bias_enc_cci_trend_\u00d7_0.0": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7htf_bias_enc",
+      "eq": "cci_trend \u00d7 0.0"
+    },
+    "mult": 0.2,
+    "description": "strategy\u00d7htf_bias_enc cci_trend \u00d7 0.0 \u2192 loss rate 94%",
+    "evidence": {
+      "n": 17,
+      "loss_rate": 0.941
+    },
+    "forward_days": 0
+  },
+  "strategy_expiry_scalp": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy",
+      "eq": "expiry_scalp"
+    },
+    "mult": 0.2,
+    "description": "strategy expiry_scalp \u2192 loss rate 93%",
+    "evidence": {
+      "n": 15,
+      "loss_rate": 0.933
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_chart_pattern_rectan": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "chart_pattern_rectangle \u00d7 0.0"
+    },
+    "mult": 0.2,
+    "description": "strategy\u00d7regime_enc chart_pattern_rectangle \u00d7 0.0 \u2192 loss rate 87%",
+    "evidence": {
+      "n": 15,
+      "loss_rate": 0.867
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7regime_enc_candlestick_spinning": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7regime_enc",
+      "eq": "candlestick_spinning_top_black \u00d7 2.0"
+    },
+    "mult": 0.2,
+    "description": "strategy\u00d7regime_enc candlestick_spinning_top_black \u00d7 2.0 \u2192 loss rate 80%",
+    "evidence": {
+      "n": 15,
+      "loss_rate": 0.8
+    },
+    "forward_days": 0
+  },
+  "strategy\u00d7htf_bias_enc_candlestick_tweeze": {
+    "first_seen": "2026-07-27",
+    "kind": "filter",
+    "last_seen": "2026-07-27",
+    "condition": {
+      "feature": "strategy\u00d7htf_bias_enc",
+      "eq": "candlestick_tweezer_bottom \u00d7 -1.0"
+    },
+    "mult": 0.2,
+    "description": "strategy\u00d7htf_bias_enc candlestick_tweezer_bottom \u00d7 -1.0 \u2192 loss rate 80%",
+    "evidence": {
+      "n": 15,
+      "loss_rate": 0.8
     },
     "forward_days": 0
   }

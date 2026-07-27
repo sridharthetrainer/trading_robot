@@ -462,6 +462,158 @@ def generate_oi_strike_profile_chart(
     return OIChartResult(True, path=out_path, caption=caption, points=len(strikes))
 
 
+# ── OI direction-flip alert cards (2026-07-24, operator: turn the flip-alert
+# text already sent to this channel by oi_tracker.py into a picture) ────────
+import re as _re
+
+
+def _parse_k(raw: str, sign: str) -> float:
+    v = float(raw.rstrip("K")) * (1000.0 if raw.endswith("K") else 1.0)
+    return -v if sign == "↓" else v
+
+
+def parse_flip_alert_text(text: str) -> List[Dict[str, Any]]:
+    """Parse one or more pasted oi_tracker._alert_direction_flip Telegram
+    messages (with or without a chat-export '[date time] Sender:' prefix)
+    into structured event dicts, so a batch of pasted alerts can be turned
+    into a picture without needing the live oi_tracker instance."""
+    events: List[Dict[str, Any]] = []
+    # Split into per-alert blocks anchored on the flip-alert header line.
+    blocks = _re.split(r"(?=[📈📉]\s*OI DIRECTION FLIP)", text)
+    for block in blocks:
+        if "OI DIRECTION FLIP" not in block:
+            continue
+        header = _re.search(r"OI DIRECTION FLIP:\s*(BULLISH|BEARISH)\s*\[(\w+)\]", block)
+        loc = _re.search(r"(\w+)\s+₹\s*([\d,]+)\s+(\d{1,2}:\d{2})", block)
+        was_now = _re.search(r"Was:\s*(\w+)\s*→\s*Now:\s*(\w+)", block)
+        ce_m = _re.search(r"CE delta:\s*([↑↓])\s*([\d.]+K?)", block)
+        pe_m = _re.search(r"PE delta:\s*([↑↓])\s*([\d.]+K?)", block)
+        pcr_m = _re.search(r"PCR:\s*([\d.]+)", block)
+        if not (header and loc and was_now and ce_m and pe_m and pcr_m):
+            continue
+        events.append({
+            "curr": header.group(1), "conviction": header.group(2),
+            "symbol": loc.group(1), "spot": float(loc.group(2).replace(",", "")),
+            "ts": loc.group(3),
+            "prev": was_now.group(1),
+            "ce_delta": _parse_k(ce_m.group(2), ce_m.group(1)),
+            "pe_delta": _parse_k(pe_m.group(2), pe_m.group(1)),
+            "pcr": float(pcr_m.group(1)),
+        })
+    return events
+
+
+# Status colors (bullish=good, bearish=critical) per this project's dataviz
+# convention -- validated distinct/legible against the dark surface, always
+# paired with an icon + text label (never color alone), matching the icon/
+# text already in the source alert text.
+_FLIP_COLOR = {"BULLISH": "#0ca30c", "BEARISH": "#d03b3b"}
+_FLIP_ICON = {"BULLISH": "📈", "BEARISH": "📉"}
+
+
+def generate_oi_flip_alert_image(
+    events: List[Dict[str, Any]],
+    output_dir: Optional[str] = None,
+) -> OIChartResult:
+    """Render oi_tracker.py's OI-direction-flip alerts (already sent as plain
+    text to this channel) as a stack of picture cards -- one per event, each
+    showing the before->after direction, CE/PE delta bars, and PCR, so the
+    same information is scannable at a glance instead of read line by line."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch
+
+    if not events:
+        return OIChartResult(False, reason="no_flip_events")
+
+    n = len(events)
+    card_h = 2.2
+    fig, axes = plt.subplots(n, 1, figsize=(9, card_h * n + 0.6), dpi=150)
+    if n == 1:
+        axes = [axes]
+    fig.patch.set_facecolor("#0d1117")
+
+    for ax, e in zip(axes, events):
+        curr, prev = e["curr"], e["prev"]
+        color = _FLIP_COLOR[curr]
+        ax.set_facecolor("#0d1117")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis("off")
+
+        card = FancyBboxPatch((0.01, 0.05), 0.98, 0.9,
+                               boxstyle="round,pad=0.01,rounding_size=0.02",
+                               linewidth=1.5, edgecolor=color, facecolor="#161b22",
+                               transform=ax.transAxes, zorder=1)
+        ax.add_patch(card)
+
+        # No emoji in the rendered image -- matplotlib's default font (DejaVu
+        # Sans) has no color-emoji glyphs and renders them as missing-glyph
+        # boxes (confirmed visually, same bug class found earlier this
+        # session in generate_oi_strike_profile_chart). Direction is carried
+        # by the colored border + text label + arrow instead; emoji stay in
+        # the Telegram caption text only, where they render fine.
+        ax.text(0.03, 0.80, f"{e['symbol']}  ₹{e['spot']:,.0f}  •  {e['ts']}",
+                color="#c9d1d9", fontsize=13, fontweight="bold", transform=ax.transAxes)
+        ax.text(0.97, 0.80, f"[{e['conviction']}]", color=color, fontsize=11,
+                fontweight="bold", ha="right", transform=ax.transAxes)
+
+        ax.text(0.03, 0.60,
+                f"Was: {prev}", color="#8b949e", fontsize=11, transform=ax.transAxes)
+        ax.annotate("", xy=(0.30, 0.625), xytext=(0.20, 0.625),
+                    xycoords="axes fraction",
+                    arrowprops=dict(arrowstyle="-|>", color=color, lw=2))
+        ax.text(0.32, 0.60, f"Now: {curr}", color=color, fontsize=12,
+                fontweight="bold", transform=ax.transAxes)
+
+        # CE/PE delta bars: diverging around a shared zero, sign colored.
+        # Scaled to THIS card's own larger leg -- a shared cross-event scale
+        # would flatten a smaller-OI symbol's bars into invisible slivers
+        # next to a larger one (checked: BANKNIFTY's +-4K to +-22K would be
+        # unreadable next to NIFTY's +-4055K on one shared axis).
+        card_max = max(1.0, abs(e["ce_delta"]), abs(e["pe_delta"]))
+        bar_y_ce, bar_y_pe = 0.44, 0.30
+        zero_x = 0.55
+        bar_scale = 0.30
+        for label, delta, y in (("CE Δ", e["ce_delta"], bar_y_ce),
+                                 ("PE Δ", e["pe_delta"], bar_y_pe)):
+            ax.text(0.03, y, label, color="#8b949e", fontsize=10, transform=ax.transAxes)
+            frac = (delta / card_max) * bar_scale
+            bar_color = "#0ca30c" if delta > 0 else "#d03b3b"
+            x0 = zero_x if frac >= 0 else zero_x + frac
+            width = abs(frac)
+            ax.add_patch(plt.Rectangle((x0, y - 0.025), width, 0.05,
+                                        color=bar_color, transform=ax.transAxes))
+            ax.plot([zero_x, zero_x], [y - 0.03, y + 0.03], color="#30363d",
+                    lw=1, transform=ax.transAxes)
+            sign = "+" if delta > 0 else "-"
+            k_val = abs(delta) / 1000.0
+            ax.text(0.90, y, f"{sign}{k_val:.0f}K", color=bar_color, fontsize=10,
+                    ha="right", transform=ax.transAxes)
+
+        note = ("Put writing dominant — supports bullish move" if curr == "BULLISH"
+                else "Call writing dominant — caps upside")
+        ax.text(0.03, 0.11, f"PCR {e['pcr']:.2f}   •   {note}",
+                color="#8b949e", fontsize=9.5, transform=ax.transAxes)
+
+    fig.suptitle("OI Direction Flips", color="white", fontsize=14,
+                 fontweight="bold", y=0.995)
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
+
+    out_dir = output_dir or tempfile.gettempdir()
+    out_path = str(Path(out_dir) / f"oi_flip_alerts_{datetime.now():%Y%m%d_%H%M%S}.png")
+    fig.savefig(out_path, facecolor=fig.get_facecolor(), bbox_inches="tight")
+    plt.close(fig)
+
+    lines = ["🔔 <b>OI Direction Flips</b>"]
+    for e in events:
+        lines.append(f"{_FLIP_ICON[e['curr']]} {e['symbol']} {e['prev']}→{e['curr']} "
+                     f"[{e['conviction']}] PCR {e['pcr']:.2f}")
+    caption = "\n".join(lines)
+    return OIChartResult(True, path=out_path, caption=caption, points=n)
+
+
 def generate_option_oi_chart(
     *,
     underlying: str = "NIFTY",

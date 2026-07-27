@@ -296,6 +296,13 @@ class OITracker:
         self._lock            = threading.Lock()
         self._thread:         Optional[threading.Thread] = None
         self._alert_sent:     Dict[str, bool] = {}
+        # symbol -> epoch seconds of the last successful direction refresh.
+        # 2026-07-27: external readers of last_dir (nifty_scalper_bot.py's
+        # oi_flow_direction()) only checked the state file's DATE, so a
+        # mid-session stall of this loop (documented failure mode, see
+        # start()'s own comment) left them silently voting on a frozen
+        # morning direction all day with no staleness signal at all.
+        self._last_refresh_ts: Dict[str, float] = {}
         self._load()
 
     # ── Persistence ───────────────────────────────────────────────────────
@@ -307,16 +314,18 @@ class OITracker:
                     self._snaps      = saved.get("snaps", {})
                     self._directions = saved.get("directions", {})
                     self._last_direction = saved.get("last_dir", {})
+                    self._last_refresh_ts = saved.get("last_refresh_ts", {})
         except Exception:
             pass
 
     def _save(self) -> None:
         try:
             _STATE_FILE.write_text(json.dumps({
-                "date":       date.today().isoformat(),
-                "snaps":      self._snaps,
-                "directions": self._directions,
-                "last_dir":   self._last_direction,
+                "date":            date.today().isoformat(),
+                "snaps":           self._snaps,
+                "directions":      self._directions,
+                "last_dir":        self._last_direction,
+                "last_refresh_ts": self._last_refresh_ts,
             }))
         except Exception:
             pass
@@ -421,6 +430,7 @@ class OITracker:
                 prev_dir = self._last_direction.get(symbol, "NEUTRAL")
                 curr_dir = direction["direction"]
                 self._last_direction[symbol] = curr_dir
+                self._last_refresh_ts[symbol] = time.time()
 
             self._save()
             logger.debug("OI 5min %s %s → %s (str=%.2f)",
@@ -449,7 +459,6 @@ class OITracker:
         curr     = d["direction"]
         conv     = d["conviction"]
         icon     = "📈" if curr == "BULLISH" else "📉"
-        pi       = "🟢" if curr == "BULLISH" else "🔴"
         ce_d     = d["ce_delta"]
         pe_d     = d["pe_delta"]
 
@@ -467,12 +476,37 @@ class OITracker:
             lines.append(f"  💡 Put writing dominant — supports bullish move")
         else:
             lines.append(f"  💡 Call writing dominant — caps upside, watch {sym}")
+        text = "\n".join(lines)
 
-        self.alerts.send(
-            "\n".join(lines),
-            dedup_key=f"oi_flip:{sym}:{curr}:{ts}",
-            dedup_cooldown_override=300,
-        )
+        dedup_key = f"oi_flip:{sym}:{curr}:{ts}"
+        cooldown = 300
+        if self.alerts._is_dedup_blocked(dedup_key, cooldown):
+            return
+
+        # 2026-07-24 (operator: "make this a pictorial image"): try a picture
+        # card first -- same info, scannable at a glance -- falling back to
+        # the plain-text alert on any failure (missing matplotlib, disk
+        # issue, etc.) so a flip is never silently dropped either way.
+        sent = False
+        try:
+            from option_oi_chart import generate_oi_flip_alert_image
+            event = {
+                "symbol": sym, "spot": spot, "ts": ts, "prev": prev, "curr": curr,
+                "conviction": conv, "ce_delta": ce_d, "pe_delta": pe_d,
+                "pcr": d["net_pcr"],
+            }
+            result = generate_oi_flip_alert_image([event])
+            if result.ok:
+                sent = self.alerts.send_photo(result.path, caption=text)
+                if sent:
+                    self.alerts._mark_dedup_sent(dedup_key)  # send_photo has no dedup of its own
+        except Exception as exc:
+            logger.debug("OI flip alert image failed, falling back to text: %s", exc)
+
+        if not sent:
+            # send() does its own dedup check/marking internally -- fine to
+            # call as-is, our earlier check only guarded the photo attempt.
+            self.alerts.send(text, dedup_key=dedup_key, dedup_cooldown_override=cooldown)
 
     def _alert_surge(self, sym: str, surges: list, spot: float, ts: str) -> None:
         if not self.alerts:

@@ -184,8 +184,6 @@ def _update_strategy_matrix(df: "pd.DataFrame") -> None:
             )
             return
 
-        import datetime as _dt
-
         for _, row in df.iterrows():
             strategy = str(row.get("__strategy", "")).strip()
             if not strategy:
@@ -540,7 +538,6 @@ def run_pipeline(
     # ── Step 2: Build feature matrix ──────────────────────────────────────────
     logger.info("[2/6] Building feature matrix (last %d days) …", days)
     from ml_feature_builder import build_feature_matrix
-    import pandas as pd
 
     # Always learn from every risk-valid generated signal.  Executed-only mode
     # made the evidence set tiny and contradicted the shadow-labelling design.

@@ -203,12 +203,26 @@ def select_strike(spot: float, direction: str, score: int) -> tuple[int, str]:
 
 # ── OI flow (read-only from oi_tracker state) ──────────────────────────────────
 
+_OI_STALE_AFTER_SEC = 20 * 60  # oi_tracker refreshes every 5min; 4 missed
+                               # cycles is a stall, not normal jitter.
+
+
 def oi_flow_direction() -> tuple[Optional[str], str]:
-    """Returns (BULLISH|BEARISH|NEUTRAL|None, detail)."""
+    """Returns (BULLISH|BEARISH|NEUTRAL|None, detail).
+
+    2026-07-27: previously only checked the state file's DATE, so if
+    oi_tracker's background loop stalled mid-session (a documented failure
+    mode -- see oi_tracker.py's own start() comment), this kept voting on a
+    frozen morning direction all day with zero staleness signal. Now checks
+    last_refresh_ts (added the same day) for real intraday recency too."""
     try:
         st = json.loads(OI_STATE.read_text())
         if st.get("date") != date.today().isoformat():
             return None, f"OI state stale (date={st.get('date')})"
+        last_refresh = float(st.get("last_refresh_ts", {}).get("NIFTY", 0) or 0)
+        age_sec = time.time() - last_refresh
+        if last_refresh <= 0 or age_sec > _OI_STALE_AFTER_SEC:
+            return None, f"OI state stale (last refresh {age_sec / 60:.0f}min ago)"
         d = st.get("last_dir", {}).get("NIFTY")
         return (d or None), f"oi_tracker last_dir={d}"
     except Exception as e:

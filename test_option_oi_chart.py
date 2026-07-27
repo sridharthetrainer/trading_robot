@@ -6,7 +6,10 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-from option_oi_chart import generate_option_oi_chart, generate_oi_strike_profile_chart
+from option_oi_chart import (
+    generate_option_oi_chart, generate_oi_strike_profile_chart,
+    parse_flip_alert_text, generate_oi_flip_alert_image,
+)
 
 
 def _make_db(path: Path) -> None:
@@ -222,6 +225,77 @@ def test_strike_profile_chart_shows_pcr_and_oi_direction(monkeypatch) -> None:
         # OI-direction legend/emoji present in the caption.
         assert "buildup" in result.caption and "unwinding" in result.caption
         assert "🟢" in result.caption and "🔴" in result.caption
+
+
+_SAMPLE_FLIP_ALERTS = """
+📈 OI DIRECTION FLIP: BULLISH  [STRONG]
+  BANKNIFTY  ₹56,684  15:01
+  Was: BEARISH  →  Now: BULLISH
+  CE delta: ↓4K  PE delta: ↑17K
+  PCR: 1.08
+  💡 Put writing dominant — supports bullish move
+📉 OI DIRECTION FLIP: BEARISH  [MODERATE]
+  NIFTY  ₹23,754  15:06
+  Was: BULLISH  →  Now: BEARISH
+  CE delta: ↓1738K  PE delta: ↓4055K
+  PCR: 1.15
+  💡 Call writing dominant — caps upside, watch NIFTY
+"""
+
+
+def test_parse_flip_alert_text_extracts_all_events() -> None:
+    events = parse_flip_alert_text(_SAMPLE_FLIP_ALERTS)
+    assert len(events) == 2
+
+    e0 = events[0]
+    assert e0["symbol"] == "BANKNIFTY"
+    assert e0["curr"] == "BULLISH" and e0["prev"] == "BEARISH"
+    assert e0["conviction"] == "STRONG"
+    assert e0["spot"] == 56684.0
+    assert e0["ts"] == "15:01"
+    assert e0["ce_delta"] == -4000.0
+    assert e0["pe_delta"] == 17000.0
+    assert e0["pcr"] == 1.08
+
+    e1 = events[1]
+    assert e1["symbol"] == "NIFTY"
+    assert e1["curr"] == "BEARISH" and e1["prev"] == "BULLISH"
+    assert e1["ce_delta"] == -1738000.0
+    assert e1["pe_delta"] == -4055000.0
+
+
+def test_parse_flip_alert_text_handles_chat_export_prefix() -> None:
+    # Real usage: pasted straight out of a Telegram chat export, with a
+    # "[date time] Sender:" prefix on the header line.
+    text = """
+[24/07/26 3:01 pm] Autonomous trading: 📈 OI DIRECTION FLIP: BULLISH  [STRONG]
+  BANKNIFTY  ₹56,684  15:01
+  Was: BEARISH  →  Now: BULLISH
+  CE delta: ↓4K  PE delta: ↑17K
+  PCR: 1.08
+  💡 Put writing dominant — supports bullish move
+"""
+    events = parse_flip_alert_text(text)
+    assert len(events) == 1
+    assert events[0]["symbol"] == "BANKNIFTY"
+
+
+def test_flip_alert_image_renders_one_card_per_event() -> None:
+    events = parse_flip_alert_text(_SAMPLE_FLIP_ALERTS)
+    with tempfile.TemporaryDirectory() as td:
+        result = generate_oi_flip_alert_image(events, output_dir=td)
+        assert result.ok, result.reason
+        assert Path(result.path).exists()
+        assert result.points == 2
+        assert "BANKNIFTY" in result.caption and "NIFTY" in result.caption
+        assert "BEARISH→BULLISH" in result.caption
+        assert "BULLISH→BEARISH" in result.caption
+
+
+def test_flip_alert_image_empty_events_returns_not_ok() -> None:
+    result = generate_oi_flip_alert_image([])
+    assert not result.ok
+    assert result.reason == "no_flip_events"
 
 
 def main() -> int:

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T15:45:13+0530",
+  "generated_at": "2026-07-27T15:45:21+0530",
   "db_path": "candle_cache.db",
   "db_exists": true,
   "target_symbols": 194,
@@ -8,30 +8,17 @@
     "1d"
   ],
   "batch_size": 25,
-  "latest_expected_session": "2026-07-23",
+  "latest_expected_session": "2026-07-27",
   "interval_plans": [
     {
       "interval": "1m",
       "target_symbols": 194,
       "present_symbols": 193,
       "missing_symbols": 1,
-      "stale_symbols": 17,
+      "stale_symbols": 4,
       "stale": [
-        "RELIANCE",
         "TCS",
-        "HDFCBANK",
-        "INFY",
-        "ICICIBANK",
-        "HINDUNILVR",
-        "SBIN",
-        "BAJFINANCE",
-        "BHARTIARTL",
-        "ITC",
-        "KOTAKBANK",
-        "LT",
-        "AXISBANK",
-        "ASIANPAINT",
-        "MARUTI",
+        "ONGC",
         "HPCL",
         "PNC"
       ],
@@ -39,7 +26,7 @@
       "priority_missing": [
         "LTIM"
       ],
-      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,HPCL,PNC"
+      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,TCS,ONGC,HPCL,PNC"
     },
     {
       "interval": "1d",
@@ -261,7 +248,7 @@
       "priority_missing": [
         "LTIM"
       ],
-      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,HPCL,PNC"
+      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,TCS,ONGC,HPCL,PNC"
     },
     {
       "interval": "1d",
