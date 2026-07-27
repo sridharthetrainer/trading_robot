@@ -234,6 +234,8 @@ def _empty_stat() -> Dict[str, Any]:
         "losses": 0.0,
         "pnl_sum": 0.0,
         "abs_pnl_sum": 0.0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0,
         "real_samples": 0,
         "shadow_samples": 0,
     }
@@ -246,6 +248,10 @@ def _add(stats: Dict[str, Any], won: bool, pnl: float, weight: float = 1.0, shad
     stats["losses"] += 0.0 if won else weight
     stats["pnl_sum"] += pnl * weight
     stats["abs_pnl_sum"] += abs(pnl) * weight
+    if pnl > 0:
+        stats["gross_profit"] += pnl * weight
+    elif pnl < 0:
+        stats["gross_loss"] += abs(pnl) * weight
     if shadow:
         stats["shadow_samples"] += 1
     else:
@@ -259,10 +265,14 @@ def _weight_from_stats(stats: Dict[str, Any], min_samples: int = MIN_SAMPLES) ->
     win_rate = float(stats.get("wins", 0) or 0) / max(samples, 1)
     avg_pnl = float(stats.get("pnl_sum", 0.0) or 0.0) / max(samples, 1)
     avg_abs = float(stats.get("abs_pnl_sum", 0.0) or 0.0) / max(samples, 1)
+    gross_profit = float(stats.get("gross_profit", 0.0) or 0.0)
+    gross_loss = float(stats.get("gross_loss", 0.0) or 0.0)
+    profit_factor = gross_profit / gross_loss if gross_loss > 0 else (3.0 if gross_profit > 0 else 0.0)
     confidence = min(1.0, samples / max(min_samples * 2, 1))
     win_edge = (win_rate - 0.50) * 2.0
     pnl_edge = math.tanh(avg_pnl / max(avg_abs, 1.0))
-    raw = 1.0 + confidence * ((0.35 * win_edge) + (0.20 * pnl_edge))
+    pf_edge = math.tanh((profit_factor - 1.0) / 1.5)
+    raw = 1.0 + confidence * ((0.25 * win_edge) + (0.30 * pnl_edge) + (0.25 * pf_edge))
     return round(_clamp(raw, MIN_WEIGHT, MAX_WEIGHT), 3)
 
 
@@ -362,6 +372,12 @@ def build_strike_autotune(
                 "losses": round(stats["losses"], 4),
                 "win_rate": round(stats["wins"] / max(stats["samples"], 1), 4),
                 "avg_pnl": round(stats["pnl_sum"] / max(stats["samples"], 1), 2),
+                "profit_factor": round(
+                    (stats["gross_profit"] / stats["gross_loss"])
+                    if stats["gross_loss"] > 0
+                    else (999.0 if stats["gross_profit"] > 0 else 0.0),
+                    4,
+                ),
             }
             for feat, stats in sorted(feature_stats.items())
         },

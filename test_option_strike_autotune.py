@@ -116,11 +116,25 @@ def test_autotune_learns_from_shadow_candidates():
         )
 
 
+def test_autotune_penalizes_bad_profit_factor_even_with_many_wins():
+    with tempfile.TemporaryDirectory() as tmp:
+        journal = str(Path(tmp) / "journal.jsonl")
+        out = str(Path(tmp) / "autotune.json")
+        for _ in range(7):
+            _record(journal, premium=20, won=True, pnl=20)
+        for _ in range(3):
+            _record(journal, premium=20, won=False, pnl=-120)
+        model = build_strike_autotune(journal_file=journal, output_file=out, min_samples=5, live_strike_db="")
+        assert model["feature_stats"]["premium:15-35"]["profit_factor"] < 1.0
+        assert model["feature_weights"].get("premium:15-35", 1.0) < 1.0
+
+
 def main() -> int:
     tests = [
         ("neutral until min samples", test_autotune_neutral_until_min_samples),
         ("rewards winning feature", test_autotune_rewards_winning_feature),
         ("learns from shadow candidates", test_autotune_learns_from_shadow_candidates),
+        ("penalizes bad profit factor", test_autotune_penalizes_bad_profit_factor_even_with_many_wins),
     ]
     failed = 0
     for name, fn in tests:

@@ -54,7 +54,7 @@ def test_train_one_symbol_not_promoted_below_threshold(monkeypatch):
     assert result["promoted"] is False  # below MIN_PROMOTION_SAMPLES/DAYS
 
 
-def _fast_fake_train_model(X, y, feature_names, label="cross_symbol"):
+def _fast_fake_train_model(X, y, feature_names, label="cross_symbol", net_returns=None):
     """Stands in for the real _train_model (which runs a multi-candidate
     sklearn tournament + MDA importance -- correct but too slow for a unit
     test, and its own runtime isn't what this test is verifying). Returns
@@ -63,6 +63,10 @@ def _fast_fake_train_model(X, y, feature_names, label="cross_symbol"):
         "label": label, "model": f"fake_model_{label}",
         "cv_method": "purged_kfold", "cv_auc_mean": 0.60,
         "purged_brier_skill": 0.05, "probability_calibration": "sigmoid_purged_cv",
+        "profit_utility": {
+            "available": net_returns is not None,
+            "best_avg_net_r": 0.10 if net_returns is not None else None,
+        },
         "n_samples": len(y), "feature_importances": [],
     }
 
@@ -121,10 +125,10 @@ def test_train_all_one_bad_symbol_does_not_lose_the_others(monkeypatch):
     in sibling worker processes) from completing and being collected."""
     monkeypatch.setattr(ml_trainer, "MIN_SYMBOL_SAMPLES", 50)
 
-    def _flaky(X, y, feature_names, label="cross_symbol"):
+    def _flaky(X, y, feature_names, label="cross_symbol", net_returns=None):
         if label == "BANKNIFTY":
             raise ValueError("synthetic per-symbol failure")
-        return _fast_fake_train_model(X, y, feature_names, label=label)
+        return _fast_fake_train_model(X, y, feature_names, label=label, net_returns=net_returns)
 
     monkeypatch.setattr(ml_trainer, "_train_model", _flaky)
 

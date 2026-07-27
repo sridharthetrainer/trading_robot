@@ -11,11 +11,12 @@ paper-first and tightly capped.
 from __future__ import annotations
 
 import json
+import sqlite3
 import time
 from dataclasses import asdict, dataclass
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable, Optional, Set
 
 
 @dataclass
@@ -77,6 +78,144 @@ def _is_option_symbol(symbol: str, metadata: Dict[str, Any]) -> bool:
         str(metadata.get("asset_type", "")).upper() == "OPTION"
         or sym.endswith(("CE", "PE"))
     )
+
+
+def _cfg_set(name: str, default: Iterable[str]) -> Set[str]:
+    value = _cfg(name, default)
+    if isinstance(value, str):
+        return {x.strip().upper() for x in value.split(",") if x.strip()}
+    try:
+        return {str(x).strip().upper() for x in value if str(x).strip()}
+    except Exception:
+        return {str(x).strip().upper() for x in default if str(x).strip()}
+
+
+def _first_status(*values: Any) -> str:
+    for value in values:
+        if isinstance(value, dict):
+            nested = _first_status(
+                value.get("status"),
+                value.get("edge_policy"),
+                value.get("autonomous_edge_status"),
+            )
+            if nested:
+                return nested
+        text = str(value or "").strip().upper()
+        if text:
+            return text
+    return ""
+
+
+def _evidence_status(metadata: Dict[str, Any], meta_signal: Dict[str, Any]) -> str:
+    return _first_status(
+        metadata.get("edge_policy"),
+        metadata.get("option_edge_policy"),
+        metadata.get("autonomous_edge_status"),
+        metadata.get("autonomous_edge_evidence"),
+        meta_signal.get("edge_policy"),
+        meta_signal.get("option_edge_policy"),
+        meta_signal.get("autonomous_edge_status"),
+        meta_signal.get("autonomous_edge_evidence"),
+        meta_signal.get("strategy_edge_status"),
+    )
+
+
+def _parse_snapshot_ts(value: Any) -> Optional[float]:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    for fmt in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d %H:%M:%S%z"):
+        try:
+            return datetime.strptime(text, fmt).timestamp()
+        except Exception:
+            pass
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return None
+
+
+def _latest_live_option_snapshot_age_sec() -> Optional[float]:
+    db = Path("option_chain_snapshots.db")
+    if not db.exists():
+        return None
+    try:
+        conn = sqlite3.connect(str(db))
+        row = conn.execute(
+            "SELECT snapshot_time,ts FROM option_chain_snapshots "
+            "WHERE ok=1 AND is_live=1 AND lower(COALESCE(source,''))='angel' "
+            "ORDER BY ts DESC LIMIT 1"
+        ).fetchone()
+        conn.close()
+    except Exception:
+        return None
+    if not row:
+        return None
+    ts = _parse_snapshot_ts(row[0]) or float(row[1] or 0.0)
+    if ts <= 0:
+        return None
+    return max(0.0, time.time() - ts)
+
+
+def _health_snapshot_ok() -> bool:
+    p = Path("health_snapshot.json")
+    if not p.exists():
+        return False
+    try:
+        age = time.time() - p.stat().st_mtime
+        if age > float(_cfg("LIVE_PROBATION_MAX_HEALTH_SNAPSHOT_AGE_SEC", 900) or 900):
+            return False
+        raw = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    broker_status = raw.get("broker_status", []) if isinstance(raw, dict) else []
+    return any(
+        bool(row.get("connected"))
+        for row in broker_status
+        if isinstance(row, dict)
+    )
+
+
+def _system_health_ok(symbol: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Return probation-specific data/feed/Angel health.
+
+    Tests and higher-level callers may pass explicit booleans in
+    metadata["health"]. In production, option probation requires a recent live
+    Angel option-chain snapshot; non-option probation can use a fresh broker
+    health snapshot.
+    """
+    override = metadata.get("health") if isinstance(metadata.get("health"), dict) else {}
+    if override:
+        data_ok = bool(override.get("data", False))
+        feed_ok = bool(override.get("feed", False))
+        angel_ok = bool(override.get("angel", False))
+        return {
+            "ok": data_ok and feed_ok and angel_ok,
+            "data": data_ok,
+            "feed": feed_ok,
+            "angel": angel_ok,
+            "source": "metadata",
+        }
+
+    is_option = _is_option_symbol(symbol, {**metadata, "symbol": symbol})
+    max_age = float(_cfg("LIVE_PROBATION_MAX_OPTION_SNAPSHOT_AGE_SEC", 300) or 300)
+    option_age = _latest_live_option_snapshot_age_sec()
+    option_ok = option_age is not None and option_age <= max_age
+    health_ok = _health_snapshot_ok()
+    if is_option:
+        data_ok = feed_ok = angel_ok = option_ok
+    else:
+        data_ok = feed_ok = angel_ok = health_ok
+    return {
+        "ok": data_ok and feed_ok and angel_ok,
+        "data": data_ok,
+        "feed": feed_ok,
+        "angel": angel_ok,
+        "source": "option_chain_snapshots.db" if is_option else "health_snapshot.json",
+        "latest_option_snapshot_age_sec": round(option_age, 3) if option_age is not None else None,
+        "max_option_snapshot_age_sec": max_age,
+        "health_snapshot_ok": health_ok,
+    }
 
 
 def _lot_capped_qty(requested_qty: int, entry_price: float, metadata: Dict[str, Any]) -> int:
@@ -161,6 +300,21 @@ def evaluate_probation(
         return ProbationDecision(False, "probation_daily_loss_limit", **base)
     if bool(_cfg("LIVE_PROBATION_BLOCK_HERO_ZERO", True)) and strategy_lc == "hero_zero":
         return ProbationDecision(False, "probation_blocks_hero_zero", **base)
+    evidence_status = _evidence_status(metadata, meta_signal)
+    allowed_statuses = _cfg_set(
+        "LIVE_PROBATION_ALLOWED_STATUSES",
+        ("PAPER_PROMISING", "LIVE_EVIDENCE_READY"),
+    )
+    if evidence_status not in allowed_statuses:
+        return ProbationDecision(
+            False,
+            f"probation_evidence_status_{evidence_status or 'missing'}",
+            **base,
+        )
+    if bool(_cfg("LIVE_PROBATION_REQUIRE_SYSTEM_HEALTH", True)):
+        health = _system_health_ok(symbol, metadata)
+        if not health.get("ok"):
+            return ProbationDecision(False, "probation_system_health_not_ok", **base)
     try:
         from universe_manager import is_probation_symbol_allowed
         source_symbol = str(metadata.get("source_symbol") or meta_signal.get("symbol") or "")
@@ -239,6 +393,11 @@ def get_probation_status(path: Optional[str] = None) -> Dict[str, Any]:
         "max_trades_per_day": int(_cfg("LIVE_PROBATION_MAX_TRADES_PER_DAY", 1) or 0),
         "max_capital": float(_cfg("LIVE_PROBATION_MAX_CAPITAL", 500.0) or 0.0),
         "max_lots": int(_cfg("LIVE_PROBATION_MAX_LOTS", 1) or 0),
+        "allowed_statuses": sorted(_cfg_set(
+            "LIVE_PROBATION_ALLOWED_STATUSES",
+            ("PAPER_PROMISING", "LIVE_EVIDENCE_READY"),
+        )),
+        "require_system_health": bool(_cfg("LIVE_PROBATION_REQUIRE_SYSTEM_HEALTH", True)),
         "daily_pnl": float(state.get("daily_pnl", 0.0) or 0.0),
         "trades_today": len(state.get("trades", []) or []),
         "loss_locked": bool(state.get("loss_locked", False)),

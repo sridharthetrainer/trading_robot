@@ -1,9 +1,9 @@
 {
-  "version": "2026-07-27T17:07:59",
-  "overall_wr": 0.316,
-  "n_signals": 4840,
+  "version": "2026-07-28T00:13:26",
+  "overall_wr": 0.315,
+  "n_signals": 4879,
   "training_contract": "all_generated_signals_v4_causal_representations",
-  "model_promoted": true,
+  "model_promoted": false,
   "active": false,
   "activation_reason": "no candidate has passed the forward holdout yet",
   "rule_validation": "in_sample_discovery_only",
@@ -63,6 +63,19 @@
       }
     },
     {
+      "id": "strategy\u00d7htf_bias_enc_failed_bull_breako",
+      "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 1.0 \u2192 loss rate 91%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "failed_bull_breakout \u00d7 1.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 44,
+        "loss_rate": 0.909
+      }
+    },
+    {
       "id": "strategy\u00d7htf_bias_enc_holy_grail_\u00d7_1.0",
       "description": "strategy\u00d7htf_bias_enc holy_grail \u00d7 1.0 \u2192 loss rate 90%",
       "condition": {
@@ -86,19 +99,6 @@
       "evidence": {
         "n": 29,
         "loss_rate": 0.897
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_failed_bull_breako",
-      "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 1.0 \u2192 loss rate 90%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "failed_bull_breakout \u00d7 1.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 38,
-        "loss_rate": 0.895
       }
     },
     {
@@ -206,6 +206,19 @@
       }
     },
     {
+      "id": "strategy\u00d7regime_enc_failed_bull_breakout",
+      "description": "strategy\u00d7regime_enc failed_bull_breakout \u00d7 2.0 \u2192 loss rate 83%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "failed_bull_breakout \u00d7 2.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 47,
+        "loss_rate": 0.83
+      }
+    },
+    {
       "id": "strategy\u00d7regime_enc_rsi_divergence_\u00d7_2.0",
       "description": "strategy\u00d7regime_enc rsi_divergence \u00d7 2.0 \u2192 loss rate 83%",
       "condition": {
@@ -229,32 +242,6 @@
       "evidence": {
         "n": 29,
         "loss_rate": 0.828
-      }
-    },
-    {
-      "id": "strategy\u00d7regime_enc_failed_bull_breakout",
-      "description": "strategy\u00d7regime_enc failed_bull_breakout \u00d7 2.0 \u2192 loss rate 83%",
-      "condition": {
-        "feature": "strategy\u00d7regime_enc",
-        "eq": "failed_bull_breakout \u00d7 2.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 46,
-        "loss_rate": 0.826
-      }
-    },
-    {
-      "id": "strategy_gap_fill",
-      "description": "strategy gap_fill \u2192 loss rate 82%",
-      "condition": {
-        "feature": "strategy",
-        "eq": "gap_fill"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 17,
-        "loss_rate": 0.824
       }
     },
     {
@@ -399,6 +386,19 @@
         "n": 79,
         "loss_rate": 0.797
       }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_rsi_divergence_\u00d7_0.0",
+      "description": "strategy\u00d7regime_enc rsi_divergence \u00d7 0.0 \u2192 loss rate 79%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "rsi_divergence \u00d7 0.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 174,
+        "loss_rate": 0.793
+      }
     }
   ],
   "candidate_boosts": [
@@ -416,13 +416,13 @@
       }
     }
   ],
-  "ml_model_auc": 0.7174,
+  "ml_model_auc": 0.7085,
   "forward_validation": {
-    "validated": 67,
+    "validated": 69,
     "promoted_filters": 0,
     "promoted_boosts": 0,
     "ledger_size": 104,
     "skipped": 0,
-    "alpha_corrected": 0.000746
+    "alpha_corrected": 0.000725
   }
 }

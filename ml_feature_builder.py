@@ -90,6 +90,8 @@ _DB_COLS = [
     "sector_code", "hour_of_day", "day_of_week", "trade_num_today",
     "bar_return_1_atr", "line_slope_atr", "line_turn", "step_direction",
     "baseline_distance_atr", "hollow_state", "hollow_run",
+    "heikin_direction", "heikin_run", "heikin_reversal",
+    "heikin_body_atr", "heikin_upper_wick_atr", "heikin_lower_wick_atr",
     "volume_candle_strength", "line_break_direction", "line_break_run",
     "line_break_event", "kagi_direction", "kagi_reversal", "kagi_distance_atr",
     "pnf_direction", "pnf_boxes", "pnf_reversal", "range_direction",
@@ -386,6 +388,10 @@ def build_feature_matrix(
         # Realised R-multiple (target=+R, stop=-1R) — lets the strategy weighting
         # count a +3R signal more than a scratch (magnitude, not just win/loss).
         feat["tb_r_multiple"] = float(_safe(row.get("tb_r_multiple")))
+        # Cost/slippage-adjusted R-multiple. Kept as outcome metadata and
+        # excluded from training features by ml_trainer; used only to choose
+        # champion models/thresholds that actually improve after-cost expectancy.
+        feat["tb_r_multiple_net"] = float(_safe(row.get("tb_r_multiple_net")))
 
         # Metadata (not used in training, kept for analysis)
         feat["__symbol"]       = str(row.get("symbol", ""))

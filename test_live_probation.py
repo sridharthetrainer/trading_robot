@@ -21,6 +21,14 @@ from live_probation import (
 )
 
 
+PROMISING_OPTION_META = {
+    "asset_type": "OPTION",
+    "lot_size": 65,
+    "edge_policy": "PAPER_PROMISING",
+    "health": {"data": True, "feed": True, "angel": True},
+}
+
+
 def _set(name: str, value):
     old = getattr(config, name, None)
     setattr(config, name, value)
@@ -40,7 +48,7 @@ def test_disabled_by_default_blocks():
             strategy="PIVOT_SCALPING",
             requested_qty=65,
             entry_price=20,
-            metadata={"asset_type": "OPTION", "lot_size": 65},
+            metadata=PROMISING_OPTION_META,
             state={"date": "x", "trades": [], "daily_pnl": 0.0, "loss_locked": False},
         )
         assert not d.allowed and d.reason == "probation_disabled"
@@ -64,7 +72,7 @@ def test_enabled_caps_option_to_one_lot():
             strategy="PIVOT_SCALPING",
             requested_qty=650,
             entry_price=20,
-            metadata={"asset_type": "OPTION", "lot_size": 65},
+            metadata=PROMISING_OPTION_META,
             state={"date": "x", "trades": [], "daily_pnl": 0.0, "loss_locked": False},
         )
         assert d.allowed and d.live_qty == 65
@@ -86,7 +94,7 @@ def test_daily_limit_blocks_second_trade():
             strategy="PIVOT_SCALPING",
             requested_qty=65,
             entry_price=20,
-            metadata={"asset_type": "OPTION", "lot_size": 65},
+            metadata=PROMISING_OPTION_META,
             state={"date": "x", "trades": [{"trade_id": "T1"}], "daily_pnl": 0.0, "loss_locked": False},
         )
         assert not d.allowed and d.reason == "probation_daily_trade_limit"
@@ -124,8 +132,7 @@ def test_hard_block_reason_blocks_probation():
             requested_qty=65,
             entry_price=20,
             metadata={
-                "asset_type": "OPTION",
-                "lot_size": 65,
+                **PROMISING_OPTION_META,
                 "signal_data": {"live_block_reason": "fallback_ai_filter_block"},
             },
             state={"date": "x", "trades": [], "daily_pnl": 0.0, "loss_locked": False},
@@ -148,10 +155,62 @@ def test_probation_blocks_symbol_outside_universe():
             strategy="PIVOT_SCALPING",
             requested_qty=1,
             entry_price=100,
-            metadata={},
+            metadata={"edge_policy": "PAPER_PROMISING", "health": {"data": True, "feed": True, "angel": True}},
             state={"date": "x", "trades": [], "daily_pnl": 0.0, "loss_locked": False},
         )
         assert not d.allowed and d.reason == "probation_symbol_not_allowed"
+    finally:
+        _restore(old)
+
+
+def test_probation_requires_promising_or_live_evidence_status():
+    old = {
+        "LIVE_PROBATION_ENABLED": _set("LIVE_PROBATION_ENABLED", True),
+        "ENABLE_REAL_TRADING": _set("ENABLE_REAL_TRADING", True),
+        "PAPER_TRADING": _set("PAPER_TRADING", False),
+        "PROBATION_UNIVERSE": _set("PROBATION_UNIVERSE", ["NIFTY"]),
+    }
+    try:
+        d = evaluate_probation(
+            symbol="NIFTY20000CE",
+            strategy="PIVOT_SCALPING",
+            requested_qty=65,
+            entry_price=20,
+            metadata={
+                "asset_type": "OPTION",
+                "lot_size": 65,
+                "edge_policy": "VALIDATING",
+                "health": {"data": True, "feed": True, "angel": True},
+            },
+            state={"date": "x", "trades": [], "daily_pnl": 0.0, "loss_locked": False},
+        )
+        assert not d.allowed and d.reason == "probation_evidence_status_VALIDATING"
+    finally:
+        _restore(old)
+
+
+def test_probation_requires_data_feed_and_angel_health():
+    old = {
+        "LIVE_PROBATION_ENABLED": _set("LIVE_PROBATION_ENABLED", True),
+        "ENABLE_REAL_TRADING": _set("ENABLE_REAL_TRADING", True),
+        "PAPER_TRADING": _set("PAPER_TRADING", False),
+        "PROBATION_UNIVERSE": _set("PROBATION_UNIVERSE", ["NIFTY"]),
+    }
+    try:
+        d = evaluate_probation(
+            symbol="NIFTY20000CE",
+            strategy="PIVOT_SCALPING",
+            requested_qty=65,
+            entry_price=20,
+            metadata={
+                "asset_type": "OPTION",
+                "lot_size": 65,
+                "edge_policy": "PAPER_PROMISING",
+                "health": {"data": True, "feed": False, "angel": True},
+            },
+            state={"date": "x", "trades": [], "daily_pnl": 0.0, "loss_locked": False},
+        )
+        assert not d.allowed and d.reason == "probation_system_health_not_ok"
     finally:
         _restore(old)
 
@@ -198,6 +257,8 @@ def main() -> int:
         ("loss locks probation state", test_loss_locks_probation_state),
         ("hard block reason blocks probation", test_hard_block_reason_blocks_probation),
         ("probation blocks symbol outside universe", test_probation_blocks_symbol_outside_universe),
+        ("probation requires evidence status", test_probation_requires_promising_or_live_evidence_status),
+        ("probation requires health", test_probation_requires_data_feed_and_angel_health),
         ("preflight warns when capital cannot fit lot", test_preflight_warns_when_capital_cannot_fit_lot),
         ("preflight ok for valid probation config", test_preflight_ok_for_valid_probation_config),
     ]

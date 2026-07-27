@@ -1,34 +1,34 @@
 {
-  "n_total": 22030,
-  "n_train": 16466,
-  "n_test": 5564,
+  "n_total": 22387,
+  "n_train": 17513,
+  "n_test": 4874,
   "n_features": 42,
-  "base_win_rate": 0.0694,
-  "baseline_net_r": -0.1863,
-  "auc": 0.6755,
+  "base_win_rate": 0.0706,
+  "baseline_net_r": -0.1828,
+  "auc": 0.6935,
   "cpcv": {
-    "mean": 0.6241902073287322,
-    "median": 0.6076094394147736,
-    "std": 0.043203533915939604,
-    "min": 0.5644024636497056,
-    "max": 0.6976583875259923,
-    "iqr": 0.0672541543240025,
+    "mean": 0.6341089625522826,
+    "median": 0.6470275798523951,
+    "std": 0.04841971553069736,
+    "min": 0.5342449723739588,
+    "max": 0.7033612953591885,
+    "iqr": 0.06996301424467244,
     "paths": [
-      0.6896,
-      0.6903,
-      0.5644,
-      0.6555,
-      0.6576,
-      0.5736,
-      0.6066,
-      0.6262,
-      0.6977,
-      0.6053,
-      0.58,
-      0.6076,
-      0.5986,
-      0.5783,
-      0.6318
+      0.6961,
+      0.6534,
+      0.5924,
+      0.6952,
+      0.6697,
+      0.5342,
+      0.6156,
+      0.6598,
+      0.7034,
+      0.647,
+      0.6049,
+      0.593,
+      0.5725,
+      0.6064,
+      0.6682
     ],
     "n_paths_used": 15,
     "n_paths_total": 15
@@ -37,97 +37,97 @@
   "by_threshold": [
     {
       "threshold": 0.5,
-      "n_selected": 2106,
-      "coverage": 0.3785,
-      "precision": 0.1102,
-      "lift_vs_base": 0.0408,
-      "avg_net_r": -0.1664
+      "n_selected": 1837,
+      "coverage": 0.3769,
+      "precision": 0.117,
+      "lift_vs_base": 0.0465,
+      "avg_net_r": -0.1612
     },
     {
       "threshold": 0.55,
-      "n_selected": 1279,
-      "coverage": 0.2299,
-      "precision": 0.1321,
-      "lift_vs_base": 0.0628,
-      "avg_net_r": -0.1361
+      "n_selected": 965,
+      "coverage": 0.198,
+      "precision": 0.1244,
+      "lift_vs_base": 0.0538,
+      "avg_net_r": -0.1612
     },
     {
       "threshold": 0.6,
-      "n_selected": 619,
-      "coverage": 0.1113,
-      "precision": 0.1389,
-      "lift_vs_base": 0.0696,
-      "avg_net_r": -0.137
+      "n_selected": 396,
+      "coverage": 0.0812,
+      "precision": 0.1364,
+      "lift_vs_base": 0.0658,
+      "avg_net_r": -0.1577
     },
     {
       "threshold": 0.65,
-      "n_selected": 139,
-      "coverage": 0.025,
-      "precision": 0.1367,
-      "lift_vs_base": 0.0673,
-      "avg_net_r": -0.2292
+      "n_selected": 40,
+      "coverage": 0.0082,
+      "precision": 0.25,
+      "lift_vs_base": 0.1794,
+      "avg_net_r": 0.4354
     },
     {
       "threshold": 0.7,
-      "n_selected": 4,
-      "coverage": 0.0007,
-      "precision": 0.25,
-      "lift_vs_base": 0.1806,
-      "avg_net_r": 1.2058
+      "n_selected": 0,
+      "coverage": 0.0,
+      "precision": 0.0,
+      "lift_vs_base": -0.0706,
+      "avg_net_r": null
     }
   ],
   "top_features": [
     {
-      "feature": "time_bucket_wt",
-      "importance": 0.1244
-    },
-    {
-      "feature": "volume_ratio",
-      "importance": 0.1146
-    },
-    {
       "feature": "hour_of_day",
-      "importance": 0.1123
+      "importance": 0.1324
+    },
+    {
+      "feature": "time_bucket_wt",
+      "importance": 0.1152
     },
     {
       "feature": "mtf_pivot_mod",
-      "importance": 0.108
+      "importance": 0.1101
+    },
+    {
+      "feature": "volume_ratio",
+      "importance": 0.1061
     },
     {
       "feature": "fii_cum_5d",
-      "importance": 0.0799
-    },
-    {
-      "feature": "fii_fut_ratio",
-      "importance": 0.0389
+      "importance": 0.0788
     },
     {
       "feature": "fii_net_cash",
-      "importance": 0.0386
+      "importance": 0.0413
     },
     {
       "feature": "india_vix",
-      "importance": 0.0379
+      "importance": 0.0398
     },
     {
-      "feature": "participant_mod",
-      "importance": 0.0372
-    },
-    {
-      "feature": "side_buy",
-      "importance": 0.0341
+      "feature": "sector_code",
+      "importance": 0.0388
     },
     {
       "feature": "day_of_week",
-      "importance": 0.0336
+      "importance": 0.0371
     },
     {
-      "feature": "expiry_dte",
-      "importance": 0.03
+      "feature": "fii_fut_ratio",
+      "importance": 0.036
+    },
+    {
+      "feature": "side_buy",
+      "importance": 0.0346
+    },
+    {
+      "feature": "participant_mod",
+      "importance": 0.0316
     }
   ],
   "best_threshold": null,
-  "conclusion": "AUC=0.675. Gating at P(win)>=0.6 lifts precision 6.9%\u219213.9% but avg net_R stays NEGATIVE at every threshold (best -0.137 vs baseline -0.186). CPCV over 15/15 paths: mean=0.624 median=0.608 iqr=0.067 min=0.564 -- trust this over the single day-split AUC above, which is one partition of many. Gating reduces how much is lost, it does NOT create profit. REJECTED for live gating on cost-adjusted evidence.",
+  "conclusion": "AUC=0.693. Gating at P(win)>=0.55 lifts precision 7.1%\u219212.4% but avg net_R stays NEGATIVE at every threshold (best -0.161 vs baseline -0.183). CPCV over 15/15 paths: mean=0.634 median=0.647 iqr=0.070 min=0.534 -- trust this over the single day-split AUC above, which is one partition of many. Gating reduces how much is lost, it does NOT create profit. REJECTED for live gating on cost-adjusted evidence.",
   "model_saved": false,
   "model_save_reason": "no_threshold_clears_precision_lift_and_net_cost"
 }

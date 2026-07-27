@@ -4527,6 +4527,19 @@ def generate_signal(
         except Exception:
             pass
 
+        # ── Profit-discipline gate ──────────────────────────────────────────
+        # If a strategy has enough clean evidence and is negative after costs,
+        # do not keep emitting executable candidates from it. Shadow logging
+        # still captures alternate ideas earlier in the pipeline; this gate
+        # protects the trade path from proven losers.
+        try:
+            from autonomous_edge_policy import apply_policy as _edge_policy
+            final_signal = _edge_policy(final_signal)
+            if not final_signal.get("side"):
+                return final_signal
+        except Exception:
+            pass
+
         # Macro/global profit filter for index option buying.  It never places
         # orders; it blocks/waits only when macro context, CPR/VWAP, trap and
         # premium-decay quality say the candidate is low quality.

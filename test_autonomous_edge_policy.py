@@ -12,14 +12,24 @@ def _make(path, rows):
 def test_negative_clean_edge_is_quarantined(tmp_path):
     path = tmp_path / "signals.db"
     _make(path, [("weak", f"2026-06-{20+i%4:02d}", -1, 1, 99, 102, 1.5, -1.0) for i in range(40)])
-    result = apply_policy({"strategy": "weak"}, path)
+    result = apply_policy({"strategy": "weak", "side": "BUY", "direction": "BUY"}, path)
     assert result["autonomous_edge_status"] == "QUARANTINED"
     assert result["paper_training_mode"] is True
+    assert result["side"] is None
+    assert result["reason"] == "profit_discipline_quarantined_strategy"
 
 
-def test_small_positive_sample_cannot_promote(tmp_path):
+def test_early_ugly_loss_is_quarantined_before_thirty_samples(tmp_path):
+    path = tmp_path / "signals.db"
+    _make(path, [("ugly", f"2026-06-{20+i%4:02d}", -1, 1, 99, 102, 1.5, -1.2) for i in range(12)])
+    result = apply_policy({"strategy": "ugly", "side": "SELL", "direction": "SELL"}, path)
+    assert result["autonomous_edge_status"] == "QUARANTINED"
+    assert result["side"] is None
+
+
+def test_small_positive_sample_becomes_paper_promising_only(tmp_path):
     path = tmp_path / "signals.db"
     _make(path, [("new", f"2026-06-{20+i%4:02d}", 1, 1, 99, 102, 1.5, 1.0) for i in range(40)])
     result = strategy_policy("new", path)
-    assert result["status"] == "VALIDATING"
+    assert result["status"] == "PAPER_PROMISING"
     assert result["live_ready"] is False

@@ -43,6 +43,7 @@ TRAINING_CONTRACT  = "all_generated_signals_v4_causal_representations"
 MIN_PROMOTION_SAMPLES = int(os.getenv("ML_MIN_PROMOTION_SAMPLES", "5000"))
 MIN_PROMOTION_DAYS = int(os.getenv("ML_MIN_PROMOTION_DAYS", "15"))
 MIN_PROMOTION_AUC = float(os.getenv("ML_MIN_PROMOTION_AUC", "0.55"))
+MAX_SYMBOL_WORKERS = max(1, int(os.getenv("ML_MAX_SYMBOL_WORKERS", "4")))
 
 # Metadata columns — excluded from training features
 _OUTCOME_ONLY_COLS = {
@@ -65,6 +66,7 @@ def _train_model(
     y: np.ndarray,
     feature_names: List[str],
     label: str = "cross_symbol",
+    net_returns: Optional[np.ndarray] = None,
 ) -> Dict[str, Any]:
     """
     Train a GradientBoostingClassifier with TimeSeriesSplit cross-validation.
@@ -74,7 +76,8 @@ def _train_model(
     from model_champion import compare_candidates
 
     tournament = compare_candidates(
-        X, y, n_splits=CV_FOLDS, horizon=PURGE_HORIZON, embargo=PURGE_EMBARGO
+        X, y, n_splits=CV_FOLDS, horizon=PURGE_HORIZON, embargo=PURGE_EMBARGO,
+        net_returns=net_returns,
     )
     pipe = tournament.get("estimator")
     if pipe is None:
@@ -176,6 +179,7 @@ def _train_model(
         "champion_algorithm":  tournament.get("champion", ""),
         "candidate_count":     tournament.get("candidate_count", 0),
         "candidate_leaderboard": tournament.get("leaderboard", []),
+        "profit_utility":      champion_metrics.get("utility", {}),
         "purged_brier":        champion_metrics.get("brier"),
         "purged_baseline_brier": champion_metrics.get("baseline_brier"),
         "purged_brier_skill":  champion_metrics.get("brier_skill"),
@@ -253,6 +257,7 @@ def _load_model(label: str) -> Optional[Dict[str, Any]]:
 def _train_one_symbol(
     symbol: str, Xs: np.ndarray, ys: np.ndarray, feat_cols: List[str],
     sym_days: int, sym_n: int, fingerprint: str,
+    net_returns: Optional[np.ndarray] = None,
 ) -> Tuple[str, Optional[Dict[str, Any]]]:
     """Runs in a worker process. Each symbol's training is fully independent
     (its own data slice, its own model), so this is embarrassingly parallel
@@ -264,7 +269,7 @@ def _train_one_symbol(
     the whole nightly pipeline (2026-07-11 incident, same reasoning as the
     prior serial loop's try/except/continue)."""
     try:
-        sym_result = _train_model(Xs, ys, feat_cols, label=symbol)
+        sym_result = _train_model(Xs, ys, feat_cols, label=symbol, net_returns=net_returns)
     except Exception as exc:
         logger.warning("per-symbol model %s skipped: %s", symbol, exc)
         return symbol, None
@@ -276,6 +281,10 @@ def _train_one_symbol(
         and float(sym_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
         and float(sym_result.get("purged_brier_skill") or -1) > 0
         and sym_result.get("probability_calibration") == "sigmoid_purged_cv"
+        and (
+            not (sym_result.get("profit_utility") or {}).get("available")
+            or float((sym_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
+        )
     )
     sym_result["training_data_fingerprint"] = fingerprint
     sym_result["selected_features"] = list(feat_cols)
@@ -312,6 +321,11 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
 
     X_all   = df_clean[feat_cols].values.astype(np.float32)
     y_all   = df_clean["tb_outcome"].values.astype(int)
+    net_returns_all = None
+    for ret_col in ("tb_r_multiple_net", "tb_r_multiple"):
+        if ret_col in df_clean.columns:
+            net_returns_all = df_clean[ret_col].values.astype(np.float32)
+            break
     training_fingerprint = _training_fingerprint(df_clean, feat_cols)
 
     saved_paths = []
@@ -322,7 +336,9 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
 
     # ── Cross-symbol model ────────────────────────────────────────────────────
     logger.info("Training cross-symbol model on %d samples", len(df_clean))
-    cross_result = _train_model(X_all, y_all, feat_cols, label="cross_symbol")
+    cross_result = _train_model(
+        X_all, y_all, feat_cols, label="cross_symbol", net_returns=net_returns_all
+    )
     distinct_days = int(df_clean["__signal_date"].astype(str).nunique()) if "__signal_date" in df_clean else 0
     cross_result["distinct_days"] = distinct_days
     cross_result["promoted"] = bool(
@@ -332,6 +348,10 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
         and float(cross_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
         and float(cross_result.get("purged_brier_skill") or -1) > 0
         and cross_result.get("probability_calibration") == "sigmoid_purged_cv"
+        and (
+            not (cross_result.get("profit_utility") or {}).get("available")
+            or float((cross_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
+        )
     )
     cross_result["training_data_fingerprint"] = training_fingerprint
     cross_result["selected_features"] = list(feat_cols)
@@ -356,24 +376,29 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             sym_df = df_clean[df_clean["__symbol"] == symbol]
             Xs = sym_df[feat_cols].values.astype(np.float32)
             ys = sym_df["tb_outcome"].values.astype(int)
+            sym_returns = None
+            for ret_col in ("tb_r_multiple_net", "tb_r_multiple"):
+                if ret_col in sym_df.columns:
+                    sym_returns = sym_df[ret_col].values.astype(np.float32)
+                    break
             if len(np.unique(ys)) < 2:
                 continue   # only one class — can't train
             sym_days = int(sym_df["__signal_date"].astype(str).nunique()) if "__signal_date" in sym_df else 0
             fingerprint = _training_fingerprint(sym_df, feat_cols)
-            eligible.append((symbol, Xs, ys, sym_days, len(sym_df), fingerprint))
+            eligible.append((symbol, Xs, ys, sym_days, len(sym_df), fingerprint, sym_returns))
 
         # Each eligible symbol's training is fully independent (own data
         # slice, own model) -- parallelize across processes rather than
         # training them one at a time. Leaves 2 cores free for the live bot,
         # which shares this box (post_market_ml is guarded to post-market
         # hours, but the box itself isn't exclusively idle).
-        max_workers = max(1, min(len(eligible), (os.cpu_count() or 4) - 2))
+        max_workers = max(1, min(len(eligible), (os.cpu_count() or 4) - 2, MAX_SYMBOL_WORKERS))
         if eligible:
             with ProcessPoolExecutor(max_workers=max_workers) as pool:
                 futures = {
                     pool.submit(_train_one_symbol, symbol, Xs, ys, feat_cols,
-                                sym_days, sym_n, fingerprint): symbol
-                    for symbol, Xs, ys, sym_days, sym_n, fingerprint in eligible
+                                sym_days, sym_n, fingerprint, sym_returns): symbol
+                    for symbol, Xs, ys, sym_days, sym_n, fingerprint, sym_returns in eligible
                 }
                 for future in as_completed(futures):
                     symbol = futures[future]

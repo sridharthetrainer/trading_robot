@@ -15,6 +15,8 @@ import pandas as pd
 FEATURE_NAMES = (
     "bar_return_1_atr", "line_slope_atr", "line_turn", "step_direction",
     "baseline_distance_atr", "hollow_state", "hollow_run",
+    "heikin_direction", "heikin_run", "heikin_reversal",
+    "heikin_body_atr", "heikin_upper_wick_atr", "heikin_lower_wick_atr",
     "volume_candle_strength", "line_break_direction", "line_break_run",
     "line_break_event", "kagi_direction", "kagi_reversal", "kagi_distance_atr",
     "pnf_direction", "pnf_boxes", "pnf_reversal", "range_direction",
@@ -187,6 +189,33 @@ def _range_state(closes: np.ndarray, box: float) -> Dict[str, float]:
     }
 
 
+def _heikin_ashi(
+    opens: np.ndarray,
+    highs: np.ndarray,
+    lows: np.ndarray,
+    closes: np.ndarray,
+    atr: float,
+) -> Dict[str, float]:
+    ha_close = (opens + highs + lows + closes) / 4.0
+    ha_open = np.zeros_like(ha_close, dtype=float)
+    ha_open[0] = (opens[0] + closes[0]) / 2.0
+    for index in range(1, len(ha_open)):
+        ha_open[index] = (ha_open[index - 1] + ha_close[index - 1]) / 2.0
+    ha_high = np.maximum.reduce([highs, ha_open, ha_close])
+    ha_low = np.minimum.reduce([lows, ha_open, ha_close])
+    directions = [int(np.sign(c - o)) for o, c in zip(ha_open, ha_close)]
+    direction = float(directions[-1]) if directions else 0.0
+    previous = float(directions[-2]) if len(directions) >= 2 else 0.0
+    return {
+        "direction": direction,
+        "run": float(_run(directions)),
+        "reversal": direction if direction and previous and direction != previous else 0.0,
+        "body_atr": float(abs(ha_close[-1] - ha_open[-1]) / max(atr, 1e-9)),
+        "upper_wick_atr": float((ha_high[-1] - max(ha_open[-1], ha_close[-1])) / max(atr, 1e-9)),
+        "lower_wick_atr": float((min(ha_open[-1], ha_close[-1]) - ha_low[-1]) / max(atr, 1e-9)),
+    }
+
+
 def build_representation_features(df: pd.DataFrame) -> Dict[str, float]:
     frame = _frame(df)
     empty = {name: 0.0 for name in FEATURE_NAMES}
@@ -223,6 +252,7 @@ def build_representation_features(df: pd.DataFrame) -> Dict[str, float]:
     kagi = _kagi(close, max(atr, close[-1] * 0.002))
     pnf = _point_and_figure(close, box)
     range_state = _range_state(close, box)
+    heikin = _heikin_ashi(open_, high, low, close, atr)
 
     try:
         from indicators import calculate_ichimoku
@@ -245,6 +275,12 @@ def build_representation_features(df: pd.DataFrame) -> Dict[str, float]:
         "baseline_distance_atr": float((close[-1] - baseline) / atr),
         "hollow_state": float(hollow_states[-1]),
         "hollow_run": float(_run([int(np.sign(v)) for v in hollow_states])),
+        "heikin_direction": heikin["direction"],
+        "heikin_run": heikin["run"],
+        "heikin_reversal": heikin["reversal"],
+        "heikin_body_atr": heikin["body_atr"],
+        "heikin_upper_wick_atr": heikin["upper_wick_atr"],
+        "heikin_lower_wick_atr": heikin["lower_wick_atr"],
         "volume_candle_strength": volume_strength,
         "line_break_direction": line_break["direction"],
         "line_break_run": line_break["run"],

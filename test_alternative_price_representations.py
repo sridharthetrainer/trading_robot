@@ -67,12 +67,30 @@ def test_representation_features_persist_to_signal_log(tmp_path, monkeypatch):
     with sqlite3.connect(tmp_path / "signals.db") as conn:
         row = conn.execute(
             "SELECT representation_coverage,hollow_state,line_break_direction,"
-            "footprint_available FROM signal_log WHERE id=?", (row_id,),
+            "heikin_direction,heikin_run,footprint_available "
+            "FROM signal_log WHERE id=?", (row_id,),
         ).fetchone()
     assert row[0] == 1.0
     assert row[1] == features["hollow_state"]
     assert row[2] == features["line_break_direction"]
-    assert row[3] == 0.0
+    assert row[3] == features["heikin_direction"]
+    assert row[4] == features["heikin_run"]
+    assert row[5] == 0.0
+
+
+def test_heikin_ashi_features_are_available_to_ml():
+    from alternative_price_representations import build_representation_features
+    from ml_feature_builder import _encode_row
+
+    features = build_representation_features(_sample())
+    encoded = _encode_row(features)
+    for name in (
+        "heikin_direction", "heikin_run", "heikin_reversal",
+        "heikin_body_atr", "heikin_upper_wick_atr", "heikin_lower_wick_atr",
+    ):
+        assert name in features
+        assert name in encoded
+        assert np.isfinite(encoded[name])
 
 
 def test_alternative_strategies_are_one_decorrelated_price_factor():
