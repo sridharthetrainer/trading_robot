@@ -15,6 +15,8 @@ from datetime import date, datetime, time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+import chart_theme as ct
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -228,18 +230,14 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
 
-    bg, panel, fg, grid = "#08111f", "#101c2c", "#e6edf3", "#2b3b50"
+    panel, fg = ct.PANEL, ct.TEXT_PRIMARY
     fig, axes = plt.subplots(2, 2, figsize=(13, 9), dpi=145)
-    fig.patch.set_facecolor(bg)
+    ct.apply_theme(fig, axes.flat)
     for ax in axes.flat:
-        ax.set_facecolor(panel)
-        ax.tick_params(colors="#aebdca", labelsize=8)
-        ax.grid(True, color=grid, alpha=.45, linewidth=.7)
-        for spine in ax.spines.values():
-            spine.set_color(grid)
+        ax.tick_params(labelsize=8)
 
     ax = axes[0, 0]
-    palette = ["#4dabf7", "#ffd43b", "#63e6be", "#da77f2", "#ff922b"]
+    palette = list(ct.CATEGORICAL)
     for color, (symbol, series) in zip(palette, sorted(data["spots"].items())):
         if not series:
             continue
@@ -249,9 +247,9 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
         ax.plot(xs, pct, color=color, linewidth=2, label=f"{symbol} {raw[-1]:,.0f}")
         ax.annotate(f"{pct[-1]:+.2f}%", (xs[-1], pct[-1]), color=color, fontsize=8,
                     xytext=(5, 0), textcoords="offset points")
-    ax.axhline(0, color="#8394a5", linewidth=.8)
+    ax.axhline(0, color=ct.TEXT_MUTED, linewidth=.8)
     ax.set_title("INDEX MOVE (09:15–15:35 captures)", color=fg, fontweight="bold")
-    ax.set_ylabel("Change %", color="#aebdca")
+    ax.set_ylabel("Change %", color=ct.TEXT_MUTED)
     has_spot_lines = any(len(series) >= 2 for series in data["spots"].values())
     if has_spot_lines:
         ax.legend(facecolor=panel, labelcolor=fg, fontsize=7, loc="best")
@@ -263,33 +261,33 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
         message = "No intraday series captured"
         if detail:
             message += "\n\nLatest stored values\n" + detail
-        ax.text(.5, .5, message, transform=ax.transAxes, color="#aebdca",
+        ax.text(.5, .5, message, transform=ax.transAxes, color=ct.TEXT_MUTED,
                 ha="center", va="center", linespacing=1.5)
 
     ax = axes[0, 1]
     sx, sy = _running_counts(data["selections"])
     bx, by = _running_counts(data["blocked"])
     if sx:
-        ax.step(sx, sy, where="post", color="#51cf66", linewidth=2.2,
+        ax.step(sx, sy, where="post", color=ct.BULLISH, linewidth=2.2,
                 label=f"Selected {len(sx)}")
     if bx:
-        ax.step(bx, by, where="post", color="#ff6b6b", linewidth=2.0,
+        ax.step(bx, by, where="post", color=ct.BEARISH, linewidth=2.0,
                 label=f"Blocked {len(bx)}")
     ax.set_title("CUMULATIVE OPTION DECISIONS", color=fg, fontweight="bold")
-    ax.set_ylabel("Count", color="#aebdca")
+    ax.set_ylabel("Count", color=ct.TEXT_MUTED)
     if sx or bx:
         ax.legend(facecolor=panel, labelcolor=fg, fontsize=8)
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     else:
         ax.text(.5, .5, "No selected/blocked decisions", transform=ax.transAxes,
-                color="#8394a5", ha="center", va="center")
+                color=ct.TEXT_MUTED, ha="center", va="center")
 
     ax = axes[1, 0]
     types = ["CE", "PE"]
     vals = [data["option_types"].get(t, 0) for t in types]
-    bars = ax.bar(types, vals, color=["#ff8787", "#69db7c"], width=.55)
+    bars = ax.bar(types, vals, color=[ct.BEARISH, ct.BULLISH], width=.55)
     ax.set_title("SELECTED LEGS", color=fg, fontweight="bold")
-    ax.set_ylabel("Distinct selections", color="#aebdca")
+    ax.set_ylabel("Distinct selections", color=ct.TEXT_MUTED)
     ax.set_ylim(0, max(vals + [1]) * 1.25)
     for bar, value in zip(bars, vals):
         ax.text(bar.get_x() + bar.get_width()/2, value + .03, str(value),
@@ -305,21 +303,21 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
         for value in values:
             total += value
             cumulative.append(total)
-        color = "#51cf66" if total >= 0 else "#ff6b6b"
+        color = ct.BULLISH if total >= 0 else ct.BEARISH
         ax.plot(range(1, len(cumulative) + 1), cumulative, color=color, linewidth=2.2,
                 label=f"Ideal signal net ₹{total:+,.0f}")
-        ax.axhline(0, color="#8394a5", linewidth=.8)
+        ax.axhline(0, color=ct.TEXT_MUTED, linewidth=.8)
         ax.legend(facecolor=panel, labelcolor=fg, fontsize=8)
-        ax.set_xlabel("Labelled generated signals", color="#aebdca")
+        ax.set_xlabel("Labelled generated signals", color=ct.TEXT_MUTED)
     elif closed:
         cumulative, total = [], 0.0
         for trade in closed:
             total += trade["pnl"]
             cumulative.append(total)
-        color = "#51cf66" if total >= 0 else "#ff6b6b"
+        color = ct.BULLISH if total >= 0 else ct.BEARISH
         ax.plot([t["time"] for t in closed], cumulative, marker="o", color=color,
                 linewidth=2.4, label=f"Net ₹{total:+,.0f}")
-        ax.axhline(0, color="#8394a5", linewidth=.8)
+        ax.axhline(0, color=ct.TEXT_MUTED, linewidth=.8)
         for trade, value in zip(closed, cumulative):
             ax.annotate(f"₹{value:+,.0f}", (trade["time"], value), color=fg,
                         fontsize=8, xytext=(0, 7), textcoords="offset points", ha="center")
@@ -327,9 +325,9 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     else:
         ax.text(.5, .5, "No closed option trades", transform=ax.transAxes,
-                color="#8394a5", ha="center", va="center")
+                color=ct.TEXT_MUTED, ha="center", va="center")
     ax.set_title("IDEAL SIGNAL AFTER-COST P&L", color=fg, fontweight="bold")
-    ax.set_ylabel("₹ cumulative", color="#aebdca")
+    ax.set_ylabel("₹ cumulative", color=ct.TEXT_MUTED)
 
     closed_n = len(closed)
     win_rate = (100 * data["wins"] / closed_n) if closed_n else 0
@@ -337,12 +335,12 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     labelled_n = len(data["labelled_signals"])
     signal_wr = 100 * data["all_signal_wins"] / labelled_n if labelled_n else 0
     traded_wr = 100 * data["wins"] / closed_n if closed_n else 0
-    fig.suptitle(f"OPTION BOT • POST-MARKET REPORT • {data['day']}", color="white",
+    fig.suptitle(f"OPTION BOT • POST-MARKET REPORT • {data['day']}", color=ct.TEXT_PRIMARY,
                  fontsize=17, fontweight="bold", y=.985)
     fig.text(.5, .946,
              f"All signals {signal_n}   |   Labelled {labelled_n}   |   Unfilled {len(data['unfilled_signals'])}   |   Pending {len(data['pending_signals'])}   |   "
              f"Signal WR {signal_wr:.0f}%   |   Net ₹{data['all_signal_net_pnl']:+,.0f}",
-             color="#b8c7d9", fontsize=10, ha="center")
+             color=ct.TEXT_SECONDARY, fontsize=10, ha="center")
     fig.autofmt_xdate(rotation=25)
     plt.tight_layout(rect=(0, .01, 1, .92))
 

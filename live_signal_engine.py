@@ -3963,6 +3963,11 @@ class LiveSignalEngine:
                     self._broadcast_signal_via_quality_gate(_sig_broadcast)
                 except Exception as _be:
                     logger.debug("broadcast: %s", _be)
+
+            self._risk_gate_shadow_check(
+                candidate, execution_plan, open_positions, risk_decision,
+                final_qty, trade_id, symbol,
+            )
             return bool(trade_id)
         except Exception:
             logger.exception("Execution failed for symbol=%s", symbol)
@@ -3978,6 +3983,36 @@ class LiveSignalEngine:
                     self._circuit_breaker_pause_sec,
                 )
             return False
+
+    def _risk_gate_shadow_check(
+        self, candidate: Dict[str, Any], execution_plan: Dict[str, Any],
+        open_positions: List[Dict[str, Any]], risk_decision: Any,
+        final_qty: int, trade_id: Any, symbol: str,
+    ) -> None:
+        """Shadow-mode only (2026-07-27): runs the consolidated
+        risk_gate.evaluate() alongside the real, already-applied decision
+        and logs any disagreement. Called AFTER trade_manager.open_trade()
+        has already returned -- structurally cannot affect trade_id or
+        _execute_candidate's return value, and every exception is caught
+        here so a shadow-comparison failure can never propagate. See
+        risk_gate.py's own docstring for why this consolidation is being
+        trialled in shadow mode before any cutover."""
+        try:
+            import risk_gate as _risk_gate
+            shadow_ctx = _risk_gate.RiskGateContext(
+                daily_loss_manager=self.daily_loss_manager,
+                portfolio_risk_manager=self.risk_manager,
+                capital=float(getattr(self.trade_manager, "capital", 0) or 100000.0),
+            )
+            shadow_decision = _risk_gate.evaluate(
+                candidate, execution_plan, open_positions, shadow_ctx,
+            )
+            _risk_gate.log_shadow_disagreement(
+                risk_decision, shadow_decision, symbol,
+                {"final_qty": final_qty, "trade_id": trade_id},
+            )
+        except Exception as exc:
+            logger.debug("risk_gate shadow comparison skipped: %s", exc)
 
     def _build_execution_plan(
         self, *, symbol: str, signal: Dict[str, Any],

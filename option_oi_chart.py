@@ -21,6 +21,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+import chart_theme as ct
+
 logger = logging.getLogger(__name__)
 
 DB_PATH = "option_chain_snapshots.db"
@@ -356,11 +358,11 @@ def generate_oi_strike_profile_chart(
 
     fig, (ax, ax2) = plt.subplots(1, 2, figsize=(16, 8.5), dpi=130, sharey=True)
     for _ax in (ax, ax2):
-        _ax.set_facecolor("#0d1117")
+        _ax.set_facecolor(ct.BG)
         for sp in _ax.spines.values():
-            sp.set_color("#30363d")
-        _ax.tick_params(colors="#c9d1d9")
-    fig.patch.set_facecolor("#0d1117")
+            sp.set_color(ct.GRID)
+        _ax.tick_params(colors=ct.TEXT_SECONDARY)
+    fig.patch.set_facecolor(ct.BG)
     y = list(range(len(strikes)))
     # Per-bar alpha requires one barh call per bar (matplotlib barh doesn't
     # take a list of alphas), grouped so the legend still shows once.
@@ -368,12 +370,12 @@ def generate_oi_strike_profile_chart(
     # color-emoji glyphs, so emoji chars render as missing-glyph boxes on the
     # actual PNG even though they display fine in the plain-text Telegram
     # caption). Same BUILDUP/FLAT/UNWINDING color mapping either way.
-    _DOT_COLOR_BY_DIR = {"BUILDUP": "#2ecc71", "FLAT": "#8b949e", "UNWINDING": "#e74c3c"}
+    _DOT_COLOR_BY_DIR = {"BUILDUP": ct.BULLISH, "FLAT": ct.TEXT_MUTED, "UNWINDING": ct.BEARISH}
     xmax = max(ce_oi + pe_oi) if (ce_oi + pe_oi) else 1.0
     for i in y:
-        ax.barh(i, -pe_oi[i], color="#2ecc71", alpha=pe_alpha[i],
+        ax.barh(i, -pe_oi[i], color=ct.BULLISH, alpha=pe_alpha[i],
                  label="PE OI (support)" if i == 0 else None)
-        ax.barh(i, ce_oi[i], color="#e74c3c", alpha=ce_alpha[i],
+        ax.barh(i, ce_oi[i], color=ct.BEARISH, alpha=ce_alpha[i],
                  label="CE OI (resistance)" if i == 0 else None)
         # OI-direction dot marker at each bar end.
         ax.scatter([-pe_oi[i] - xmax * 0.03], [i],
@@ -381,14 +383,14 @@ def generate_oi_strike_profile_chart(
         ax.scatter([ce_oi[i] + xmax * 0.03], [i],
                    color=_DOT_COLOR_BY_DIR[ce_dir[i]["oi_direction"]], s=40, zorder=3)
     ax.set_yticks(y)
-    ax.set_yticklabels([f"{int(s)}" for s in strikes], color="#c9d1d9", fontsize=9)
+    ax.set_yticklabels([f"{int(s)}" for s in strikes], color=ct.TEXT_SECONDARY, fontsize=9)
     pos = bisect.bisect_left(strikes, spot)
     spot_y = min(max(pos - 0.5, -0.5), len(strikes) - 0.5)
-    ax.axhline(spot_y, color="#ffd43b", linestyle="--", linewidth=1.5, label=f"Spot {spot:.0f}")
+    ax.axhline(spot_y, color=ct.WARNING, linestyle="--", linewidth=1.5, label=f"Spot {spot:.0f}")
     ax.axvline(0, color="#888888", linewidth=0.8)
     ax.set_title("OI levels  (bar length = open interest)", color="white", fontsize=11)
-    ax.set_xlabel("← PE OI (support)          CE OI (resistance) →", color="#c9d1d9")
-    ax.legend(facecolor="#161b22", labelcolor="#c9d1d9", loc="lower right", fontsize=8)
+    ax.set_xlabel("← PE OI (support)          CE OI (resistance) →", color=ct.TEXT_SECONDARY)
+    ax.legend(facecolor=ct.PANEL, labelcolor=ct.TEXT_SECONDARY, loc="lower right", fontsize=8)
 
     # ── Panel 2: OI CHANGE (delta) per strike, same strike rows, own scale --
     # this is the actual "fresh writing" driver behind the direction dots on
@@ -405,22 +407,22 @@ def generate_oi_strike_profile_chart(
     # side regardless of sign, exactly like panel 1's -pe_oi/ce_oi split.
     xmax2 = max([abs(v) for v in (ce_chg + pe_chg)] or [1.0])
     for i in y:
-        pe_color = "#2ecc71" if pe_chg[i] >= 0 else "#e74c3c"
-        ce_color = "#2ecc71" if ce_chg[i] >= 0 else "#e74c3c"
+        pe_color = ct.BULLISH if pe_chg[i] >= 0 else ct.BEARISH
+        ce_color = ct.BULLISH if ce_chg[i] >= 0 else ct.BEARISH
         ax2.barh(i, -abs(pe_chg[i]), color=pe_color, alpha=0.85,
                   label="PE Δ OI" if i == 0 else None)
         ax2.barh(i, abs(ce_chg[i]), color=ce_color, alpha=0.55,
                   label="CE Δ OI" if i == 0 else None)
         ax2.text(-abs(pe_chg[i]) - xmax2 * 0.04, i, f"{pe_chg[i]:+,.0f}",
-                  ha="right", va="center", fontsize=7, color="#c9d1d9")
+                  ha="right", va="center", fontsize=7, color=ct.TEXT_SECONDARY)
         ax2.text(abs(ce_chg[i]) + xmax2 * 0.04, i, f"{ce_chg[i]:+,.0f}",
-                  ha="left", va="center", fontsize=7, color="#c9d1d9")
-    ax2.axhline(spot_y, color="#ffd43b", linestyle="--", linewidth=1.5)
+                  ha="left", va="center", fontsize=7, color=ct.TEXT_SECONDARY)
+    ax2.axhline(spot_y, color=ct.WARNING, linestyle="--", linewidth=1.5)
     ax2.axvline(0, color="#888888", linewidth=0.8)
     ax2.set_title(f"{delta_label}\n(the 'delta' driving fresh writing)",
                    color="white", fontsize=11)
-    ax2.set_xlabel("← PE Δ OI (unwind/build)   CE Δ OI (unwind/build) →", color="#c9d1d9")
-    ax2.legend(facecolor="#161b22", labelcolor="#c9d1d9", loc="lower right", fontsize=8)
+    ax2.set_xlabel("← PE Δ OI (unwind/build)   CE Δ OI (unwind/build) →", color=ct.TEXT_SECONDARY)
+    ax2.legend(facecolor=ct.PANEL, labelcolor=ct.TEXT_SECONDARY, loc="lower right", fontsize=8)
 
     # Kept to 2 lines deliberately -- a longer suptitle left a large dead
     # gap above the panels (matplotlib's suptitle default y-position doesn't
@@ -507,7 +509,7 @@ def parse_flip_alert_text(text: str) -> List[Dict[str, Any]]:
 # convention -- validated distinct/legible against the dark surface, always
 # paired with an icon + text label (never color alone), matching the icon/
 # text already in the source alert text.
-_FLIP_COLOR = {"BULLISH": "#0ca30c", "BEARISH": "#d03b3b"}
+_FLIP_COLOR = {"BULLISH": ct.BULLISH, "BEARISH": ct.BEARISH}
 _FLIP_ICON = {"BULLISH": "📈", "BEARISH": "📉"}
 
 
@@ -532,19 +534,19 @@ def generate_oi_flip_alert_image(
     fig, axes = plt.subplots(n, 1, figsize=(9, card_h * n + 0.6), dpi=150)
     if n == 1:
         axes = [axes]
-    fig.patch.set_facecolor("#0d1117")
+    fig.patch.set_facecolor(ct.BG)
 
     for ax, e in zip(axes, events):
         curr, prev = e["curr"], e["prev"]
         color = _FLIP_COLOR[curr]
-        ax.set_facecolor("#0d1117")
+        ax.set_facecolor(ct.BG)
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.axis("off")
 
         card = FancyBboxPatch((0.01, 0.05), 0.98, 0.9,
                                boxstyle="round,pad=0.01,rounding_size=0.02",
-                               linewidth=1.5, edgecolor=color, facecolor="#161b22",
+                               linewidth=1.5, edgecolor=color, facecolor=ct.PANEL,
                                transform=ax.transAxes, zorder=1)
         ax.add_patch(card)
 
@@ -555,12 +557,12 @@ def generate_oi_flip_alert_image(
         # by the colored border + text label + arrow instead; emoji stay in
         # the Telegram caption text only, where they render fine.
         ax.text(0.03, 0.80, f"{e['symbol']}  ₹{e['spot']:,.0f}  •  {e['ts']}",
-                color="#c9d1d9", fontsize=13, fontweight="bold", transform=ax.transAxes)
+                color=ct.TEXT_SECONDARY, fontsize=13, fontweight="bold", transform=ax.transAxes)
         ax.text(0.97, 0.80, f"[{e['conviction']}]", color=color, fontsize=11,
                 fontweight="bold", ha="right", transform=ax.transAxes)
 
         ax.text(0.03, 0.60,
-                f"Was: {prev}", color="#8b949e", fontsize=11, transform=ax.transAxes)
+                f"Was: {prev}", color=ct.TEXT_MUTED, fontsize=11, transform=ax.transAxes)
         ax.annotate("", xy=(0.30, 0.625), xytext=(0.20, 0.625),
                     xycoords="axes fraction",
                     arrowprops=dict(arrowstyle="-|>", color=color, lw=2))
@@ -578,14 +580,14 @@ def generate_oi_flip_alert_image(
         bar_scale = 0.30
         for label, delta, y in (("CE Δ", e["ce_delta"], bar_y_ce),
                                  ("PE Δ", e["pe_delta"], bar_y_pe)):
-            ax.text(0.03, y, label, color="#8b949e", fontsize=10, transform=ax.transAxes)
+            ax.text(0.03, y, label, color=ct.TEXT_MUTED, fontsize=10, transform=ax.transAxes)
             frac = (delta / card_max) * bar_scale
-            bar_color = "#0ca30c" if delta > 0 else "#d03b3b"
+            bar_color = ct.BULLISH if delta > 0 else ct.BEARISH
             x0 = zero_x if frac >= 0 else zero_x + frac
             width = abs(frac)
             ax.add_patch(plt.Rectangle((x0, y - 0.025), width, 0.05,
                                         color=bar_color, transform=ax.transAxes))
-            ax.plot([zero_x, zero_x], [y - 0.03, y + 0.03], color="#30363d",
+            ax.plot([zero_x, zero_x], [y - 0.03, y + 0.03], color=ct.GRID,
                     lw=1, transform=ax.transAxes)
             sign = "+" if delta > 0 else "-"
             k_val = abs(delta) / 1000.0
@@ -595,7 +597,7 @@ def generate_oi_flip_alert_image(
         note = ("Put writing dominant — supports bullish move" if curr == "BULLISH"
                 else "Call writing dominant — caps upside")
         ax.text(0.03, 0.11, f"PCR {e['pcr']:.2f}   •   {note}",
-                color="#8b949e", fontsize=9.5, transform=ax.transAxes)
+                color=ct.TEXT_MUTED, fontsize=9.5, transform=ax.transAxes)
 
     fig.suptitle("OI Direction Flips", color="white", fontsize=14,
                  fontweight="bold", y=0.995)
@@ -668,32 +670,32 @@ def generate_option_oi_chart(
     spot = [p["spot"] for p in series]
 
     fig, axes = plt.subplots(3, 1, figsize=(12, 8), sharex=True, dpi=130)
-    fig.patch.set_facecolor("#0d1117")
+    fig.patch.set_facecolor(ct.BG)
     title_strike = f" | Strike {int(strike)}" if strike is not None else " | All Snapshot Strikes"
     fig.suptitle(f"{underlying} OI Trend | {day}{title_strike}", color="white", fontsize=14, fontweight="bold")
 
     for ax in axes:
-        ax.set_facecolor("#0d1117")
-        ax.grid(True, color="#30363d", alpha=0.55)
-        ax.tick_params(colors="#c9d1d9", labelsize=8)
+        ax.set_facecolor(ct.BG)
+        ax.grid(True, color=ct.GRID, alpha=0.55)
+        ax.tick_params(colors=ct.TEXT_SECONDARY, labelsize=8)
         for spine in ax.spines.values():
-            spine.set_color("#30363d")
+            spine.set_color(ct.GRID)
 
     axes[0].plot(labels, ce_oi, color="#ff6b6b", linewidth=2.2, label="CE OI")
     axes[0].plot(labels, pe_oi, color="#4dabf7", linewidth=2.2, label="PE OI")
-    axes[0].set_ylabel("Open Interest", color="#c9d1d9")
-    axes[0].legend(loc="upper left", facecolor="#161b22", edgecolor="#30363d", labelcolor="#c9d1d9")
+    axes[0].set_ylabel("Open Interest", color=ct.TEXT_SECONDARY)
+    axes[0].legend(loc="upper left", facecolor=ct.PANEL, edgecolor=ct.GRID, labelcolor=ct.TEXT_SECONDARY)
 
     axes[1].plot(labels, ce_chg, color="#ffa8a8", linewidth=2.0, label="CE Change OI")
     axes[1].plot(labels, pe_chg, color="#91caff", linewidth=2.0, label="PE Change OI")
-    axes[1].axhline(0, color="#8b949e", linewidth=0.8)
-    axes[1].set_ylabel("Change OI", color="#c9d1d9")
-    axes[1].legend(loc="upper left", facecolor="#161b22", edgecolor="#30363d", labelcolor="#c9d1d9")
+    axes[1].axhline(0, color=ct.TEXT_MUTED, linewidth=0.8)
+    axes[1].set_ylabel("Change OI", color=ct.TEXT_SECONDARY)
+    axes[1].legend(loc="upper left", facecolor=ct.PANEL, edgecolor=ct.GRID, labelcolor=ct.TEXT_SECONDARY)
 
-    axes[2].plot(labels, spot, color="#ffd43b", linewidth=1.8, label="Spot")
-    axes[2].set_ylabel("Spot", color="#c9d1d9")
-    axes[2].set_xlabel("Time", color="#c9d1d9")
-    axes[2].legend(loc="upper left", facecolor="#161b22", edgecolor="#30363d", labelcolor="#c9d1d9")
+    axes[2].plot(labels, spot, color=ct.WARNING, linewidth=1.8, label="Spot")
+    axes[2].set_ylabel("Spot", color=ct.TEXT_SECONDARY)
+    axes[2].set_xlabel("Time", color=ct.TEXT_SECONDARY)
+    axes[2].legend(loc="upper left", facecolor=ct.PANEL, edgecolor=ct.GRID, labelcolor=ct.TEXT_SECONDARY)
     step = max(1, len(labels) // 8)
     axes[2].set_xticks(range(0, len(labels), step))
     axes[2].set_xticklabels(labels[::step], rotation=35, ha="right")
@@ -732,17 +734,17 @@ def _render_multi_strike_chart(
     strikes = sorted(multi.keys())
     first_series = next(iter(multi.values()))
     labels = [p["label"] for p in first_series]
-    colors = ["#4dabf7", "#ff6b6b", "#51cf66", "#ffd43b", "#b197fc", "#20c997", "#ff922b"]
+    colors = ["#4dabf7", "#ff6b6b", "#51cf66", ct.WARNING, "#b197fc", "#20c997", "#ff922b"]
 
     fig, axes = plt.subplots(3, 1, figsize=(13, 9), sharex=False, dpi=130)
-    fig.patch.set_facecolor("#0d1117")
+    fig.patch.set_facecolor(ct.BG)
     fig.suptitle(f"{underlying} Multi-Strike OI Comparison | {day}", color="white", fontsize=14, fontweight="bold")
     for ax in axes:
-        ax.set_facecolor("#0d1117")
-        ax.grid(True, color="#30363d", alpha=0.55)
-        ax.tick_params(colors="#c9d1d9", labelsize=8)
+        ax.set_facecolor(ct.BG)
+        ax.grid(True, color=ct.GRID, alpha=0.55)
+        ax.tick_params(colors=ct.TEXT_SECONDARY, labelsize=8)
         for spine in ax.spines.values():
-            spine.set_color("#30363d")
+            spine.set_color(ct.GRID)
 
     for idx, strike_val in enumerate(strikes):
         data = multi[strike_val]
@@ -756,11 +758,11 @@ def _render_multi_strike_chart(
         axes[1].plot([p["label"] for p in data], [p["pe_change_oi"] for p in data],
                      color=color, linewidth=1.6, linestyle="--", label=f"{int(strike_val)} PE chg")
 
-    axes[0].set_ylabel("OI", color="#c9d1d9")
-    axes[1].set_ylabel("Change OI", color="#c9d1d9")
-    axes[1].axhline(0, color="#8b949e", linewidth=0.8)
+    axes[0].set_ylabel("OI", color=ct.TEXT_SECONDARY)
+    axes[1].set_ylabel("Change OI", color=ct.TEXT_SECONDARY)
+    axes[1].axhline(0, color=ct.TEXT_MUTED, linewidth=0.8)
     for ax in axes[:2]:
-        ax.legend(loc="upper left", ncol=2, fontsize=7, facecolor="#161b22", edgecolor="#30363d", labelcolor="#c9d1d9")
+        ax.legend(loc="upper left", ncol=2, fontsize=7, facecolor=ct.PANEL, edgecolor=ct.GRID, labelcolor=ct.TEXT_SECONDARY)
 
     top = context.get("top_strikes", [])
     support = context.get("support")
@@ -773,12 +775,12 @@ def _render_multi_strike_chart(
     axes[2].barh([y - 0.18 for y in y_pos], ce_scores, height=0.32, color="#ff6b6b", label="CE activity")
     axes[2].barh([y + 0.18 for y in y_pos], pe_scores, height=0.32, color="#4dabf7", label="PE activity")
     axes[2].set_yticks(y_pos)
-    axes[2].set_yticklabels(y_labels, color="#c9d1d9")
+    axes[2].set_yticklabels(y_labels, color=ct.TEXT_SECONDARY)
     axes[2].invert_yaxis()
-    axes[2].set_xlabel("Latest activity score", color="#c9d1d9")
-    axes[2].legend(loc="lower right", facecolor="#161b22", edgecolor="#30363d", labelcolor="#c9d1d9")
+    axes[2].set_xlabel("Latest activity score", color=ct.TEXT_SECONDARY)
+    axes[2].legend(loc="lower right", facecolor=ct.PANEL, edgecolor=ct.GRID, labelcolor=ct.TEXT_SECONDARY)
     sr_text = f"Support: {int(support) if support else 'NA'} | Resistance: {int(resistance) if resistance else 'NA'} | Spot: {spot:,.0f}"
-    axes[2].text(0.01, 1.04, sr_text, transform=axes[2].transAxes, color="#ffd43b", fontsize=10, fontweight="bold")
+    axes[2].text(0.01, 1.04, sr_text, transform=axes[2].transAxes, color=ct.WARNING, fontsize=10, fontweight="bold")
 
     step = max(1, len(labels) // 8)
     axes[1].set_xticks(range(0, len(labels), step))

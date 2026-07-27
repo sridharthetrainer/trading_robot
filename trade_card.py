@@ -13,6 +13,8 @@ import matplotlib
 matplotlib.use("Agg")  # headless
 import matplotlib.pyplot as plt
 
+import chart_theme as ct
+
 
 def _fmt(x: float) -> str:
     try:
@@ -40,21 +42,23 @@ def render_trade_card(
     Layout: header (symbol/side/qty), a horizontal price track with SL · Entry ·
     LTP · Target markers placed to scale, and a large P&L readout.
     """
-    is_long = str(side).upper() in ("BUY", "LONG")
     win = pnl >= 0
-    accent = "#1a9850" if win else "#d73027"      # green / red
-    bg = "#0e1117"
+    accent = ct.BULLISH if win else ct.BEARISH
+    bg = ct.BG
 
+    # axis("off") below hides ticks/spines/grid, so apply_theme()'s panel/grid
+    # styling would be invisible anyway -- this card is a flat canvas, not a
+    # panel-on-background card, so just set the shared background directly.
     fig, ax = plt.subplots(figsize=(8, 3.4), dpi=130)
     fig.patch.set_facecolor(bg)
     ax.set_facecolor(bg)
     ax.axis("off")
 
     # ── Header ────────────────────────────────────────────────────────────
-    ax.text(0.02, 0.92, str(symbol), color="white", fontsize=17,
+    ax.text(0.02, 0.92, str(symbol), color=ct.TEXT_PRIMARY, fontsize=17,
             fontweight="bold", transform=ax.transAxes, va="top")
     ax.text(0.02, 0.74, f"{str(side).upper()}  ·  {int(qty)} qty",
-            color="#9aa0a6", fontsize=11, transform=ax.transAxes, va="top")
+            color=ct.TEXT_MUTED, fontsize=11, transform=ax.transAxes, va="top")
 
     # ── P&L (top-right) ───────────────────────────────────────────────────
     sign = "+" if win else ""
@@ -78,11 +82,11 @@ def render_trade_card(
         return 0.06 + 0.88 * ((v - lo) / span)
 
     y = 0.36
-    ax.plot([0.06, 0.94], [y, y], color="#3a3f44", lw=3,
+    ax.plot([0.06, 0.94], [y, y], color=ct.GRID, lw=3,
             transform=ax.transAxes, solid_capstyle="round")
 
-    colors = {"SL": "#d73027", "Entry": "#9aa0a6",
-              "LTP": accent, "Target": "#1a9850"}
+    colors = {"SL": ct.BEARISH, "Entry": ct.TEXT_MUTED,
+              "LTP": accent, "Target": ct.BULLISH}
     for label, v in pts.items():
         if not v or v <= 0:
             continue
@@ -91,11 +95,11 @@ def render_trade_card(
                 transform=ax.transAxes, zorder=5)
         ax.text(xp, y + 0.12, label, color=colors[label], fontsize=9,
                 ha="center", transform=ax.transAxes, fontweight="bold")
-        ax.text(xp, y - 0.16, f"{v:,.1f}", color="white", fontsize=9,
+        ax.text(xp, y - 0.16, f"{v:,.1f}", color=ct.TEXT_PRIMARY, fontsize=9,
                 ha="center", transform=ax.transAxes)
 
     if extra:
-        ax.text(0.06, 0.04, extra, color="#9aa0a6", fontsize=9,
+        ax.text(0.06, 0.04, extra, color=ct.TEXT_MUTED, fontsize=9,
                 transform=ax.transAxes, va="bottom")
 
     out_path = os.path.abspath(out_path)

@@ -73,14 +73,14 @@ def save_report(report:Dict[str,Any],path:str="executive_eod_report.json")->None
 def generate_chart(report:Dict[str,Any],output_dir:Optional[str]=None)->str:
     import matplotlib; matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    fig,axes=plt.subplots(2,2,figsize=(13,9),dpi=130); fig.patch.set_facecolor("#08111f")
-    for ax in axes.flat: ax.set_facecolor("#101c2c"); ax.tick_params(colors="#b8c7d9"); ax.grid(color="#2b3b50",alpha=.4)
+    import chart_theme as ct
+    fig,axes=plt.subplots(2,2,figsize=(13,9),dpi=130); ct.apply_theme(fig,axes)
     wins=[report["windows"][str(w)]["wins"] for w in WINDOWS]; losses=[report["windows"][str(w)]["losses"] for w in WINDOWS]
-    axes[0,0].bar([str(w) for w in WINDOWS],wins,color="#51cf66",label="Wins"); axes[0,0].bar([str(w) for w in WINDOWS],losses,bottom=wins,color="#ff6b6b",label="Losses"); axes[0,0].set_title("CUMULATIVE SIGNAL OUTCOMES",color="white",weight="bold"); axes[0,0].legend()
-    leaders=report["leaderboard"][:8][::-1]; axes[0,1].barh([x["strategy"][:22] for x in leaders],[x["expectancy"] for x in leaders],color=["#51cf66" if x["expectancy"]>0 else "#ff6b6b" for x in leaders]); axes[0,1].set_title("STRATEGY EXPECTANCY",color="white",weight="bold")
-    rej=list(report["rejections"].items())[:7][::-1]; axes[1,0].barh([x[0][:24] for x in rej],[x[1] for x in rej],color="#ffd43b"); axes[1,0].set_title("TOP REJECTIONS",color="white",weight="bold")
-    axes[1,1].axis("off"); tr=report["trades"]; text=(f"Closed trades  {tr['closed']}\nNet P&L       ₹{tr['net_pnl']:+,.0f}\nCharges       ₹{tr['charges']:,.0f}\n\nAI OBSERVATIONS\n"+"\n".join("• "+x for x in report["observations"]+report["tomorrow"])); axes[1,1].text(.04,.92,text,va="top",color="white",fontsize=11,linespacing=1.5)
-    fig.suptitle(f"EXECUTIVE EOD REPORT • {report['session_date']}",color="white",fontsize=17,weight="bold"); out=Path(output_dir or tempfile.gettempdir()); out.mkdir(parents=True,exist_ok=True); path=out/f"executive_eod_{report['session_date']}.png"; plt.tight_layout(rect=(0,0,1,.95)); fig.savefig(path,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); return str(path)
+    axes[0,0].bar([str(w) for w in WINDOWS],wins,color=ct.BULLISH,label="Wins"); axes[0,0].bar([str(w) for w in WINDOWS],losses,bottom=wins,color=ct.BEARISH,label="Losses"); axes[0,0].set_title("CUMULATIVE SIGNAL OUTCOMES",color=ct.TEXT_PRIMARY,weight="bold"); axes[0,0].legend()
+    leaders=report["leaderboard"][:8][::-1]; axes[0,1].barh([x["strategy"][:22] for x in leaders],[x["expectancy"] for x in leaders],color=[ct.BULLISH if x["expectancy"]>0 else ct.BEARISH for x in leaders]); axes[0,1].set_title("STRATEGY EXPECTANCY",color=ct.TEXT_PRIMARY,weight="bold")
+    rej=list(report["rejections"].items())[:7][::-1]; axes[1,0].barh([x[0][:24] for x in rej],[x[1] for x in rej],color=ct.WARNING); axes[1,0].set_title("TOP REJECTIONS",color=ct.TEXT_PRIMARY,weight="bold")
+    axes[1,1].axis("off"); tr=report["trades"]; text=(f"Closed trades  {tr['closed']}\nNet P&L       ₹{tr['net_pnl']:+,.0f}\nCharges       ₹{tr['charges']:,.0f}\n\nAI OBSERVATIONS\n"+"\n".join("• "+x for x in report["observations"]+report["tomorrow"])); axes[1,1].text(.04,.92,text,va="top",color=ct.TEXT_PRIMARY,fontsize=11,linespacing=1.5)
+    fig.suptitle(f"EXECUTIVE EOD REPORT • {report['session_date']}",color=ct.TEXT_PRIMARY,fontsize=17,weight="bold"); out=Path(output_dir or tempfile.gettempdir()); out.mkdir(parents=True,exist_ok=True); path=out/f"executive_eod_{report['session_date']}.png"; plt.tight_layout(rect=(0,0,1,.95)); fig.savefig(path,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); return str(path)
 
 def run(send_telegram:bool=False)->Dict[str,Any]:
     report=build_report(); save_report(report); path=generate_chart(report); report["chart_path"]=path
