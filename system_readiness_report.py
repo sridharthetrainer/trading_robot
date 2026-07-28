@@ -284,8 +284,18 @@ def build_system_readiness_report(
         },
         "ready_for_scaled_live": not blocks and not warnings,
     }
+    from audit_artifacts import evidence_scorecard
+    report["score_dimensions"] = evidence_scorecard(
+        capability=float(report["scores"].get("option_bot_capability", 0) or 0),
+        live_ready=int(report["mode"].get("live_ready_count", 0) or 0),
+        total_strategies=int(report["mode"].get("total_strategies", 0) or 0),
+        paired_fills=int(paired_fills.get("paired_fills", 0) or 0),
+        target_paired_fills=int(paired_fills.get("target_paired_fills", 100) or 100),
+        net_pnl=float(report["execution"].get("net_pnl", 0) or 0),
+    )
     if write:
-        Path(report_file).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+        from audit_artifacts import write_report_with_snapshot
+        write_report_with_snapshot(report_file, report)
     return report
 
 

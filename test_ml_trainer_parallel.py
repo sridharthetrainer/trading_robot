@@ -22,6 +22,9 @@ def test_train_one_symbol_sets_promotion_fields_on_success(monkeypatch):
         "label": "NIFTY", "model": object(),
         "cv_method": "purged_kfold", "cv_auc_mean": 0.60,
         "purged_brier_skill": 0.05, "probability_calibration": "sigmoid_purged_cv",
+        # Promotion is fail-closed on after-cost utility: it must be proven
+        # available AND positive, not merely "not proven negative".
+        "profit_utility": {"available": True, "best_avg_net_r": 0.10},
     }
     monkeypatch.setattr(ml_trainer, "_train_model", lambda *a, **kw: dict(fake_model_result))
     monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_SAMPLES", 50)
@@ -37,6 +40,29 @@ def test_train_one_symbol_sets_promotion_fields_on_success(monkeypatch):
     assert result["distinct_days"] == 6
     assert result["training_data_fingerprint"] == "fp_nifty"
     assert result["selected_features"] == ["f1", "f2"]
+
+
+def test_train_one_symbol_not_promoted_when_utility_unavailable(monkeypatch):
+    """Fail-closed regression: a model that clears every other promotion gate
+    but has no proven after-cost utility (available=False, e.g. too few
+    high-confidence samples) must NOT be promoted. Previously this case
+    bypassed the check entirely."""
+    fake_model_result = {
+        "label": "NIFTY", "model": object(),
+        "cv_method": "purged_kfold", "cv_auc_mean": 0.60,
+        "purged_brier_skill": 0.05, "probability_calibration": "sigmoid_purged_cv",
+        "profit_utility": {"available": False, "best_avg_net_r": None},
+    }
+    monkeypatch.setattr(ml_trainer, "_train_model", lambda *a, **kw: dict(fake_model_result))
+    monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_SAMPLES", 50)
+    monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_DAYS", 5)
+    monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_AUC", 0.55)
+
+    _, result = ml_trainer._train_one_symbol(
+        "NIFTY", np.zeros((60, 2), dtype=np.float32), np.array([0, 1] * 30),
+        ["f1", "f2"], sym_days=6, sym_n=60, fingerprint="fp_nifty",
+    )
+    assert result["promoted"] is False
 
 
 def test_train_one_symbol_not_promoted_below_threshold(monkeypatch):
@@ -138,3 +164,26 @@ def test_train_all_one_bad_symbol_does_not_lose_the_others(monkeypatch):
     assert "error" not in result
     assert "NIFTY" in result["per_symbol"]
     assert "BANKNIFTY" not in result["per_symbol"]
+
+
+def test_train_all_cross_symbol_failure_does_not_abort_pipeline(monkeypatch):
+    """A cross-symbol training failure (e.g. <2 valid purged folds on the
+    combined dataset) must not raise out of train_all() and abort the whole
+    nightly pipeline -- same resilience guarantee _train_one_symbol already
+    had, now applied to the cross-symbol call too. Per-symbol models (run
+    with the same _train_model) must still complete."""
+    monkeypatch.setattr(ml_trainer, "MIN_SYMBOL_SAMPLES", 50)
+
+    def _cross_symbol_fails(X, y, feature_names, label="cross_symbol", net_returns=None):
+        if label == "cross_symbol":
+            raise ValueError("invalid_purged_cv: only 1 valid folds")
+        return _fast_fake_train_model(X, y, feature_names, label=label, net_returns=net_returns)
+
+    monkeypatch.setattr(ml_trainer, "_train_model", _cross_symbol_fails)
+
+    df = _make_synthetic_df({"NIFTY": 12, "BANKNIFTY": 10}, rows_per_day=6)
+    result = ml_trainer.train_all(df)
+
+    assert "error" not in result
+    assert result["cross_symbol"] == {"error": "cross_symbol_training_failed"}
+    assert set(result["per_symbol"].keys()) == {"NIFTY", "BANKNIFTY"}

@@ -89,10 +89,12 @@ def dte_bucket(expiry: str, snapshot_date: str) -> str:
 
 def _agg(conn: sqlite3.Connection, *, flow: str, direction: str, band_clause: str,
          placeholders: str, day_cmp: str, cutoff: Optional[str],
-         dte: Optional[str] = None, strategy: Optional[str] = None
+         dte: Optional[str] = None, strategy: Optional[str] = None,
+         underlying: Optional[str] = None, option_type: Optional[str] = None,
          ) -> Tuple[int, int, float, float, float, float]:
     # Param order MUST match placeholder order in the SQL string below:
-    # flow, direction, [dte], [strategy], *LIVE_SOURCES, [cutoff].
+    # flow, direction, [dte], [strategy], [underlying], [option_type],
+    # *LIVE_SOURCES, [cutoff].
     params: Tuple[Any, ...] = (flow, direction)
     dte_clause = ""
     if dte:
@@ -102,6 +104,14 @@ def _agg(conn: sqlite3.Connection, *, flow: str, direction: str, band_clause: st
     if strategy:
         strategy_clause = "AND strategy = ?"
         params = params + (strategy,)
+    underlying_clause = ""
+    if underlying:
+        underlying_clause = "AND upper(underlying) = upper(?)"
+        params = params + (underlying,)
+    option_type_clause = ""
+    if option_type:
+        option_type_clause = "AND upper(option_type) = upper(?)"
+        params = params + (option_type,)
     params = params + tuple(LIVE_SOURCES)
     if cutoff is not None:
         params = params + (cutoff,)
@@ -113,6 +123,7 @@ def _agg(conn: sqlite3.Connection, *, flow: str, direction: str, band_clause: st
                     NULLIF(ABS(SUM(CASE WHEN net_pnl<0 THEN net_pnl ELSE 0 END)),0)
                FROM option_strike_signals
               WHERE flow=? AND direction=? AND {band_clause} {dte_clause} {strategy_clause}
+                {underlying_clause} {option_type_clause}
                 AND source IN ({placeholders}) AND outcome_label IN (-1,0,1) {day_cmp}""",
         params,
     ).fetchone()
@@ -123,7 +134,9 @@ def _agg(conn: sqlite3.Connection, *, flow: str, direction: str, band_clause: st
 
 
 def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score: float,
-                   dte: Optional[str] = None, strategy: Optional[str] = None) -> Dict[str, Any]:
+                   dte: Optional[str] = None, strategy: Optional[str] = None,
+                   underlying: Optional[str] = None,
+                   option_type: Optional[str] = None) -> Dict[str, Any]:
     band = score_band(float(score or 0))
     clauses = {
         "LT50": "score<50",
@@ -141,7 +154,8 @@ def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score:
     # unaffected.
     n, days, wr, avg_net, avg_r, pf = _agg(
         conn, flow=flow, direction=direction, band_clause=clauses[band],
-        placeholders=placeholders, day_cmp="", cutoff=None, dte=dte, strategy=strategy)
+        placeholders=placeholders, day_cmp="", cutoff=None, dte=dte, strategy=strategy,
+        underlying=underlying, option_type=option_type)
 
     # Promotion (positive status) additionally requires a day-split holdout
     # to independently confirm sign — see module note above. QUARANTINE
@@ -154,7 +168,8 @@ def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score:
         ho_n, ho_days, _, ho_avg_net, ho_avg_r, ho_pf = _agg(
             conn, flow=flow, direction=direction, band_clause=clauses[band],
             placeholders=placeholders, day_cmp="AND substr(snapshot_time,1,10) > ?",
-            cutoff=cutoff, dte=dte, strategy=strategy)
+            cutoff=cutoff, dte=dte, strategy=strategy,
+            underlying=underlying, option_type=option_type)
         holdout_confirmed = (
             ho_n >= HOLDOUT_MIN_N and ho_days >= HOLDOUT_MIN_DAYS
             and ho_avg_net > 0 and ho_avg_r > 0
@@ -165,7 +180,9 @@ def cohort_policy(conn: sqlite3.Connection, *, flow: str, direction: str, score:
     negative = n >= 20 and (avg_net <= 0 or avg_r <= 0 or pf < 1.0)
     status = "LIVE_EVIDENCE_READY" if live_ready else "PAPER_PROMISING" if promising else "QUARANTINED" if negative else "VALIDATING"
     return {
-        "status": status, "band": band, "dte": dte, "strategy": strategy, "outcomes": n, "days": days,
+        "status": status, "band": band, "dte": dte, "strategy": strategy,
+        "underlying": underlying, "option_type": option_type,
+        "outcomes": n, "days": days,
         "win_rate": round(wr, 4), "avg_net_pnl": round(avg_net, 2),
         "avg_net_r": round(avg_r, 4), "profit_factor": round(pf, 3),
         "live_ready": live_ready,

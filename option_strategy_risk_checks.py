@@ -106,3 +106,20 @@ def can_enter_trade(regime: Dict[str, Any], vix: float, api_latency_sec: float =
         return False, "max_1_undefined_risk_strategy_already_open"
 
     return True, ""
+
+
+def portfolio_option_risk_gate(
+    positions, *, max_abs_delta: float = 100.0, max_abs_gamma: float = 1.0,
+    max_abs_theta: float = 5000.0, max_abs_vega: float = 5000.0,
+    max_stress_loss: float = 3000.0,
+) -> Dict[str, Any]:
+    """Enforce portfolio Greeks and joint spot/IV stress limits."""
+    from option_institutional_controls import portfolio_risk_gate
+    return portfolio_risk_gate(
+        list(positions or []),
+        max_abs_delta=max_abs_delta,
+        max_abs_gamma=max_abs_gamma,
+        max_abs_theta=max_abs_theta,
+        max_abs_vega=max_abs_vega,
+        max_stress_loss=max_stress_loss,
+    )

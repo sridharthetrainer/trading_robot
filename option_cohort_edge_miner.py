@@ -151,19 +151,36 @@ def run(db_path: str = "option_chain_snapshots.db") -> Dict[str, Any]:
                 results.append({"dimension": dim_label, "cohort": str(cohort),
                                 "train": tr, "holdout": ho, "verdict": verdict})
 
+        # Rows are not independent: several strikes in one minute express one
+        # underlying decision. Publish a cluster-level summary alongside the
+        # legacy per-row tests so apparent sample size is never mistaken for
+        # independent evidence.
+        cluster_rows = [
+            {
+                "underlying": row[0], "snapshot_time": row[1],
+                "direction": row[2], "net_r": row[3],
+            }
+            for row in conn.execute(
+                """SELECT underlying,snapshot_time,direction,net_r
+                     FROM option_strike_signals
+                    WHERE outcome_label IN (-1,0,1) AND net_r IS NOT NULL"""
+            )
+        ]
+
     results.sort(key=lambda r: (r["verdict"] != "CANDIDATE", -(r["train"].get("t", 0) or 0)))
+    from option_institutional_controls import clustered_evidence
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "labelled_days": len(days), "train_days": cut_idx + 1,
         "holdout_days": len(days) - cut_idx - 1, "cutoff_day": cutoff_day,
         "bonferroni_tests": bonferroni,
+        "clustered_evidence": clustered_evidence(cluster_rows),
         "candidates": [r for r in results if r["verdict"] == "CANDIDATE"],
         "hurts": [r for r in results if r["verdict"] == "HURTS"][:15],
         "all_tested": results,
-        "caveat": "signals within a snapshot batch and within a day are "
-                  "correlated (same-direction near-simultaneous strikes); "
-                  "day-level holdout guards discovery but per-row t-stats "
-                  "here are optimistic versus a fully clustered-SE test.",
+        "caveat": "Per-row t-stats remain for continuity, but promotion must "
+                  "use clustered_evidence plus the day holdout because "
+                  "same-direction strikes in one minute are one decision.",
     }
     return report
 

@@ -7,6 +7,7 @@ Dedup persisted to disk — survives restarts.
 from __future__ import annotations
 
 import logging
+import shutil
 import threading
 import time
 from datetime import datetime, date
@@ -102,6 +103,7 @@ class AlertManager:
         self._dedup_file = Path(f"dedup_state{_sfx}.json")
         self._dedup_sent: Dict[str, float] = self._load_dedup()
         self._spool_file = Path(f"telegram_spool{_sfx}.jsonl")
+        self._media_spool_dir = Path(f".telegram_media_spool{_sfx}")
         self._last_spool_flush = 0.0
 
     # ── Dedup (persisted to disk) ─────────────────────────────────────────────
@@ -187,6 +189,43 @@ class AlertManager:
         except Exception as exc:
             logger.debug("Telegram spool write failed: %s", exc)
 
+    def _post_photo(self, photo_path: str, caption: str, timeout: int = 30) -> bool:
+        try:
+            with Path(photo_path).open("rb") as handle:
+                response = requests.post(
+                    f"https://api.telegram.org/bot{self.bot_token}/sendPhoto",
+                    data={
+                        "chat_id": self.chat_id,
+                        "caption": str(caption or "")[:1024],
+                        "parse_mode": self.parse_mode,
+                    },
+                    files={"photo": handle},
+                    timeout=timeout,
+                )
+            return response.status_code == 200
+        except Exception as exc:
+            logger.debug("Telegram photo post failed: %s", exc)
+            return False
+
+    def _spool_photo(self, photo_path: str, caption: str) -> None:
+        try:
+            source = Path(photo_path)
+            if not source.exists():
+                return
+            self._media_spool_dir.mkdir(parents=True, exist_ok=True)
+            digest = __import__("hashlib").sha256(source.read_bytes()).hexdigest()[:16]
+            saved = self._media_spool_dir / f"{int(time.time())}_{digest}{source.suffix or '.png'}"
+            shutil.copy2(source, saved)
+            import json as _j
+            item = {
+                "ts": time.time(), "kind": "photo",
+                "photo_path": str(saved), "caption": str(caption or "")[:1024],
+            }
+            with self._spool_file.open("a", encoding="utf-8") as handle:
+                handle.write(_j.dumps(item, ensure_ascii=False) + "\n")
+        except Exception as exc:
+            logger.debug("Telegram photo spool write failed: %s", exc)
+
     def flush_spool(self, limit: int = 5) -> int:
         if not self.enabled or not self._spool_file.exists():
             return 0
@@ -207,6 +246,19 @@ class AlertManager:
                 try:
                     item = _j.loads(raw)
                     data = item.get("data") or {}
+                    if item.get("kind") == "photo":
+                        photo_path = str(item.get("photo_path") or "")
+                        if photo_path and self._post_photo(
+                            photo_path, str(item.get("caption") or "")
+                        ):
+                            sent += 1
+                            try:
+                                Path(photo_path).unlink(missing_ok=True)
+                            except Exception:
+                                pass
+                        else:
+                            kept.append(raw)
+                        continue
                     dedup_key = item.get("dedup_key")
                     cooldown = int(item.get("cooldown", self.dedup_ttl) or self.dedup_ttl)
                     if dedup_key and self._is_dedup_blocked(dedup_key, cooldown):
@@ -752,20 +804,17 @@ class AlertManager:
     # ─────────────────────────────────────────────────────────────────────────
 
     def send_photo(self, photo_path: str, caption: str = "") -> bool:
-        """Send a photo/chart to Telegram."""
+        """Send a photo/chart, persisting a retry copy when delivery fails."""
         if not self.enabled: return False
         try:
-            import requests as _rq
-            url = f"https://api.telegram.org/bot{self.bot_token}/sendPhoto"
-            with open(photo_path, 'rb') as f:
-                resp = _rq.post(url, data={
-                    "chat_id": self.chat_id,
-                    "caption": caption[:1024],
-                    "parse_mode": self.parse_mode,
-                }, files={"photo": f}, timeout=30)
-            return resp.status_code == 200
+            self.flush_spool(limit=3)
+            ok = self._post_photo(photo_path, caption)
+            if not ok:
+                self._spool_photo(photo_path, caption)
+            return ok
         except Exception as e:
             logger.debug("send_photo: %s", e)
+            self._spool_photo(photo_path, caption)
             return False
 
     def send_video(self, video_path: str, caption: str = "") -> bool:

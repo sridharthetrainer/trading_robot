@@ -61,6 +61,36 @@ def _feature_cols(df: "pd.DataFrame") -> List[str]:
     return [c for c in df.columns if c not in _META_COLS]
 
 
+def _usable_feature_cols(
+    df: "pd.DataFrame", feature_cols: List[str]
+) -> Tuple[List[str], Dict[str, str]]:
+    """Remove features that cannot carry stable predictive information.
+
+    This is target-independent, so it cannot leak outcome labels. Supervised
+    selection remains inside each CV pipeline.
+    """
+    usable: List[str] = []
+    removed: Dict[str, str] = {}
+    near_constant_threshold = float(
+        os.getenv("ML_NEAR_CONSTANT_RATIO", "0.99")
+    )
+    for name in feature_cols:
+        series = pd.to_numeric(df[name], errors="coerce")
+        non_null = series.dropna()
+        if non_null.empty:
+            removed[name] = "all_null"
+            continue
+        if int(non_null.nunique(dropna=True)) <= 1:
+            removed[name] = "constant"
+            continue
+        dominant_ratio = float(non_null.value_counts(normalize=True, dropna=True).iloc[0])
+        if dominant_ratio >= near_constant_threshold:
+            removed[name] = "near_constant"
+            continue
+        usable.append(name)
+    return usable, removed
+
+
 def _train_model(
     X: np.ndarray,
     y: np.ndarray,
@@ -72,7 +102,9 @@ def _train_model(
     Train a GradientBoostingClassifier with TimeSeriesSplit cross-validation.
     Returns dict with model, cv_scores, feature_importances.
     """
-    from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+    from sklearn.model_selection import TimeSeriesSplit
+    from sklearn.base import clone
+    from sklearn.metrics import roc_auc_score
     from model_champion import compare_candidates
 
     tournament = compare_candidates(
@@ -86,10 +118,21 @@ def _train_model(
     # TimeSeriesSplit (legacy, kept for comparison) — respects order but does NOT
     # purge overlapping triple-barrier label windows → leaks.
     tscv = TimeSeriesSplit(n_splits=CV_FOLDS)
-    cv_scores = cross_val_score(pipe, X, y, cv=tscv, scoring="roc_auc")
+    legacy_scores = []
+    invalid_tscv_folds = 0
+    for train_idx, test_idx in tscv.split(X):
+        if len(np.unique(y[train_idx])) < 2 or len(np.unique(y[test_idx])) < 2:
+            invalid_tscv_folds += 1
+            continue
+        estimator = clone(pipe)
+        estimator.fit(X[train_idx], y[train_idx])
+        legacy_scores.append(float(roc_auc_score(
+            y[test_idx], estimator.predict_proba(X[test_idx])[:, 1]
+        )))
+    cv_scores = np.asarray(legacy_scores, dtype=float)
 
     # Purged K-Fold + embargo — the TRUSTWORTHY CV (removes label-window leakage).
-    # This becomes the promotion gate; fall back to TimeSeriesSplit if it can't run.
+    # This is the promotion gate. Never fall back to leaky or degenerate folds.
     purged = {"mean": float("nan"), "std": float("nan"), "n_splits_used": 0, "folds": []}
     try:
         from purged_cv import purged_cv_score
@@ -97,10 +140,14 @@ def _train_model(
                                  horizon=PURGE_HORIZON, embargo=PURGE_EMBARGO,
                                  scoring="roc_auc")
     except Exception as exc:
-        logger.debug("purged CV unavailable, using TimeSeriesSplit: %s", exc, exc_info=True)
+        logger.debug("purged CV unavailable; experiment rejected: %s", exc, exc_info=True)
     _purged_ok = purged.get("n_splits_used", 0) >= 2 and purged["mean"] == purged["mean"]
-    cv_auc_primary = float(purged["mean"]) if _purged_ok else float(cv_scores.mean())
-    cv_std_primary = float(purged["std"]) if _purged_ok else float(cv_scores.std())
+    if not _purged_ok:
+        raise ValueError(
+            f"invalid_purged_cv: only {purged.get('n_splits_used', 0)} valid folds"
+        )
+    cv_auc_primary = float(purged["mean"])
+    cv_std_primary = float(purged["std"])
 
     pipe.fit(X, y)
 
@@ -147,7 +194,8 @@ def _train_model(
     logger.info(
         "[%s] CV AUC(purged)=%.3f±%.3f  (TSCV=%.3f) | n=%d (W=%d L=%d) | top: %s (%.3f)",
         label,
-        cv_auc_primary, cv_std_primary, cv_scores.mean(),
+        cv_auc_primary, cv_std_primary,
+        float(cv_scores.mean()) if len(cv_scores) else float("nan"),
         len(y), n_pos, n_neg,
         feat_imp[0][0] if feat_imp else "—",
         feat_imp[0][1] if feat_imp else 0,
@@ -187,9 +235,10 @@ def _train_model(
         # Gate uses the PURGED (leakage-free) AUC; legacy TSCV kept for comparison.
         "cv_auc_mean":         round(cv_auc_primary, 4),
         "cv_auc_std":          round(cv_std_primary, 4),
-        "cv_auc_mean_tscv":    round(float(cv_scores.mean()), 4),
+        "cv_auc_mean_tscv":    round(float(cv_scores.mean()), 4) if len(cv_scores) else None,
         "cv_auc_purged":       round(float(purged["mean"]), 4) if _purged_ok else None,
-        "cv_method":           "purged_kfold" if _purged_ok else "timeseries_split",
+        "cv_method":           "purged_kfold",
+        "invalid_tscv_folds":  invalid_tscv_folds,
         "n_samples":           len(y),
         "n_positive":          n_pos,
         "n_negative":          n_neg,
@@ -281,10 +330,11 @@ def _train_one_symbol(
         and float(sym_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
         and float(sym_result.get("purged_brier_skill") or -1) > 0
         and sym_result.get("probability_calibration") == "sigmoid_purged_cv"
-        and (
-            not (sym_result.get("profit_utility") or {}).get("available")
-            or float((sym_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
-        )
+        # Fail closed: promotion requires a PROVEN positive after-cost R, not
+        # merely "we couldn't prove it's negative". Previously this bypassed
+        # the check entirely when utility data was thin/unavailable.
+        and bool((sym_result.get("profit_utility") or {}).get("available"))
+        and float((sym_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
     )
     sym_result["training_data_fingerprint"] = fingerprint
     sym_result["selected_features"] = list(feat_cols)
@@ -309,7 +359,16 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     if df.empty or "tb_outcome" not in df.columns:
         return {"error": "Empty DataFrame or missing tb_outcome column"}
 
-    feat_cols = _feature_cols(df)
+    feat_cols, removed_features = _usable_feature_cols(df, _feature_cols(df))
+    min_usable_features = max(1, int(os.getenv("ML_MIN_USABLE_FEATURES", "2")))
+    if len(feat_cols) < min_usable_features:
+        return {
+            "error": (
+                f"Only {len(feat_cols)} usable features — need at least "
+                f"{min_usable_features}"
+            ),
+            "removed_features": removed_features,
+        }
     df_clean  = df.dropna(subset=feat_cols)
 
     if len(df_clean) < 20:
@@ -332,32 +391,44 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     results: Dict[str, Any] = {
         "per_symbol": {},
         "timestamp":  datetime.now().isoformat(),
+        "removed_features": removed_features,
+        "usable_features": list(feat_cols),
     }
 
     # ── Cross-symbol model ────────────────────────────────────────────────────
+    # Wrapped in try/except for the same reason _train_one_symbol is (2026-07-11
+    # incident): a data condition that yields <2 valid purged folds (e.g. a
+    # thin/one-class window) must not abort the entire nightly pipeline. Was
+    # previously unguarded, unlike the per-symbol loop below.
     logger.info("Training cross-symbol model on %d samples", len(df_clean))
-    cross_result = _train_model(
-        X_all, y_all, feat_cols, label="cross_symbol", net_returns=net_returns_all
-    )
-    distinct_days = int(df_clean["__signal_date"].astype(str).nunique()) if "__signal_date" in df_clean else 0
-    cross_result["distinct_days"] = distinct_days
-    cross_result["promoted"] = bool(
-        len(df_clean) >= MIN_PROMOTION_SAMPLES
-        and distinct_days >= MIN_PROMOTION_DAYS
-        and cross_result.get("cv_method") == "purged_kfold"
-        and float(cross_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
-        and float(cross_result.get("purged_brier_skill") or -1) > 0
-        and cross_result.get("probability_calibration") == "sigmoid_purged_cv"
-        and (
-            not (cross_result.get("profit_utility") or {}).get("available")
-            or float((cross_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
+    try:
+        cross_result = _train_model(
+            X_all, y_all, feat_cols, label="cross_symbol", net_returns=net_returns_all
         )
-    )
-    cross_result["training_data_fingerprint"] = training_fingerprint
-    cross_result["selected_features"] = list(feat_cols)
-    results["cross_symbol"] = {k: v for k, v in cross_result.items() if k != "model"}
-    if cross_result["promoted"]:
-        saved_paths.append(str(_save_model(cross_result)))
+    except Exception as exc:
+        logger.warning("cross-symbol model skipped: %s", exc)
+        cross_result = None
+    distinct_days = int(df_clean["__signal_date"].astype(str).nunique()) if "__signal_date" in df_clean else 0
+    if cross_result is not None:
+        cross_result["distinct_days"] = distinct_days
+        cross_result["promoted"] = bool(
+            len(df_clean) >= MIN_PROMOTION_SAMPLES
+            and distinct_days >= MIN_PROMOTION_DAYS
+            and cross_result.get("cv_method") == "purged_kfold"
+            and float(cross_result.get("cv_auc_mean") or 0) >= MIN_PROMOTION_AUC
+            and float(cross_result.get("purged_brier_skill") or -1) > 0
+            and cross_result.get("probability_calibration") == "sigmoid_purged_cv"
+            # Fail closed: see matching comment in _train_one_symbol.
+            and bool((cross_result.get("profit_utility") or {}).get("available"))
+            and float((cross_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
+        )
+        cross_result["training_data_fingerprint"] = training_fingerprint
+        cross_result["selected_features"] = list(feat_cols)
+        results["cross_symbol"] = {k: v for k, v in cross_result.items() if k != "model"}
+        if cross_result["promoted"]:
+            saved_paths.append(str(_save_model(cross_result)))
+    else:
+        results["cross_symbol"] = {"error": "cross_symbol_training_failed"}
 
     # ── Per-symbol models ─────────────────────────────────────────────────────
     # 2026-07-11: a single sparse symbol (enough rows to pass MIN_SYMBOL_SAMPLES
@@ -428,8 +499,8 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     with open(imp_path, "w") as f:
         json.dump({
             "timestamp": results["timestamp"],
-            "cross_symbol_top20": cross_result["feature_importances"][:20],
-            "cross_symbol_cv_auc": cross_result["cv_auc_mean"],
+            "cross_symbol_top20": cross_result["feature_importances"][:20] if cross_result else [],
+            "cross_symbol_cv_auc": cross_result["cv_auc_mean"] if cross_result else None,
             "training_contract": TRAINING_CONTRACT,
             "training_data_fingerprint": training_fingerprint,
             "model_artifacts": results["model_artifacts"],

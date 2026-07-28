@@ -2099,19 +2099,11 @@ class AutonomousTradingSystem:
                 self._tg_cmd.set_command_menu([
                     ("menu", "Open interactive navigation"),
                     ("controlroom", "Live/profit/ML trade gate"),
-                    ("dashboard", "Live executive dashboard"),
                     ("status", "Bot, scanner and position status"),
                     ("signals", "Recent qualified signals"),
                     ("positions", "Open positions"),
                     ("pnl", "Gross, charges and net P&L"),
                     ("direction", "Combined index trade direction"),
-                    ("nexttrade", "Best qualified index candidate"),
-                    ("optionhealth", "Option-chain diagnostics"),
-                    ("optionedge", "Cumulative option evidence"),
-                    ("scanner", "Persisted scanner diagnostics"),
-                    ("performance", "Strategy leaderboard"),
-                    ("journal", "Signal decision journal"),
-                    ("health", "System health"),
                     ("help", "All command groups"),
                 ])
                 self._tg_cmd.start()
@@ -2141,7 +2133,7 @@ class AutonomousTradingSystem:
                 # /positions /health /help …) plus an option-focused /signals.
                 _opt_token = (_os_tg.getenv("OPTION_BOT_TOKEN") or "").strip()
                 _opt_chat  = (_os_tg.getenv("OPTION_CHAT_ID") or "").strip()
-                if _opt_token and _opt_chat:
+                if _opt_token and _opt_chat and _opt_token != _tg_token:
                     try:
                         self._tg_cmd_option = _TGCmd(
                             bot_token=_opt_token, chat_id=_opt_chat, bot_ref=self)
@@ -2379,27 +2371,21 @@ class AutonomousTradingSystem:
                             "direction", "tradeview", "view", "nexttrade",
                             "pause", "resume",
                         }
-                        try: self._tg_cmd_option.restrict_to(_OPT_ALLOWED)
+                        try:
+                            self._tg_cmd_option.restrict_to(_OPT_ALLOWED)
+                            self._tg_cmd_option.set_navigation_profile("option")
                         except Exception: pass
 
                         try:
                             self._tg_cmd_option.set_command_menu([
+                                ("menu", "Open option navigation"),
                                 ("report", "Anytime option levels and status"),
                                 ("controlroom", "Live/profit/ML trade gate"),
                                 ("all", "All signals, lifecycle and P&L"),
                                 ("direction", "Combined option trade direction"),
-                                ("optionhealth", "Option-chain source diagnostics"),
                                 ("status", "Today's option bot summary"),
                                 ("signals", "All generated option signals"),
                                 ("positions", "Open option positions"),
-                                ("edge", "Labelled option performance"),
-                                ("oisr", "OI support/resistance image"),
-                                ("oichart", "Intraday OI line chart"),
-                                ("strikeflow", "Active CE and PE strikes"),
-                                ("pcr", "Put/call ratio"),
-                                ("optlots", "Set today's option lot ceiling"),
-                                ("pause", "Pause new entries"),
-                                ("resume", "Resume new entries"),
                                 ("help", "Grouped option commands"),
                             ])
                         except Exception:
@@ -2410,6 +2396,11 @@ class AutonomousTradingSystem:
                                     len(self._tg_cmd_option._handlers))
                     except Exception as _oe:
                         logger.warning("Option TG command handler: %s", _oe)
+                elif _opt_token and _opt_chat and _opt_token == _tg_token:
+                    logger.error(
+                        "Option bot disabled: OPTION_BOT_TOKEN equals "
+                        "TELEGRAM_BOT_TOKEN; two getUpdates pollers cannot share a token."
+                    )
             except Exception as _tge:
                 logger.warning("TG command handler: %s", _tge)
 

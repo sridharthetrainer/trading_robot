@@ -168,6 +168,63 @@ def estimate_slippage(symbol: str, price: float, side: str) -> float:
     return round(price * pct * direction, 2)
 
 
+def simulate_paper_fill(
+    symbol: str,
+    decision_price: float,
+    side: str,
+    quantity: int,
+    quote: Optional[Dict[str, Any]] = None,
+    *,
+    latency_ms: float = 500.0,
+) -> Dict[str, Any]:
+    """Produce an adverse, quote-aware paper fill without inventing liquidity."""
+    quote = quote if isinstance(quote, dict) else {}
+    side = str(side).upper()
+    bid = _safe_float(
+        quote.get("bid") or quote.get("bid_price") or quote.get("bestBid")
+    )
+    ask = _safe_float(
+        quote.get("ask") or quote.get("ask_price") or quote.get("bestAsk")
+    )
+    quantity_key = "ask_qty" if side == "BUY" else "bid_qty"
+    available_raw = (
+        quote[quantity_key] if quantity_key in quote
+        else quote["available_qty"] if "available_qty" in quote
+        else quantity
+    )
+    available = int(float(available_raw or 0))
+    if bid and ask and ask >= bid:
+        executable = ask if side == "BUY" else bid
+        fill_qty = min(max(available, 0), max(int(quantity), 0))
+        if fill_qty <= 0:
+            return {
+                "status": "UNFILLED", "fill_qty": 0, "fill_price": 0.0,
+                "reason": "no_executable_quantity", "quote_driven": True,
+            }
+        participation = fill_qty / max(available, 1)
+        latency_impact = float(executable) * min(max(latency_ms, 0.0) / 1000.0, 5.0) * 0.0001
+        size_impact = float(executable) * min(participation, 1.0) * 0.0002
+        adverse = latency_impact + size_impact
+        fill_price = float(executable) + (adverse if side == "BUY" else -adverse)
+        return {
+            "status": "FILLED" if fill_qty >= quantity else "PARTIAL",
+            "fill_qty": fill_qty,
+            "fill_price": round(fill_price, 2),
+            "reason": "executable_quote",
+            "quote_driven": True,
+            "spread": round(float(ask) - float(bid), 4),
+            "latency_ms": float(latency_ms),
+        }
+    fallback = float(decision_price) + estimate_slippage(
+        symbol, float(decision_price), side
+    )
+    return {
+        "status": "SIMULATED_FALLBACK", "fill_qty": int(quantity),
+        "fill_price": round(fallback, 2), "reason": "bid_ask_unavailable",
+        "quote_driven": False, "latency_ms": float(latency_ms),
+    }
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -844,34 +901,88 @@ class TradeManager:
         import time
         now = time.time()
         try:
-            conn = self._connect()
+            # Was self._connect() -- TradeManager has no _connect method of
+            # its own (only TradeJournalStore does), so this raised
+            # AttributeError on every call, immediately swallowed by this
+            # method's own outer except below. This function -- the stuck
+            # order auto-cancel safety net -- has been completely dead
+            # (a 2026-07-28 audit finding, confirmed by actually running it).
+            conn = self.store._connect()
             rows = conn.execute(
-                "SELECT trade_id, symbol, side, qty, entry_price, strategy "
-                "FROM trades WHERE status='PENDING' AND created_at < ?",
+                "SELECT trade_id, symbol, side, qty, entry_price, strategy, order_id "
+                "FROM trades WHERE status IN ('PENDING','CANCEL_PENDING_RECONCILIATION') "
+                "AND created_at < ?",
                 (now - 90,)
             ).fetchall()
             conn.close()
             for row in rows:
-                tid, sym, side, qty, ep, strat = row
+                tid, sym, side, qty, ep, strat, broker_order_id = row
                 logger.warning("Stuck order detected: %s %s — cancelling", sym, tid)
+                cancel_confirmed = False
+                cancel_error = ""
                 try:
-                    if hasattr(self, 'broker_manager') and self.broker_manager:
-                        self.broker_manager.cancel_order(tid)
-                except Exception: pass
-                # Mark as failed
+                    if not (hasattr(self, "broker_manager") and self.broker_manager):
+                        raise RuntimeError("broker_manager_unavailable")
+                    if not broker_order_id or str(broker_order_id).startswith(("PAPER", "SIM")):
+                        # A paper order has no external state to reconcile.
+                        cancel_confirmed = True
+                    else:
+                        response = self.broker_manager.cancel_order(str(broker_order_id))
+                        if isinstance(response, dict):
+                            cancel_confirmed = bool(
+                                response.get("status") is True
+                                or response.get("success") is True
+                                or str(response.get("orderstatus") or "").lower()
+                                in {"cancelled", "canceled"}
+                            )
+                            cancel_error = str(
+                                response.get("message") or response.get("error") or ""
+                            )
+                        else:
+                            cancel_confirmed = response is True
+                        if not cancel_confirmed:
+                            raise RuntimeError(cancel_error or "broker_cancel_unconfirmed")
+                except Exception as _cancel_exc:
+                    cancel_error = str(_cancel_exc)
+                    try:
+                        from exception_telemetry import record_exception
+                        record_exception("trade_manager", "cancel_stuck_order", _cancel_exc,
+                                         severity="error", context={
+                                             "trade_id": tid, "order_id": broker_order_id,
+                                             "symbol": sym,
+                                         })
+                    except Exception:
+                        pass
                 try:
-                    conn2 = self._connect()
-                    conn2.execute(
-                        "UPDATE trades SET status='FAILED', exit_reason='stuck_order_timeout' "
-                        "WHERE trade_id=?", (tid,))
+                    conn2 = self.store._connect()
+                    if cancel_confirmed:
+                        conn2.execute(
+                            "UPDATE trades SET status='FAILED', "
+                            "exit_reason='stuck_order_cancelled' WHERE trade_id=?",
+                            (tid,),
+                        )
+                    else:
+                        # Keep this record visible to broker reconciliation. Never
+                        # imply that an external order is dead until the broker
+                        # confirms it.
+                        conn2.execute(
+                            "UPDATE trades SET status='CANCEL_PENDING_RECONCILIATION', "
+                            "exit_reason=? WHERE trade_id=?",
+                            (f"cancel_unconfirmed:{cancel_error[:160]}", tid),
+                        )
                     conn2.commit(); conn2.close()
                 except Exception: pass
                 if hasattr(self, 'alerts') and self.alerts:
-                    self.alerts.send(
+                    message = (
                         f"⚠️ Stuck order cancelled: {sym} {side}\n"
-                        f"  Order pending >90s — check broker app",
-                        dedup_key=f"stuck_{tid}", dedup_cooldown_override=3600
+                        f"  Order pending >90s — broker confirmed cancellation"
+                        if cancel_confirmed else
+                        f"🚨 CANCEL UNCONFIRMED: {sym} {side}\n"
+                        f"  Broker order {broker_order_id or 'UNKNOWN'} may still be live; "
+                        f"replacement is blocked pending reconciliation"
                     )
+                    self.alerts.send(message, dedup_key=f"stuck_{tid}",
+                                     dedup_cooldown_override=3600)
         except Exception as e:
             logger.debug("cancel_stuck_orders: %s", e)
 
@@ -879,6 +990,32 @@ class TradeManager:
     def _persist_trade(self, trade: ManagedTrade) -> None:
         with self._trade_lock:
             return self.__persist_trade_inner(trade)
+
+    def _record_verified_outcome_lifecycle(self, trade: ManagedTrade) -> None:
+        metadata = trade.metadata if isinstance(trade.metadata, dict) else {}
+        lifecycle_id = str(metadata.get("lifecycle_id") or "").strip()
+        # A live exit requires separate broker-fill verification; do not label
+        # its outcome verified merely because a close order was submitted.
+        if not lifecycle_id or str(metadata.get("live_order_id") or "").strip():
+            return
+        try:
+            from signal_lifecycle import SignalLifecycleStore
+            SignalLifecycleStore().transition(
+                lifecycle_id,
+                "OUTCOME_VERIFIED",
+                metadata={
+                    "trade_id": trade.trade_id,
+                    "exit_price": trade.exit_price,
+                    "realized_pnl": trade.realized_pnl,
+                    "exit_reason": trade.exit_reason,
+                },
+            )
+            metadata["lifecycle_stage"] = "OUTCOME_VERIFIED"
+        except Exception as exc:
+            logger.exception(
+                "Outcome lifecycle persistence failed for %s: %s",
+                trade.trade_id, exc,
+            )
 
     def __persist_trade_inner(self, trade: ManagedTrade) -> None:
         try:
@@ -1305,8 +1442,17 @@ class TradeManager:
                 _br = self.broker_manager.get_execution_broker()
                 if _br and hasattr(_br, "get_ltp"):
                     _ref = float(_br.get_ltp(symbol) or 0)
-            except Exception:
-                pass
+            except Exception as _ltp_exc:
+                # Fails safe below (no ref price -> order refused), but a
+                # swallowed LTP fetch failure here looks identical to "no
+                # price available" -- worth distinguishing a real connectivity
+                # failure from a normal empty quote.
+                try:
+                    from exception_telemetry import record_exception
+                    record_exception("trade_manager", "place_order_ltp_fetch", _ltp_exc,
+                                     context={"symbol": symbol})
+                except Exception:
+                    pass
 
         if _ref > 0:
             tol   = self._LIMIT_TOL
@@ -1514,6 +1660,11 @@ class TradeManager:
         # linked leg below, never a prerequisite for recording the trade.
         broker_name = "PAPER"
         order_id = f"PAPER-{int(time.time() * 1000)}"
+        # Tracks whether entry_price below ever gets overwritten by a REAL
+        # broker fill (only the option-execution-router success path does
+        # this, at "entry_price = float(_report.fill_price)"). Used further
+        # down to decide whether the PAPER entry needs simulated slippage.
+        _entry_price_is_real_fill = False
 
         # ── DUAL MODE: live order if balance sufficient ───────────────────
         _live_order_id   = None
@@ -1674,6 +1825,7 @@ class TradeManager:
                                         _live_order_id = _report.order_id
                                         if _report.fill_price > 0:
                                             entry_price = float(_report.fill_price)
+                                            _entry_price_is_real_fill = True
                                     else:
                                         logger.warning(
                                             "Option live leg blocked by execution router | "
@@ -1716,45 +1868,59 @@ class TradeManager:
         fill_confirmed = False
         fill_meta = {
             "fill_confirmed": False,
-            "fill_status": "paper_or_simulated" if str(order_id).startswith(("SIM", "PAPER")) else "not_checked",
+            "fill_status": "live_pending" if _live_order_id else "paper_or_simulated",
             "fill_qty": 0,
             "fill_avg_price": 0.0,
             "fill_latency_sec": None,
             "fill_rejection_reason": "",
         }
-        if not str(order_id).startswith(("SIM", "PAPER")):
+        _fill_order_id = str(_live_order_id or order_id)
+        if not str(_fill_order_id).startswith(("SIM", "PAPER")):
             try:
                 broker = self.broker_manager.get_execution_broker()
                 if broker and hasattr(broker, "poll_order_fill"):
                     fill_started = time.time()
-                    fill_data = broker.poll_order_fill(order_id, timeout_sec=10.0)
+                    fill_data = broker.poll_order_fill(_fill_order_id, timeout_sec=10.0)
                     fill_meta["fill_latency_sec"] = round(time.time() - fill_started, 3)
                     if fill_data is None:
                         fill_meta["fill_status"] = "timeout"
                         logger.critical(
                             "ORDER NOT CONFIRMED FILLED in 10s | "
                             "symbol=%s order_id=%s — cancelling",
-                            symbol, order_id,
+                            symbol, _fill_order_id,
                         )
+                        cancellation_confirmed = False
                         if hasattr(broker, "cancel_order"):
-                            broker.cancel_order(order_id)
+                            cancel_response = broker.cancel_order(_fill_order_id)
+                            cancellation_confirmed = bool(
+                                cancel_response is True
+                                or (
+                                    isinstance(cancel_response, dict)
+                                    and cancel_response.get("status") is True
+                                )
+                            )
+                        fill_meta["fill_status"] = (
+                            "cancelled_unfilled" if cancellation_confirmed
+                            else "cancel_pending_reconciliation"
+                        )
                         if self.alerts:
                             try:
                                 self.alerts.send(
                                     f"⚠️ ORDER FILL NOT CONFIRMED\n"
-                                    f"Symbol: {symbol}\nOrder: {order_id}\n"
-                                    f"Order cancelled — no trade opened"
+                                    f"Symbol: {symbol}\nOrder: {_fill_order_id}\n"
+                                    + (
+                                        "Broker confirmed cancellation"
+                                        if cancellation_confirmed else
+                                        "Cancellation unconfirmed — order may still be live"
+                                    )
                                 )
                             except Exception as _e:
                                 import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
-                        return None
                     else:
-                        fill_confirmed = True
-                        fill_meta["fill_confirmed"] = True
                         fill_meta["fill_status"] = str(
                             fill_data.get("status")
                             or fill_data.get("orderstatus")
-                            or "filled"
+                            or "unknown"
                         ).lower()
                         fill_meta["fill_qty"] = int(
                             fill_data.get("filled_qty")
@@ -1763,6 +1929,13 @@ class TradeManager:
                             or qty
                             or 0
                         )
+                        fill_confirmed = bool(
+                            fill_meta["fill_status"] in {
+                                "complete", "completed", "filled", "traded", "executed"
+                            }
+                            and fill_meta["fill_qty"] > 0
+                        )
+                        fill_meta["fill_confirmed"] = fill_confirmed
                         fill_meta["fill_rejection_reason"] = str(
                             fill_data.get("rejection_reason")
                             or fill_data.get("text")
@@ -1776,12 +1949,51 @@ class TradeManager:
                             or entry_price
                         )
                         fill_meta["fill_avg_price"] = avg_price
-                        if avg_price > 0:
+                        if fill_confirmed and avg_price > 0:
                             entry_price = avg_price   # use actual fill price
+                            _entry_price_is_real_fill = True
             except Exception as exc:
                 fill_meta["fill_status"] = "poll_error"
                 fill_meta["fill_rejection_reason"] = str(exc)
                 logger.warning("Fill confirmation check failed: %s", exc)
+        if _live_order_id and not _entry_price_is_real_fill and fill_meta["fill_status"] == "live_pending":
+            fill_meta["fill_status"] = "unverified_no_poll_support"
+
+        # Simulated fill quality for the PAPER leg: without a real broker fill,
+        # entry_price is otherwise recorded as exactly the decision-time LTP
+        # with zero slippage, which is optimistic vs. reality (estimate_slippage
+        # existed but was never called -- a 2026-07-28 audit finding). Applied
+        # only when no real fill price informed entry_price above.
+        if not _entry_price_is_real_fill:
+            try:
+                _paper_quote = {}
+                if isinstance(_meta_in, dict):
+                    _paper_quote = (
+                        _meta_in.get("quote")
+                        or _meta_in.get("selected_contract")
+                        or (
+                            _signal_data.get("quote", {})
+                            if isinstance(_signal_data, dict) else {}
+                        )
+                    )
+                _paper_fill = simulate_paper_fill(
+                    symbol, float(entry_price), side, qty, _paper_quote,
+                    latency_ms=float(
+                        (_meta_in.get("signal_latency_ms", 500.0)
+                         if isinstance(_meta_in, dict) else 500.0) or 500.0
+                    ),
+                )
+                if _paper_fill["status"] == "UNFILLED":
+                    logger.info("Paper order unfilled | symbol=%s reason=%s",
+                                symbol, _paper_fill["reason"])
+                    return None
+                entry_price = float(_paper_fill["fill_price"])
+                if _paper_fill["status"] == "PARTIAL":
+                    qty = int(_paper_fill["fill_qty"])
+                if isinstance(_meta_in, dict):
+                    _meta_in["paper_fill"] = _paper_fill
+            except Exception as _slip_exc:
+                logger.debug("paper fill slippage estimate failed for %s: %s", symbol, _slip_exc)
 
         trade_id = self._next_trade_id()
         trade = ManagedTrade(
@@ -2037,6 +2249,17 @@ class TradeManager:
                 if isinstance(trade.metadata, dict):
                     trade.metadata["paper_exit_order_id"] = order_id
             real_exit = float(exit_price) if exit_price else float(trade.entry_price)
+            if not live_order_id:
+                # Paper exit: no real broker fill informs real_exit above, so
+                # it was previously recorded as exactly the requested exit
+                # price (e.g. the SL/target level or LTP) with zero slippage.
+                # Exit side is the opposite direction of entry (closing a BUY
+                # sells, closing a SELL buys).
+                _exit_side = "SELL" if trade.side == "BUY" else "BUY"
+                try:
+                    real_exit = real_exit + estimate_slippage(trade.symbol, real_exit, _exit_side)
+                except Exception as _slip_exc:
+                    logger.debug("paper exit slippage estimate failed for %s: %s", trade.symbol, _slip_exc)
             pnl = self._calculate_pnl(trade, real_exit, is_options=self._is_option_trade(trade))
             trade.status       = "CLOSED"
             trade.exit_price   = real_exit
@@ -2052,6 +2275,7 @@ class TradeManager:
                 logger.debug("trade autopsy failed: %s", _autopsy_e)
             self.closed_trades.append(trade)
             del self.open_trades[trade_id]
+            self._record_verified_outcome_lifecycle(trade)
             self._persist_trade(trade)
             self.daily_realized_pnl += pnl
             # ── Update strategy performance matrix ─────────────────────────
@@ -2072,7 +2296,15 @@ class TradeManager:
                 if "stop" in str(exit_reason).lower() or "sl" in str(exit_reason).lower():
                     from market_intelligence_hub import register_sl_hit
                     register_sl_hit(getattr(trade,"symbol",""))
-            except Exception: pass
+            except Exception as _sl_reg_exc:
+                # Silently dropped before -- means the post-SL-hit cooldown
+                # bookkeeping can go missing with zero visibility.
+                try:
+                    from exception_telemetry import record_exception
+                    record_exception("trade_manager", "register_sl_hit", _sl_reg_exc,
+                                     context={"symbol": getattr(trade, "symbol", "")})
+                except Exception:
+                    pass
 
             # ── RL agent learning ──────────────────────────────────────────
             try:
@@ -2237,6 +2469,7 @@ class TradeManager:
 
                 self.closed_trades.append(trade)
                 del self.open_trades[trade_id]
+                self._record_verified_outcome_lifecycle(trade)
                 self._persist_trade(trade)
                 self.daily_realized_pnl += pnl
                 closed += 1

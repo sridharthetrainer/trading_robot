@@ -104,9 +104,11 @@ def audit_candle_cache(
                 spacing_ok = bool(exp and ((median <= exp * 3) if interval != "1d" else median >= 60))
         age_days = _age_days(last_ts)
         lag_sessions = session_lag(last_ts)
-        # Wall-clock age incorrectly marks every Friday snapshot stale on Sunday
-        # and every pre-holiday snapshot stale during a long exchange holiday.
-        freshness_ok = bool(interval == "1d" or lag_sessions == 0)
+        # Express the configured wall-clock allowance as missed exchange
+        # sessions. This applies the limit without falsely ageing Friday data
+        # over a weekend or an exchange holiday. Daily bars are not exempt.
+        allowed_session_lag = max(0, int(float(max_intraday_age_days)))
+        freshness_ok = bool(lag_sessions <= allowed_session_lag)
         checks.append({
             "symbol": symbol,
             "interval": interval,
@@ -115,6 +117,7 @@ def audit_candle_cache(
             "last": last_ts,
             "age_days": round(age_days, 3),
             "session_lag": int(lag_sessions),
+            "allowed_session_lag": allowed_session_lag,
             "median_spacing_min": round(median, 3),
             "spacing_ok": spacing_ok,
             "freshness_ok": freshness_ok,
@@ -137,7 +140,12 @@ def audit_candle_cache(
             }
     report = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "ok": len(checks) > 0,
+        # Was `len(checks) > 0` -- true as soon as ANY group existed, regardless
+        # of how many were bad/stale. A report with 1 group that failed every
+        # check still said ok=true. Consumers (autonomous_learning_cycle's step
+        # status) read this boolean directly, so it must reflect whether the
+        # checks actually passed, not merely whether the audit ran.
+        "ok": len(checks) > 0 and len(bad) == 0,
         "total_groups": len(checks),
         "bad_groups": len(bad),
         "stale_groups": len(stale),

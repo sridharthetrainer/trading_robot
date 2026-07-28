@@ -783,6 +783,16 @@ def build_audit() -> Dict[str, Any]:
         },
     }
     audit["score"] = _score_option_bot(audit)
+    journal = audit.get("decision_journal", {}) or {}
+    from audit_artifacts import evidence_scorecard
+    audit["score_dimensions"] = evidence_scorecard(
+        capability=float(audit["score"].get("capability_score", 0) or 0),
+        live_ready=1 if int(journal.get("verified_outcomes", 0) or 0) > 0 else 0,
+        total_strategies=1,
+        paired_fills=int(journal.get("executed_selected", 0) or 0),
+        target_paired_fills=100,
+        net_pnl=0.0,
+    )
     return audit
 
 
@@ -793,7 +803,8 @@ def main() -> int:
     args = parser.parse_args()
     audit = build_audit()
     if not args.no_write:
-        Path(REPORT_FILE).write_text(json.dumps(audit, indent=2, default=str), encoding="utf-8")
+        from audit_artifacts import write_report_with_snapshot
+        write_report_with_snapshot(REPORT_FILE, audit)
     if args.json:
         print(json.dumps(audit, indent=2, default=str))
         return 0

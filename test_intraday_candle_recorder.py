@@ -142,7 +142,15 @@ def test_data_quality_watchdog_flags_stale_intraday_cache(tmp_path):
     conn.commit()
     conn.close()
 
-    report = audit_candle_cache(str(db), max_intraday_age_days=0.1)
+    # write=False: this is a synthetic fixture testing the audit LOGIC only.
+    # audit_candle_cache() defaults to write=True and REPORT_JSON is a relative
+    # path -- without this, every test run silently overwrote the real,
+    # production data_quality_watchdog_report.json (consumed by
+    # system_readiness_report.py / autonomous_learning_cycle.py) with this
+    # fixture's misleading "1 stale group" snapshot. Confirmed as the actual
+    # root cause of a stale/wrong report found on disk during a 2026-07-28 audit.
+    report = audit_candle_cache(str(db), max_intraday_age_days=0.1, write=False)
     assert report["stale_groups"] == 1
     assert report["bad_groups"] == 1
+    assert report["ok"] is False
     assert report["checks"][0]["freshness_ok"] is False

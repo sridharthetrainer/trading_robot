@@ -490,24 +490,54 @@ def format_scalp_performance(d: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _alert_option_selection(payload: Dict[str, Any]) -> None:
+def _alert_option_selection(payload: Dict[str, Any]) -> bool:
     try:
         if not str(payload.get("decision") or "").startswith("selected"):
-            return
+            return False
         # Live trades only — exclude historical_replay/snapshot research strategies
         # (320 of 324 'selected' in the journal are replay labelling, not trades).
         if _is_research_strategy(payload.get("strategy")):
-            return
+            return False
         am = _option_alerts()
         if am is None:
-            return
+            return False
         sel = payload.get("selected") or {}
         key = (payload.get("trade_id") or payload.get("source_id")
                or f"{payload.get('symbol')}_{sel.get('strike')}_{sel.get('option_type')}_{payload.get('side')}")
-        am.send(_format_option_card(payload),
-                dedup_key=f"optsel_{key}", dedup_cooldown_override=3600)
+        return bool(am.send(
+            _format_option_card(payload),
+            dedup_key=f"optsel_{key}", dedup_cooldown_override=3600,
+        ))
     except Exception as exc:
         logger.debug("option selection alert: %s", exc)
+        return False
+
+
+def alert_option_scalp_report(payload: Dict[str, Any], df) -> bool:
+    """Send the evidence image after the OPTION_SCALP text selection card."""
+    try:
+        if str(payload.get("strategy") or "").upper() != "OPTION_SCALP":
+            return False
+        am = _option_alerts()
+        if am is None:
+            return False
+        from scalp_signal_report import render_scalp_signal_report
+        path = render_scalp_signal_report(df, payload)
+        sel = payload.get("selected") or {}
+        leg = str(sel.get("symbol") or payload.get("symbol") or "OPTION SCALP")
+        caption = (
+            f"📊 <b>{leg}</b> — supporting evidence\n"
+            "Underlying levels shown; verify live option premium and liquidity."
+        )
+        if payload.get("_selection_alert_sent") is False:
+            # The text card was queued first. Queue the image behind it instead
+            # of sending it immediately and reversing the conversation order.
+            am._spool_photo(path, caption)
+            return False
+        return bool(am.send_photo(path, caption))
+    except Exception as exc:
+        logger.debug("option scalp evidence report: %s", exc)
+        return False
 
 
 def alert_generated_option_signals(
@@ -740,7 +770,7 @@ def record_option_decision(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, separators=(",", ":"), ensure_ascii=False) + "\n")
-    _alert_option_selection(payload)
+    payload["_selection_alert_sent"] = _alert_option_selection(payload)
     _alert_option_result(payload)
     return payload
 

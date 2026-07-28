@@ -483,6 +483,9 @@ def _apply_live_eligibility(signal: Dict[str, Any]) -> Dict[str, Any]:
 
     manifest = _get_live_eligibility_manifest()
     if not manifest:
+        signal["paper_training_mode"] = True
+        signal["strategy_live_ready"] = False
+        signal["live_block_reason"] = "live_eligibility_manifest_unavailable"
         return signal
 
     strategies = manifest.get("strategies", {})
@@ -519,7 +522,18 @@ def _apply_generated_edge_policy(signal: Dict[str, Any]) -> Dict[str, Any]:
         from autonomous_edge_policy import apply_policy
         return apply_policy(signal)
     except Exception as exc:
-        logger.debug("autonomous edge policy unavailable: %s", exc)
+        logger.warning("autonomous edge policy unavailable; signal paper-only: %s", exc)
+        signal["paper_training_mode"] = True
+        signal["live_block_reason"] = ",".join(filter(None, (
+            str(signal.get("live_block_reason", "")),
+            "generated_edge_policy_unavailable",
+        )))
+        try:
+            from exception_telemetry import record_exception
+            record_exception("live_signal_engine", "generated_edge_policy", exc,
+                             context={"strategy": signal.get("strategy")})
+        except Exception:
+            pass
         return signal
 
 # ── Watchdog heartbeat (progress-coupled) ─────────────────────────────────────
@@ -3003,7 +3017,7 @@ class LiveSignalEngine:
                 max_spread_pct=float(getattr(cfg, "MAX_SELECTED_OPTION_SPREAD_PCT", 0.20) or 0.20),
                 min_premium=float(getattr(cfg, "MIN_SELECTED_OPTION_PREMIUM", 1.0) or 1.0),
                 max_premium=float(getattr(cfg, "MAX_SELECTED_OPTION_PREMIUM", 5000.0) or 5000.0),
-                require_liquidity_fields=bool(getattr(cfg, "REQUIRE_SELECTED_OPTION_LIQUIDITY_FIELDS", False)),
+                require_liquidity_fields=bool(getattr(cfg, "REQUIRE_SELECTED_OPTION_LIQUIDITY_FIELDS", True)),
                 trap_option_move_multiple=float(getattr(cfg, "OPTION_TRAP_MOVE_MULTIPLE", 3.0) or 3.0),
                 trap_min_underlying_move_pct=float(getattr(cfg, "OPTION_TRAP_MIN_UNDERLYING_MOVE_PCT", 0.08) or 0.08),
             )
@@ -3180,7 +3194,13 @@ class LiveSignalEngine:
     def _select_parallel_candidates(self, candidates: List[Dict[str, Any]], max_new_trades: int) -> List[Dict[str, Any]]:
         if max_new_trades <= 0 or not candidates:
             return []
-        ranked = sorted(candidates, key=self._candidate_rank_score, reverse=True)
+        from signal_lifecycle import consolidate_correlated_candidates
+        ranked = consolidate_correlated_candidates(
+            candidates,
+            score=self._candidate_rank_score,
+            cluster=lambda row: self._correlation_cluster(str(row.get("symbol", ""))),
+            side=lambda row: str((row.get("signal") or {}).get("side", "")),
+        )
         if not bool(getattr(cfg, "ENABLE_PARALLEL_OPTION_STYLES", True)):
             return ranked[:max_new_trades]
 
@@ -3233,12 +3253,6 @@ class LiveSignalEngine:
             if len(selected) >= max_new_trades:
                 break
             if can_add(candidate):
-                add(candidate)
-
-        for candidate in ranked:
-            if len(selected) >= max_new_trades:
-                break
-            if can_add(candidate, enforce_underlying=False):
                 add(candidate)
 
         logger.info("Parallel style selection: selected=%d style_counts=%s", len(selected), style_counts)
@@ -3457,6 +3471,51 @@ class LiveSignalEngine:
             logger.exception("Trade economics gate failed for %s", symbol)
             self._log_no_signal("economic_gate_error", {"symbol": symbol, "error": str(exc)[:160]})
             return False
+
+        # Options use one persisted lifecycle record across generation,
+        # liquidity and cost gates. Fail closed if the audit trail cannot be
+        # written; an unjournalled option must never become actionable.
+        if str(execution_plan.get("asset_type", "CASH")).upper() == "OPTION":
+            try:
+                from signal_lifecycle import STAGES, SignalLifecycleStore
+                lifecycle_id = str(
+                    signal.get("source_id")
+                    or signal.get("signal_id")
+                    or (
+                        f"{symbol}:{signal_side}:"
+                        f"{signal.get('generated_at') or signal.get('timestamp') or time.time()}"
+                    )
+                )
+                lifecycle_store = SignalLifecycleStore()
+                for lifecycle_stage in (
+                    "GENERATED", "PRICED", "LIQUID", "COST_POSITIVE"
+                ):
+                    current_stage = lifecycle_store.current_stage(lifecycle_id)
+                    if current_stage and STAGES.index(current_stage) >= STAGES.index(lifecycle_stage):
+                        continue
+                    lifecycle_store.transition(
+                        lifecycle_id,
+                        lifecycle_stage,
+                        metadata={
+                            "symbol": symbol,
+                            "side": signal_side,
+                            "execution_symbol": execution_plan.get("execution_symbol"),
+                            "execution_quality": opt_exec_quality,
+                            "estimated_cost": est_cost,
+                            "expected_gross": exp_gross,
+                        },
+                    )
+                if not lifecycle_store.actionable(lifecycle_id):
+                    raise RuntimeError("lifecycle_not_cost_positive")
+                execution_plan["lifecycle_id"] = lifecycle_id
+                execution_plan["lifecycle_stage"] = lifecycle_store.current_stage(lifecycle_id)
+            except Exception as exc:
+                logger.exception("Option lifecycle persistence failed for %s", symbol)
+                self._log_no_signal(
+                    "option_lifecycle_persistence_error",
+                    {"symbol": symbol, "error": str(exc)[:160]},
+                )
+                return False
 
         # Pre-market gap reduction (computed once per cycle in _run_cycle):
         # shrink size on big-gap mornings. Previously the multiplier was logged
@@ -3753,6 +3812,8 @@ class LiveSignalEngine:
                     },
                     "lot_size":          execution_plan.get("lot_size", 1),
                     "option_execution_quality": execution_plan.get("option_execution_quality", {}),
+                    "lifecycle_id":      execution_plan.get("lifecycle_id", ""),
+                    "lifecycle_stage":   execution_plan.get("lifecycle_stage", ""),
                     "shadow_candidates": execution_plan.get("shadow_candidates", []),
                     "capital_required":  round(
                         float(execution_plan.get("entry_price", 0) or 0) * int(final_qty or 0),
@@ -3769,6 +3830,20 @@ class LiveSignalEngine:
                 trade_id, symbol, execution_plan["execution_symbol"],
                 final_qty, style, exchange,
             )
+            if trade_id and execution_plan.get("asset_type") == "OPTION":
+                try:
+                    from signal_lifecycle import SignalLifecycleStore
+                    lifecycle_store = SignalLifecycleStore()
+                    lifecycle_store.transition(
+                        execution_plan["lifecycle_id"],
+                        "PAPER_FILLED",
+                        metadata={"trade_id": str(trade_id)},
+                    )
+                    execution_plan["lifecycle_stage"] = "PAPER_FILLED"
+                except Exception as exc:
+                    logger.exception(
+                        "Unable to persist PAPER_FILLED lifecycle for %s", symbol
+                    )
             # Close the signal-log loop: candidates are logged executed=0
             # before the gates; flip the matching row now that we traded.
             if _SIG_LOG_AVAIL and trade_id:
@@ -4364,7 +4439,11 @@ class LiveSignalEngine:
             "target_price":      target_price,
             "requested_quantity": max(1, sizing.quantity),
             "lot_size":          1,
-            "correlation_group": symbol,
+            # Was the raw symbol -- meant every cash-equity trade was its own
+            # correlation group, so the max-1-per-group cap never caught two
+            # same-sector stocks stacking correlated bets (fixed for options
+            # via _correlation_cluster; this path was missed).
+            "correlation_group": self._correlation_cluster(symbol),
         }
 
     def _decide_style(
@@ -4629,7 +4708,16 @@ class LiveSignalEngine:
                 _ang = getattr(self, '_angel', None)
                 if _ang and hasattr(_ang, 'get_balance'):
                     _bal = float(_ang.get_balance(force_real=True) or 0)
-            except Exception: pass
+            except Exception as _bal_exc:
+                # Feeds capital sizing and the PAPER_ORDERS_ONLY live-switch
+                # below -- a swallowed failure here silently keeps stale
+                # capital/mode state with zero visibility into why.
+                try:
+                    from exception_telemetry import record_exception
+                    record_exception("live_signal_engine", "refresh_angel_balance", _bal_exc,
+                                     severity="error")
+                except Exception:
+                    pass
             if _bal > 0:
                 self._last_real_balance = _bal
             if _bal > 1000 and abs(_bal - self.total_capital) > 100:

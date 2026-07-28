@@ -136,7 +136,7 @@ def evaluate_selected_option_execution(
         score -= 8.0
 
     if spread_pct is None:
-        warn.append("spread_unknown")
+        (hard if require_liquidity_fields else warn).append("spread_unknown")
         score -= 6.0
     elif spread_pct > max_spread_pct:
         hard.append("spread_too_wide")
@@ -147,6 +147,19 @@ def evaluate_selected_option_execution(
     if dte <= 0:
         warn.append("expiry_gamma_risk")
         score -= 6.0
+    if require_liquidity_fields:
+        symbol = str(selected.get("symbol") or "").strip().upper()
+        expiry = str(selected.get("expiry") or "").strip()
+        option_type = str(selected.get("option_type") or "").strip().upper()
+        strike = _f(selected.get("strike"), 0.0)
+        if not symbol:
+            hard.append("contract_symbol_missing")
+        if not expiry:
+            hard.append("expiry_missing")
+        if option_type not in {"CE", "PE"}:
+            hard.append("option_type_missing")
+        if strike <= 0:
+            hard.append("strike_missing")
     if strike_type and strike_type not in {"ATM", "ITM", "OTM", "SELECTED"} and "OTM" in strike_type:
         score -= 3.0
 

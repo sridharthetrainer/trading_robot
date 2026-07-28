@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-07-27T20:20:45+0530",
+  "generated_at": "2026-07-28T20:20:04+0530",
   "training_contract": "all_generated_signals_v4_causal_representations",
   "checks": {
     "outcome_fields_excluded": true,
-    "model_artifact_contract_enforced": true,
+    "model_artifact_contract_enforced": false,
     "legacy_learned_filters_neutral": true,
     "legacy_eod_weights_neutral": true,
     "calibrator_contract_enforced": true
   },
-  "ok": true,
+  "ok": false,
   "forbidden_selected": [],
   "ordered_features": [
     "score",
     "volume_ratio"
   ],
   "primary_model": {
-    "win_prob": 0.069,
+    "win_prob": 0.5,
     "model_used": "cross_symbol",
-    "available": true,
-    "cv_auc": 0.7174
+    "available": false,
+    "reason": "missing_positive_profit_utility"
   },
   "clean_evidence": {
-    "legacy_labelled": 31467,
-    "clean_labelled": 22387,
-    "clean_days": 19
+    "legacy_labelled": 31911,
+    "clean_labelled": 22831,
+    "clean_days": 20
   },
   "promotion_targets": {
     "samples": 5000,

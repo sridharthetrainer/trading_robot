@@ -1,0 +1,33 @@
+{
+  "live_ready": false,
+  "checks": {
+    "paper_safety": true,
+    "static_ip": false,
+    "broker_algo_registered": false,
+    "strategy_registered": false,
+    "order_tags": true,
+    "audit_chain": true
+  },
+  "valid_static_ips": [],
+  "blocks": [
+    "static_ip",
+    "broker_algo_registered",
+    "strategy_registered"
+  ],
+  "generated_at": "2026-07-28T19:24:16",
+  "audit_chain": {
+    "ok": true,
+    "path": "execution_compliance.jsonl",
+    "chained_rows": 24,
+    "legacy_rows": 0,
+    "invalid_rows": 0,
+    "last_hash": "7320ed7343f1c9ee0db2ebd6d7ee244226631d4af45a450da7bcc364fd2620a7"
+  },
+  "external_actions": [
+    "Obtain broker confirmation for the compliant retail-algo API path.",
+    "Register/whitelist primary and optional secondary public static IP.",
+    "Complete exchange/broker strategy registration where required.",
+    "Do not set approval flags from code; record documentary evidence first."
+  ],
+  "policy": "fail_closed_external_approvals_required"
+}

@@ -73,6 +73,13 @@ CONNECT_BASE_DELAY = 2
 RECONNECT_MIN_INTERVAL = 60   # min seconds between reconnect attempts (anti-storm)
 RATELIMIT_COOLDOWN     = int(os.getenv("ANGEL_RATELIMIT_COOLDOWN_SEC", "90"))
 API_MIN_INTERVAL_SEC   = float(os.getenv("ANGEL_API_MIN_INTERVAL_SEC", "0.4"))
+# 2026-07-28 audit finding: request_governor was only wired to getCandleData;
+# every order/GTT/search endpoint could still burst uncoordinated. These are
+# low-frequency, event-driven calls (order placement, not a per-symbol scan
+# loop), so a shared pacer here is safe and closes that gap. Deliberately NOT
+# applied to ltpData/getProfile -- those ARE per-symbol hot paths where a
+# blocking pacer would meaningfully slow the live scan loop.
+ORDER_API_MIN_INTERVAL_SEC = float(os.getenv("ANGEL_ORDER_API_MIN_INTERVAL_SEC", "0.2"))
 TOKEN_MISS_TTL         = 1800 # negative-cache unresolved tokens this long (anti-storm)
 
 # 2026-07-08: smartapi-python 1.5.5 hardcodes GTT create/modify/cancel under a
@@ -540,6 +547,8 @@ class AngelOne:
                 "timeperiod":      "365",
             }
             with self._lock:
+                from request_governor import acquire as _acquire_request_slot
+                _acquire_request_slot("angel_order_ops", ORDER_API_MIN_INTERVAL_SEC)
                 resp = self.obj.gttCreateRule(gtt_params)
 
             # SmartAPI versions differ: some return the rule id directly
@@ -570,6 +579,8 @@ class AngelOne:
             if not self._ensure_connected():
                 return False
             with self._lock:
+                from request_governor import acquire as _acquire_request_slot
+                _acquire_request_slot("angel_order_ops", ORDER_API_MIN_INTERVAL_SEC)
                 resp = self.obj.gttDeleteRule({"id": gtt_id, "symboltoken": "", "exchange": "NFO"})
             ok = bool(resp and resp.get("status"))
             if ok:
@@ -658,6 +669,8 @@ class AngelOne:
 
         with self._lock:
             try:
+                from request_governor import acquire as _acquire_request_slot
+                _acquire_request_slot("angel_order_ops", ORDER_API_MIN_INTERVAL_SEC)
                 order_id = self.obj.placeOrder(order_params)
                 logger.info(f"📤 Order placed: {buy_sell} {qty} {symbol} — ID: {order_id}")
                 time.sleep(2)
@@ -734,8 +747,14 @@ class AngelOne:
             resp = self.obj.ltpData(exchange, symbol, token)
             if resp and resp.get("data"):
                 return float(resp["data"].get("ltp", 0))
-        except Exception:
-            pass
+        except Exception as exc:
+            # Fully silent before -- this feeds paper-fill pricing directly,
+            # so a real connectivity failure looked identical to "no data yet".
+            try:
+                from exception_telemetry import record_exception
+                record_exception("angel", "get_real_ltp", exc, context={"symbol": symbol})
+            except Exception:
+                pass
         return None
 
     def reconcile_positions(self) -> dict:
@@ -1138,6 +1157,8 @@ class AngelOne:
 
         with self._lock:
             try:
+                from request_governor import acquire as _acquire_request_slot
+                _acquire_request_slot("angel_order_ops", ORDER_API_MIN_INTERVAL_SEC)
                 order_id = self.obj.placeOrder(order_params)
                 logger.info(
                     "SL-M order placed: %s %d %s trigger=%.2f → %s",
@@ -1345,6 +1366,8 @@ class AngelOne:
                 params["price"]        = str(round(new_sl, 2))
             if new_qty is not None:
                 params["quantity"] = str(new_qty)
+            from request_governor import acquire as _acquire_request_slot
+            _acquire_request_slot("angel_order_ops", ORDER_API_MIN_INTERVAL_SEC)
             resp = self._obj.modifyOrder(params)
             if resp and resp.get("status"):
                 logger.info("Order modified: %s → SL=%.2f", order_id, new_sl or 0)
@@ -1358,6 +1381,8 @@ class AngelOne:
         if not self._obj:
             return {"status": False, "message": "Not connected"}
         try:
+            from request_governor import acquire as _acquire_request_slot
+            _acquire_request_slot("angel_order_ops", ORDER_API_MIN_INTERVAL_SEC)
             resp = self._obj.cancelOrder(order_id, variety)
             return resp or {"status": False}
         except Exception as e:
@@ -1445,9 +1470,8 @@ class AngelOne:
                 # SmartAPI applies the historical-candle limit account-wide.
                 # Serialize calls from scanner/backfill threads and pace them.
                 with self._api_rate_lock:
-                    wait = API_MIN_INTERVAL_SEC - (time.monotonic() - self._last_api_call_ts)
-                    if wait > 0:
-                        time.sleep(wait)
+                    from request_governor import acquire as _acquire_request_slot
+                    _acquire_request_slot("angel_historical_candles", API_MIN_INTERVAL_SEC)
                     try:
                         resp = obj.getCandleData({
                             "exchange":    exchange,
@@ -1546,6 +1570,8 @@ class AngelOne:
             return None
 
         try:
+            from request_governor import acquire as _acquire_request_slot
+            _acquire_request_slot("angel_order_ops", ORDER_API_MIN_INTERVAL_SEC)
             result = self.obj.searchScrip(exchange, symbol)
             if result and result.get("data"):
                 return result["data"][0].get("symboltoken")

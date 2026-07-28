@@ -200,3 +200,19 @@ def test_option_router_unfilled_cancel_stays_not_ok():
     assert report.ok is False
     assert report.reason == "not_filled_cancelled"
     assert report.filled_qty == 0
+
+
+def test_option_router_uses_quote_aware_smart_pricing_schedule():
+    broker = FakeBroker(fills=[{
+        "status": "COMPLETE", "averageprice": 100.0, "filledshares": 50,
+    }], ltp=100.0)
+    report = execute_option_entry(
+        broker=broker, symbol="NIFTY26071625000CE", qty=50,
+        decision_price=100.0, decision_bid=99.0, decision_ask=101.0,
+        reprice_attempts=2, contract_hash="abc123",
+    )
+    assert report.ok is True
+    assert report.contract_hash == "abc123"
+    assert report.pricing_schedule[0] == 100.0
+    assert report.pricing_schedule[-1] < 101.0
+    assert broker.placed[0]["price"] == 100.0

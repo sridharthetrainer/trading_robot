@@ -39,9 +39,11 @@ def _get_angel_data_fetcher():
 import os
 
 import logging
+import shutil
 import threading
 import time
 from datetime import datetime, date
+from pathlib import Path
 from typing import Callable, Dict, Optional
 
 import requests
@@ -269,11 +271,22 @@ class TelegramCommandHandler:
         self._thread:   Optional[threading.Thread] = None
         self._handlers: Dict[str, Callable] = {}
         self._command_menu = []
+        self._navigation_profile = "main"
+        self._pending_inputs: Dict[str, dict] = {}
         self._poll_failures = 0
         self._last_poll_ok_at = 0.0
         self._last_poll_error = ""
         self._last_update_at = 0.0
         self._last_api_error = ""
+        # Never share retry rows between bot tokens.  The digest is deliberately
+        # non-reversible and keeps the credential itself out of filenames/logs.
+        import hashlib
+        identity_source = f"{self.bot_token}|{self.chat_id}".encode("utf-8")
+        self._media_spool_identity = hashlib.sha256(identity_source).hexdigest()[:16]
+        self._media_spool_dir = (
+            Path(".telegram_media_spool_commands") / self._media_spool_identity
+        )
+        self._last_spool_flush = 0.0
         self._register_defaults()
 
     # ── Telegram API ──────────────────────────────────────────────────────────
@@ -348,6 +361,13 @@ class TelegramCommandHandler:
 
     def send_photo(self, photo_path: str, caption: str = "", chat_id: str = None) -> bool:
         target = str(chat_id) if chat_id else self.chat_id
+        self._flush_photo_spool(limit=3)
+        ok = self._post_photo(photo_path, caption, target)
+        if not ok:
+            self._spool_photo(photo_path, caption, target)
+        return ok
+
+    def _post_photo(self, photo_path: str, caption: str, target: str) -> bool:
         try:
             with open(photo_path, "rb") as fh:
                 r = requests.post(
@@ -365,6 +385,85 @@ class TelegramCommandHandler:
         except Exception as exc:
             logger.warning("Telegram sendPhoto failed: %s", exc)
         return False
+
+    def _spool_photo(self, photo_path: str, caption: str, target: str) -> None:
+        """Persist a failed photo send for later retry -- previously the
+        image was silently dropped on failure, unlike alerts.py's send_photo."""
+        try:
+            source = Path(photo_path)
+            if not source.exists():
+                return
+            self._media_spool_dir.mkdir(parents=True, exist_ok=True)
+            import hashlib
+            digest = hashlib.sha256(source.read_bytes()).hexdigest()[:16]
+            saved = self._media_spool_dir / f"{int(time.time())}_{digest}{source.suffix or '.png'}"
+            shutil.copy2(source, saved)
+            import json as _j
+            item = {
+                "ts": time.time(), "photo_path": str(saved),
+                "caption": str(caption or "")[:1024], "chat_id": target,
+                "bot_identity": self._media_spool_identity,
+                "attempts": 0, "next_attempt_at": 0.0,
+            }
+            spool_file = self._media_spool_dir / "spool.jsonl"
+            with spool_file.open("a", encoding="utf-8") as handle:
+                handle.write(_j.dumps(item, ensure_ascii=False) + "\n")
+        except Exception as exc:
+            logger.debug("Telegram photo spool write failed: %s", exc)
+
+    def _flush_photo_spool(self, limit: int = 3) -> int:
+        spool_file = self._media_spool_dir / "spool.jsonl"
+        if not spool_file.exists() or time.time() - self._last_spool_flush < 30:
+            return 0
+        self._last_spool_flush = time.time()
+        sent = 0
+        kept = []
+        try:
+            import fcntl
+            import json as _j
+            self._media_spool_dir.mkdir(parents=True, exist_ok=True)
+            lock_path = self._media_spool_dir / ".flush.lock"
+            with lock_path.open("a+", encoding="utf-8") as lock_handle:
+                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+                for raw in spool_file.read_text(
+                    encoding="utf-8", errors="replace"
+                ).splitlines():
+                    if not raw.strip():
+                        continue
+                    try:
+                        item = _j.loads(raw)
+                    except Exception:
+                        kept.append(raw)
+                        continue
+                    if item.get("bot_identity") not in {
+                        None, self._media_spool_identity
+                    }:
+                        kept.append(raw)
+                        continue
+                    if sent >= limit or float(item.get("next_attempt_at") or 0) > time.time():
+                        kept.append(_j.dumps(item, ensure_ascii=False))
+                        continue
+                    photo_path = str(item.get("photo_path") or "")
+                    target = str(item.get("chat_id") or self.chat_id)
+                    if photo_path and self._post_photo(
+                        photo_path, str(item.get("caption") or ""), target
+                    ):
+                        sent += 1
+                        Path(photo_path).unlink(missing_ok=True)
+                    else:
+                        attempts = int(item.get("attempts") or 0) + 1
+                        item["attempts"] = attempts
+                        item["next_attempt_at"] = time.time() + min(1800, 30 * (2 ** min(attempts, 6)))
+                        kept.append(_j.dumps(item, ensure_ascii=False))
+                temp_file = spool_file.with_suffix(".tmp")
+                temp_file.write_text(
+                    "\n".join(kept) + ("\n" if kept else ""), encoding="utf-8"
+                )
+                os.replace(temp_file, spool_file)
+                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+        except Exception as exc:
+            logger.debug("Telegram photo spool flush failed: %s", exc)
+        return sent
 
     # ── Polling ───────────────────────────────────────────────────────────────
     def start(self) -> None:
@@ -395,6 +494,9 @@ class TelegramCommandHandler:
                 return
             bot_name = me.get("result",{}).get("username","?")
             logger.info("Telegram bot @%s connected ✅", bot_name)
+            # Restart recovery must not depend on another report being produced.
+            self._last_spool_flush = 0.0
+            self._flush_photo_spool(limit=10)
         except Exception as e:
             logger.error("Token validation failed: %s", e)
             return
@@ -469,6 +571,7 @@ class TelegramCommandHandler:
     def _poll_loop(self) -> None:
         while self._running:
             try:
+                self._flush_photo_spool(limit=3)
                 resp = self._api("getUpdates", offset=self._offset,
                                  timeout=_POLL_TIMEOUT,
                                  allowed_updates=["message", "callback_query"])
@@ -547,6 +650,16 @@ class TelegramCommandHandler:
         if not text:
             return
 
+        # Complete a menu-started prompt with the user's next plain-text reply.
+        # Previously that reply was parsed as a command name and silently lost.
+        pending = self._pending_inputs.pop(chat_id, None)
+        if pending and time.time() - pending.get("created_at", 0) > 300:
+            pending = None
+        if pending and not text.startswith("/"):
+            command = pending["command"]
+            if command in self._handlers:
+                text = f"/{command} {text}"
+
         # Extract command
         cmd = text.split()[0].lower().lstrip("/").split("@")[0]
         logger.info("CMD RECEIVED: /%s from chat=%s user=%s", cmd, chat_id, from_id)
@@ -562,7 +675,9 @@ class TelegramCommandHandler:
                         resp_text, resp_markup = response
                     else:
                         resp_text = response
-                        resp_markup = self._menu_keyboard("home") if cmd == "menu" else None
+                        resp_markup = (self._menu_keyboard(
+                            "home", self._navigation_profile
+                        ) if cmd == "menu" else None)
                     # Reply to the chat the command came from
                     self.send(resp_text, chat_id=chat_id, reply_markup=resp_markup)
             except Exception as e:
@@ -579,11 +694,11 @@ class TelegramCommandHandler:
             self.send(f"❓ Unknown: /{cmd} — try /help", chat_id=chat_id)
 
     @staticmethod
-    def _menu_keyboard(section: str = "home") -> dict:
-        sections = {
+    def _menu_keyboard(section: str = "home", profile: str = "main") -> dict:
+        main_sections = {
             "home": [[("📊 Monitor", "menu:monitor"), ("📈 Options", "menu:options")],
                      [("🧭 Direction", "menu:direction"), ("📚 Reports", "menu:reports")],
-                     [("⚙️ Control", "menu:control"), ("🔄 Refresh", "menu:home")]],
+                     [("⚙️ Control", "menu:control"), ("❓ Help", "cmd:help")]],
             "monitor": [[("Status", "cmd:status"), ("Positions", "cmd:positions")],
                         [("Signals", "cmd:signals"), ("Health", "cmd:health")],
                         [("P&L", "cmd:pnl"), ("⬅️ Back", "menu:home")]],
@@ -601,6 +716,24 @@ class TelegramCommandHandler:
                         [("🛑 Kill", "confirm:kill"), ("Settings", "cmd:settings")],
                         [("⬅️ Back", "menu:home")]],
         }
+        option_sections = {
+            "home": [[("📊 Today", "menu:monitor"), ("🎯 Signals", "menu:signals")],
+                     [("📈 OI & Market", "menu:options"), ("⚙️ Control", "menu:control")],
+                     [("❓ Help", "cmd:help")]],
+            "monitor": [[("Status", "cmd:status"), ("Positions", "cmd:positions")],
+                        [("Full Report", "cmd:report"), ("All P&L", "cmd:all")],
+                        [("Edge", "cmd:edge"), ("⬅️ Back", "menu:home")]],
+            "signals": [[("Generated", "cmd:signals"), ("Direction", "cmd:direction")],
+                        [("Next Trade", "cmd:nexttrade"), ("Chain Health", "cmd:optionhealth")],
+                        [("⬅️ Back", "menu:home")]],
+            "options": [[("OI S/R", "cmd:oisr"), ("OI Chart", "cmd:oichart")],
+                        [("Strike Flow", "cmd:strikeflow"), ("PCR", "cmd:pcr")],
+                        [("Spreads", "cmd:spreads"), ("⬅️ Back", "menu:home")]],
+            "control": [[("Set Lots", "prompt:optlots"), ("Readiness", "cmd:controlroom")],
+                        [("⏸ Pause", "confirm:pause"), ("▶️ Resume", "confirm:resume")],
+                        [("⬅️ Back", "menu:home")]],
+        }
+        sections = option_sections if profile == "option" else main_sections
         rows = sections.get(section, sections["home"])
         return {"inline_keyboard": [[{"text": text, "callback_data": data} for text, data in row]
                                     for row in rows]}
@@ -610,13 +743,49 @@ class TelegramCommandHandler:
         data = str(query.get("data", ""))[:128]
         msg = query.get("message") or {}
         chat_id = str((msg.get("chat") or {}).get("id", self.chat_id))
+        from_id = str((query.get("from") or {}).get("id", ""))
         self._api("answerCallbackQuery", callback_query_id=callback_id)
+        owner_id = str(self.chat_id or "").strip().lstrip("-")
+        if owner_id and not (
+            chat_id == self.chat_id
+            or from_id == owner_id
+            or str(chat_id).lstrip("-") == owner_id
+        ):
+            logger.warning("REJECTED callback: chat=%s from=%s owner=%s",
+                           chat_id, from_id, self.chat_id)
+            return
         if data.startswith("menu:"):
             section = data.split(":", 1)[1]
             labels = {"home":"Trading Bot Menu", "monitor":"Monitor", "options":"Options",
-                      "direction":"Trade Direction", "reports":"Reports", "control":"Control"}
-            self.send(f"📱 <b>{labels.get(section, 'Menu')}</b>\nChoose an action:",
-                      chat_id=chat_id, reply_markup=self._menu_keyboard(section))
+                      "signals":"Signals & Direction", "direction":"Trade Direction",
+                      "reports":"Reports", "control":"Control"}
+            if self._navigation_profile == "option" and section == "home":
+                labels["home"] = "Option Bot Menu"
+            text = f"📱 <b>{labels.get(section, 'Menu')}</b>\nChoose an action:"
+            markup = self._menu_keyboard(section, self._navigation_profile)
+            message_id = msg.get("message_id")
+            edited = False
+            if message_id is not None:
+                edited = self._api(
+                    "editMessageText", chat_id=chat_id, message_id=message_id,
+                    text=text, parse_mode="HTML", reply_markup=markup
+                ).get("ok", False)
+            if not edited:
+                self.send(text, chat_id=chat_id, reply_markup=markup)
+            return
+        if data.startswith("prompt:"):
+            command = data.split(":", 1)[1].lower()
+            prompts = {
+                "optlots": ("🎚️ Reply with <b>1</b>, <b>2</b>, <b>3</b>, "
+                            "or <b>auto</b> for today's option lot ceiling."),
+            }
+            if command not in self._handlers or command not in prompts:
+                self.send(f"⚠️ /{command} is unavailable.", chat_id=chat_id)
+                return
+            self._pending_inputs[chat_id] = {
+                "command": command, "created_at": time.time()
+            }
+            self.send(prompts[command], chat_id=chat_id)
             return
         if data.startswith("confirm:"):
             command = data.split(":", 1)[1]
@@ -698,6 +867,12 @@ class TelegramCommandHandler:
             if name and desc and name in self._handlers:
                 menu.append({"command": name, "description": desc})
         self._command_menu = menu[:100]
+
+    def set_navigation_profile(self, profile: str) -> None:
+        """Select keyboards containing only commands available to this bot."""
+        self._navigation_profile = (
+            "option" if str(profile or "").strip().lower() == "option" else "main"
+        )
 
     def _register_defaults(self) -> None:
         # ── Core ─────────────────────────────────────────────────────────────
@@ -1070,56 +1245,20 @@ class TelegramCommandHandler:
 
     def _cmd_help(self, _="") -> str:
         return (
-            "📱 <b>TRADING BOT — ALL COMMANDS</b>\n\n"
-            "📊 <b>Monitor</b>\n"
-            "  /menu  /controlroom  /readiness\n"
-            "  /dashboard  /status  /pnl\n"
-            "  /signals  /positions  /closed  /scanner\n\n"
-            "🌅 <b>Morning / Market</b>\n"
-            "  /morning  /brief  /vix  /regime\n"
-            "  /sentiment  /sectors  /fii  /gift\n"
-            "  /macro  /globalbias  /earnings  /score\n\n"
-            "📈 <b>OI / Options</b>\n"
-            "  /direction NIFTY — combined trade view\n"
-            "  /optionhealth  /optionedge  /nexttrade\n"
-            "  /oisr — OI support-resistance chart 🆕\n"
-            "  /strikeflow — top strikes by OI change\n"
-            "  /oi  /oitrend  /oichart  /pcr  /fnoban\n"
-            "  /maxpain  /herozero  /strikes\n\n"
-            "🧠 <b>Intelligence</b>\n"
-            "  /intel  /orderflow  /darkpool\n"
-            "  /hmm  /waves  /meta  /fiipos\n"
-            "  /insider  /social  /news  /breadth  /smi\n"
-            "  /commodities  /corpactions  /wow\n\n"
-            "💹 <b>Performance</b>\n"
-            "  /edge — signal worthiness: gross vs NET-of-cost R 🆕\n"
-            "  /profitgate — live/profit/ML gate summary 🆕\n"
-            "  /weekly  /analytics  /compare\n"
-            "  /sharpe  /streak  /attribution\n"
-            "  /eod  /downloads  /export\n\n"
-            "🤖 <b>ML / Backtest</b>\n"
-            "  /bt  /train  /ml  /calibrate\n"
-            "  /risk  /stt  /rollover\n"
-            "  /gaps  /diagscan  /why\n\n"
-            "🔧 <b>Control</b>\n"
-            "  /pause  /resume  /kill  /mode\n"
-            "  /paper  /shadow  /pause_sym\n"
-            "  /pause_strategy  /buy  /sell  /exit\n"
-            "  /optlots 1|2|3 — option lots for today 🆕\n\n"
-            "🛠️ <b>Tools</b>\n"
-            "  /calculate  /alert  /alerts\n"
-            "  /watch  /voice  /video\n"
-            "  /schedule  /next  /symbols\n\n"
-            "☁️ <b>Cloud</b>\n"
-            "  /backup  /github  /sync  /deploy\n"
-            "  /cloud  /datasources  /connections\n\n"
-            "⚙️ <b>Config</b>\n"
-            "  /config  /capital  /threshold\n"
-            "  /broker  /dhan  /zerodha\n"
-            "  /session  /tax  /reentry\n"
-            "  /health  /sysaudit 🆕  /log  /restart\n"
-            "  /version\n\n"
-            "💡 Most commands accept a symbol: <code>/signals RELIANCE</code>"
+            "📱 <b>TRADING BOT — QUICK HELP</b>\n\n"
+            "Use /menu for the tap-based control panel.\n\n"
+            "📊 <b>Daily</b>\n"
+            "  /controlroom  /status  /pnl\n"
+            "  /signals  /positions  /dashboard\n\n"
+            "🧭 <b>Decision support</b>\n"
+            "  /direction NIFTY  /nexttrade\n"
+            "  /optionhealth  /optionedge  /scanner\n\n"
+            "📚 <b>Review</b>\n"
+            "  /performance  /journal  /history  /charges\n\n"
+            "⚙️ <b>Control</b>\n"
+            "  /pause  /resume  /kill  /settings\n\n"
+            "Other specialist commands remain available by name; the menu "
+            "shows the commands intended for normal daily use."
         )
 
     def _cmd_status(self, _="") -> str:

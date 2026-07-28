@@ -51,6 +51,10 @@ class StrikeFlowSignal:
     edge_outcomes: int = 0
     edge_avg_r: float = 0.0
     edge_profit_factor: float = 0.0
+    focused_paper: bool = False
+    expected_move_pct: float = 0.0
+    break_even_move_pct: float = 0.0
+    paper_risk_budget: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -110,6 +114,10 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
         "edge_outcomes": "INTEGER DEFAULT 0",
         "edge_avg_r": "REAL DEFAULT 0",
         "edge_profit_factor": "REAL DEFAULT 0",
+        "focused_paper": "INTEGER DEFAULT 0",
+        "expected_move_pct": "REAL DEFAULT 0",
+        "break_even_move_pct": "REAL DEFAULT 0",
+        "paper_risk_budget": "REAL DEFAULT 0",
         # 2026-07-16: added so the multi-strategy option catalog
         # (option_strategy_registry.py / option_core_strategies.py) can
         # write shadow-only legs into this same table and have
@@ -218,6 +226,83 @@ def _snapshot_epoch(snapshot_time: str) -> float:
             return datetime.strptime(text, "%Y-%m-%dT%H:%M:%S%z").timestamp()
         except Exception:
             return time.time()
+
+
+def _expiry_dte(expiry: str, snapshot_time: str) -> int:
+    try:
+        return (
+            datetime.fromisoformat(str(expiry)[:10]).date()
+            - datetime.fromisoformat(str(snapshot_time)[:10]).date()
+        ).days
+    except Exception:
+        return 999
+
+
+def _focused_paper_gate(
+    conn: sqlite3.Connection,
+    *,
+    item: StrikeFlowSignal,
+    snapshot_time: str,
+    expiry: str,
+) -> tuple[bool, str, float, float, float]:
+    """Apply cost, exposure and temporal-correlation controls.
+
+    Returns (allow, reason, expected_move, break_even_move, risk_budget).
+    Percentages are stored as decimal fractions (0.03 == 3%).
+    """
+    if not _cfg_bool("OPTION_FOCUSED_PAPER_ENABLED", True):
+        return True, "", 0.0, 0.0, 0.0
+
+    try:
+        import config as cfg
+        paper_mode = bool(getattr(cfg, "PAPER_TRADING", False))
+        paper_capital = float(getattr(cfg, "PAPER_CAPITAL", 100000.0) or 100000.0)
+        slippage = float(getattr(cfg, "OPTION_EXECUTION_MAX_SLIPPAGE_PCT", 0.0075) or 0.0075)
+    except Exception:
+        paper_mode, paper_capital, slippage = False, 100000.0, 0.0075
+
+    risk_budget = paper_capital * max(0.0, _cfg_float("OPTION_FOCUSED_RISK_PCT", 0.0025))
+    expected_move = abs(float(item.price_change_pct or 0.0)) / 100.0
+    spread = max(0.0, float(item.spread_pct or 0.0))
+    theta_buffer = max(0.0, _cfg_float("OPTION_FOCUSED_THETA_BUFFER_PCT", 0.005))
+    break_even = (2.0 * spread) + (2.0 * max(0.0, slippage)) + theta_buffer
+
+    if not paper_mode:
+        return False, "focused_funnel_paper_only", expected_move, break_even, risk_budget
+    if float(item.score or 0.0) < _cfg_float("OPTION_FOCUSED_MIN_SCORE", 70.0):
+        return False, "focused_score_below_minimum", expected_move, break_even, risk_budget
+    max_spread = max(0.0, _cfg_float("OPTION_FOCUSED_MAX_SPREAD_PCT", 0.03))
+    if item.spread_pct is None or spread > max_spread:
+        return False, "focused_spread_too_wide", expected_move, break_even, risk_budget
+    if _expiry_dte(expiry, snapshot_time) > int(_cfg_float("OPTION_FOCUSED_MAX_DTE", 7)):
+        return False, "focused_far_expiry_blocked", expected_move, break_even, risk_budget
+    if expected_move <= break_even:
+        return False, "expected_move_below_cost_break_even", expected_move, break_even, risk_budget
+
+    snapshot_ts = _snapshot_epoch(snapshot_time)
+    cooldown = max(0, int(_cfg_float("OPTION_FOCUSED_COOLDOWN_SEC", 3600)))
+    recent = conn.execute(
+        """SELECT 1 FROM option_strike_signals
+            WHERE upper(underlying)=upper(?) AND direction=? AND flow=?
+              AND tradable=1 AND ts>=? AND ts<?
+            LIMIT 1""",
+        (item.underlying, item.direction, item.flow, snapshot_ts - cooldown, snapshot_ts),
+    ).fetchone()
+    if recent:
+        return False, "focused_temporal_dedup", expected_move, break_even, risk_budget
+
+    max_open_age = max(0, int(_cfg_float("OPTION_FOCUSED_MAX_OPEN_AGE_SEC", 14400)))
+    open_row = conn.execute(
+        """SELECT 1 FROM option_strike_signals
+            WHERE upper(underlying)=upper(?) AND tradable=1
+              AND lifecycle_status IN ('OPEN','TARGET1_HIT')
+              AND ts>=? AND ts<?
+            LIMIT 1""",
+        (item.underlying, snapshot_ts - max_open_age, snapshot_ts),
+    ).fetchone()
+    if open_row:
+        return False, "focused_underlying_exposure_cap", expected_move, break_even, risk_budget
+    return True, "focused_paper_qualified", expected_move, break_even, risk_budget
 
 
 def _strikes(rows: Iterable[Dict[str, Any]]) -> List[float]:
@@ -460,7 +545,9 @@ def persist_multistrike_signals(
     policy_adjusted = []
     for item in signals:
         policy = cohort_policy(conn, flow=item.flow, direction=item.direction,
-                                score=item.score, dte=_dte)
+                                score=item.score, dte=_dte,
+                                underlying=item.underlying,
+                                option_type=item.option_type)
         status = str(policy["status"])
         reason = item.reason
         tradable = item.tradable
@@ -474,6 +561,22 @@ def persist_multistrike_signals(
         elif tradable and status in {"PAPER_PROMISING", "LIVE_EVIDENCE_READY"}:
             score = round(min(100.0, float(score) + promising_bonus), 2)
             reason = f"{reason},positive_forward_edge"
+
+        focused = False
+        expected_move = break_even_move = risk_budget = 0.0
+        if tradable and _cfg_bool("OPTION_FOCUSED_PAPER_ENABLED", True):
+            allow_focused, focused_reason, expected_move, break_even_move, risk_budget = (
+                _focused_paper_gate(
+                    conn,
+                    item=replace(item, score=score),
+                    snapshot_time=snapshot_time,
+                    expiry=expiry,
+                )
+            )
+            if focused_reason:
+                reason = f"{reason},{focused_reason}"
+            focused = bool(allow_focused)
+            tradable = bool(tradable and allow_focused)
         policy_adjusted.append(
             replace(
                 item,
@@ -484,6 +587,10 @@ def persist_multistrike_signals(
                 edge_outcomes=policy["outcomes"],
                 edge_avg_r=policy["avg_net_r"],
                 edge_profit_factor=policy["profit_factor"],
+                focused_paper=focused,
+                expected_move_pct=round(expected_move, 6),
+                break_even_move_pct=round(break_even_move, 6),
+                paper_risk_budget=round(risk_budget, 2),
             )
         )
     signals = policy_adjusted
@@ -504,8 +611,9 @@ def persist_multistrike_signals(
              volume,volume_change_pct,spread_pct,reason,source,market_regime,
              market_bias,regime_aligned,score_rank,entry_price,stop_loss,target_1,target_2,
              lifecycle_status,status_updated_at,edge_policy,edge_outcomes,edge_avg_r,edge_profit_factor,
-             strategy,side)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             focused_paper,expected_move_pct,break_even_move_pct,paper_risk_budget,
+             capital_at_risk,strategy,side)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 snapshot_ts, snapshot_time, underlying, expiry, row["strike"], row["option_type"],
@@ -519,6 +627,9 @@ def persist_multistrike_signals(
                 row["entry_price"], row["stop_loss"], row["target_1"], row["target_2"],
                 "OPEN" if row["tradable"] else "WATCH", snapshot_time,
                 row["edge_policy"], row["edge_outcomes"], row["edge_avg_r"], row["edge_profit_factor"],
+                1 if row["focused_paper"] else 0, row["expected_move_pct"],
+                row["break_even_move_pct"], row["paper_risk_budget"],
+                row["paper_risk_budget"],
                 "single_strike_flow", "BUY",
             ),
         )

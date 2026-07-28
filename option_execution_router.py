@@ -41,6 +41,8 @@ class OptionExecutionReport:
     latency_sec: float = 0.0
     cancelled_order_ids: list[str] = field(default_factory=list)
     raw_fill: Dict[str, Any] = field(default_factory=dict)
+    contract_hash: str = ""
+    pricing_schedule: list[float] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -199,6 +201,10 @@ def execute_option_entry(
     reprice_attempts: int = 1,
     max_signal_age_sec: float = 90.0,
     signal_generated_at: float = 0.0,
+    decision_bid: float = 0.0,
+    decision_ask: float = 0.0,
+    smart_cross_fraction: float = 0.75,
+    contract_hash: str = "",
 ) -> OptionExecutionReport:
     started = time.time()
     side = str(side or "BUY").upper()
@@ -207,6 +213,7 @@ def execute_option_entry(
     report = OptionExecutionReport(
         ok=False, symbol=symbol, side=side, qty=qty,
         decision_price=round(_f(decision_price), 4),
+        contract_hash=str(contract_hash or ""),
     )
 
     if side != "BUY":
@@ -235,6 +242,17 @@ def execute_option_entry(
         report.broker_name = type(broker).__name__
 
     attempts = 1 + max(0, int(reprice_attempts or 0))
+    smart_schedule = ()
+    if _f(decision_bid) > 0 and _f(decision_ask) >= _f(decision_bid):
+        try:
+            from option_institutional_controls import smart_limit_schedule
+            smart_schedule = smart_limit_schedule(
+                side=side, bid=_f(decision_bid), ask=_f(decision_ask),
+                attempts=attempts, max_cross_fraction=smart_cross_fraction,
+            )
+            report.pricing_schedule = list(smart_schedule)
+        except Exception as exc:
+            logger.debug("smart option pricing unavailable: %s", exc)
     for attempt in range(1, attempts + 1):
         report.attempts = attempt
         try:
@@ -250,10 +268,14 @@ def execute_option_entry(
             report.status = f"ltp={round(ltp, 4)} max_entry={round(max_entry, 4)}"
             break
 
-        limit_price = _limit_for_buy(
-            decision_price=_f(decision_price),
-            slippage_pct=max(0.0, float(max_slippage_pct or 0.0)),
-            reprice=attempt > 1,
+        limit_price = (
+            smart_schedule[min(attempt - 1, len(smart_schedule) - 1)]
+            if smart_schedule
+            else _limit_for_buy(
+                decision_price=_f(decision_price),
+                slippage_pct=max(0.0, float(max_slippage_pct or 0.0)),
+                reprice=attempt > 1,
+            )
         )
         if limit_price <= 0:
             report.reason = "invalid_limit_price"

@@ -79,3 +79,13 @@ def test_can_enter_trade_allows_calm_conditions():
         open_undefined_risk_count=0, adx=22.0)
     assert ok is True
     assert reason == ""
+
+
+def test_portfolio_option_risk_gate_blocks_delta_concentration():
+    result = orc.portfolio_option_risk_gate(
+        [{"side": "BUY", "quantity": 50, "spot": 24000, "delta": 0.6,
+          "gamma": 0.0, "theta": -1.0, "vega": 1.0}],
+        max_abs_delta=20.0, max_stress_loss=1_000_000,
+    )
+    assert result["allowed"] is False
+    assert "delta_limit" in result["breaches"]

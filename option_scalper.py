@@ -99,6 +99,19 @@ def scalp_signal(df, lookback: int = 5, min_score: float = 6.0) -> Optional[Dict
         last_rng = float(rng.iloc[-1])
         avg_rng = float(rng.iloc[-(lookback + 1):-1].mean() or 0.0)
         rng_exp = (last_rng / avg_rng) if avg_rng > 0 else 1.0
+        atr = float(rng.tail(14).mean() or avg_rng or last_rng)
+        ema9 = float(close.ewm(span=9, adjust=False).mean().iloc[-1])
+        ema21 = float(close.ewm(span=21, adjust=False).mean().iloc[-1])
+        delta = close.diff()
+        avg_gain = float(delta.clip(lower=0).tail(14).mean() or 0.0)
+        avg_loss = float((-delta.clip(upper=0)).tail(14).mean() or 0.0)
+        rsi = 100.0 if avg_loss <= 0 and avg_gain > 0 else (
+            50.0 if avg_loss <= 0 else 100.0 - 100.0 / (1.0 + avg_gain / avg_loss)
+        )
+        volume_ratio = 0.0
+        if vol is not None:
+            prior_volume = float(vol.iloc[-(lookback + 1):-1].mean() or 0.0)
+            volume_ratio = float(vol.iloc[-1]) / prior_volume if prior_volume > 0 else 0.0
 
         try:
             tp = (high + low + close) / 3.0
@@ -123,6 +136,14 @@ def scalp_signal(df, lookback: int = 5, min_score: float = 6.0) -> Optional[Dict
         if score < min_score:
             return None
 
+        # These are UNDERLYING invalidation/target levels. The scanner has not
+        # priced an option contract, so presenting them as option-premium stops
+        # would be false precision.
+        stop = (min(prior_high, last_close - atr)
+                if side == "BUY" else max(prior_low, last_close + atr))
+        risk = abs(last_close - stop)
+        target_1 = last_close + risk if side == "BUY" else last_close - risk
+        target_2 = last_close + 1.5 * risk if side == "BUY" else last_close - 1.5 * risk
         lvl = f">{prior_high:.1f}" if side == "BUY" else f"<{prior_low:.1f}"
         return {
             "side": side,
@@ -130,6 +151,19 @@ def scalp_signal(df, lookback: int = 5, min_score: float = 6.0) -> Optional[Dict
             "score": round(score, 2),
             "reason": f"scalp breakout {lvl} rng_exp={rng_exp:.1f}x vwap_ok",
             "last_close": last_close,
+            "trigger": ref,
+            "stop": round(stop, 2),
+            "target_1": round(target_1, 2),
+            "target_2": round(target_2, 2),
+            "risk_reward_1": 1.0,
+            "risk_reward_2": 1.5,
+            "vwap": round(vwap, 2),
+            "ema9": round(ema9, 2),
+            "ema21": round(ema21, 2),
+            "rsi": round(rsi, 1),
+            "range_expansion": round(rng_exp, 2),
+            "volume_ratio": round(volume_ratio, 2),
+            "atr": round(atr, 2),
         }
     except Exception as exc:
         logger.debug("scalp_signal: %s", exc)
@@ -165,14 +199,52 @@ def scan_and_journal(symbols: Optional[List[str]] = None) -> int:
                 continue
             spot = sig["last_close"]
             strike = _atm_strike(spot, sym)
-            record_option_decision(
+            option_context = {}
+            try:
+                from option_metrics_cache import get as get_option_metrics
+                option_context = get_option_metrics(sym) or {}
+            except Exception:
+                pass
+            selected_contract = {
+                "symbol": f"{sym}{strike}{sig['option_type']}",
+                "strike": strike,
+                "option_type": sig["option_type"],
+                "style": "scalping",
+            }
+            # OPTION_SCALP never fetches per-contract chain data (expiry,
+            # premium, oi, volume, spread) -- it's deliberately a fast,
+            # lightweight scan, unlike the full option-execution-quality gate
+            # used for real candidates. Calling evaluate_option_candidate()
+            # against this shape always returned the same GENERATED/
+            # not-actionable verdict regardless of the actual signal (a
+            # 2026-07-28 audit finding: the check was decorative, never gated
+            # anything, and its constant output was misleading in the
+            # journal). Recorded honestly instead of pretending to evaluate it.
+            lifecycle = {
+                "stage": "SIGNAL_ONLY",
+                "note": "no per-contract chain data fetched; not evaluated against the execution lifecycle gate",
+            }
+            payload = record_option_decision(
                 strategy="OPTION_SCALP", symbol=sym, decision="selected",
                 reason=sig["reason"], side=sig["side"], spot=spot,
                 setup_score=sig["score"],
-                selected={"symbol": f"{sym}{strike}{sig['option_type']}",
-                          "strike": strike, "option_type": sig["option_type"]},
+                selected=selected_contract,
                 source_id=f"scalp_{sym}_{datetime.now():%Y%m%d%H%M}",
+                metadata={
+                    "scalp_evidence": sig,
+                    "interval": interval,
+                    "option_context": option_context,
+                    "lifecycle": lifecycle,
+                },
             )
+            if str(_cfg("OPTION_SCALP_IMAGE_REPORT", "true")).lower() in (
+                "1", "true", "yes", "on"
+            ):
+                try:
+                    from option_decision_journal import alert_option_scalp_report
+                    alert_option_scalp_report(payload, df)
+                except Exception as exc:
+                    logger.debug("scalp image report %s: %s", sym, exc)
             emitted += 1
             logger.info("OPTION_SCALP %s %s ATM %s%s score=%.1f",
                         sym, sig["side"], strike, sig["option_type"], sig["score"])

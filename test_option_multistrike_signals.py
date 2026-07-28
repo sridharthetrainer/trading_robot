@@ -110,7 +110,11 @@ def test_correlated_strikes_are_deduplicated_for_execution():
 
 
 def test_persisted_flow_is_available_to_strike_ranker(tmp_path, monkeypatch):
+    import config
+    monkeypatch.setattr(config, "OPTION_EDGE_POLICY_REQUIRE_PROMISING", False)
+    monkeypatch.setattr(config, "OPTION_FOCUSED_PAPER_ENABLED", False)
     monkeypatch.setenv("OPTION_EDGE_POLICY_REQUIRE_PROMISING", "false")
+    monkeypatch.setenv("OPTION_FOCUSED_PAPER_ENABLED", "false")
     db = tmp_path / "snapshots.db"
     previous = [_row(25000, 100, 1000, 1000)]
     current = [_row(25000, 110, 1200, 1500)]
@@ -142,6 +146,60 @@ def test_persisted_flow_is_available_to_strike_ranker(tmp_path, monkeypatch):
     assert result["written"] == 2
     assert result["tradable"] >= 1
     assert scores[25000.0]["tradable"] is True
+
+
+def test_focused_paper_funnel_blocks_repeated_correlated_snapshot(tmp_path, monkeypatch):
+    import config
+    monkeypatch.setattr(config, "OPTION_EDGE_POLICY_REQUIRE_PROMISING", False)
+    monkeypatch.setattr(config, "OPTION_FOCUSED_PAPER_ENABLED", True)
+    monkeypatch.setattr(config, "PAPER_TRADING", True)
+    monkeypatch.setattr(config, "PAPER_CAPITAL", 100000.0)
+    monkeypatch.setenv("OPTION_EDGE_POLICY_REQUIRE_PROMISING", "false")
+    monkeypatch.setenv("OPTION_FOCUSED_PAPER_ENABLED", "true")
+    monkeypatch.setenv("OPTION_FOCUSED_MIN_SCORE", "70")
+    monkeypatch.setenv("OPTION_FOCUSED_COOLDOWN_SEC", "3600")
+
+    db = tmp_path / "snapshots.db"
+    first = [_row(25000, 100, 1000, 1000)]
+    second = [_row(25000, 110, 1200, 1500)]
+    third = [_row(25000, 121, 1440, 2200)]
+    with sqlite3.connect(db) as conn:
+        conn.execute(
+            "CREATE TABLE option_chain_snapshots "
+            "(ts REAL,snapshot_time TEXT,underlying TEXT,expiry TEXT,ok INTEGER,rows_json TEXT)"
+        )
+        conn.execute("INSERT INTO option_chain_snapshots VALUES (?,?,?,?,?,?)", (
+            1, "2026-06-25T10:00:00+05:30", "NIFTY", "2026-06-30", 1, json.dumps(first),
+        ))
+        first_result = persist_multistrike_signals(
+            conn=conn, snapshot_time="2026-06-25T10:05:00+05:30",
+            underlying="NIFTY", expiry="2026-06-30", current_rows=second, source="angel",
+        )
+        conn.execute("INSERT INTO option_chain_snapshots VALUES (?,?,?,?,?,?)", (
+            2, "2026-06-25T10:05:00+05:30", "NIFTY", "2026-06-30", 1, json.dumps(second),
+        ))
+        second_result = persist_multistrike_signals(
+            conn=conn, snapshot_time="2026-06-25T10:15:00+05:30",
+            underlying="NIFTY", expiry="2026-06-30", current_rows=third, source="angel",
+        )
+        qualified = conn.execute(
+            "SELECT focused_paper,paper_risk_budget,expected_move_pct,break_even_move_pct "
+            "FROM option_strike_signals WHERE snapshot_time=? AND option_type='CE'",
+            ("2026-06-25T10:05:00+05:30",),
+        ).fetchone()
+        repeated = conn.execute(
+            "SELECT tradable,reason FROM option_strike_signals "
+            "WHERE snapshot_time=? AND option_type='CE'",
+            ("2026-06-25T10:15:00+05:30",),
+        ).fetchone()
+
+    assert first_result["tradable"] == 1
+    assert second_result["tradable"] == 0
+    assert qualified[0] == 1
+    assert qualified[1] == 250.0
+    assert qualified[2] > qualified[3]
+    assert repeated[0] == 0
+    assert "focused_temporal_dedup" in repeated[1]
 
 
 def test_persist_requires_promising_edge_by_default(tmp_path, monkeypatch):

@@ -1,96 +1,4 @@
 {
-  "2026-07-14": {
-    "mtf_backtest": {
-      "scheduled": "05:30",
-      "ran_at": "2026-07-14T06:28:59",
-      "mode": "on_time"
-    },
-    "nse_hub_am": {
-      "scheduled": "08:50",
-      "ran_at": "2026-07-14T08:51:04",
-      "mode": "on_time"
-    },
-    "intraday_candles": {
-      "scheduled": "15:25",
-      "ran_at": "2026-07-14T15:38:04",
-      "mode": "on_time"
-    },
-    "nse_hub_pm": {
-      "scheduled": "15:45",
-      "ran_at": "2026-07-14T15:45:11",
-      "mode": "on_time"
-    },
-    "pipeline_audit": {
-      "scheduled": "16:10",
-      "ran_at": "2026-07-14T16:10:18",
-      "mode": "on_time"
-    },
-    "option_bot_audit": {
-      "scheduled": "16:20",
-      "ran_at": "2026-07-14T16:20:20",
-      "mode": "on_time"
-    },
-    "tb_labels": {
-      "scheduled": "16:45",
-      "ran_at": "2026-07-14T16:46:38",
-      "mode": "on_time"
-    },
-    "walk_forward": {
-      "scheduled": "18:30",
-      "ran_at": "2026-07-14T18:39:45",
-      "mode": "on_time"
-    },
-    "alt_data": {
-      "scheduled": "19:00",
-      "ran_at": "2026-07-14T19:00:47",
-      "mode": "on_time"
-    },
-    "track_record": {
-      "scheduled": "19:30",
-      "ran_at": "2026-07-14T19:30:48",
-      "mode": "on_time"
-    },
-    "correlation": {
-      "scheduled": "20:00",
-      "ran_at": "2026-07-14T20:00:50",
-      "mode": "on_time"
-    },
-    "calibrator": {
-      "scheduled": "18:35",
-      "ran_at": "2026-07-15T19:44:18",
-      "mode": "catch_up"
-    },
-    "eod_weights": {
-      "scheduled": "18:55",
-      "ran_at": "2026-07-15T19:44:20",
-      "mode": "catch_up"
-    },
-    "events": {
-      "scheduled": "19:15",
-      "ran_at": "2026-07-15T19:44:21",
-      "mode": "catch_up"
-    },
-    "edge_report": {
-      "scheduled": "19:35",
-      "ran_at": "2026-07-15T19:44:23",
-      "mode": "catch_up"
-    },
-    "autolearn": {
-      "scheduled": "21:30",
-      "ran_at": "2026-07-14T21:54:19",
-      "mode": "on_time"
-    },
-    "edge_monitor": {
-      "scheduled": "21:50",
-      "ran_at": "2026-07-14T21:55:32",
-      "mode": "on_time"
-    },
-    "post_market_ml": {
-      "scheduled": "16:30",
-      "ran_at": "2026-07-14T22:10:59",
-      "mode": "caught_up"
-    }
-  },
   "2026-07-15": {
     "mtf_backtest": {
       "scheduled": "07:00",
@@ -1184,6 +1092,98 @@
     "edge_monitor": {
       "scheduled": "20:35",
       "ran_at": "2026-07-27T20:36:19",
+      "mode": "on_time"
+    }
+  },
+  "2026-07-28": {
+    "mtf_backtest": {
+      "scheduled": "07:00",
+      "ran_at": "2026-07-28T07:00:49",
+      "mode": "on_time"
+    },
+    "nse_hub_am": {
+      "scheduled": "08:50",
+      "ran_at": "2026-07-28T08:51:09",
+      "mode": "on_time"
+    },
+    "intraday_candles": {
+      "scheduled": "15:25",
+      "ran_at": "2026-07-28T15:38:38",
+      "mode": "on_time"
+    },
+    "nse_hub_pm": {
+      "scheduled": "15:45",
+      "ran_at": "2026-07-28T15:45:59",
+      "mode": "on_time"
+    },
+    "pipeline_audit": {
+      "scheduled": "16:10",
+      "ran_at": "2026-07-28T16:11:21",
+      "mode": "on_time"
+    },
+    "option_bot_audit": {
+      "scheduled": "16:20",
+      "ran_at": "2026-07-28T16:20:39",
+      "mode": "on_time"
+    },
+    "tb_labels": {
+      "scheduled": "16:45",
+      "ran_at": "2026-07-28T16:47:22",
+      "mode": "on_time"
+    },
+    "post_market_ml": {
+      "scheduled": "16:30",
+      "ran_at": "2026-07-28T22:21:48",
+      "mode": "caught_up"
+    },
+    "walk_forward": {
+      "scheduled": "17:15",
+      "ran_at": "2026-07-28T18:04:07",
+      "mode": "on_time"
+    },
+    "alt_data": {
+      "scheduled": "17:35",
+      "ran_at": "2026-07-28T18:05:25",
+      "mode": "on_time"
+    },
+    "correlation": {
+      "scheduled": "17:55",
+      "ran_at": "2026-07-28T18:05:25",
+      "mode": "on_time"
+    },
+    "track_record": {
+      "scheduled": "18:15",
+      "ran_at": "2026-07-28T18:15:42",
+      "mode": "on_time"
+    },
+    "calibrator": {
+      "scheduled": "18:35",
+      "ran_at": "2026-07-28T18:35:59",
+      "mode": "on_time"
+    },
+    "eod_weights": {
+      "scheduled": "18:55",
+      "ran_at": "2026-07-28T18:56:17",
+      "mode": "on_time"
+    },
+    "events": {
+      "scheduled": "19:15",
+      "ran_at": "2026-07-28T19:15:33",
+      "mode": "on_time"
+    },
+    "edge_report": {
+      "scheduled": "19:35",
+      "ran_at": "2026-07-28T19:35:51",
+      "mode": "on_time"
+    },
+    "autolearn": {
+      "scheduled": "19:55",
+      "ran_at": "2026-07-28T20:21:19",
+      "mode": "on_time"
+    },
+    "edge_monitor": {
+      "scheduled": "20:35",
+      "ran_at": "2026-07-28T20:35:47",
       "mode": "on_time"
     }
   }

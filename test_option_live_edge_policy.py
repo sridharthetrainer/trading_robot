@@ -19,7 +19,8 @@ def _reset_day_cache():
     olep._DAY_CACHE.update(ts=0.0, days=[], cutoff=None)
 
 
-def _seed_days(conn, *, flow, direction, score, days, pnl, r_multiple, per_day=10):
+def _seed_days(conn, *, flow, direction, score, days, pnl, r_multiple, per_day=10,
+               underlying="NIFTY", option_type="PE"):
     """Insert per_day rows on each given day string ('2026-06-25' etc)."""
     i = 0
     for day in days:
@@ -30,8 +31,8 @@ def _seed_days(conn, *, flow, direction, score, days, pnl, r_multiple, per_day=1
                    (ts,snapshot_time,underlying,expiry,strike,option_type,flow,signal,direction,
                     score,tradable,price,source,outcome_label,net_pnl,net_r)
                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (i, f"{day}T10:00:00+05:30", "NIFTY", "2026-07-07", 24000 + i,
-                 "PE", flow, "WATCH", direction, score, 0, 100, "angel",
+                (i, f"{day}T10:00:00+05:30", underlying, "2026-07-07", 24000 + i,
+                 option_type, flow, "WATCH", direction, score, 0, 100, "angel",
                  1 if pnl > 0 else -1, pnl, r_multiple),
             )
 
@@ -80,6 +81,32 @@ def test_negative_cohort_is_quarantined():
                r_multiple=-0.2)
     policy = cohort_policy(conn, flow="LONG_BUILDUP", direction="BULLISH", score=60)
     assert policy["status"] == "QUARANTINED"
+
+
+def test_segmented_policy_does_not_dilute_profitable_pe_with_losing_ce():
+    conn = sqlite3.connect(":memory:")
+    ensure_multistrike_schema(conn)
+    all_days = _TRAIN_DAYS + _HOLDOUT_DAYS
+    _seed_days(
+        conn, flow="SHORT_BUILDUP", direction="BEARISH", score=75,
+        days=all_days, pnl=100, r_multiple=0.3, option_type="PE",
+    )
+    _seed_days(
+        conn, flow="SHORT_BUILDUP", direction="BEARISH", score=75,
+        days=all_days, pnl=-300, r_multiple=-0.5, option_type="CE",
+    )
+
+    pooled = cohort_policy(
+        conn, flow="SHORT_BUILDUP", direction="BEARISH", score=75,
+    )
+    segmented = cohort_policy(
+        conn, flow="SHORT_BUILDUP", direction="BEARISH", score=75,
+        underlying="NIFTY", option_type="PE",
+    )
+
+    assert pooled["status"] == "QUARANTINED"
+    assert segmented["status"] == "PAPER_PROMISING"
+    assert segmented["holdout_confirmed"] is True
 
 
 # ── Combo-level unit (2026-07-17): a multi-leg structure's legs are one
