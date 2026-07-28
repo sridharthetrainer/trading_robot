@@ -1,32 +1,32 @@
 {
-  "generated_at": "2026-07-27T15:49:28+0530",
+  "generated_at": "2026-07-28T05:23:10+0530",
   "mode": {
     "paper_training_only": true,
     "live_ready_count": 0,
-    "total_strategies": 103,
+    "total_strategies": 104,
     "live_block_reason": "no_strategy_passed_live_eligibility_manifest"
   },
   "scores": {
-    "data_pipeline": 92.0,
-    "data_pipeline_grade": "A",
-    "data_pipeline_raw_capability": 92.0,
+    "data_pipeline": 85.0,
+    "data_pipeline_grade": "B",
+    "data_pipeline_raw_capability": 85.0,
     "institutional": 59.0,
     "institutional_grade": "F",
-    "institutional_raw_capability": 89.0,
-    "option_bot": 95.0,
+    "institutional_raw_capability": 78.0,
+    "option_bot": 91.0,
     "option_bot_grade": "A",
-    "option_bot_capability": 95.0,
-    "option_bot_evidence": 95.0
+    "option_bot_capability": 91.0,
+    "option_bot_evidence": 91.0
   },
   "data": {
     "candle_1m_symbols": 193,
     "candle_1d_symbols": 196,
     "derived_daily_symbols": 193,
-    "bad_candle_groups": 11,
-    "stale_candle_groups": 8,
+    "bad_candle_groups": 776,
+    "stale_candle_groups": 773,
     "total_candle_groups": 969,
     "latest_option_snapshot_ok": "2026-07-27T15:31:53+0530",
-    "latest_option_snapshot_age_hours": 0.29
+    "latest_option_snapshot_age_hours": 13.85
   },
   "execution": {
     "trades": 12,
@@ -51,28 +51,28 @@
   },
   "learning": {
     "experiments_logged": 18,
-    "labelled_rows": 22030,
-    "labelled_days": 18,
+    "labelled_rows": 22387,
+    "labelled_days": 19,
     "target_labelled": 5000,
-    "target_days": 15,
-    "custom_barrier_labels": 22032,
+    "target_days": 45,
+    "custom_barrier_labels": 22389,
     "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
     "sample_source": "all_training_eligible_generated_signals",
-    "legacy_labelled_rows": 31110,
+    "legacy_labelled_rows": 31467,
     "shadow_portfolio": {
-      "generated_at": "2026-07-27T15:49:19+0530",
+      "generated_at": "2026-07-28T05:22:42+0530",
       "ok": true,
       "days": 30,
       "top_per_day": 5,
-      "labelled_seen": 22030,
-      "shadow_trades": 90,
+      "labelled_seen": 22387,
+      "shadow_trades": 95,
       "wins": 4,
       "losses": 17,
-      "timeouts": 69,
-      "target_rate": 0.0444,
+      "timeouts": 74,
+      "target_rate": 0.0421,
       "rejected_wins": 4,
-      "total_net_r": -24.2389,
-      "average_net_r": -0.2693,
+      "total_net_r": -23.4141,
+      "average_net_r": -0.2465,
       "after_cost_positive": false,
       "top": [
         {
@@ -533,22 +533,31 @@
     "no_after_cost_statistical_edge",
     "paper_live_fill_comparisons_below_100",
     "release_integrity_unverified",
+    "labelled_days_below_target",
     "generated_signal_after_cost_edge_not_positive"
   ],
-  "warnings": [],
+  "warnings": [
+    "candle_quality_bad_groups_high",
+    "intraday_candle_cache_stale"
+  ],
   "release_integrity": {
     "ok": false,
     "reason": "release_files_changed",
     "manifest_git_head": "d1cbb672d2ce989b4acb997d8aef64d7981909f9",
-    "current_git_head": "3972080e5a66b3dc6fe44a457a5e8ad1f38b192d",
+    "current_git_head": "db77078ff3e7a8924144c8a5397ad0cba14bf0cb",
     "git_head_matches": false,
     "content_digest_matches": false,
-    "file_count": 592,
-    "missing": [],
+    "file_count": 597,
+    "missing": [
+      "comprehensive_news_engine.py",
+      "manual_trades.py",
+      "mega_news_aggregator.py"
+    ],
     "added": [
       "autonomous_edge_policy.py",
       "autonomous_signal_lifecycle.py",
       "autonomous_signal_views.py",
+      "chart_theme.py",
       "cpr_camarilla_pattern_miner.py",
       "cross_sectional_factor_test.py",
       "ema_pattern_miner.py",
@@ -569,10 +578,10 @@
       "option_strategy_regime.py",
       "option_strategy_registry.py",
       "option_strategy_risk_checks.py",
-      "option_underlying_context.py",
-      "option_underlying_decomposition.py"
+      "option_underlying_context.py"
     ],
     "changed": [
+      "alternative_price_representations.py",
       "angel.py",
       "angel_option_chain.py",
       "autonomous_learning_cycle.py",
@@ -592,21 +601,20 @@
       "idle_engine.py",
       "indicator_cache.py",
       "learned_filters.py",
+      "live_probation.py",
       "live_signal_engine.py",
       "main_autonomous.py",
       "manual_trade_tracker.py",
-      "meta_labeler.py",
-      "ml_feature_builder.py",
-      "ml_trainer.py"
+      "meta_labeler.py"
     ]
   },
   "assurance": {
     "indicator_lookahead": {
-      "generated_at": "2026-07-27T15:49:26+0530",
+      "generated_at": "2026-07-28T05:22:50+0530",
       "method": "full_history_vs_truncated_prefix",
       "sample": {
         "source": "candle_cache",
-        "symbol": "TCS",
+        "symbol": "RELIANCE",
         "interval": "5m"
       },
       "rows": 320,
@@ -705,7 +713,7 @@
         {
           "name": "alternative_price_representations",
           "ok": true,
-          "comparisons": 125,
+          "comparisons": 155,
           "mismatches": 0,
           "max_abs_error": 0.0
         }
@@ -717,7 +725,7 @@
       "ok": true,
       "databases": 21,
       "tables": 45,
-      "rows": 7635863,
+      "rows": 7662345,
       "issues": [],
       "empty_databases": [
         "historical_options.db",
@@ -728,13 +736,13 @@
     "execution_audit_chain": {
       "ok": true,
       "path": "execution_compliance.jsonl",
-      "chained_rows": 23,
+      "chained_rows": 24,
       "legacy_rows": 0,
       "invalid_rows": 0,
-      "last_hash": "09f362fff5988d881f26693d580008a5e27d1ad678328243bc37824079afe112"
+      "last_hash": "7320ed7343f1c9ee0db2ebd6d7ee244226631d4af45a450da7bcc364fd2620a7"
     },
     "ml_training_contract": {
-      "generated_at": "2026-07-27T15:49:28+0530",
+      "generated_at": "2026-07-28T05:23:10+0530",
       "training_contract": "all_generated_signals_v4_causal_representations",
       "checks": {
         "outcome_fields_excluded": true,
@@ -756,9 +764,9 @@
         "cv_auc": 0.7174
       },
       "clean_evidence": {
-        "legacy_labelled": 31110,
-        "clean_labelled": 22030,
-        "clean_days": 18
+        "legacy_labelled": 31467,
+        "clean_labelled": 22387,
+        "clean_days": 19
       },
       "promotion_targets": {
         "samples": 5000,

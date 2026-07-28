@@ -1,16 +1,13 @@
 {
-  "generated_at": "2026-07-27T17:12:16",
-  "n_modules": 504,
+  "generated_at": "2026-07-28T06:04:20",
+  "n_modules": 509,
   "orphan_modules": [
     "check_connections",
-    "comprehensive_news_engine",
     "data_pool",
     "debug_backtest",
     "diag_telegram",
     "fix_missing_tokens",
-    "manual_trades",
     "mean_reversion_signal",
-    "mega_news_aggregator",
     "setup_gdrive_backup",
     "telegram_backup",
     "validate_telegram"
@@ -62,8 +59,8 @@
       "name": "dwm_confluence_score"
     },
     {
-      "module": "comprehensive_news_engine",
-      "name": "format_telegram_comprehensive"
+      "module": "chart_theme",
+      "name": "style_title"
     },
     {
       "module": "config",
@@ -236,10 +233,6 @@
     {
       "module": "mega_intelligence_engine",
       "name": "format_maxpain_report"
-    },
-    {
-      "module": "mega_news_aggregator",
-      "name": "get_signal_news_boost"
     },
     {
       "module": "meta_learner",
@@ -482,7 +475,7 @@
       "name": "get_stage2_stocks"
     }
   ],
-  "internal_only_functions_count": 498,
+  "internal_only_functions_count": 492,
   "modules": {
     "adaptive_position_sizer": {
       "status": "imported",
@@ -639,9 +632,10 @@
       "imported_by": [
         "autonomous_signal_views",
         "live_signal_engine",
+        "signal_engine",
         "test_autonomous_edge_policy"
       ],
-      "n_importers": 3
+      "n_importers": 4
     },
     "autonomous_learning_cycle": {
       "status": "imported",
@@ -991,6 +985,18 @@
       ],
       "n_importers": 2
     },
+    "chart_theme": {
+      "status": "imported",
+      "imported_by": [
+        "executive_reporting",
+        "option_oi_chart",
+        "option_telegram_report",
+        "test_chart_theme",
+        "trade_card",
+        "visual_analytics"
+      ],
+      "n_importers": 6
+    },
     "check_connections": {
       "status": "ORPHAN",
       "imported_by": [],
@@ -1003,11 +1009,6 @@
         "telegram_commands"
       ],
       "n_importers": 2
-    },
-    "comprehensive_news_engine": {
-      "status": "ORPHAN",
-      "imported_by": [],
-      "n_importers": 0
     },
     "condor_backtest_real": {
       "status": "entrypoint",
@@ -1915,7 +1916,7 @@
         "telegram_commands",
         "test_audit_safety_fixes"
       ],
-      "n_importers": 11
+      "n_importers": 12
     },
     "logger_setup": {
       "status": "entrypoint",
@@ -1976,11 +1977,6 @@
         "test_data_quality_upgrades"
       ],
       "n_importers": 2
-    },
-    "manual_trades": {
-      "status": "ORPHAN",
-      "imported_by": [],
-      "n_importers": 0
     },
     "market_context": {
       "status": "imported",
@@ -2080,11 +2076,6 @@
       ],
       "n_importers": 3
     },
-    "mega_news_aggregator": {
-      "status": "ORPHAN",
-      "imported_by": [],
-      "n_importers": 0
-    },
     "meta_labeler": {
       "status": "imported",
       "imported_by": [
@@ -2124,9 +2115,10 @@
         "ml_effective_n_bootstrap",
         "post_market_ml",
         "signal_engine",
+        "test_alternative_price_representations",
         "test_ml_training_contract"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "ml_trainer": {
       "status": "imported",
@@ -2136,11 +2128,11 @@
         "ml_effective_n_bootstrap",
         "post_market_ml",
         "test_institutional_hardening",
+        "test_ml_trainer_parallel",
         "test_ml_training_contract",
-        "test_training_contract_audit",
-        "training_contract_audit"
+        "test_training_contract_audit"
       ],
-      "n_importers": 8
+      "n_importers": 9
     },
     "model_champion": {
       "status": "imported",
@@ -2237,9 +2229,10 @@
     "nifty_scalper_bot": {
       "status": "imported",
       "imported_by": [
-        "intraday_oi_logger"
+        "intraday_oi_logger",
+        "test_nifty_scalper_oi_staleness"
       ],
-      "n_importers": 1
+      "n_importers": 2
     },
     "nightly_edge_monitor": {
       "status": "imported",
@@ -2315,9 +2308,10 @@
         "off_hours_engine",
         "signal_engine",
         "telegram_commands",
-        "test_oi_tracker_flip_alert"
+        "test_oi_tracker_flip_alert",
+        "test_oi_tracker_refresh_ts"
       ],
-      "n_importers": 6
+      "n_importers": 7
     },
     "omnisource_news_engine": {
       "status": "imported",
@@ -2841,9 +2835,12 @@
       "status": "imported",
       "imported_by": [
         "live_signal_engine",
-        "manual_book_risk"
+        "manual_book_risk",
+        "risk_gate",
+        "test_live_signal_engine_risk_gate_shadow",
+        "test_risk_gate"
       ],
-      "n_importers": 2
+      "n_importers": 5
     },
     "post_market_ml": {
       "status": "imported",
@@ -2975,6 +2972,15 @@
         "autonomous_learning_cycle",
         "system_readiness_report",
         "test_institutional_hardening"
+      ],
+      "n_importers": 3
+    },
+    "risk_gate": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "test_live_signal_engine_risk_gate_shadow",
+        "test_risk_gate"
       ],
       "n_importers": 3
     },
@@ -3515,6 +3521,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_chart_theme": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_core": {
       "status": "test",
       "imported_by": [],
@@ -3620,6 +3631,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_live_signal_engine_risk_gate_shadow": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_logging_security": {
       "status": "test",
       "imported_by": [],
@@ -3641,6 +3657,11 @@
       "n_importers": 0
     },
     "test_meta_labeler_historical_replay": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_ml_trainer_parallel": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -3670,6 +3691,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_nifty_scalper_oi_staleness": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_nse_cost_model_2026": {
       "status": "test",
       "imported_by": [],
@@ -3681,6 +3707,11 @@
       "n_importers": 0
     },
     "test_oi_tracker_flip_alert": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_oi_tracker_refresh_ts": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -3836,6 +3867,11 @@
       "n_importers": 0
     },
     "test_research_admission": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_risk_gate": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -4207,9 +4243,10 @@
         "live_signal_engine",
         "manual_book_risk",
         "portfolio_risk",
+        "risk_gate",
         "telegram_commands"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "visual_analytics": {
       "status": "imported",

@@ -593,9 +593,10 @@ class TelegramCommandHandler:
             "direction": [[("NIFTY", "cmd:direction NIFTY"), ("BANKNIFTY", "cmd:direction BANKNIFTY")],
                           [("FINNIFTY", "cmd:direction FINNIFTY"), ("Next Trade", "cmd:nexttrade")],
                           [("⬅️ Back", "menu:home")]],
-            "reports": [[("Dashboard", "cmd:dashboard"), ("Performance", "cmd:performance")],
-                        [("Journal", "cmd:journal"), ("History", "cmd:history")],
-                        [("Charges", "cmd:charges"), ("⬅️ Back", "menu:home")]],
+            "reports": [[("Control Room", "cmd:controlroom"), ("Dashboard", "cmd:dashboard")],
+                        [("Performance", "cmd:performance"), ("Journal", "cmd:journal")],
+                        [("History", "cmd:history"), ("Charges", "cmd:charges")],
+                        [("⬅️ Back", "menu:home")]],
             "control": [[("⏸ Pause", "confirm:pause"), ("▶️ Resume", "confirm:resume")],
                         [("🛑 Kill", "confirm:kill"), ("Settings", "cmd:settings")],
                         [("⬅️ Back", "menu:home")]],
@@ -847,6 +848,10 @@ class TelegramCommandHandler:
         self.register("eodall",      self._cmd_autonomous_all)
         self.register("downloads",   self._cmd_downloads)
         self.register("dashboard",   self._cmd_dashboard_view)
+        self.register("controlroom", self._cmd_control_room)
+        self.register("readiness",   self._cmd_control_room)
+        self.register("profitgate",  self._cmd_control_room)
+        self.register("go",          self._cmd_control_room)
         self.register("strategies",  self._cmd_strategies_view)
         self.register("performance", self._cmd_performance_view)
         self.register("journal",     self._cmd_journal_view)
@@ -982,6 +987,13 @@ class TelegramCommandHandler:
             return dashboard()
         except Exception as exc: return f"⚠️ Dashboard unavailable: {str(exc)[:100]}"
 
+    def _cmd_control_room(self, _="") -> str:
+        try:
+            from telegram_views import control_room
+            return control_room()
+        except Exception as exc:
+            return f"⚠️ Control room unavailable: {str(exc)[:100]}"
+
     def _cmd_scanner_view(self, _="") -> str:
         try:
             from telegram_views import scanner_diagnostics
@@ -1060,7 +1072,8 @@ class TelegramCommandHandler:
         return (
             "📱 <b>TRADING BOT — ALL COMMANDS</b>\n\n"
             "📊 <b>Monitor</b>\n"
-            "  /menu  /dashboard  /status  /pnl\n"
+            "  /menu  /controlroom  /readiness\n"
+            "  /dashboard  /status  /pnl\n"
             "  /signals  /positions  /closed  /scanner\n\n"
             "🌅 <b>Morning / Market</b>\n"
             "  /morning  /brief  /vix  /regime\n"
@@ -1080,6 +1093,7 @@ class TelegramCommandHandler:
             "  /commodities  /corpactions  /wow\n\n"
             "💹 <b>Performance</b>\n"
             "  /edge — signal worthiness: gross vs NET-of-cost R 🆕\n"
+            "  /profitgate — live/profit/ML gate summary 🆕\n"
             "  /weekly  /analytics  /compare\n"
             "  /sharpe  /streak  /attribution\n"
             "  /eod  /downloads  /export\n\n"

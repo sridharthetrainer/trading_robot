@@ -473,6 +473,15 @@ def predict(
             "win_prob": 0.5, "model_used": model_used, "available": False,
             "reason": "model_not_promoted",
         }
+    utility = model_result.get("profit_utility") or {}
+    if (
+        not utility.get("available")
+        or float(utility.get("best_avg_net_r") or 0.0) <= 0.0
+    ):
+        return {
+            "win_prob": 0.5, "model_used": model_used, "available": False,
+            "reason": "missing_positive_profit_utility",
+        }
 
     try:
         pipe      = model_result["model"]

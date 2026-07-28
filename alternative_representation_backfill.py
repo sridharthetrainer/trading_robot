@@ -72,7 +72,11 @@ def backfill_representation_features(
     with sqlite3.connect(signal_db, timeout=30) as signals, sqlite3.connect(candle_db, timeout=30) as candles:
         sql = (
             "SELECT id,symbol,signal_date,signal_time FROM signal_log "
-            "WHERE COALESCE(representation_coverage,0)=0 ORDER BY id"
+            "WHERE COALESCE(representation_coverage,0)=0 "
+            "OR (COALESCE(heikin_direction,0)=0 "
+            "AND COALESCE(heikin_run,0)=0 "
+            "AND COALESCE(heikin_body_atr,0)=0) "
+            "ORDER BY id"
         )
         if limit > 0:
             sql += f" LIMIT {int(limit)}"

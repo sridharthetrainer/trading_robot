@@ -58,6 +58,7 @@ def test_prediction_uses_saved_training_column_order(monkeypatch):
         "training_contract": ml_trainer.TRAINING_CONTRACT,
         "promoted": True,
         "selected_features": ["first", "second"],
+        "profit_utility": {"available": True, "best_avg_net_r": 0.1},
         # Deliberately reverse importance order; it must not control input order.
         "feature_importances": [("second", 0.9), ("first", 0.1)],
         "cv_auc_mean": 0.7,
@@ -66,6 +67,22 @@ def test_prediction_uses_saved_training_column_order(monkeypatch):
     result = ml_trainer.predict({"first": 10, "second": 20})
     assert result["available"] is True
     assert result["win_prob"] == 0.8
+
+
+def test_prediction_rejects_promoted_artifact_without_profit_utility(monkeypatch):
+    import ml_trainer
+
+    artifact = {
+        "model": object(),
+        "training_contract": ml_trainer.TRAINING_CONTRACT,
+        "promoted": True,
+        "selected_features": ["score"],
+        "cv_auc_mean": 0.7,
+    }
+    monkeypatch.setattr(ml_trainer, "_load_model", lambda _label: artifact)
+    result = ml_trainer.predict({"score": 10})
+    assert result["available"] is False
+    assert result["reason"] == "missing_positive_profit_utility"
 
 
 def test_legacy_or_in_sample_learned_filters_are_neutral(tmp_path, monkeypatch):

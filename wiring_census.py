@@ -23,6 +23,7 @@ orphan-module list against a baseline and alerts only on NEW orphans.
 from __future__ import annotations
 
 import ast
+from collections import Counter
 import json
 import logging
 import re
@@ -138,7 +139,19 @@ def build_census() -> Dict[str, Any]:
             orphans.append(m)
 
     # 2. Function census (public top-level defs in non-test modules)
-    all_src = "\n".join(sources.values())
+    #
+    # This used to run one full-repo regex scan per symbol.  As the strategy
+    # surface grew, the nightly post-market tail could spend a long time in this
+    # static audit after the expensive ML result was already complete.  Count
+    # identifiers once instead; the word-boundary semantics are equivalent for
+    # Python names and keep the census cheap enough for every post-market run.
+    ident_re = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b")
+    all_name_counts = Counter()
+    own_name_counts: Dict[str, Counter[str]] = {}
+    for mod, src in sources.items():
+        counts = Counter(ident_re.findall(src))
+        own_name_counts[mod] = counts
+        all_name_counts.update(counts)
     unreferenced: List[Dict[str, str]] = []
     internal_only: List[Dict[str, str]] = []
     for mod, tree in trees.items():
@@ -150,9 +163,8 @@ def build_census() -> Dict[str, Any]:
             name = node.name
             if name.startswith("_") or _DYNAMIC_NAME_RE.match(name):
                 continue
-            pat = re.compile(rf"\b{re.escape(name)}\b")
-            total = len(pat.findall(all_src))
-            own = len(pat.findall(sources[mod]))
+            total = all_name_counts.get(name, 0)
+            own = own_name_counts.get(mod, Counter()).get(name, 0)
             # one hit is the definition itself
             if total <= 1:
                 unreferenced.append({"module": mod, "name": name})

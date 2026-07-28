@@ -50,7 +50,7 @@ def test_all_requested_telegram_routes_are_registered():
     expected = {"signals","positions","status","dashboard","pnl","health","strategies",
                 "performance","journal","history","stats","charges","trade","open","closed",
                 "menu","settings","optionhealth","optionedge","strikeflow","direction",
-                "tradeview","view","nexttrade"}
+                "tradeview","view","nexttrade","controlroom","readiness","profitgate","go"}
     assert expected <= set(handler._handlers)
 
 

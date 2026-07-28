@@ -2098,6 +2098,7 @@ class AutonomousTradingSystem:
                 )
                 self._tg_cmd.set_command_menu([
                     ("menu", "Open interactive navigation"),
+                    ("controlroom", "Live/profit/ML trade gate"),
                     ("dashboard", "Live executive dashboard"),
                     ("status", "Bot, scanner and position status"),
                     ("signals", "Recent qualified signals"),
@@ -2372,6 +2373,7 @@ class AutonomousTradingSystem:
                         _OPT_ALLOWED = {
                             "help", "menu", "start", "status", "report", "signals", "all", "optionall", "eodall",
                             "optedge", "edge", "optpositions", "positions",
+                            "controlroom", "readiness", "profitgate",
                             "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr",
                             "spreads",
                             "direction", "tradeview", "view", "nexttrade",
@@ -2383,6 +2385,7 @@ class AutonomousTradingSystem:
                         try:
                             self._tg_cmd_option.set_command_menu([
                                 ("report", "Anytime option levels and status"),
+                                ("controlroom", "Live/profit/ML trade gate"),
                                 ("all", "All signals, lifecycle and P&L"),
                                 ("direction", "Combined option trade direction"),
                                 ("optionhealth", "Option-chain source diagnostics"),

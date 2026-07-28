@@ -85,11 +85,13 @@ start_manual_tracker() {
     if [ -n "$(pid_for_script "manual_trade_tracker.py")" ]; then
         return 0
     fi
-    if ! system_service_enabled "manual-tracker"; then
+    if system_service_enabled "manual-tracker"; then
+        sudo -n systemctl start manual-tracker.service 2>/dev/null || true
+    else
         systemctl --user start manual-tracker 2>/dev/null || true
-        sleep 1
-        [ -n "$(pid_for_script "manual_trade_tracker.py")" ] && return 0
     fi
+    sleep 1
+    [ -n "$(pid_for_script "manual_trade_tracker.py")" ] && return 0
     nohup "$PYTHON" "$MANUAL_TRACKER" >> "$BOT_DIR/manual_tracker.log" 2>&1 &
     echo "Manual tracker PID: $!"
 }
@@ -115,11 +117,13 @@ start_watchdog() {
     if [ -n "$(pid_for_script "watchdog.py")" ]; then
         return 0
     fi
-    if ! system_service_enabled "trading-bot-watchdog"; then
+    if system_service_enabled "trading-bot-watchdog"; then
+        sudo -n systemctl start trading-bot-watchdog.service 2>/dev/null || true
+    else
         systemctl --user start trading-bot-watchdog 2>/dev/null || true
-        sleep 1
-        [ -n "$(pid_for_script "watchdog.py")" ] && return 0
     fi
+    sleep 1
+    [ -n "$(pid_for_script "watchdog.py")" ] && return 0
     nohup "$PYTHON" "$WATCHDOG" >> "$BOT_DIR/watchdog.log" 2>&1 &
     echo "Watchdog PID: $!"
 }

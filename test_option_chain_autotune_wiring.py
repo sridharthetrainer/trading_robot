@@ -9,6 +9,7 @@ Run:
 from __future__ import annotations
 
 import option_strike_autotune
+import option_multistrike_signals
 from option_chain_engine import OptionChainEngine
 
 
@@ -29,26 +30,23 @@ class FakeBroker:
         return 0.0
 
 
-def test_autotune_can_move_option_chain_strike():
-    original_loader = option_strike_autotune.load_autotune
-    option_strike_autotune.load_autotune = lambda path=option_strike_autotune.AUTOTUNE_FILE: {
+def test_autotune_can_move_option_chain_strike(monkeypatch):
+    monkeypatch.setattr(option_multistrike_signals, "latest_flow_scores", lambda *args, **kwargs: {})
+    monkeypatch.setattr(option_strike_autotune, "load_autotune", lambda path=option_strike_autotune.AUTOTUNE_FILE: {
         "labelled_selected": 40,
         "feature_weights": {
             "premium:15-35": 1.35,
             "premium:>=35": 0.65,
         },
-    }
-    try:
-        contract = OptionChainEngine(broker=FakeBroker()).select_option(
-            underlying="NIFTY",
-            signal_side="BUY",
-            style="scalping",
-            confidence=0.80,
-            trade_capital=100000,
-            max_lots=1,
-        )
-    finally:
-        option_strike_autotune.load_autotune = original_loader
+    })
+    contract = OptionChainEngine(broker=FakeBroker()).select_option(
+        underlying="NIFTY",
+        signal_side="BUY",
+        style="scalping",
+        confidence=0.80,
+        trade_capital=100000,
+        max_lots=1,
+    )
 
     assert (
         contract is not None

@@ -587,6 +587,16 @@ def run_pipeline(
     if "error" in training:
         logger.warning("Training failed: %s", training["error"])
         training = {}
+    else:
+        # Persist the expensive training result immediately.  Autonomous
+        # monitoring/Telegram tails are useful but nonessential; if they hang or
+        # are interrupted, the freshly trained ML evidence must not be lost.
+        try:
+            Path("ml_training_last_result.json").write_text(
+                json.dumps({**training, "timestamp": datetime.now().isoformat()}, indent=2, default=str)
+            )
+        except Exception as _train_save_exc:
+            logger.debug("Immediate training-result save skipped: %s", _train_save_exc)
 
     # MDA (leakage-free permutation) feature-importance report → prune SUGGESTIONS
     # (report-only, never auto-disable — data-gated, consistent with pruned.json).
@@ -686,6 +696,30 @@ def run_pipeline(
 
     # ── Step 8: Telegram summary ───────────────────────────────────────────────
     _send_telegram_summary(autopsy, training, dry_run=dry_run)
+
+    # Save a pre-monitoring pipeline checkpoint before nonessential monitoring.
+    # The full completion summary below still overwrites this when everything
+    # exits normally.
+    try:
+        summary = autopsy.get("__summary", {})
+        checkpoint = {
+            "checkpoint": "pre_autonomous_monitoring",
+            "labels_updated": n_updated,
+            "signals_used": summary.get("n_total", 0),
+            "overall_wr": summary.get("overall_wr", 0),
+            "danger_zones": summary.get("danger_zones", 0),
+            "ml_auc": (training.get("cross_symbol") or {}).get("cv_auc_mean", 0),
+            "per_symbol_models": len(training.get("per_symbol", {})),
+            "filters_written": not dry_run,
+            "filters_path": str(filters_path) if filters_path else None,
+            "edge_conclusion": _edge.get("conclusion"),
+            "edge_candidates": list((_edge.get("candidates") or {}).keys()),
+            "dry_run": dry_run,
+            "timestamp": datetime.now().isoformat(),
+        }
+        Path("ml_pipeline_last_run.json").write_text(json.dumps(checkpoint, indent=2, default=str))
+    except Exception as _checkpoint_exc:
+        logger.debug("pre-monitoring pipeline checkpoint skipped: %s", _checkpoint_exc)
 
     # ── Step 9: Autonomous monitoring (dashboard push + chaos check) ──────────
     _autonomous_monitoring()
