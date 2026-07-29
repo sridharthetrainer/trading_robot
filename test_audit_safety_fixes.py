@@ -124,6 +124,39 @@ def test_live_payload_preserves_market_profile_levels():
     assert payload["metadata"]["market_profile"]["poc"] == 101.5
 
 
+def test_live_payload_harvests_rl_bias_into_score_modifiers():
+    """Regression for a 2026-07-29 finding: rl_bias is computed correctly
+    (_rl_score_adjustment) and lands on the candidate dict, but was never
+    copied into metadata.score_modifiers -- signal_log's rl_bias column
+    silently stayed at its schema default (0) for every row despite a
+    working producer, same dead-instrumentation class already fixed for
+    weinstein_mod/sector_mod/crsi_mod/nr_mod/volume_mod."""
+    from live_signal_engine import LiveSignalEngine
+
+    engine = LiveSignalEngine.__new__(LiveSignalEngine)
+    payload = engine._candidate_signal_log_payload({
+        "symbol": "NIFTY",
+        "score": 9.0,
+        "rl_bias": -0.0197,
+        "signal": {
+            "symbol": "NIFTY", "side": "BUY", "strategy": "price_structure",
+            "price": 102.0, "score": 9.0,
+        },
+    })
+    assert payload["metadata"]["score_modifiers"]["rl_bias"] == -0.0197
+
+
+def test_live_payload_rl_bias_defaults_to_zero_when_absent():
+    from live_signal_engine import LiveSignalEngine
+
+    engine = LiveSignalEngine.__new__(LiveSignalEngine)
+    payload = engine._candidate_signal_log_payload({
+        "symbol": "NIFTY", "score": 9.0,
+        "signal": {"symbol": "NIFTY", "side": "BUY", "strategy": "x", "price": 100.0, "score": 9.0},
+    })
+    assert payload.get("metadata", {}).get("score_modifiers", {}).get("rl_bias", 0) == 0
+
+
 def test_signal_logger_writes_market_profile_levels(tmp_path):
     from signal_log import SignalLogger
 

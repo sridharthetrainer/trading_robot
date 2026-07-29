@@ -1,0 +1,362 @@
+{
+  "generated_at": "2026-07-29T21:57:25",
+  "labelled_days": 21,
+  "train_days": 14,
+  "holdout_days": 7,
+  "cutoff_day": "2026-07-20",
+  "bonferroni_tests": 12,
+  "confirmed_helps": [
+    {
+      "modifier": "sip_boost",
+      "coverage": 0.0334,
+      "train": {
+        "n_endorsed": 624,
+        "n_silent": 18038,
+        "lift": 0.1548,
+        "t": 4.172,
+        "p": 3e-05
+      },
+      "holdout": {
+        "n_endorsed": 517,
+        "n_silent": 4023,
+        "lift": 0.0742
+      },
+      "verdict": "CONFIRMED_HELPS"
+    },
+    {
+      "modifier": "structure_mod",
+      "coverage": 0.9612,
+      "train": {
+        "n_endorsed": 12349,
+        "n_silent": 724,
+        "lift": 0.1903,
+        "t": 3.73,
+        "p": 0.000191
+      },
+      "holdout": {
+        "n_endorsed": 2951,
+        "n_silent": 147,
+        "lift": 0.031
+      },
+      "verdict": "CONFIRMED_HELPS"
+    }
+  ],
+  "confirmed_hurts": [
+    {
+      "modifier": "mtf_pivot_mod",
+      "coverage": 0.6965,
+      "train": {
+        "n_endorsed": 12731,
+        "n_silent": 5663,
+        "lift": -0.1508,
+        "t": -9.123,
+        "p": 0.0
+      },
+      "holdout": {
+        "n_endorsed": 3001,
+        "n_silent": 1432,
+        "lift": -0.0678
+      },
+      "verdict": "CONFIRMED_HURTS"
+    },
+    {
+      "modifier": "sr_level_mod",
+      "coverage": 0.7596,
+      "train": {
+        "n_endorsed": 13887,
+        "n_silent": 4486,
+        "lift": -0.0652,
+        "t": -3.733,
+        "p": 0.000189
+      },
+      "holdout": {
+        "n_endorsed": 3913,
+        "n_silent": 531,
+        "lift": -0.0221
+      },
+      "verdict": "CONFIRMED_HURTS"
+    }
+  ],
+  "all_tested": [
+    {
+      "modifier": "mtf_pivot_mod",
+      "coverage": 0.6965,
+      "train": {
+        "n_endorsed": 12731,
+        "n_silent": 5663,
+        "lift": -0.1508,
+        "t": -9.123,
+        "p": 0.0
+      },
+      "holdout": {
+        "n_endorsed": 3001,
+        "n_silent": 1432,
+        "lift": -0.0678
+      },
+      "verdict": "CONFIRMED_HURTS"
+    },
+    {
+      "modifier": "sip_boost",
+      "coverage": 0.0334,
+      "train": {
+        "n_endorsed": 624,
+        "n_silent": 18038,
+        "lift": 0.1548,
+        "t": 4.172,
+        "p": 3e-05
+      },
+      "holdout": {
+        "n_endorsed": 517,
+        "n_silent": 4023,
+        "lift": 0.0742
+      },
+      "verdict": "CONFIRMED_HELPS"
+    },
+    {
+      "modifier": "sr_level_mod",
+      "coverage": 0.7596,
+      "train": {
+        "n_endorsed": 13887,
+        "n_silent": 4486,
+        "lift": -0.0652,
+        "t": -3.733,
+        "p": 0.000189
+      },
+      "holdout": {
+        "n_endorsed": 3913,
+        "n_silent": 531,
+        "lift": -0.0221
+      },
+      "verdict": "CONFIRMED_HURTS"
+    },
+    {
+      "modifier": "structure_mod",
+      "coverage": 0.9612,
+      "train": {
+        "n_endorsed": 12349,
+        "n_silent": 724,
+        "lift": 0.1903,
+        "t": 3.73,
+        "p": 0.000191
+      },
+      "holdout": {
+        "n_endorsed": 2951,
+        "n_silent": 147,
+        "lift": 0.031
+      },
+      "verdict": "CONFIRMED_HELPS"
+    },
+    {
+      "modifier": "pivot_boss_mod",
+      "coverage": 0.9881,
+      "train": {
+        "n_endorsed": 12133,
+        "n_silent": 223,
+        "lift": 0.2578,
+        "t": 2.303,
+        "p": 0.021277
+      },
+      "holdout": {
+        "n_endorsed": 2670,
+        "n_silent": 14,
+        "lift": 1.3739
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "expiry_mod",
+      "coverage": 0.1774,
+      "train": {
+        "n_endorsed": 1318,
+        "n_silent": 15351,
+        "lift": -0.0347,
+        "t": -1.549,
+        "p": 0.121499
+      },
+      "holdout": {
+        "n_endorsed": 202,
+        "n_silent": 3261,
+        "lift": 0.0075
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "market_profile_mod",
+      "coverage": 0.724,
+      "train": {
+        "n_endorsed": 9870,
+        "n_silent": 5150,
+        "lift": -0.0252,
+        "t": -1.458,
+        "p": 0.144751
+      },
+      "holdout": {
+        "n_endorsed": 2362,
+        "n_silent": 1222,
+        "lift": -0.0708
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "cross_asset_mod",
+      "coverage": 0.5843,
+      "train": {
+        "n_endorsed": 5732,
+        "n_silent": 7757,
+        "lift": -0.0108,
+        "t": -0.613,
+        "p": 0.539646
+      },
+      "holdout": {
+        "n_endorsed": 648,
+        "n_silent": 3511,
+        "lift": 0.0649
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "weinstein_mod",
+      "coverage": 0.4072,
+      "train": {
+        "n_endorsed": 6682,
+        "n_silent": 11062,
+        "lift": -0.0093,
+        "t": -0.585,
+        "p": 0.55884
+      },
+      "holdout": {
+        "n_endorsed": 3730,
+        "n_silent": 289,
+        "lift": -0.183
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "volume_mod",
+      "coverage": 0.3695,
+      "train": {
+        "n_endorsed": 5161,
+        "n_silent": 11766,
+        "lift": -0.0105,
+        "t": -0.561,
+        "p": 0.5748
+      },
+      "holdout": {
+        "n_endorsed": 2678,
+        "n_silent": 694,
+        "lift": 0.03
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "nr_mod",
+      "coverage": 0.0733,
+      "train": {
+        "n_endorsed": 1368,
+        "n_silent": 17294,
+        "lift": 0.0119,
+        "t": 0.473,
+        "p": 0.636117
+      },
+      "holdout": {
+        "n_endorsed": 1423,
+        "n_silent": 3117,
+        "lift": 0.0048
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "sector_mod",
+      "coverage": 0.0243,
+      "train": {
+        "n_endorsed": 376,
+        "n_silent": 18209,
+        "lift": 0.0101,
+        "t": 0.277,
+        "p": 0.781413
+      },
+      "holdout": {
+        "n_endorsed": 262,
+        "n_silent": 4254,
+        "lift": -0.0347
+      },
+      "verdict": "NOISE"
+    },
+    {
+      "modifier": "bhav_delivery",
+      "verdict": "DEAD",
+      "train_coverage": 0.0
+    },
+    {
+      "modifier": "participant_mod",
+      "verdict": "INSUFFICIENT",
+      "train_coverage": 1.0
+    },
+    {
+      "modifier": "bulk_deal_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.0
+    },
+    {
+      "modifier": "theta_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.0
+    },
+    {
+      "modifier": "rebal_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.0
+    },
+    {
+      "modifier": "news_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.007
+    },
+    {
+      "modifier": "ai_score",
+      "verdict": "INSUFFICIENT",
+      "train_coverage": 1.0
+    },
+    {
+      "modifier": "rl_bias",
+      "verdict": "DEAD",
+      "train_coverage": 0.0
+    },
+    {
+      "modifier": "gex_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.0
+    },
+    {
+      "modifier": "skew_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.0
+    },
+    {
+      "modifier": "whale_mod",
+      "verdict": "INSUFFICIENT",
+      "train_coverage": 1.0
+    },
+    {
+      "modifier": "oi_mod",
+      "verdict": "INSUFFICIENT",
+      "train_coverage": 0.1744
+    },
+    {
+      "modifier": "crsi_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.0121
+    },
+    {
+      "modifier": "market_quality_mod",
+      "verdict": "DEAD",
+      "train_coverage": 0.004
+    },
+    {
+      "modifier": "candidate_quality_mod",
+      "verdict": "INSUFFICIENT",
+      "train_coverage": 0.0241
+    }
+  ],
+  "caveat": "Day-split holdout, same discipline as option_cohort_edge_miner.py. Only 21 labelled days -- treat as directional confirmation, not proof; re-run as more days accrue before any further action."
+}

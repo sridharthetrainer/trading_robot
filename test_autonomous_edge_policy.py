@@ -33,3 +33,19 @@ def test_small_positive_sample_becomes_paper_promising_only(tmp_path):
     result = strategy_policy("new", path)
     assert result["status"] == "PAPER_PROMISING"
     assert result["live_ready"] is False
+
+
+def test_stop_loss_label_zero_is_included_in_edge_policy(tmp_path):
+    path = tmp_path / "signals.db"
+    rows = [
+        ("mixed", f"2026-06-{20+i%4:02d}", 1, 1, 99, 102, 1.5, 1.0)
+        for i in range(20)
+    ] + [
+        ("mixed", f"2026-06-{20+i%4:02d}", 0, 1, 99, 102, 1.5, -2.0)
+        for i in range(20)
+    ]
+    _make(path, rows)
+    result = strategy_policy("mixed", path)
+    assert result["outcomes"] == 40
+    assert result["avg_net_r"] == -0.5
+    assert result["status"] == "QUARANTINED"

@@ -554,6 +554,10 @@ def _score_option_bot(audit: Dict[str, Any]) -> Dict[str, Any]:
         evidence_blocks.append("insufficient_verified_live_snapshots")
     if verified_generated < 100:   # spec: test_data_quality_upgrades (150 must pass); 37358f66 reverted this
         evidence_blocks.append("insufficient_verified_option_signal_outcomes")
+    if verified_selected == 0:
+        evidence_blocks.append("no_source_attributed_selected_option_outcomes")
+    if executed_selected == 0:
+        evidence_blocks.append("no_executed_option_fill_evidence")
     evidence_score = min(raw_total, 59.0) if evidence_blocks else raw_total
     grade = "A" if evidence_score >= 90 else "B" if evidence_score >= 80 else "C" if evidence_score >= 70 else "D" if evidence_score >= 60 else "F"
     readiness = (

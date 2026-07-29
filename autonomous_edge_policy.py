@@ -37,17 +37,42 @@ def _stats(db_path: Path) -> Dict[str, Dict[str, Any]]:
     if not db_path.exists():
         return {}
     conn = sqlite3.connect(str(db_path)); conn.row_factory = sqlite3.Row
+    columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(signal_log)")}
+    dedupe_partition = (
+        "lower(strategy),signal_date,symbol,side"
+        if {"symbol", "side"} <= columns else
+        "rowid"
+    )
     rows = conn.execute(
-        """SELECT lower(strategy) strategy,COUNT(*) outcomes,
+        f"""WITH ranked AS (
+               SELECT *,
+                      ROW_NUMBER() OVER (
+                          PARTITION BY {dedupe_partition}
+                          ORDER BY rowid
+                      ) AS evidence_rank
+                 FROM signal_log
+                WHERE tb_label IN (1,0,-1) AND training_eligible=1
+                  AND stop_loss>0 AND target>0 AND rr>0
+                  AND abs(tb_r_multiple_net)>0.000001
+           ),
+           eligible AS (
+               SELECT * FROM ranked WHERE evidence_rank=1
+           ),
+           bounds AS (
+               SELECT MAX(signal_date) max_date FROM eligible
+           )
+           SELECT lower(strategy) strategy,COUNT(*) outcomes,
                   COUNT(DISTINCT signal_date) days,
                   AVG(CASE WHEN tb_label=1 THEN 1.0 ELSE 0.0 END) win_rate,
                   AVG(tb_r_multiple_net) avg_net_r,
                   SUM(CASE WHEN tb_r_multiple_net>0 THEN tb_r_multiple_net ELSE 0 END)/
-                  NULLIF(ABS(SUM(CASE WHEN tb_r_multiple_net<0 THEN tb_r_multiple_net ELSE 0 END)),0) profit_factor
-             FROM signal_log
-            WHERE tb_label IN (1,-1) AND training_eligible=1
-              AND stop_loss>0 AND target>0 AND rr>0
-              AND abs(tb_r_multiple_net)>0.000001
+                  NULLIF(ABS(SUM(CASE WHEN tb_r_multiple_net<0 THEN tb_r_multiple_net ELSE 0 END)),0) profit_factor,
+                  SUM(CASE WHEN signal_date>=date(bounds.max_date,'-9 days') THEN 1 ELSE 0 END) recent_outcomes,
+                  COUNT(DISTINCT CASE WHEN signal_date>=date(bounds.max_date,'-9 days') THEN signal_date END) recent_days,
+                  AVG(CASE WHEN signal_date>=date(bounds.max_date,'-9 days') THEN tb_r_multiple_net END) recent_avg_net_r,
+                  SUM(CASE WHEN signal_date>=date(bounds.max_date,'-9 days') AND tb_r_multiple_net>0 THEN tb_r_multiple_net ELSE 0 END)/
+                  NULLIF(ABS(SUM(CASE WHEN signal_date>=date(bounds.max_date,'-9 days') AND tb_r_multiple_net<0 THEN tb_r_multiple_net ELSE 0 END)),0) recent_profit_factor
+             FROM eligible CROSS JOIN bounds
             GROUP BY lower(strategy)"""
     ).fetchall(); conn.close()
     result = {str(row["strategy"]): dict(row) for row in rows}
@@ -62,6 +87,14 @@ def strategy_policy(strategy: str, db_path: Path = DB_PATH) -> Dict[str, Any]:
     wr, avg_r = float(row.get("win_rate") or 0), float(row.get("avg_net_r") or 0)
     raw_pf = row.get("profit_factor")
     pf = float(raw_pf) if raw_pf is not None else (999.0 if n and avg_r > 0 else 0.0)
+    recent_n = int(row.get("recent_outcomes") or 0)
+    recent_days = int(row.get("recent_days") or 0)
+    recent_avg_r = float(row.get("recent_avg_net_r") or 0)
+    recent_raw_pf = row.get("recent_profit_factor")
+    recent_pf = (
+        float(recent_raw_pf) if recent_raw_pf is not None
+        else (999.0 if recent_n and recent_avg_r > 0 else 0.0)
+    )
     negative = (
         n >= MIN_NEGATIVE_OUTCOMES
         and days >= MIN_NEGATIVE_DAYS
@@ -79,11 +112,24 @@ def strategy_policy(strategy: str, db_path: Path = DB_PATH) -> Dict[str, Any]:
     # drowning in raw signal volume and starts tracking the few cohorts with
     # positive after-cost evidence. LIVE_EVIDENCE_READY remains deliberately
     # much harder below.
-    promising = n >= 30 and days >= 3 and avg_r > 0 and pf >= 1.20
-    live_ready = n >= 500 and days >= 15 and avg_r > 0 and pf >= 1.20
+    recent_positive = (
+        recent_n >= 10 and recent_days >= 3
+        and recent_avg_r > 0 and recent_pf >= 1.05
+    )
+    promising = n >= 30 and days >= 3 and avg_r > 0 and pf >= 1.20 and recent_positive
+    live_ready = (
+        n >= 500 and days >= 15 and avg_r > 0 and pf >= 1.20
+        and recent_n >= 100 and recent_days >= 5
+        and recent_avg_r > 0 and recent_pf >= 1.10
+    )
     status = "LIVE_EVIDENCE_READY" if live_ready else "PAPER_PROMISING" if promising else "QUARANTINED" if (negative or early_loss) else "VALIDATING"
-    return {"status": status, "outcomes": n, "days": days, "win_rate": round(wr, 4),
-            "avg_net_r": round(avg_r, 4), "profit_factor": round(pf, 3), "live_ready": live_ready}
+    return {
+        "status": status, "outcomes": n, "days": days,
+        "win_rate": round(wr, 4), "avg_net_r": round(avg_r, 4),
+        "profit_factor": round(pf, 3), "recent_outcomes": recent_n,
+        "recent_days": recent_days, "recent_avg_net_r": round(recent_avg_r, 4),
+        "recent_profit_factor": round(recent_pf, 3), "live_ready": live_ready,
+    }
 
 
 def apply_policy(signal: Dict[str, Any], db_path: Path = DB_PATH) -> Dict[str, Any]:

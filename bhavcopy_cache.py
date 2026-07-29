@@ -51,13 +51,21 @@ def download_bhavcopy(for_date: date = None) -> int:
 
     date_str = for_date.strftime("%d%m%Y")
     date_str2 = for_date.strftime("%Y%m%d")
-    
+    # NSE switched from the classic per-day ZIP archive to the flat
+    # sec_bhavdata_full CSV format in 2024; a 10-year backfill needs both.
+    # Classic format: cmDDMMMYYYYbhav.csv.zip under /content/historical/EQUITIES/YYYY/MMM/
+    date_classic = for_date.strftime("%d%b%Y").upper()
+    month_dir = for_date.strftime("%b").upper()
+    year_dir = for_date.strftime("%Y")
+
     urls = [
         _BHV_URL.format(date_str),
         _BHV_URL2.format(date_str2),
         f"https://archives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{date_str2}_F_0000.csv",
+        f"https://archives.nseindia.com/content/historical/EQUITIES/{year_dir}/{month_dir}/cm{date_classic}bhav.csv.zip",
+        f"https://nsearchives.nseindia.com/content/historical/EQUITIES/{year_dir}/{month_dir}/cm{date_classic}bhav.csv.zip",
     ]
-    
+
     import requests
     df = None
     for url in urls:
@@ -66,7 +74,14 @@ def download_bhavcopy(for_date: date = None) -> int:
             s.headers.update({"User-Agent":"Mozilla/5.0","Referer":"https://www.nseindia.com"})
             r = s.get(url, timeout=15)
             if r.status_code == 200 and len(r.content) > 1000:
-                df = pd.read_csv(io.BytesIO(r.content))
+                content = r.content
+                if url.endswith(".zip") or content[:2] == b"PK":
+                    import zipfile
+                    zf = zipfile.ZipFile(io.BytesIO(content))
+                    with zf.open(zf.namelist()[0]) as fh:
+                        df = pd.read_csv(fh)
+                else:
+                    df = pd.read_csv(io.BytesIO(content))
                 logger.info("Bhavcopy downloaded: %s (%d rows)", url.split("/")[-1], len(df))
                 break
         except Exception as e:

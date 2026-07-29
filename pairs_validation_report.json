@@ -9,12 +9,12 @@
       "common_days": 1018,
       "dev_days": 712,
       "holdout_days": 306,
-      "hedge_beta": 0.6747,
+      "hedge_beta": 0.6741,
       "cointegration": {
-        "adf_tstat": -3.327,
+        "adf_tstat": -3.261,
         "adf_crit_5pct": -2.86,
         "stationary": true,
-        "half_life_days": 22.7,
+        "half_life_days": 23.1,
         "corr": 0.939,
         "cointegrated": true
       },
@@ -22,15 +22,15 @@
         "trades": 26,
         "sharpe": 2.884,
         "win_rate": 73.1,
-        "net": 0.3266,
-        "avg_ret": 0.01256
+        "net": 0.3264,
+        "avg_ret": 0.01255
       },
       "oos_backtest": {
         "trades": 9,
-        "sharpe": 4.788,
+        "sharpe": 4.794,
         "win_rate": 66.7,
         "net": 0.1165,
-        "avg_ret": 0.01294
+        "avg_ret": 0.01295
       },
       "gate": {
         "min_oos_trades": 20,
@@ -45,12 +45,12 @@
       "common_days": 1018,
       "dev_days": 712,
       "holdout_days": 306,
-      "hedge_beta": 0.8962,
+      "hedge_beta": 0.8968,
       "cointegration": {
-        "adf_tstat": -2.629,
+        "adf_tstat": -2.662,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 34.5,
+        "half_life_days": 34.0,
         "corr": 0.959,
         "cointegrated": false
       },
@@ -63,10 +63,10 @@
       },
       "oos_backtest": {
         "trades": 9,
-        "sharpe": -1.461,
+        "sharpe": -1.462,
         "win_rate": 44.4,
-        "net": -0.0743,
-        "avg_ret": -0.00826
+        "net": -0.0744,
+        "avg_ret": -0.00827
       },
       "gate": {
         "min_oos_trades": 20,
@@ -81,9 +81,9 @@
       "common_days": 1018,
       "dev_days": 712,
       "holdout_days": 306,
-      "hedge_beta": 2.1973,
+      "hedge_beta": 2.1997,
       "cointegration": {
-        "adf_tstat": -2.323,
+        "adf_tstat": -2.322,
         "adf_crit_5pct": -2.86,
         "stationary": false,
         "half_life_days": 44.7,
@@ -92,17 +92,17 @@
       },
       "dev_backtest": {
         "trades": 33,
-        "sharpe": 1.766,
+        "sharpe": 1.767,
         "win_rate": 69.7,
-        "net": 0.512,
-        "avg_ret": 0.01552
+        "net": 0.5129,
+        "avg_ret": 0.01554
       },
       "oos_backtest": {
-        "trades": 12,
-        "sharpe": -1.635,
-        "win_rate": 50.0,
-        "net": -0.2764,
-        "avg_ret": -0.02304
+        "trades": 11,
+        "sharpe": -2.28,
+        "win_rate": 45.5,
+        "net": -0.3528,
+        "avg_ret": -0.03208
       },
       "gate": {
         "min_oos_trades": 20,
@@ -117,64 +117,28 @@
       "common_days": 1018,
       "dev_days": 712,
       "holdout_days": 306,
-      "hedge_beta": 0.5649,
+      "hedge_beta": 0.5639,
       "cointegration": {
-        "adf_tstat": -2.033,
+        "adf_tstat": -2.006,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 50.0,
-        "corr": 0.914,
+        "half_life_days": 50.9,
+        "corr": 0.913,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 26,
-        "sharpe": -0.405,
+        "sharpe": -0.585,
         "win_rate": 61.5,
-        "net": -0.0478,
-        "avg_ret": -0.00184
+        "net": -0.0671,
+        "avg_ret": -0.00258
       },
       "oos_backtest": {
         "trades": 15,
-        "sharpe": 5.642,
+        "sharpe": 5.645,
         "win_rate": 80.0,
-        "net": 0.3294,
-        "avg_ret": 0.02196
-      },
-      "gate": {
-        "min_oos_trades": 20,
-        "oos_sharpe_bar": 1.0,
-        "cost_bps_per_leg": 3.0,
-        "passed": false
-      }
-    },
-    {
-      "pair": "TCS-INFY",
-      "verdict": "INSUFFICIENT_DATA",
-      "common_days": 1018,
-      "dev_days": 712,
-      "holdout_days": 306,
-      "hedge_beta": 0.8711,
-      "cointegration": {
-        "adf_tstat": -1.999,
-        "adf_crit_5pct": -2.86,
-        "stationary": false,
-        "half_life_days": 62.4,
-        "corr": 0.802,
-        "cointegrated": false
-      },
-      "dev_backtest": {
-        "trades": 27,
-        "sharpe": -0.577,
-        "win_rate": 59.3,
-        "net": -0.0826,
-        "avg_ret": -0.00306
-      },
-      "oos_backtest": {
-        "trades": 12,
-        "sharpe": 4.406,
-        "win_rate": 75.0,
-        "net": 0.1178,
-        "avg_ret": 0.00981
+        "net": 0.3293,
+        "avg_ret": 0.02195
       },
       "gate": {
         "min_oos_trades": 20,
@@ -189,28 +153,64 @@
       "common_days": 1018,
       "dev_days": 712,
       "holdout_days": 306,
-      "hedge_beta": 1.1289,
+      "hedge_beta": 1.1282,
       "cointegration": {
-        "adf_tstat": -1.984,
+        "adf_tstat": -1.996,
         "adf_crit_5pct": -2.86,
         "stationary": false,
-        "half_life_days": 55.8,
+        "half_life_days": 55.6,
         "corr": 0.973,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 30,
-        "sharpe": 1.545,
+        "sharpe": 1.543,
         "win_rate": 73.3,
-        "net": 0.213,
-        "avg_ret": 0.0071
+        "net": 0.2126,
+        "avg_ret": 0.00709
       },
       "oos_backtest": {
         "trades": 13,
-        "sharpe": 1.775,
+        "sharpe": 1.778,
         "win_rate": 84.6,
-        "net": 0.1055,
+        "net": 0.1056,
         "avg_ret": 0.00812
+      },
+      "gate": {
+        "min_oos_trades": 20,
+        "oos_sharpe_bar": 1.0,
+        "cost_bps_per_leg": 3.0,
+        "passed": false
+      }
+    },
+    {
+      "pair": "TCS-INFY",
+      "verdict": "INSUFFICIENT_DATA",
+      "common_days": 1018,
+      "dev_days": 712,
+      "holdout_days": 306,
+      "hedge_beta": 0.8717,
+      "cointegration": {
+        "adf_tstat": -1.995,
+        "adf_crit_5pct": -2.86,
+        "stationary": false,
+        "half_life_days": 62.5,
+        "corr": 0.802,
+        "cointegrated": false
+      },
+      "dev_backtest": {
+        "trades": 26,
+        "sharpe": -0.894,
+        "win_rate": 57.7,
+        "net": -0.1224,
+        "avg_ret": -0.00471
+      },
+      "oos_backtest": {
+        "trades": 12,
+        "sharpe": 4.404,
+        "win_rate": 75.0,
+        "net": 0.1177,
+        "avg_ret": 0.00981
       },
       "gate": {
         "min_oos_trades": 20,

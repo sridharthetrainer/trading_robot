@@ -1,25 +1,26 @@
 {
-  "generated_at": "2026-07-28T20:20:13+0530",
+  "generated_at": "2026-07-29T21:02:37+0530",
   "policy": {
     "preserve_all_rows": true,
     "legacy_data_role": "research_only_until_source_and_timing_are_verified",
     "promotion_rule": "only row-level verified live provenance may unlock live trading"
   },
-  "database_count": 21,
+  "database_count": 22,
   "table_count": 45,
-  "total_rows": 7774902,
-  "total_bytes": 1492475904,
+  "total_rows": 7888931,
+  "total_bytes": 1520992256,
   "ok": true,
   "issues": [],
   "empty_databases": [
     "historical_options.db",
     "option_metrics.db",
+    "signal_lifecycle.db",
     "trading.db"
   ],
   "databases": [
     {
       "path": "candle_cache.db",
-      "bytes": 765001728,
+      "bytes": 782422016,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
@@ -34,7 +35,7 @@
         },
         {
           "name": "candles",
-          "rows": 3952910,
+          "rows": 4044289,
           "columns": [
             "symbol",
             "interval",
@@ -68,12 +69,12 @@
     },
     {
       "path": "confluence_features.db",
-      "bytes": 23826432,
+      "bytes": 24064000,
       "tier": "DERIVED_RESEARCH",
       "tables": [
         {
           "name": "confluence_features",
-          "rows": 32320,
+          "rows": 32656,
           "columns": [
             "signal_id",
             "log_time",
@@ -133,12 +134,12 @@
     },
     {
       "path": "eod_signal_miner.db",
-      "bytes": 49012736,
+      "bytes": 52899840,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "eod_mined_candidates",
-          "rows": 165509,
+          "rows": 178856,
           "columns": [
             "symbol",
             "candidate_time",
@@ -293,12 +294,12 @@
     },
     {
       "path": "market_profile_snapshots.db",
-      "bytes": 62894080,
+      "bytes": 64909312,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "market_profile_snapshots",
-          "rows": 154716,
+          "rows": 159640,
           "columns": [
             "id",
             "snapshot_date",
@@ -330,12 +331,12 @@
     },
     {
       "path": "market_snapshots.db",
-      "bytes": 122880,
+      "bytes": 126976,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "market_snapshots",
-          "rows": 321,
+          "rows": 336,
           "columns": [
             "ts",
             "snapshot_time",
@@ -378,12 +379,12 @@
     },
     {
       "path": "option_chain_snapshots.db",
-      "bytes": 74158080,
+      "bytes": 78487552,
       "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
       "tables": [
         {
           "name": "option_chain_snapshots",
-          "rows": 3995,
+          "rows": 4217,
           "columns": [
             "ts",
             "snapshot_time",
@@ -405,7 +406,7 @@
         },
         {
           "name": "option_strike_signals",
-          "rows": 37067,
+          "rows": 39339,
           "columns": [
             "ts",
             "snapshot_time",
@@ -476,12 +477,12 @@
     },
     {
       "path": "option_structure_training.db",
-      "bytes": 724992,
+      "bytes": 749568,
       "tier": "DERIVED_RESEARCH",
       "tables": [
         {
           "name": "option_structure_legs",
-          "rows": 774,
+          "rows": 800,
           "columns": [
             "id",
             "run_date",
@@ -567,7 +568,7 @@
         },
         {
           "name": "participant_oi",
-          "rows": 8115,
+          "rows": 8125,
           "columns": [
             "date",
             "client_type",
@@ -593,7 +594,7 @@
     },
     {
       "path": "runtime_telemetry.db",
-      "bytes": 2322432,
+      "bytes": 2396160,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
@@ -642,7 +643,7 @@
         },
         {
           "name": "cumulative_summary",
-          "rows": 315,
+          "rows": 330,
           "columns": [
             "window_days",
             "generated_at",
@@ -651,7 +652,7 @@
         },
         {
           "name": "daily_summary",
-          "rows": 27,
+          "rows": 28,
           "columns": [
             "session_date",
             "generated_at",
@@ -770,7 +771,7 @@
         },
         {
           "name": "strategy_statistics",
-          "rows": 7321,
+          "rows": 7684,
           "columns": [
             "strategy",
             "window_days",
@@ -788,7 +789,7 @@
         },
         {
           "name": "trade_journal",
-          "rows": 0,
+          "rows": 1,
           "columns": [
             "trade_id",
             "created_at",
@@ -820,13 +821,22 @@
       "quick_check": "ok"
     },
     {
+      "path": "signal_lifecycle.db",
+      "bytes": 0,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [],
+      "ok": true,
+      "empty": true,
+      "quick_check": "not_applicable"
+    },
+    {
       "path": "signal_log.db",
-      "bytes": 39886848,
+      "bytes": 40341504,
       "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
       "tables": [
         {
           "name": "intraday_oi_snapshots",
-          "rows": 5670,
+          "rows": 5943,
           "columns": [
             "id",
             "timestamp",
@@ -876,7 +886,7 @@
         },
         {
           "name": "signal_log",
-          "rows": 32320,
+          "rows": 32656,
           "columns": [
             "id",
             "log_time",
@@ -1095,12 +1105,12 @@
     },
     {
       "path": "trades.db",
-      "bytes": 4878336,
+      "bytes": 4947968,
       "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
       "tables": [
         {
           "name": "bot_events",
-          "rows": 1189,
+          "rows": 1203,
           "columns": [
             "id",
             "created_at",
@@ -1111,7 +1121,7 @@
         },
         {
           "name": "eod_indicator_weights",
-          "rows": 321,
+          "rows": 333,
           "columns": [
             "date",
             "indicator",
@@ -1127,7 +1137,7 @@
         },
         {
           "name": "eod_ml_feedback",
-          "rows": 1720,
+          "rows": 1762,
           "columns": [
             "id",
             "date",
@@ -1143,7 +1153,7 @@
         },
         {
           "name": "eod_strategy_weights",
-          "rows": 3218,
+          "rows": 3326,
           "columns": [
             "date",
             "strategy",
@@ -1162,7 +1172,7 @@
         },
         {
           "name": "fii_dii_data",
-          "rows": 27,
+          "rows": 28,
           "columns": [
             "id",
             "date",
@@ -1181,7 +1191,7 @@
         },
         {
           "name": "strategy_scores",
-          "rows": 27816,
+          "rows": 28148,
           "columns": [
             "id",
             "timestamp",

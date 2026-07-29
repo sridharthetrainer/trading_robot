@@ -82,13 +82,18 @@ def _leg_quote(rows: List[Dict[str, Any]], strike: float, option_type: str) -> D
         oi_chg = _f("changeinOpenInterest", "changeInOpenInterest", "chg_oi")
         return {
             "last_price": _f("lastPrice", "ltp"),
+            "bid": bid,
+            "ask": ask,
             "oi": oi,
             "oi_change": oi_chg,
             "volume": _f("totalTradedVolume", "volume"),
             "iv": _f("impliedVolatility", "iv"),
             "spread_pct": spread_pct,
         }
-    return {"last_price": 0.0, "oi": 0.0, "oi_change": 0.0, "volume": 0.0, "iv": 0.0, "spread_pct": 0.0}
+    return {
+        "last_price": 0.0, "bid": 0.0, "ask": 0.0, "oi": 0.0,
+        "oi_change": 0.0, "volume": 0.0, "iv": 0.0, "spread_pct": 0.0,
+    }
 
 
 # 2026-07-20 (operator: "include some image or color indicator of OI
@@ -244,16 +249,25 @@ def evaluate_c1_short_straddle(symbol: str, df=None, df_htf=None, option_data=No
     t_years = _dte_years(regime)
     ce_delta = _delta_of(rows, strike, "CE", spot, t_years)
     pe_delta = _delta_of(rows, strike, "PE", spot, t_years)
-    net_credit = round(ce["last_price"] + pe["last_price"], 2)
+    # A short structure receives the executable bid, never the optimistic LTP.
+    if ce.get("bid", 0) <= 0 or pe.get("bid", 0) <= 0:
+        return _blocked("executable_bid_unavailable")
+    net_credit = round(ce["bid"] + pe["bid"], 2)
 
     legs = [
-        {"strike": strike, "option_type": "CE", "price": ce["last_price"], "delta": round(ce_delta, 4),
+        {"strike": strike, "option_type": "CE", "price": ce["bid"], "delta": round(ce_delta, 4),
          "volume": ce.get("volume", 0.0), "spread_pct": ce.get("spread_pct", 0.0),
          **_oi_direction(ce["oi"], ce.get("oi_change", 0.0))},
-        {"strike": strike, "option_type": "PE", "price": pe["last_price"], "delta": round(pe_delta, 4),
+        {"strike": strike, "option_type": "PE", "price": pe["bid"], "delta": round(pe_delta, 4),
          "volume": pe.get("volume", 0.0), "spread_pct": pe.get("spread_pct", 0.0),
-         **_oi_direction(pe["oi"], pe.get("oi_change", 0.0))},
+        **_oi_direction(pe["oi"], pe.get("oi_change", 0.0))},
     ]
+    if abs(float(ce_delta or 0)) < 0.05 or abs(float(pe_delta or 0)) < 0.05:
+        return _blocked("delta_unavailable")
+    if any(float(leg.get("volume") or 0) <= 0 for leg in legs):
+        return _blocked("leg_volume_unavailable")
+    if any(float(leg.get("spread_pct") or 0) > 0.05 for leg in legs):
+        return _blocked("leg_spread_too_wide")
     ts = time.time()
     combo_id = _combo_id(symbol, strategy_id, ts)
     snapshot_time = datetime.now().isoformat()
@@ -384,25 +398,41 @@ def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
     if long_ce["last_price"] <= 0 or long_pe["last_price"] <= 0:
         return _blocked("no_liquid_wing_strike")
 
+    if (
+        short_ce["quote"].get("bid", 0) <= 0
+        or short_pe["quote"].get("bid", 0) <= 0
+        or long_ce.get("ask", 0) <= 0
+        or long_pe.get("ask", 0) <= 0
+    ):
+        return _blocked("executable_quote_unavailable")
     net_credit = round(
-        (short_ce["quote"]["last_price"] - long_ce["last_price"])
-        + (short_pe["quote"]["last_price"] - long_pe["last_price"]), 2)
+        (short_ce["quote"]["bid"] - long_ce["ask"])
+        + (short_pe["quote"]["bid"] - long_pe["ask"]), 2)
     max_loss = round(wing_width - net_credit, 2)
 
     legs = [
-        {"strike": short_ce["strike"], "option_type": "CE", "side": "SELL", "price": short_ce["quote"]["last_price"], "delta": round(short_ce["delta"], 4),
+        {"strike": short_ce["strike"], "option_type": "CE", "side": "SELL", "price": short_ce["quote"]["bid"], "delta": round(short_ce["delta"], 4),
          "volume": short_ce["quote"].get("volume", 0.0), "spread_pct": short_ce["quote"].get("spread_pct", 0.0),
          **_oi_direction(short_ce["quote"]["oi"], short_ce["quote"].get("oi_change", 0.0))},
-        {"strike": long_ce_strike, "option_type": "CE", "side": "BUY", "price": long_ce["last_price"], "delta": 0.0,
+        {"strike": long_ce_strike, "option_type": "CE", "side": "BUY", "price": long_ce["ask"], "delta": 0.0,
          "volume": long_ce.get("volume", 0.0), "spread_pct": long_ce.get("spread_pct", 0.0),
          **_oi_direction(long_ce["oi"], long_ce.get("oi_change", 0.0))},
-        {"strike": short_pe["strike"], "option_type": "PE", "side": "SELL", "price": short_pe["quote"]["last_price"], "delta": round(short_pe["delta"], 4),
+        {"strike": short_pe["strike"], "option_type": "PE", "side": "SELL", "price": short_pe["quote"]["bid"], "delta": round(short_pe["delta"], 4),
          "volume": short_pe["quote"].get("volume", 0.0), "spread_pct": short_pe["quote"].get("spread_pct", 0.0),
          **_oi_direction(short_pe["quote"]["oi"], short_pe["quote"].get("oi_change", 0.0))},
-        {"strike": long_pe_strike, "option_type": "PE", "side": "BUY", "price": long_pe["last_price"], "delta": 0.0,
+        {"strike": long_pe_strike, "option_type": "PE", "side": "BUY", "price": long_pe["ask"], "delta": 0.0,
          "volume": long_pe.get("volume", 0.0), "spread_pct": long_pe.get("spread_pct", 0.0),
-         **_oi_direction(long_pe["oi"], long_pe.get("oi_change", 0.0))},
+        **_oi_direction(long_pe["oi"], long_pe.get("oi_change", 0.0))},
     ]
+    if net_credit <= 0 or max_loss <= 0:
+        return _blocked("invalid_condor_credit")
+    short_legs = [leg for leg in legs if leg.get("side") == "SELL"]
+    if any(abs(float(leg.get("delta") or 0)) < 0.05 for leg in short_legs):
+        return _blocked("delta_unavailable")
+    if any(float(leg.get("volume") or 0) <= 0 for leg in legs):
+        return _blocked("leg_volume_unavailable")
+    if any(float(leg.get("spread_pct") or 0) > 0.05 for leg in legs):
+        return _blocked("leg_spread_too_wide")
     ts = time.time()
     combo_id = _combo_id(symbol, strategy_id, ts)
     snapshot_time = datetime.now().isoformat()

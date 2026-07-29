@@ -118,18 +118,20 @@ def split_holdout(
     Split df into (development, holdout).
     Holdout is the LAST holdout_ratio fraction — never touched during dev.
     """
+    # iloc slicing already preserves the original index (DatetimeIndex or
+    # otherwise) exactly as-is -- no reset/restore needed. The previous
+    # reset_index(...).set_index(...) round-trip only restored the index when
+    # its name was literally "date" or the pandas-default "index"; any other
+    # index name (e.g. "timestamp", as produced by external_data_loader /
+    # run_extended_validation) silently fell through both branches, leaving
+    # dev/holdout with a plain RangeIndex. Every timestamp-aware backtest_fn
+    # (e.g. backtest_supertrend_mtf's 5m/15m resample-and-align, its own
+    # end-of-day close check) then silently produced zero trades instead of
+    # raising -- a 2026-07-30 finding, confirmed by direct reproduction.
     n = len(df)
     split = max(1, int(n * (1.0 - holdout_ratio)))
-    dev     = df.iloc[:split].copy().reset_index(drop=False)
-    holdout = df.iloc[split:].copy().reset_index(drop=False)
-
-    # Restore datetime index if present
-    if "date" in dev.columns:
-        dev     = dev.set_index("date")
-        holdout = holdout.set_index("date")
-    elif "index" in dev.columns:
-        dev     = dev.set_index("index")
-        holdout = holdout.set_index("index")
+    dev     = df.iloc[:split].copy()
+    holdout = df.iloc[split:].copy()
 
     logger.info(
         "Holdout split: dev=%d bars (%.0f%%), holdout=%d bars (%.0f%%)",

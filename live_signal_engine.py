@@ -2847,6 +2847,19 @@ class LiveSignalEngine:
         ):
             if key in signal_meta and key not in score_modifiers:
                 score_modifiers[key] = signal_meta[key]
+        # rl_bias is computed in THIS engine (_rl_score_adjustment), not in
+        # signal_engine.py, so it lives on `candidate` itself rather than in
+        # signal_meta like the other modifiers above -- it was never added to
+        # either harvest path, so signal_log's rl_bias column silently stayed
+        # at its schema default (0) for every row despite a working producer
+        # (2026-07-29 finding, same dead-instrumentation class fixed for
+        # weinstein_mod/sector_mod/crsi_mod/nr_mod/volume_mod on 2026-06-20).
+        if "rl_bias" not in score_modifiers:
+            _rl_bias_val = self._first_present(
+                candidate.get("rl_bias"), signal.get("rl_bias"), signal_meta.get("rl_bias"),
+            )
+            if _rl_bias_val is not None:
+                score_modifiers["rl_bias"] = _rl_bias_val
         if score_modifiers:
             metadata["score_modifiers"] = score_modifiers
         payload["metadata"] = metadata
@@ -3272,6 +3285,30 @@ class LiveSignalEngine:
         if not allowed_style:
             self._log_no_signal(style_reason, {"symbol": symbol, "style": style, "strategy": strategy_lc})
             return False
+
+        # Continue logging/labelling every generated signal, but spend paper
+        # execution capacity only on cohorts with positive full-window AND
+        # recent after-cost evidence. This prevents raw score (which is not
+        # monotonic with net R in the current dataset) from selecting the
+        # highest-scoring losers.
+        edge_evidence = signal.get("autonomous_edge_evidence")
+        require_promising = str(
+            os.getenv("PAPER_EXECUTION_REQUIRE_PROMISING_EDGE", "true")
+        ).strip().lower() in {"1", "true", "yes", "on"}
+        if require_promising and isinstance(edge_evidence, dict):
+            edge_status = str(edge_evidence.get("status") or "VALIDATING")
+            if edge_status not in {"PAPER_PROMISING", "LIVE_EVIDENCE_READY"}:
+                self._log_no_signal(
+                    "paper_execution_edge_not_promising",
+                    {
+                        "symbol": symbol, "strategy": strategy_lc,
+                        "edge_status": edge_status,
+                        "avg_net_r": edge_evidence.get("avg_net_r"),
+                        "recent_avg_net_r": edge_evidence.get("recent_avg_net_r"),
+                        "profit_factor": edge_evidence.get("profit_factor"),
+                    },
+                )
+                return False
 
         # Capital from the correct bucket for this style
         trade_capital = self.capital_allocator.capital_for_trade(

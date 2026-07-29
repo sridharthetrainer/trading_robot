@@ -644,6 +644,7 @@ class SignalLogger:
                 "crsi_mod":        float(mods.get("crsi_mod", 0) or 0),
                 "nr_mod":          float(mods.get("nr_mod", 0) or 0),
                 "volume_mod":      float(mods.get("volume_mod", 0) or 0),
+                "rl_bias":         float(mods.get("rl_bias", 0) or 0),
                 "time_bucket_wt":  float(mods.get("time_bucket", 1) or 1),
                 "ai_score":        float(signal.get("confidence", 0) or 0),
                 "volume_ratio":    float(signal.get("volume_ratio", 0) or 0),
