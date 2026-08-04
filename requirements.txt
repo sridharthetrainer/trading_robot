@@ -70,6 +70,12 @@ joblib>=1.3.0
 pyyaml>=6.0
 tqdm>=4.66.0
 
+# smartapi-python imports this internally but doesn't declare it as a dependency;
+# clean_env_check.py can't catch it (not imported directly by repo code) — a fresh
+# install breaks on `from SmartApi import SmartConnect` without it (found 2026-08-05
+# redeploy). Pin explicitly.
+logzero>=1.7.0
+
 # ── Browser Automation (Zerodha token refresh — optional) ──────
 # playwright>=1.40.0
 
