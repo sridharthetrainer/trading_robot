@@ -6,8 +6,8 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=sridhar
-WorkingDirectory=/home/sridhar/Desktop/trading_robot
-ExecStart=/home/sridhar/Desktop/trading_robot/.venv/bin/python3 /home/sridhar/Desktop/trading_robot/auto_deploy_watcher.py
+WorkingDirectory=/home/sridhar/Projcts/trading_robot
+ExecStart=/home/sridhar/Projcts/trading_robot/.venv/bin/python3 /home/sridhar/Projcts/trading_robot/auto_deploy_watcher.py
 RemainAfterExit=yes
 StandardOutput=journal
 StandardError=journal
