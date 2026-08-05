@@ -105,6 +105,9 @@ def _get_orb(day_df: pd.DataFrame) -> Optional[Tuple[float, float]]:
     day = day_df.index[0].date()
     start = pd.Timestamp(day).replace(hour=9, minute=15)
     end   = pd.Timestamp(day).replace(hour=9, minute=30)
+    if day_df.index.tz is not None:
+        start = start.tz_localize(day_df.index.tz)
+        end   = end.tz_localize(day_df.index.tz)
     mask  = (day_df.index >= start) & (day_df.index <= end)
     orb   = day_df[mask]
     if len(orb) < 1:
