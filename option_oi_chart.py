@@ -54,6 +54,12 @@ def _parse_time(value: str) -> datetime:
             return datetime.strptime(raw, fmt)
         except Exception:
             pass
+    # Every point on every OI chart uses this as its x-axis label; a silent
+    # fallback here means a format drift wouldn't error, it would just quietly
+    # collapse every point in a chart onto the same epoch-0 timestamp (found
+    # 2026-08-05 while rendering a test chart with a malformed snapshot_time).
+    logger.warning("Unparseable snapshot_time %r -- falling back to epoch 0, "
+                    "chart x-axis for this point will be wrong", raw)
     return datetime.fromtimestamp(0)
 
 
@@ -681,13 +687,13 @@ def generate_option_oi_chart(
         for spine in ax.spines.values():
             spine.set_color(ct.GRID)
 
-    axes[0].plot(labels, ce_oi, color="#ff6b6b", linewidth=2.2, label="CE OI")
-    axes[0].plot(labels, pe_oi, color="#4dabf7", linewidth=2.2, label="PE OI")
+    axes[0].plot(labels, ce_oi, color=ct.CALL, linewidth=2.2, label="CE OI")
+    axes[0].plot(labels, pe_oi, color=ct.PUT, linewidth=2.2, label="PE OI")
     axes[0].set_ylabel("Open Interest", color=ct.TEXT_SECONDARY)
     axes[0].legend(loc="upper left", facecolor=ct.PANEL, edgecolor=ct.GRID, labelcolor=ct.TEXT_SECONDARY)
 
-    axes[1].plot(labels, ce_chg, color="#ffa8a8", linewidth=2.0, label="CE Change OI")
-    axes[1].plot(labels, pe_chg, color="#91caff", linewidth=2.0, label="PE Change OI")
+    axes[1].plot(labels, ce_chg, color=ct.CALL_MUTED, linewidth=2.0, label="CE Change OI")
+    axes[1].plot(labels, pe_chg, color=ct.PUT_MUTED, linewidth=2.0, label="PE Change OI")
     axes[1].axhline(0, color=ct.TEXT_MUTED, linewidth=0.8)
     axes[1].set_ylabel("Change OI", color=ct.TEXT_SECONDARY)
     axes[1].legend(loc="upper left", facecolor=ct.PANEL, edgecolor=ct.GRID, labelcolor=ct.TEXT_SECONDARY)
@@ -734,7 +740,7 @@ def _render_multi_strike_chart(
     strikes = sorted(multi.keys())
     first_series = next(iter(multi.values()))
     labels = [p["label"] for p in first_series]
-    colors = ["#4dabf7", "#ff6b6b", "#51cf66", ct.WARNING, "#b197fc", "#20c997", "#ff922b"]
+    colors = ct.categorical(len(strikes))
 
     fig, axes = plt.subplots(3, 1, figsize=(13, 9), sharex=False, dpi=130)
     fig.patch.set_facecolor(ct.BG)

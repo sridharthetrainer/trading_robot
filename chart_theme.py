@@ -51,6 +51,22 @@ INFO    = "#4dabf7"
 # color regardless of how many series are plotted or which get filtered out.
 CATEGORICAL = ("#4dabf7", "#ffd43b", "#63e6be", "#da77f2", "#ff922b")
 
+# CE (call) vs PE (put) is an IDENTITY distinction, not a bullish/bearish one --
+# CE open interest rising isn't inherently bad news nor PE inherently good (that
+# depends on the relative change, which callers compute separately). Give it a
+# fixed categorical pair rather than reusing BULLISH/BEARISH, which would imply
+# a polarity that isn't actually there. CALL/PUT are the first two CATEGORICAL
+# colors, kept as named constants since this pairing recurs across every
+# option-chain chart in the codebase. _MUTED variants (same hue, lighter) are
+# for a paired sub-chart (e.g. change-in-OI) that needs to visually pair with
+# the primary CE/PE lines without competing with them for attention.
+# Matches the CE=red/PE=blue convention already on screen in every prior OI
+# chart -- centralizing the existing appearance, not changing it.
+CALL = "#ff6b6b"
+PUT  = CATEGORICAL[0]
+CALL_MUTED = "#ffa8a8"
+PUT_MUTED  = "#91caff"
+
 
 def apply_theme(fig, axes=None) -> None:
     """Apply the shared surface/grid/tick styling to a figure and its axes
