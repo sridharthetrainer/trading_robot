@@ -240,6 +240,21 @@ def _bars_per_day(df: pd.DataFrame, interval_minutes: int = 5) -> int:
     return int(375 / max(interval_minutes, 1))
 
 
+def _has_disqualifying_history_gap(index: pd.Index, *, max_gap_days: int = 10) -> bool:
+    """Return true if a proposed walk-forward slice crosses missing months.
+
+    Weekends and exchange holidays are normal. A gap beyond ten calendar days
+    is not: treating it as adjacent bars makes a backtest look continuous when
+    no strategy could have traded through the missing period. This protects
+    combined archive/live research while preserving existing behaviour for
+    non-datetime inputs.
+    """
+    if not isinstance(index, pd.DatetimeIndex) or len(index) < 2:
+        return False
+    gaps = pd.Series(index).sort_values().diff().dropna()
+    return bool((gaps > pd.Timedelta(days=max_gap_days)).any())
+
+
 def _run_wf_grid(
     backtest_fn:      Callable,
     dev_df:           pd.DataFrame,
@@ -281,6 +296,9 @@ def _run_wf_grid(
         offset  += test_bars
 
         if len(test_df) < 30:
+            continue
+        if _has_disqualifying_history_gap(train_df.index) or _has_disqualifying_history_gap(test_df.index):
+            logger.info("Skipping walk-forward window that crosses a material history gap")
             continue
 
         def _date_str(sub, pos=-1):
@@ -754,27 +772,51 @@ if __name__ == "__main__":
         "vwap_reversion": ("backtest_vwap_reversion", "backtest_vwap_reversion"),
         "supertrend_mtf": ("backtest_supertrend_mtf", "backtest_supertrend_mtf"),
     }
-    # Fetch data
+    # Fetch data. This harness needs DEPTH of history (up to --days back) for a
+    # meaningful walk-forward split, unlike live scanning which needs freshness.
+    # get_market_data()/get_ohlcv_with_fallback() both try live sources (Angel,
+    # then Upstox) first and only fall back to the local candle cache if those
+    # return under 5 rows -- Upstox's free intraday API happily returns ~75
+    # bars (one session) and that passes the >5 threshold, so a 210-day
+    # request silently got starved to one day's data (found 2026-08-05: the
+    # cache already holds 10,575 5m NIFTY bars spanning 7 months, unused).
+    # Try the local cache FIRST here specifically; fall back to the live chain
+    # only if the cache can't cover the requested window.
     data_fetcher = None
     full_data    = None
     try:
-        import os
-        from angel import AngelOne
-        from data_fetcher import DataFetcher
-        _ang = AngelOne(
-            api_key     = os.getenv("API_KEY",     ""),
-            client_id   = os.getenv("CLIENT_ID",   ""),
-            password    = os.getenv("PASSWORD",    ""),
-            totp_secret = os.getenv("TOTP_SECRET", ""),
-        )
-        data_fetcher = DataFetcher(angel=_ang, paper_trade=False)
-        full_data    = data_fetcher.get_market_data(
-            args.symbol, interval=args.interval, days=args.days
-        )
-        if full_data is not None:
-            logger.info("Fetched %d bars for %s", len(full_data), args.symbol)
+        from candle_cache import get_cached_candles
+        _cached = get_cached_candles(args.symbol, args.interval, days=args.days)
+        if _cached is not None and len(_cached) >= 100:
+            full_data = _cached.rename(columns={
+                "open": "Open", "high": "High", "low": "Low",
+                "close": "Close", "volume": "Volume",
+            }).sort_index()
+            logger.info("Fetched %d bars for %s from local candle cache",
+                        len(full_data), args.symbol)
     except Exception as exc:
-        logger.warning("Data fetch failed: %s", exc)
+        logger.debug("Local cache fetch failed: %s", exc)
+
+    if full_data is None or len(full_data) < 100:
+        try:
+            import os
+            from angel import AngelOne
+            from data_fetcher import DataFetcher
+            _ang = AngelOne(
+                api_key     = os.getenv("API_KEY",     ""),
+                client_id   = os.getenv("CLIENT_ID",   ""),
+                password    = os.getenv("PASSWORD",    ""),
+                totp_secret = os.getenv("TOTP_SECRET", ""),
+            )
+            data_fetcher = DataFetcher(angel=_ang, paper_trade=False)
+            full_data    = data_fetcher.get_market_data(
+                args.symbol, interval=args.interval, days=args.days
+            )
+            if full_data is not None:
+                logger.info("Fetched %d bars for %s from live fetch chain",
+                            len(full_data), args.symbol)
+        except Exception as exc:
+            logger.warning("Data fetch failed: %s", exc)
 
     if full_data is None or len(full_data) < 100:
         logger.error("Insufficient data — cannot validate")

@@ -48,6 +48,16 @@ def test_split_holdout_ratio_and_ordering():
     assert dev.index.max() < holdout.index.min()
 
 
+def test_history_gap_guard_allows_weekend_but_rejects_missing_months():
+    weekend = pd.date_range("2020-01-03 15:25", periods=2, freq="3D")
+    discontinuous = pd.DatetimeIndex([
+        pd.Timestamp("2020-01-03 15:25"),
+        pd.Timestamp("2021-05-03 09:15"),
+    ])
+    assert vh._has_disqualifying_history_gap(weekend) is False
+    assert vh._has_disqualifying_history_gap(discontinuous) is True
+
+
 def test_supertrend_mtf_produces_trades_with_preserved_datetime_index():
     """End-to-end: with the datetime index correctly preserved through
     split_holdout, a datetime-aware strategy can actually generate trades
