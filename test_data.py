@@ -12,9 +12,9 @@ print("═"*50)
 print("TRADING BOT DATA SOURCE TEST")
 print("═"*50)
 print(f"PAPER_TRADING : {cfg.PAPER_TRADING}")
-print(f"API_KEY       : {(cfg.API_KEY or '')[:4]}****")
-print(f"TIINGO_KEY    : {os.getenv('TIINGO_KEY','')[:8]}****")
-print(f"TWELVE_KEY    : {os.getenv('TWELVE_DATA_KEY','')[:8]}****")
+print(f"API_KEY       : {'SET' if cfg.API_KEY else 'MISSING'}")
+print(f"TIINGO_KEY    : {'SET' if os.getenv('TIINGO_KEY') else 'MISSING'}")
+print(f"TWELVE_KEY    : {'SET' if os.getenv('TWELVE_DATA_KEY') else 'MISSING'}")
 print(f"FYERS_TOKEN   : {'SET' if os.getenv('FYERS_TOKEN') else 'MISSING'}")
 print(f"GITHUB_TOKEN  : {'SET' if os.getenv('GITHUB_TOKEN') else 'MISSING'}")
 print()
@@ -70,7 +70,9 @@ except Exception as e:
 # 4. Tiingo
 print("─── Tiingo (key configured) ────────────")
 try:
-    key = os.getenv("TIINGO_KEY","43f3cb0bc2a1ea5afd7d8b33c084d584e44ba65b")
+    key = os.getenv("TIINGO_KEY", "")
+    if not key:
+        raise RuntimeError("TIINGO_KEY not configured")
     end_s2   = datetime.now().strftime("%Y-%m-%d")
     start_s2 = (datetime.now()-timedelta(days=10)).strftime("%Y-%m-%d")
     r4 = requests.get(

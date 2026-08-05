@@ -25,8 +25,8 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID","")
 print("="*55)
 print("TELEGRAM DIAGNOSTIC")  
 print("="*55)
-print(f"Token:   {TOKEN[:25]}..." if len(TOKEN)>25 else f"Token:   {TOKEN or 'NOT SET'}")
-print(f"Chat ID: {CHAT_ID or 'NOT SET'}")
+print(f"Token:   {'SET' if TOKEN else 'NOT SET'}")
+print(f"Chat ID: {'SET' if CHAT_ID else 'NOT SET'}")
 print()
 
 def api(method, **params):

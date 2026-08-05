@@ -313,9 +313,10 @@ def _from_alpha_vantage(symbol:str, interval:str, days:int) -> Optional[pd.DataF
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SOURCE 8: Tiingo (FREE 1000 calls/hour — EOD + intraday IEX feed)
-# Key configured: 43f3cb0bc2a1ea5afd7d8b33c084d584e44ba65b
+# Configure TIINGO_KEY in the environment; never keep provider credentials in
+# source files or silently fall back to one.
 # ─────────────────────────────────────────────────────────────────────────────
-_TIINGO_KEY   = os.getenv("TIINGO_KEY", "43f3cb0bc2a1ea5afd7d8b33c084d584e44ba65b")  # ✅ configured
+_TIINGO_KEY   = os.getenv("TIINGO_KEY", "")
 _TWELVE_KEY   = os.getenv("TWELVE_DATA_KEY", "")  # 13757a73... already in .env
 _AV_KEY       = os.getenv("ALPHA_VANTAGE_KEY", "")  # 6H691G... already in .env
 
@@ -578,4 +579,3 @@ def source_health_check() -> dict:
     results["_cache"] = f"📦 Cache: {len(list(_CACHE_DIR.glob('*.pkl')))} files"
     results["_note"]  = ""
     return results
-

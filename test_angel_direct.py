@@ -13,8 +13,8 @@ CLIENT_ID  = os.getenv("CLIENT_ID")
 PASSWORD   = os.getenv("PASSWORD")
 TOTP_SECRET= os.getenv("TOTP_SECRET")
 
-print(f"API_KEY:   {API_KEY[:4]}****")
-print(f"CLIENT_ID: {CLIENT_ID}")
+print(f"API_KEY:   {'SET' if API_KEY else 'MISSING'}")
+print(f"CLIENT_ID: {'SET' if CLIENT_ID else 'MISSING'}")
 print()
 
 # Step 1: Connect

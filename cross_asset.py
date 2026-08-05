@@ -34,7 +34,7 @@ _TTL   = 900   # 15 min refresh
 
 def _fetch_via_tiingo(ticker_sym: str) -> float:
     """Fetch latest price from Tiingo (free, 1000/hr). Backup for yfinance."""
-    _key = os.getenv("TIINGO_KEY","43f3cb0bc2a1ea5afd7d8b33c084d584e44ba65b")
+    _key = os.getenv("TIINGO_KEY", "")
     if not _key: return 0.0
     try:
         import requests
@@ -462,4 +462,3 @@ def get_market_bias(data: dict = None) -> float:
     elif gold_chg < -1.5: score += 0.1
 
     return round(max(-1.0, min(1.0, score)), 3)
-

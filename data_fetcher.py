@@ -1410,7 +1410,9 @@ class DataFetcher:
             from datetime import timedelta as _td
             if interval not in ("1d", "daily"):
                 return None
-            key = _os.getenv("TIINGO_KEY", "43f3cb0bc2a1ea5afd7d8b33c084d584e44ba65b")
+            key = _os.getenv("TIINGO_KEY", "")
+            if not key:
+                return None
             # Tiingo uses Yahoo-finance style tickers for NSE
             _t_map = {
                 "NIFTY":"^NSEI","BANKNIFTY":"^NSEBANK",
