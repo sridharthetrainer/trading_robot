@@ -49,6 +49,7 @@ def build_training_contract_audit(*, report_file: str = REPORT_FILE, write: bool
     prediction = ml_trainer.predict({"score": 1.0, "volume_ratio": 1.0})
     legacy_model_safe = bool(prediction.get("available")) or prediction.get("reason") in {
         "legacy_training_contract", "model_not_promoted", "ordered_feature_contract_missing",
+        "missing_positive_profit_utility",
     } or prediction.get("model_used") == "none"
     learned_probe = learned_filters.apply_learned_filters({"score": 9.0})
     calibrator = get_calibrator()
