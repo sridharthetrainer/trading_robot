@@ -65,9 +65,34 @@ def test_derive_daily_candles_from_intraday_cache() -> None:
         assert rows[1][1:] == (104.0, 108.0, 103.0, 107.0, 70)
 
 
+def test_derive_daily_removes_contaminating_intraday_rows() -> None:
+    """A prior bad 1d cache row cannot survive a later derived refresh."""
+    with tempfile.TemporaryDirectory() as td:
+        db = Path(td) / "candles.db"
+        _make_db(db)
+        with sqlite3.connect(db) as conn:
+            conn.execute(
+                "INSERT INTO candles VALUES (?,?,?,?,?,?,?,?)",
+                ("TEST", "1d", "2026-06-18 09:15:00+05:30", 1, 1, 1, 1, 1),
+            )
+            conn.execute(
+                "INSERT INTO candles VALUES (?,?,?,?,?,?,?,?)",
+                ("TEST", "1d", "2026-06-01 00:00:00+05:30", 90, 91, 89, 90, 1),
+            )
+        report = derive_daily_candles(db_path=str(db), source_interval="1m", write=False)
+        assert report["removed_non_daily_rows"] == 1
+        with sqlite3.connect(db) as conn:
+            rows = conn.execute(
+                "SELECT timestamp FROM candles WHERE interval='1d' ORDER BY timestamp"
+            ).fetchall()
+        assert "2026-06-18 09:15:00+05:30" not in {row[0] for row in rows}
+        assert "2026-06-01 00:00:00+05:30" in {row[0] for row in rows}
+
+
 def main() -> int:
     try:
         test_derive_daily_candles_from_intraday_cache()
+        test_derive_daily_removes_contaminating_intraday_rows()
     except Exception as exc:
         print(f"FAIL derive daily candles: {exc}")
         return 1

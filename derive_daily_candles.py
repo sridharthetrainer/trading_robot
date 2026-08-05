@@ -79,6 +79,38 @@ def _derive_daily(df: pd.DataFrame) -> pd.DataFrame:
     return daily
 
 
+def _remove_non_daily_rows(conn: sqlite3.Connection, symbol: str) -> int:
+    """Remove malformed intraday timestamps from the ``1d`` cache partition.
+
+    A daily partition must contain one midnight-local timestamp per session.
+    Older cache writers could save five-minute bars under ``interval='1d'``;
+    inserting a correct derived bar for the same date does not replace those
+    extra rows because their timestamps differ.  Apart from wasting storage,
+    those rows made daily indicators and the quality watchdog operate on
+    intraday data.  Only rows that violate the daily-timestamp invariant are
+    removed here; valid broker-supplied daily rows are retained.
+    """
+    rows = conn.execute(
+        "SELECT timestamp FROM candles WHERE symbol=? AND interval='1d'",
+        (symbol.upper(),),
+    ).fetchall()
+    invalid = []
+    for (raw_ts,) in rows:
+        try:
+            ts = pd.Timestamp(raw_ts)
+            if any((ts.hour, ts.minute, ts.second, ts.microsecond, ts.nanosecond)):
+                invalid.append((raw_ts,))
+        except Exception:
+            # An unparsable timestamp cannot be a safe daily cache key.
+            invalid.append((raw_ts,))
+    if invalid:
+        conn.executemany(
+            "DELETE FROM candles WHERE symbol=? AND interval='1d' AND timestamp=?",
+            [(symbol.upper(), raw_ts) for (raw_ts,) in invalid],
+        )
+    return len(invalid)
+
+
 def derive_daily_candles(
     *,
     db_path: str = DB_PATH,
@@ -95,6 +127,7 @@ def derive_daily_candles(
         selected = [str(s).strip().upper() for s in symbols or _load_symbols(conn, source_interval) if str(s).strip()]
         per_symbol = []
         inserted_total = 0
+        removed_non_daily_rows = 0
         skipped = 0
         for symbol in selected:
             intraday = _load_intraday(conn, symbol, source_interval)
@@ -103,6 +136,8 @@ def derive_daily_candles(
                 skipped += 1
                 per_symbol.append({"symbol": symbol, "ok": False, "days": len(daily), "reason": "too_few_days"})
                 continue
+            removed = _remove_non_daily_rows(conn, symbol)
+            removed_non_daily_rows += removed
             inserted = 0
             for ts, row in daily.iterrows():
                 day_ts = pd.Timestamp(ts).normalize()
@@ -133,7 +168,12 @@ def derive_daily_candles(
                 (symbol, "1d", time.strftime("%Y-%m-%dT%H:%M:%S%z"), inserted),
             )
             inserted_total += inserted
-            per_symbol.append({"symbol": symbol, "ok": True, "days": inserted})
+            per_symbol.append({
+                "symbol": symbol,
+                "ok": True,
+                "days": inserted,
+                "removed_non_daily_rows": removed,
+            })
         conn.commit()
     finally:
         conn.close()
@@ -146,6 +186,7 @@ def derive_daily_candles(
         "symbols_ok": sum(1 for row in per_symbol if row.get("ok")),
         "symbols_skipped": skipped,
         "inserted_rows": inserted_total,
+        "removed_non_daily_rows": removed_non_daily_rows,
         "per_symbol": per_symbol,
     }
     if write:
