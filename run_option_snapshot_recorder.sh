@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BOT_DIR="${BOT_DIR:-$HOME/Desktop/trading_robot}"
+BOT_DIR="${BOT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 PYTHON="$BOT_DIR/.venv/bin/python3"
 if [ ! -x "$PYTHON" ]; then
     PYTHON="$BOT_DIR/venv/bin/python3"
