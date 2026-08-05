@@ -103,16 +103,37 @@ def test_ml_rejects_single_class_dataset():
         )
 
 
-def test_request_governor_is_shared_across_callers(monkeypatch):
+def test_request_governor_is_shared_across_callers(monkeypatch, tmp_path):
     import request_governor
-    request_governor._LAST.clear()
+    monkeypatch.setattr(request_governor, "_STATE_DIR", tmp_path)
     clock = {"now": 10.0}
     waits = []
-    monkeypatch.setattr(request_governor.time, "monotonic", lambda: clock["now"])
+    monkeypatch.setattr(request_governor.time, "time", lambda: clock["now"])
     monkeypatch.setattr(
         request_governor.time, "sleep",
         lambda seconds: waits.append(seconds) or clock.__setitem__("now", clock["now"] + seconds),
     )
     request_governor.acquire("broker", 0.5)
+    request_governor.acquire("broker", 0.5)
+    assert waits == [0.5]
+
+
+def test_request_governor_shares_state_across_separate_module_instances(monkeypatch, tmp_path):
+    """The real bug: two OS processes each import request_governor and get
+    their own in-memory state. Simulate that by clearing the in-process
+    thread-lock cache between calls -- the file-backed state must still
+    enforce the interval since that's what actually crosses process
+    boundaries."""
+    import request_governor
+    monkeypatch.setattr(request_governor, "_STATE_DIR", tmp_path)
+    clock = {"now": 10.0}
+    waits = []
+    monkeypatch.setattr(request_governor.time, "time", lambda: clock["now"])
+    monkeypatch.setattr(
+        request_governor.time, "sleep",
+        lambda seconds: waits.append(seconds) or clock.__setitem__("now", clock["now"] + seconds),
+    )
+    request_governor.acquire("broker", 0.5)
+    request_governor._LOCKS.clear()  # simulate a fresh process's empty in-memory cache
     request_governor.acquire("broker", 0.5)
     assert waits == [0.5]
