@@ -1,39 +1,39 @@
 {
   "open": {
-    "entry_date": "2026-07-29",
-    "expiry_date": "2026-08-04",
-    "spot_entry": 24250.2,
-    "vix_entry": 12.01,
+    "entry_date": "2026-08-05",
+    "expiry_date": "2026-08-11",
+    "spot_entry": 24624.65,
+    "vix_entry": 12.09,
     "T_entry": 0.01643835616438356,
-    "width": 350,
+    "width": 400,
     "legs": [
       {
-        "strike": 24600,
+        "strike": 25000,
         "opt_type": "call",
         "qty": -1,
-        "entry_prem": 40.55
+        "entry_prem": 38.11
       },
       {
-        "strike": 23900,
+        "strike": 24200,
         "opt_type": "put",
         "qty": -1,
-        "entry_prem": 30.05
+        "entry_prem": 21.61
       },
       {
-        "strike": 24950,
+        "strike": 25400,
         "opt_type": "call",
         "qty": 1,
-        "entry_prem": 5.71
+        "entry_prem": 3.95
       },
       {
-        "strike": 23550,
+        "strike": 23800,
         "opt_type": "put",
         "qty": 1,
-        "entry_prem": 3.36
+        "entry_prem": 1.51
       }
     ],
-    "credit_rs": 3999.0,
-    "max_loss_rs": 18751.0
+    "credit_rs": 3527.0,
+    "max_loss_rs": 22473.0
   },
   "closed": [
     {
@@ -89,6 +89,17 @@
       "credit_rs": 4124.0,
       "max_loss_rs": 21876.0,
       "pnl_rs": 3907.0,
+      "outcome": "WIN"
+    },
+    {
+      "entry_date": "2026-07-29",
+      "exit_date": "2026-08-05",
+      "expiry_date": "2026-08-04",
+      "spot_entry": 24250.0,
+      "spot_exit": 24625.0,
+      "credit_rs": 3999.0,
+      "max_loss_rs": 18751.0,
+      "pnl_rs": 2165.0,
       "outcome": "WIN"
     }
   ],

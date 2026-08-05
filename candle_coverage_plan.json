@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-05T02:33:48+0530",
+  "generated_at": "2026-08-05T15:45:23+0530",
   "db_path": "candle_cache.db",
   "db_exists": true,
   "target_symbols": 194,
@@ -15,13 +15,8 @@
       "target_symbols": 194,
       "present_symbols": 193,
       "missing_symbols": 1,
-      "stale_symbols": 193,
+      "stale_symbols": 188,
       "stale": [
-        "NIFTY",
-        "BANKNIFTY",
-        "FINNIFTY",
-        "MIDCPNIFTY",
-        "SENSEX",
         "NIFTYNEXT50",
         "RELIANCE",
         "TCS",
@@ -215,18 +210,15 @@
       "priority_missing": [
         "LTIM"
       ],
-      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO"
+      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND,TECHM,M&M"
     },
     {
       "interval": "1d",
       "target_symbols": 194,
       "present_symbols": 196,
       "missing_symbols": 1,
-      "stale_symbols": 193,
+      "stale_symbols": 190,
       "stale": [
-        "NIFTY",
-        "BANKNIFTY",
-        "FINNIFTY",
         "MIDCPNIFTY",
         "SENSEX",
         "NIFTYNEXT50",
@@ -422,7 +414,7 @@
       "priority_missing": [
         "LTIM"
       ],
-      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols LTIM,NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO"
+      "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols LTIM,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND"
     }
   ],
   "missing_by_interval": {
@@ -440,7 +432,7 @@
       "priority_missing": [
         "LTIM"
       ],
-      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO"
+      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND,TECHM,M&M"
     },
     {
       "interval": "1d",
@@ -448,7 +440,7 @@
       "priority_missing": [
         "LTIM"
       ],
-      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols LTIM,NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO"
+      "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols LTIM,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND"
     }
   ]
 }

@@ -1,11 +1,11 @@
 # Signal Reverse Engineering Report
 
-- Generated: `2026-08-05T06:14:42+0530`
+- Generated: `2026-08-05T18:53:29+0530`
 - Status: `READY`
-- Rows: `32815`
+- Rows: `33262`
 - Labelled rows: `32563`
-- Pending rows: `185`
-- Labelled pct: `0.9923`
+- Pending rows: `632`
+- Labelled pct: `0.979`
 - Overall target/loss/timeout: `4512` / `7446` / `20605`
 - Overall average return pct: `-0.0175`
 
@@ -59,12 +59,13 @@
 
 ## Pending Signal Profile
 
-- `edge_negative_edge,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `99`
-- `edge_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `27`
-- `validation_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `25`
-- `missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `14`
-- `strategy_missing_from_live_eligibility_manifest,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `8`
-- `edge_negative_edge,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `6`
-- `validation_fail,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `3`
+- `edge_negative_edge,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `313`
+- `missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `104`
+- `validation_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `96`
+- `edge_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `78`
+- `edge_negative_edge,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `14`
+- `strategy_missing_from_live_eligibility_manifest,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `14`
+- `validation_fail,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `4`
+- `missing_rigorous_validation,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `4`
 - `validation_fail,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `2`
-- `missing_rigorous_validation,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `1`
+- `edge_insufficient_data,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `2`
