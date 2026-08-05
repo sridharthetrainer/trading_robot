@@ -4350,6 +4350,10 @@ class LiveSignalEngine:
                 peak_equity      = self.total_capital,
                 lot_size         = lot_size_opt,
                 base_risk_pct    = float(getattr(cfg, "RISK_PER_TRADE_PCT", 0.01)),
+                ml_win_prob      = (
+                    _safe_float(signal.get("confidence"), 0.5)
+                    if signal.get("ai_model_state") == "signal_log_model" else None
+                ),
             )
 
             requested_quantity = qty if sizing.quantity <= 0 else sizing.quantity
@@ -4465,6 +4469,10 @@ class LiveSignalEngine:
             peak_equity      = self.total_capital,
             lot_size         = 1,
             base_risk_pct    = float(getattr(cfg, "RISK_PER_TRADE_PCT", 0.01)),
+            ml_win_prob      = (
+                _safe_float(signal.get("confidence"), 0.5)
+                if signal.get("ai_model_state") == "signal_log_model" else None
+            ),
         )
 
         return {

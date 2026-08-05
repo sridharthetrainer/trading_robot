@@ -18,6 +18,7 @@ class PositionSizingResult:
     drawdown_scale: float
     final_risk_pct: float
     reason: str
+    ml_conviction_scale: float = 1.0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -32,6 +33,7 @@ class PositionSizingResult:
             "drawdown_scale": self.drawdown_scale,
             "final_risk_pct": self.final_risk_pct,
             "reason": self.reason,
+            "ml_conviction_scale": self.ml_conviction_scale,
         }
 
 
@@ -169,6 +171,28 @@ class AdaptivePositionSizer:
         if atr_ratio >= 0.005:
             return 1.00
         return 1.05
+
+    @staticmethod
+    def _ml_conviction_scale(ml_win_prob: Optional[float]) -> float:
+        """
+        Additional risk-reducing scale from a PROMOTED model's calibrated win
+        probability (Lopez de Prado, AFML ch.10 bet sizing -- see bet_sizing.py).
+
+        Only applied when the caller passes a real probability, i.e. only
+        after ml_trainer.predict() returns available=True for an actually
+        -promoted model (callers should gate on signal["ai_model_state"] ==
+        "signal_log_model" before passing this). Returns 1.0 -- no change to
+        the existing confidence/regime/volatility/drawdown scaling -- when
+        no promoted model exists, which is every strategy as of 2026-08-05.
+        """
+        if ml_win_prob is None:
+            return 1.0
+        try:
+            from bet_sizing import bet_size_from_prob
+            conviction = abs(bet_size_from_prob(float(ml_win_prob)))
+            return max(0.0, min(1.0, conviction))
+        except Exception:
+            return 1.0
 
     def _drawdown_scale(
         self,
@@ -339,9 +363,16 @@ class AdaptivePositionSizer:
         lot_size: Optional[int] = None,
         base_risk_pct: Optional[float] = None,
         fallback_atr_mult: float = 1.2,
+        ml_win_prob: Optional[float] = None,
     ) -> PositionSizingResult:
         """
         Returns adaptive lot sizing result.
+
+        ml_win_prob: a PROMOTED model's calibrated win probability, if any
+        (see _ml_conviction_scale). Leave None (default) unless the caller
+        has already confirmed the probability came from a real promoted
+        model -- passing an untrusted/fallback probability here would size
+        down trades based on a confidence that hasn't earned it.
         """
         cap = self._safe_float(capital, 0.0)
         if cap <= 0:
@@ -367,8 +398,9 @@ class AdaptivePositionSizer:
         reg_scale = self._regime_scale(regime=regime, strategy=strategy)
         vol_scale = self._volatility_scale(price=entry_price, atr=atr)
         dd_scale = self._drawdown_scale(current_equity=cap, peak_equity=peak_equity)
+        ml_scale = self._ml_conviction_scale(ml_win_prob)
 
-        adjusted_risk_pct = risk_pct * conf_scale * reg_scale * vol_scale * dd_scale
+        adjusted_risk_pct = risk_pct * conf_scale * reg_scale * vol_scale * dd_scale * ml_scale
         adjusted_risk_pct = self._clip(adjusted_risk_pct, self.min_risk_pct, self.max_risk_pct)
 
         risk_amount = cap * adjusted_risk_pct
@@ -392,6 +424,7 @@ class AdaptivePositionSizer:
                 drawdown_scale=dd_scale,
                 final_risk_pct=adjusted_risk_pct,
                 reason="Invalid stop distance",
+                ml_conviction_scale=round(ml_scale, 4),
             )
 
         estimated_risk_per_lot = stop_distance * effective_lot_size
@@ -408,6 +441,7 @@ class AdaptivePositionSizer:
                 drawdown_scale=dd_scale,
                 final_risk_pct=adjusted_risk_pct,
                 reason="Invalid risk per lot",
+                ml_conviction_scale=round(ml_scale, 4),
             )
 
         raw_lots = math.floor(risk_amount / estimated_risk_per_lot)
@@ -425,6 +459,7 @@ class AdaptivePositionSizer:
                 drawdown_scale=dd_scale,
                 final_risk_pct=adjusted_risk_pct,
                 reason="Risk budget too small for 1 lot",
+                ml_conviction_scale=round(ml_scale, 4),
             )
 
         final_lots = max(self.min_lots, min(raw_lots, self.max_lots))
@@ -448,6 +483,7 @@ class AdaptivePositionSizer:
             drawdown_scale=round(dd_scale, 4),
             final_risk_pct=round(adjusted_risk_pct, 6),
             reason=reason,
+            ml_conviction_scale=round(ml_scale, 4),
         )
 
 
