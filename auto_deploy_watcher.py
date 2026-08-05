@@ -19,17 +19,18 @@ import os, time, subprocess, logging, json
 from pathlib import Path
 from datetime import datetime
 
+BOT_DIR = Path(__file__).resolve().parent
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
     handlers=[
-        logging.FileHandler(os.path.expanduser("~/Desktop/trading_robot/auto_deploy.log")),
+        logging.FileHandler(str(BOT_DIR / "auto_deploy.log")),
         logging.StreamHandler(),
     ]
 )
 logger = logging.getLogger("auto_deploy")
 
-BOT_DIR    = Path.home() / "Desktop" / "trading_robot"
 STATE_FILE = BOT_DIR / ".last_deploy_timestamp"
 CHECK_INTERVAL = 300  # 5 minutes
 ZIP_NAME   = "trading_robot_FRESH.zip"
