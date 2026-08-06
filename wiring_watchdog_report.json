@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-05T16:03:46",
+  "generated_at": "2026-08-06T18:55:05",
   "sweep_rows": 447,
   "sweep_days": 5,
   "columns_checked": 156,
@@ -25,8 +25,6 @@
     "lifecycle_price",
     "lifecycle_status",
     "lifecycle_updated_at",
-    "max_adverse_move",
-    "max_favorable_move",
     "option_dte",
     "option_expiry",
     "option_premium",
@@ -34,9 +32,6 @@
     "option_style",
     "option_symbol",
     "option_type",
-    "outcome_price",
-    "outcome_time",
-    "peak_price",
     "prediction_origin",
     "rebal_mod",
     "representation_coverage",
@@ -48,13 +43,6 @@
     "signal_spread_source",
     "sip_boost",
     "skew_mod",
-    "tb_label",
-    "tb_r_multiple",
-    "tb_r_multiple_net",
-    "tb_rr",
-    "tb_stop",
-    "tb_target",
-    "tb_used_custom_barrier",
     "theta_mod",
     "tick_flow_available",
     "tick_momentum",
@@ -66,59 +54,31 @@
     "training_exclusion_reason",
     "whale_mod"
   ],
-  "new_dead_columns": [
-    "ai_score",
-    "cross_asset_bias",
-    "day_of_week",
-    "expiry_dte",
-    "expiry_mod",
-    "expiry_regime",
-    "fii_cum_5d",
-    "fii_fut_ratio",
-    "fii_net_cash",
-    "max_adverse_move",
-    "max_favorable_move",
-    "outcome_price",
-    "outcome_time",
-    "peak_price",
-    "prediction_origin",
-    "representation_coverage",
-    "signal_date",
-    "sip_boost",
-    "tb_label",
-    "tb_r_multiple",
-    "tb_r_multiple_net",
-    "tb_rr",
-    "tb_stop",
-    "tb_target",
-    "tb_used_custom_barrier"
-  ],
-  "revived_columns": [
-    "rl_bias"
-  ],
+  "new_dead_columns": [],
+  "revived_columns": [],
   "stale_artifacts": [
     {
       "file": "option_strike_autotune.json",
       "status": "stale",
-      "age_hours": 163.0,
+      "age_hours": 189.9,
       "max_hours": 80
     },
     {
       "file": "eod_signal_miner_report.json",
       "status": "stale",
-      "age_hours": 163.3,
+      "age_hours": 190.2,
       "max_hours": 80
     },
     {
       "file": "strategy_performance.json",
       "status": "stale",
-      "age_hours": 210.4,
+      "age_hours": 237.3,
       "max_hours": 200
     },
     {
       "file": "option_signal_research_ledger.json",
       "status": "stale",
-      "age_hours": 163.3,
+      "age_hours": 190.2,
       "max_hours": 80
     }
   ],

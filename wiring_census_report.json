@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-05T16:03:44",
-  "n_modules": 541,
+  "generated_at": "2026-08-06T18:55:03",
+  "n_modules": 543,
   "orphan_modules": [
     "check_connections",
     "data_pool",
@@ -479,7 +479,7 @@
       "name": "get_stage2_stocks"
     }
   ],
-  "internal_only_functions_count": 495,
+  "internal_only_functions_count": 494,
   "modules": {
     "adaptive_position_sizer": {
       "status": "imported",
@@ -768,9 +768,11 @@
       "n_importers": 0
     },
     "backtest_orb": {
-      "status": "entrypoint",
-      "imported_by": [],
-      "n_importers": 0
+      "status": "imported",
+      "imported_by": [
+        "test_backtest_orb"
+      ],
+      "n_importers": 1
     },
     "backtest_pivot_boss": {
       "status": "entrypoint",
@@ -824,9 +826,10 @@
     "bet_sizing": {
       "status": "imported",
       "imported_by": [
+        "adaptive_position_sizer",
         "test_quant_methods"
       ],
-      "n_importers": 1
+      "n_importers": 2
     },
     "bhav_copy": {
       "status": "imported",
@@ -919,7 +922,7 @@
         "test_audit_safety_fixes",
         "test_intraday_candle_recorder"
       ],
-      "n_importers": 9
+      "n_importers": 10
     },
     "candle_coverage_backfill": {
       "status": "imported",
@@ -3093,9 +3096,11 @@
       "n_importers": 0
     },
     "run_extended_validation": {
-      "status": "entrypoint",
-      "imported_by": [],
-      "n_importers": 0
+      "status": "imported",
+      "imported_by": [
+        "test_run_extended_validation"
+      ],
+      "n_importers": 1
     },
     "runtime_telemetry": {
       "status": "imported",
@@ -3643,6 +3648,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_backtest_orb": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_bhavcopy_backfill": {
       "status": "test",
       "imported_by": [],
@@ -4049,6 +4059,11 @@
       "n_importers": 0
     },
     "test_risk_gate": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_run_extended_validation": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0

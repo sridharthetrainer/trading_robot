@@ -1,71 +1,73 @@
 {
-  "generated_at": "2026-08-05T03:08:54",
+  "generated_at": "2026-08-06T18:44:03",
   "option_chain_snapshots": {
     "exists": true,
-    "rows": 4325,
-    "ok_rows": 4018,
-    "verified_live_rows": 2959,
-    "latest_verified_live": "2026-07-30T12:12:04+0530",
-    "latest": "2026-07-30T12:12:04+0530",
-    "latest_ok": "2026-07-30T12:12:04+0530",
-    "latest_ok_age_hours": 134.95,
+    "rows": 4942,
+    "ok_rows": 4620,
+    "verified_live_rows": 3561,
+    "latest_verified_live": "2026-08-06T15:33:55+0530",
+    "latest": "2026-08-06T15:33:55+0530",
+    "latest_ok": "2026-08-06T15:33:55+0530",
+    "latest_ok_age_hours": 3.17,
     "recent_failures": [
       {
         "underlying": "NIFTY",
         "reason": "non_live_source:cache_eod",
-        "count": 277
+        "count": 279
+      },
+      {
+        "underlying": "NIFTY",
+        "reason": "non_live_source:cache",
+        "count": 10
+      },
+      {
+        "underlying": "BANKNIFTY",
+        "reason": "non_live_source:cache",
+        "count": 8
+      },
+      {
+        "underlying": "FINNIFTY",
+        "reason": "non_live_source:cache",
+        "count": 7
       },
       {
         "underlying": "BANKNIFTY",
         "reason": "no_option_chain",
         "count": 5
-      },
-      {
-        "underlying": "NIFTY",
-        "reason": "no_option_chain",
-        "count": 5
-      },
-      {
-        "underlying": "NIFTY",
-        "reason": "non_live_source:cache",
-        "count": 5
-      },
-      {
-        "underlying": "BANKNIFTY",
-        "reason": "non_live_source:cache",
-        "count": 4
       }
     ],
-    "strike_signal_rows": 40439,
+    "strike_signal_rows": 46478,
     "strike_signal_labelled": 34411,
     "verified_strike_outcomes": 25124,
-    "today_strike_rows": 0,
+    "today_strike_rows": 3703,
     "today_strike_tradable": 0,
     "today_strike_labelled": 0
   },
   "decision_journal": {
     "exists": true,
-    "rows": 7038,
+    "rows": 7147,
     "decisions": {
-      "selected": 1679,
+      "selected": 1680,
       "blocked_quality": 143,
       "chain_snapshot_evidence": 3040,
       "chain_snapshot_neutral": 865,
-      "chain_signal": 359,
-      "chain_neutral": 148,
-      "blocked_no_chain_data": 778,
+      "chain_signal": 410,
+      "chain_neutral": 157,
+      "blocked_no_chain_data": 806,
       "blocked_vix_too_high_for_theta": 1,
       "blocked_no_option_chain": 3,
       "blocked_no_tradeable_strike": 2,
-      "blocked_delta_unavailable": 15,
-      "blocked_regime_strong_trend": 5
+      "blocked_delta_unavailable": 31,
+      "blocked_regime_strong_trend": 9
     },
-    "today_rows": 0,
-    "today_decisions": {},
-    "today_selected": 0,
+    "today_rows": 1,
+    "today_decisions": {
+      "selected": 1
+    },
+    "today_selected": 1,
     "today_blocked": 0,
     "today_chain_signal": 0,
-    "selected_with_shadow": 1619,
+    "selected_with_shadow": 1620,
     "verified_selected": 0,
     "executed_selected": 0,
     "synthetic_rows": 4361,
@@ -178,14 +180,14 @@
   "signal_log": {
     "exists": true,
     "signal_log_option_rows": 0,
-    "today_option_rows": 0,
+    "today_option_rows": 1,
     "today_executed_option_rows": 0
   },
   "historical_options": {
     "exists": true,
-    "rows": 3179957,
+    "rows": 3191755,
     "first_date": "2020-01-01",
-    "last_date": "2026-07-27"
+    "last_date": "2026-08-05"
   },
   "telegram_oi_tools": {
     "telegram_commands": true,
@@ -223,11 +225,11 @@
   },
   "score": {
     "total": 59.0,
-    "capability_score": 84.0,
+    "capability_score": 95.0,
     "evidence_score": 59.0,
     "max": 100,
     "grade": "F",
-    "readiness": "PAPER_OR_SHADOW",
+    "readiness": "CAPABILITY_READY_EVIDENCE_PENDING",
     "autonomous_score": {
       "total": 100.0,
       "max": 100,
@@ -246,7 +248,7 @@
         "historical_options": {
           "score": 20,
           "max": 20,
-          "detail": "3179957 historical option rows"
+          "detail": "3191755 historical option rows"
         },
         "source_modules": {
           "score": 20.0,
@@ -262,7 +264,7 @@
       "raw_capability_score": 100.0,
       "evidence_blocks": []
     },
-    "raw_capability_score": 84.0,
+    "raw_capability_score": 95.0,
     "minimum_verified_outcomes": 500,
     "evidence_blocks": [
       "no_source_attributed_selected_option_outcomes",
@@ -270,14 +272,14 @@
     ],
     "parts": {
       "snapshot_capture": {
-        "score": 18.0,
+        "score": 25,
         "max": 25,
-        "detail": "verified_live=2959, ok_rows=4018, rows=4325, latest=2026-07-30T12:12:04+0530"
+        "detail": "verified_live=3561, ok_rows=4620, rows=4942, latest=2026-08-06T15:33:55+0530"
       },
       "decision_journal": {
         "score": 12.0,
         "max": 15,
-        "detail": "rows=7038, selected=1679, verified=0, generated_outcomes=25124, executed=0, research=4685"
+        "detail": "rows=7147, selected=1680, verified=0, generated_outcomes=25124, executed=0, research=4685"
       },
       "strike_autotune": {
         "score": 20,
@@ -287,12 +289,12 @@
       "historical_options": {
         "score": 15,
         "max": 15,
-        "detail": "rows=3179957, range=2020-01-01..2026-07-27"
+        "detail": "rows=3191755, range=2020-01-01..2026-08-05"
       },
       "signal_activity": {
-        "score": 4.0,
+        "score": 8.0,
         "max": 10,
-        "detail": "today_option_rows=0, executed=0, journal_rows=0, chain_rows=0, strike_rows=0, signal_log_option_rows=0"
+        "detail": "today_option_rows=3703, executed=0, journal_rows=1, chain_rows=0, strike_rows=3703, signal_log_option_rows=0"
       },
       "telegram_oi_tools": {
         "score": 10.0,
@@ -306,13 +308,11 @@
       }
     },
     "top_improvements": [
-      "Refresh successful option-chain snapshots; latest ok snapshot is stale.",
-      "Collect source-attributed generated option signals and EOD outcomes; synthetic research does not qualify.",
-      "No option signal rows today yet; confirm market-hour scan and option-chain availability."
+      "Collect source-attributed generated option signals and EOD outcomes; synthetic research does not qualify."
     ]
   },
   "score_dimensions": {
-    "capability_score": 84.0,
+    "capability_score": 95.0,
     "verified_edge_score": 0.0,
     "execution_evidence_score": 0.0,
     "profitability_observed": false,
