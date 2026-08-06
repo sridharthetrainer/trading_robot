@@ -126,18 +126,18 @@ def format_direction(result: Dict[str, Any]) -> str:
 def generate_direction_card(result: Dict[str, Any], output_dir: Optional[str]=None) -> str:
     import matplotlib; matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import chart_theme as ct
     fig,(ax1,ax2)=plt.subplots(2,1,figsize=(10,8),dpi=130,gridspec_kw={"height_ratios":[2,1]})
-    fig.patch.set_facecolor("#08111f")
-    for ax in (ax1,ax2): ax.set_facecolor("#101c2c"); ax.tick_params(colors="#aebdca"); ax.grid(color="#2b3b50",alpha=.4)
+    ct.apply_theme(fig, (ax1, ax2))
     closes=result.get("technical",{}).get("closes",[])
-    if closes: ax1.plot(closes,color="#4dabf7",lw=2); ax1.text(.02,.92,f"Spot {result['spot']:,.1f}",transform=ax1.transAxes,color="white")
-    else: ax1.text(.5,.5,"Price series unavailable",ha="center",color="#aebdca",transform=ax1.transAxes)
-    ax1.set_title(f"{result['symbol']} PRICE / MOMENTUM",color="white",weight="bold")
-    ax2.axis("off"); color="#51cf66" if result["action"]=="BUY CALL" else "#ff6b6b" if result["action"]=="BUY PUT" else "#ffd43b"
+    if closes: ax1.plot(closes,color=ct.INFO,lw=2); ax1.text(.02,.92,f"Spot {result['spot']:,.1f}",transform=ax1.transAxes,color=ct.TEXT_PRIMARY)
+    else: ax1.text(.5,.5,"Price series unavailable",ha="center",color=ct.TEXT_MUTED,transform=ax1.transAxes)
+    ax1.set_title(f"{result['symbol']} PRICE / MOMENTUM",color=ct.TEXT_PRIMARY,weight="bold")
+    ax2.axis("off"); color=ct.BULLISH if result["action"]=="BUY CALL" else ct.BEARISH if result["action"]=="BUY PUT" else ct.WARNING
     ax2.text(.03,.78,result["action"],color=color,fontsize=25,weight="bold",transform=ax2.transAxes)
-    ax2.text(.03,.52,f"Confidence {result['confidence']:.0f}%   PCR {result['pcr']:.2f}   OI {result['oi_bias']}",color="white",fontsize=12,transform=ax2.transAxes)
-    ax2.text(.03,.27," | ".join(result["reasons"][:3]),color="#b8c7d9",fontsize=10,transform=ax2.transAxes)
-    if result.get("entry"): ax2.text(.03,.05,f"{result['suggested_strike']}{result['option_type']}  Entry ₹{result['entry']:.1f}  SL ₹{result['sl']:.1f}  Target ₹{result['target']:.1f}",color="white",fontsize=11,transform=ax2.transAxes)
-    fig.suptitle(f"TRADE DIRECTION • {result['generated_at'][:16].replace('T',' ')}",color="white",weight="bold")
+    ax2.text(.03,.52,f"Confidence {result['confidence']:.0f}%   PCR {result['pcr']:.2f}   OI {result['oi_bias']}",color=ct.TEXT_PRIMARY,fontsize=12,transform=ax2.transAxes)
+    ax2.text(.03,.27," | ".join(result["reasons"][:3]),color=ct.TEXT_SECONDARY,fontsize=10,transform=ax2.transAxes)
+    if result.get("entry"): ax2.text(.03,.05,f"{result['suggested_strike']}{result['option_type']}  Entry ₹{result['entry']:.1f}  SL ₹{result['sl']:.1f}  Target ₹{result['target']:.1f}",color=ct.TEXT_PRIMARY,fontsize=11,transform=ax2.transAxes)
+    fig.suptitle(f"TRADE DIRECTION • {result['generated_at'][:16].replace('T',' ')}",color=ct.TEXT_PRIMARY,weight="bold")
     out=Path(output_dir or tempfile.gettempdir()); out.mkdir(parents=True,exist_ok=True)
     path=out/f"trade_direction_{result['symbol']}.png"; plt.tight_layout(rect=(0,0,1,.95)); fig.savefig(path,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); return str(path)
