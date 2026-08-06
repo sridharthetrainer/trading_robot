@@ -63,6 +63,12 @@ ORB_WINDOW_END          = dtime(9, 30)
 ORB_VALID_UNTIL         = dtime(10, 30)
 DEFAULT_ADX_MIN         = 18.0
 DEFAULT_VOLUME_MIN      = 1.3
+# NSE index candles carry no real traded volume (indices aren't directly
+# traded; only their derivatives are) -- confirmed 2026-08-05, cached NIFTY
+# volume is 0.0 for 100% of bars. A volume-ratio filter can structurally
+# never pass for these symbols. Exempt them rather than block orb entirely
+# on data that will never exist; other confirmation (ADX) still applies.
+INDEX_SYMBOLS = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX", "BANKEX"}
 DEFAULT_STOP_RANGE_MULT = 1.0         # stop = opposite side of ORB range
 DEFAULT_TARGET_MULT     = 1.5         # target = 1.5 × range width
 
@@ -156,6 +162,7 @@ def backtest_orb(
     equity     = [capital]
     trades: List[Dict] = []
     position   = None
+    is_index   = str(symbol).upper() in INDEX_SYMBOLS
 
     if not isinstance(data.index, pd.DatetimeIndex):
         return _empty_result(symbol, "no_datetime_index")
@@ -208,7 +215,7 @@ def backtest_orb(
             if not (ORB_WINDOW_END <= bar_t <= ORB_VALID_UNTIL):
                 equity.append(capital)
                 continue
-            if adx_v < adx_min or vol_r < volume_min:
+            if adx_v < adx_min or (not is_index and vol_r < volume_min):
                 equity.append(capital)
                 continue
 

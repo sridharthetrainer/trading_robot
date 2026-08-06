@@ -40,6 +40,11 @@ DEFAULT_DEV_MIN  = 0.003
 DEFAULT_RSI_OS   = 38
 DEFAULT_RSI_OB   = 62
 DEFAULT_VOL_MIN  = 0.80
+# Same exemption as backtest_orb.py: NSE index candles carry no real traded
+# volume (confirmed 2026-08-05 -- cached NIFTY volume is 0.0 for 100% of
+# bars), so a volume-ratio filter can structurally never pass for these
+# symbols. Exempt them; the VWAP-deviation and RSI conditions still apply.
+INDEX_SYMBOLS = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX", "BANKEX"}
 
 
 def fetch_data(symbol: str, days: int = 30) -> Optional[pd.DataFrame]:
@@ -83,6 +88,7 @@ def backtest_vwap_reversion(
     equity   = [capital]
     trades: List[Dict] = []
     position = None
+    is_index = str(symbol).upper() in INDEX_SYMBOLS
 
     for i in range(30, len(data)):
         row      = data.iloc[i]
@@ -122,7 +128,7 @@ def backtest_vwap_reversion(
             equity.append(capital); continue
 
         # Entry
-        if vol_r < vol_min: equity.append(capital); continue
+        if not is_index and vol_r < vol_min: equity.append(capital); continue
 
         below_band = close <= vwap_l or dev_pct <= -dev_min
         above_band = close >= vwap_u or dev_pct >= dev_min
