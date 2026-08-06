@@ -732,6 +732,12 @@ def _build_default_param_grid(strategy_name: str) -> Dict[str, List[Any]]:
             "st_period": [7, 10],
             "st_mult":   [2.5, 3.0],
         },
+        "fibonacci": {
+            "entry_level":   ["0.5", "0.618"],
+            "stop_level":    ["0.786", "1.0"],
+            "swing_lookback": [20, 30],
+            "rsi_min_long":  [30, 35],
+        },
     }
     return grids.get(strategy_name, {})
 
@@ -748,7 +754,7 @@ if __name__ == "__main__":
     parser.add_argument("--strategy", default=None,
                         choices=["trend", "mean_reversion", "breakout", "ma_cross",
                                  "scalping", "ema_5min", "cpr", "orb",
-                                 "vwap_reversion", "supertrend_mtf"],
+                                 "vwap_reversion", "supertrend_mtf", "fibonacci"],
                         help="Strategy to validate")
     parser.add_argument("--all", action="store_true",
                         help="Validate every built-in strategy")
@@ -771,6 +777,7 @@ if __name__ == "__main__":
         "orb":            ("backtest_orb",        "backtest_orb"),
         "vwap_reversion": ("backtest_vwap_reversion", "backtest_vwap_reversion"),
         "supertrend_mtf": ("backtest_supertrend_mtf", "backtest_supertrend_mtf"),
+        "fibonacci":      ("backtest_fibonacci",    "backtest_fibonacci"),
     }
     # Fetch data. This harness needs DEPTH of history (up to --days back) for a
     # meaningful walk-forward split, unlike live scanning which needs freshness.

@@ -84,6 +84,7 @@ _FN_MAP = {
     "orb":            ("backtest_orb", "backtest_orb"),
     "vwap_reversion": ("backtest_vwap_reversion", "backtest_vwap_reversion"),
     "supertrend_mtf": ("backtest_supertrend_mtf", "backtest_supertrend_mtf"),
+    "fibonacci":      ("backtest_fibonacci",    "backtest_fibonacci"),
 }
 
 
