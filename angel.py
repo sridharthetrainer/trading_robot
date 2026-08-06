@@ -422,6 +422,20 @@ class AngelOne:
                 totp = pyotp.TOTP(self.totp_secret).now()
                 obj = SmartConnect(api_key=self.api_key)
                 _patch_dead_gtt_routes(obj)
+                # RECONNECT_MIN_INTERVAL above is a per-instance (== per-process)
+                # guard and only applies when self.obj is already set; a fresh or
+                # lost connection always retries immediately with zero awareness
+                # of other processes sharing this same Angel account
+                # (main_autonomous.py, manual_trade_tracker.py, trade_guardian_bot.py,
+                # option_chain_recorder.py all log in independently). Angel's login
+                # rate limit is account-wide, not per-process -- found 2026-08-06 via
+                # "Angel login throttled" appearing 58+ times across 3 services in
+                # one day, which was blocking live option-chain fetches
+                # (no_chain_data in option_decision_journal.jsonl). Same class of
+                # bug as the historical-candle rate-limit collision fixed earlier
+                # this session; same fix -- pace the actual login call cross-process.
+                from request_governor import acquire as _acquire_login_slot
+                _acquire_login_slot("angel_login", RECONNECT_MIN_INTERVAL)
                 data = obj.generateSession(
                     clientCode=self.client_id,
                     password=self.password,

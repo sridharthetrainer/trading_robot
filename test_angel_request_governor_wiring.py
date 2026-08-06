@@ -80,3 +80,50 @@ def test_modify_and_cancel_order_pace_through_request_governor(monkeypatch):
     inst.modify_order("ORDER123", new_sl=95.0)
     inst.cancel_order("ORDER123")
     assert calls.count(("angel_order_ops", angel.ORDER_API_MIN_INTERVAL_SEC)) == 2
+
+
+class _FakeSmartConnect:
+    """Stands in for SmartApi.SmartConnect -- just enough surface for
+    AngelOne.connect() to run without a real network call."""
+    def __init__(self, api_key=None):
+        pass
+
+    def generateSession(self, clientCode, password, totp):
+        return {"data": {"jwtToken": "t", "refreshToken": "r"}}
+
+    def getfeedToken(self):
+        return "f"
+
+
+def test_connect_paces_login_through_request_governor(monkeypatch):
+    """Regression for a 2026-08-06 finding: RECONNECT_MIN_INTERVAL was a
+    per-instance (== per-process) guard, so main_autonomous.py,
+    manual_trade_tracker.py, trade_guardian_bot.py, and
+    option_chain_recorder.py -- 4 separate processes sharing one Angel
+    account -- each independently allowed themselves one login attempt per
+    interval, colliding on Angel's actual account-wide login rate limit
+    ("Angel login throttled" appeared 58+ times in one day across 3
+    services, blocking live option-chain fetches). The guard only fires
+    when self.obj is already set too -- a fresh/lost connection (the common
+    trigger) always retried immediately with zero cross-process awareness."""
+    calls = []
+    monkeypatch.setattr(
+        request_governor, "acquire",
+        lambda provider, interval: calls.append((provider, interval)) or 0.0,
+    )
+    monkeypatch.setattr(angel, "SmartConnect", _FakeSmartConnect)
+    monkeypatch.setattr(angel.pyotp, "TOTP", lambda secret: type("_T", (), {"now": lambda self: "000000"})())
+
+    inst = object.__new__(angel.AngelOne)
+    inst.paper_trade = False
+    inst.obj = None
+    inst._lock = threading.Lock()
+    inst._rate_limited_until = 0.0
+    inst._last_connect_ts = 0.0
+    inst.api_key = "k"
+    inst.client_id = "c"
+    inst.password = "p"
+    inst.totp_secret = "s"
+
+    assert inst.connect() is True
+    assert ("angel_login", angel.RECONNECT_MIN_INTERVAL) in calls
