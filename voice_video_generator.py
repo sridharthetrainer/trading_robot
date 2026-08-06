@@ -139,9 +139,10 @@ def generate_market_chart(brief_data: dict, output_path: str) -> bool:
         import matplotlib.pyplot as plt
         import matplotlib.patches as mpatches
         import numpy as np
+        import chart_theme as ct
 
         fig, axes = plt.subplots(2, 2, figsize=(16, 9))
-        fig.patch.set_facecolor('#0D1117')
+        ct.apply_theme(fig, axes)
 
         global_data = brief_data.get("global", {})
         commodities = brief_data.get("commodities", {})
@@ -152,7 +153,6 @@ def generate_market_chart(brief_data: dict, output_path: str) -> bool:
 
         # Plot 1: Global markets bar chart
         ax1 = axes[0][0]
-        ax1.set_facecolor('#161B22')
         markets = []
         changes = []
         colors  = []
@@ -164,42 +164,35 @@ def generate_market_chart(brief_data: dict, output_path: str) -> bool:
                 chg = float(d.get("chg", 0) or d.get("change_pct", 0))
                 markets.append(label)
                 changes.append(chg)
-                colors.append('#00FF88' if chg > 0 else '#FF4444')
+                colors.append(ct.BULLISH if chg > 0 else ct.BEARISH)
         if markets:
             bars = ax1.barh(markets, changes, color=colors, height=0.6)
-            ax1.set_title("Global Markets", color='white', fontsize=12, fontweight='bold')
-            ax1.tick_params(colors='white')
-            ax1.set_xlabel("% Change", color='#888888')
-            ax1.axvline(0, color='#444444', linewidth=0.5)
-            for spine in ax1.spines.values():
-                spine.set_edgecolor('#333333')
+            ax1.set_title("Global Markets", color=ct.TEXT_PRIMARY, fontsize=12, fontweight='bold')
+            ax1.set_xlabel("% Change", color=ct.TEXT_MUTED)
+            ax1.axvline(0, color=ct.TEXT_MUTED, linewidth=0.5)
+            ax1.margins(x=0.15)  # room for the value label past a bar at the data extreme
             for bar, val in zip(bars, changes):
                 ax1.text(val + 0.02 * (1 if val >= 0 else -1),
                          bar.get_y() + bar.get_height()/2,
                          f"{val:+.2f}%", va='center',
-                         color='white', fontsize=9,
+                         color=ct.TEXT_PRIMARY, fontsize=9,
                          ha='left' if val >= 0 else 'right')
 
         # Plot 2: India VIX gauge
         ax2 = axes[0][1]
-        ax2.set_facecolor('#161B22')
-        vix_color = '#00FF88' if vix < 15 else '#FFA500' if vix < 22 else '#FF4444'
+        vix_color = ct.BULLISH if vix < 15 else ct.WARNING if vix < 22 else ct.BEARISH
         ax2.set_xlim(0, 50)
         ax2.set_ylim(0, 1)
         ax2.barh([0.5], [vix], height=0.4, color=vix_color, alpha=0.8)
-        ax2.axvline(15, color='#00FF88', linewidth=1, linestyle='--', alpha=0.5, label='Low')
-        ax2.axvline(22, color='#FFA500', linewidth=1, linestyle='--', alpha=0.5, label='High')
-        ax2.set_title(f"India VIX: {vix:.1f}", color='white', fontsize=12, fontweight='bold')
-        ax2.set_xlabel("VIX Level", color='#888888')
-        ax2.tick_params(colors='white')
-        for spine in ax2.spines.values():
-            spine.set_edgecolor('#333333')
+        ax2.axvline(15, color=ct.BULLISH, linewidth=1, linestyle='--', alpha=0.5, label='Low')
+        ax2.axvline(22, color=ct.WARNING, linewidth=1, linestyle='--', alpha=0.5, label='High')
+        ax2.set_title(f"India VIX: {vix:.1f}", color=ct.TEXT_PRIMARY, fontsize=12, fontweight='bold')
+        ax2.set_xlabel("VIX Level", color=ct.TEXT_MUTED)
         vix_label = "LOW — GOOD" if vix < 15 else "MODERATE" if vix < 22 else "HIGH — CAUTION"
         ax2.text(25, 0.5, vix_label, va='center', color=vix_color, fontsize=14, fontweight='bold')
 
         # Plot 3: Commodities
         ax3 = axes[1][0]
-        ax3.set_facecolor('#161B22')
         comm_names, comm_chgs, comm_cols = [], [], []
         for name in ["Gold", "Brent Crude", "Copper", "Natural Gas", "Silver"]:
             d = commodities.get(name, {})
@@ -207,51 +200,44 @@ def generate_market_chart(brief_data: dict, output_path: str) -> bool:
                 chg = float(d.get("change_pct", 0))
                 comm_names.append(name[:10])
                 comm_chgs.append(chg)
-                comm_cols.append('#00FF88' if chg > 0 else '#FF4444')
+                comm_cols.append(ct.BULLISH if chg > 0 else ct.BEARISH)
         if comm_names:
             ax3.barh(comm_names, comm_chgs, color=comm_cols, height=0.6)
-            ax3.set_title("Commodities", color='white', fontsize=12, fontweight='bold')
-            ax3.tick_params(colors='white')
-            ax3.set_xlabel("% Change", color='#888888')
-            ax3.axvline(0, color='#444444', linewidth=0.5)
-            for spine in ax3.spines.values():
-                spine.set_edgecolor('#333333')
+            ax3.set_title("Commodities", color=ct.TEXT_PRIMARY, fontsize=12, fontweight='bold')
+            ax3.set_xlabel("% Change", color=ct.TEXT_MUTED)
+            ax3.axvline(0, color=ct.TEXT_MUTED, linewidth=0.5)
 
         # Plot 4: Market bias + sentiment
         ax4 = axes[1][1]
-        ax4.set_facecolor('#161B22')
         ax4.set_xlim(-1, 1)
         ax4.set_ylim(0, 1)
-        bias_color = '#00FF88' if bias > 0.2 else '#FF4444' if bias < -0.2 else '#FFA500'
+        bias_color = ct.BULLISH if bias > 0.2 else ct.BEARISH if bias < -0.2 else ct.WARNING
         ax4.barh([0.7], [bias], height=0.2, color=bias_color,
                  left=0, align='center')
-        ax4.axvline(0, color='white', linewidth=1)
-        sent_color = '#00FF88' if sentiment == "BULLISH" else '#FF4444' if sentiment == "BEARISH" else '#FFA500'
-        ax4.set_title("Market Bias & Sentiment", color='white', fontsize=12, fontweight='bold')
+        ax4.axvline(0, color=ct.TEXT_PRIMARY, linewidth=1)
+        sent_color = ct.BULLISH if sentiment == "BULLISH" else ct.BEARISH if sentiment == "BEARISH" else ct.WARNING
+        ax4.set_title("Market Bias & Sentiment", color=ct.TEXT_PRIMARY, fontsize=12, fontweight='bold')
         ax4.text(0, 0.4, f"Sentiment: {sentiment}", ha='center',
                  color=sent_color, fontsize=14, fontweight='bold')
         ax4.text(bias, 0.85, f"{bias:+.2f}", ha='center',
                  color=bias_color, fontsize=12, fontweight='bold')
-        ax4.text(-0.95, 0.7, "BEARISH", color='#FF4444', fontsize=10, va='center')
-        ax4.text(0.7, 0.7, "BULLISH", color='#00FF88', fontsize=10, va='center')
-        ax4.set_xlabel("Global Macro Score", color='#888888')
-        ax4.tick_params(colors='white')
-        for spine in ax4.spines.values():
-            spine.set_edgecolor('#333333')
+        ax4.text(-0.95, 0.7, "BEARISH", color=ct.BEARISH, fontsize=10, va='center')
+        ax4.text(0.7, 0.7, "BULLISH", color=ct.BULLISH, fontsize=10, va='center')
+        ax4.set_xlabel("Global Macro Score", color=ct.TEXT_MUTED)
 
         # Title
         today_str = date.today().strftime("%A, %d %B %Y")
         fig.suptitle(f"Market Intelligence Brief — {today_str}",
-                     color='white', fontsize=16, fontweight='bold', y=0.98)
+                     color=ct.TEXT_PRIMARY, fontsize=16, fontweight='bold', y=0.98)
 
         # Footer
         fig.text(0.5, 0.01,
                  "Educational purposes only | Not SEBI registered investment advice",
-                 ha='center', color='#666666', fontsize=9)
+                 ha='center', color=ct.TEXT_MUTED, fontsize=9)
 
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.savefig(output_path, dpi=150, bbox_inches='tight',
-                    facecolor='#0D1117', edgecolor='none')
+                    facecolor=ct.BG, edgecolor='none')
         plt.close()
         logger.info("Chart generated: %s", output_path)
         return True
@@ -360,6 +346,7 @@ def generate_signal_card_image(signal: dict) -> Optional[str]:
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import matplotlib.patches as patches
+        import chart_theme as ct
 
         symbol    = signal.get("symbol", "?")
         direction = signal.get("direction", "?")
@@ -371,13 +358,14 @@ def generate_signal_card_image(signal: dict) -> Optional[str]:
         regime    = signal.get("regime", "TRENDING")
 
         fig, ax = plt.subplots(1, 1, figsize=(8, 4))
-        fig.patch.set_facecolor('#0D1117')
-        ax.set_facecolor('#0D1117')
+        fig.patch.set_facecolor(ct.BG)
+        ax.set_facecolor(ct.BG)
         ax.set_xlim(0, 10)
         ax.set_ylim(0, 6)
         ax.axis('off')
 
-        # Header background
+        # Header background (muted BUY/SELL tint -- no canonical equivalent
+        # yet for a background-fill variant of BULLISH/BEARISH, left literal)
         bg_color = '#1A4D1A' if direction == "BUY" else '#4D1A1A'
         ax.add_patch(patches.FancyBboxPatch((0, 4.5), 10, 1.5,
             boxstyle="round,pad=0.1", fc=bg_color, ec='none'))
@@ -385,51 +373,51 @@ def generate_signal_card_image(signal: dict) -> Optional[str]:
         # Direction icon + symbol
         icon = "▲ BUY" if direction == "BUY" else "▼ SELL"
         ax.text(5, 5.3, f"{icon}  {symbol}", ha='center', va='center',
-                color='white', fontsize=20, fontweight='bold')
+                color=ct.TEXT_PRIMARY, fontsize=20, fontweight='bold')
 
         # Price levels
-        ax.text(1.5, 3.7, "ENTRY", ha='center', color='#888888', fontsize=9)
-        ax.text(5.0, 3.7, "TARGET", ha='center', color='#888888', fontsize=9)
-        ax.text(8.5, 3.7, "STOP LOSS", ha='center', color='#888888', fontsize=9)
+        ax.text(1.5, 3.7, "ENTRY", ha='center', color=ct.TEXT_MUTED, fontsize=9)
+        ax.text(5.0, 3.7, "TARGET", ha='center', color=ct.TEXT_MUTED, fontsize=9)
+        ax.text(8.5, 3.7, "STOP LOSS", ha='center', color=ct.TEXT_MUTED, fontsize=9)
 
-        ax.text(1.5, 3.1, f"₹{price:,.1f}", ha='center', color='white',
+        ax.text(1.5, 3.1, f"₹{price:,.1f}", ha='center', color=ct.TEXT_PRIMARY,
                 fontsize=14, fontweight='bold')
-        ax.text(5.0, 3.1, f"₹{target:,.1f}", ha='center', color='#00FF88',
+        ax.text(5.0, 3.1, f"₹{target:,.1f}", ha='center', color=ct.BULLISH,
                 fontsize=14, fontweight='bold')
-        ax.text(8.5, 3.1, f"₹{sl:,.1f}", ha='center', color='#FF4444',
+        ax.text(8.5, 3.1, f"₹{sl:,.1f}", ha='center', color=ct.BEARISH,
                 fontsize=14, fontweight='bold')
 
         # Score bar
         ax.add_patch(patches.FancyBboxPatch((0.5, 2.0), 9.0, 0.5,
-            boxstyle="round,pad=0.05", fc='#222222', ec='none'))
+            boxstyle="round,pad=0.05", fc=ct.GRID, ec='none'))
         bar_w = score / 10 * 9.0
-        bar_color = '#00FF88' if score >= 7 else '#FFA500' if score >= 5.5 else '#FF4444'
+        bar_color = ct.BULLISH if score >= 7 else ct.WARNING if score >= 5.5 else ct.BEARISH
         ax.add_patch(patches.FancyBboxPatch((0.5, 2.0), bar_w, 0.5,
             boxstyle="round,pad=0.05", fc=bar_color, ec='none', alpha=0.8))
         ax.text(5.0, 2.25, f"Score: {score:.1f}/10", ha='center',
-                color='white', fontsize=10, fontweight='bold')
+                color=ct.TEXT_PRIMARY, fontsize=10, fontweight='bold')
 
         # Meta info
         rr = abs((target-price)/(price-sl)) if price and sl and sl != price else 0
         target_pct = abs((target-price)/price*100) if price else 0
         sl_pct = abs((price-sl)/price*100) if price else 0
 
-        ax.text(2.5, 1.3, f"R:R = 1:{rr:.1f}", ha='center', color='white', fontsize=10)
-        ax.text(5.0, 1.3, f"T: +{target_pct:.1f}%", ha='center', color='#00FF88', fontsize=10)
-        ax.text(7.5, 1.3, f"SL: -{sl_pct:.1f}%", ha='center', color='#FF4444', fontsize=10)
+        ax.text(2.5, 1.3, f"R:R = 1:{rr:.1f}", ha='center', color=ct.TEXT_PRIMARY, fontsize=10)
+        ax.text(5.0, 1.3, f"T: +{target_pct:.1f}%", ha='center', color=ct.BULLISH, fontsize=10)
+        ax.text(7.5, 1.3, f"SL: -{sl_pct:.1f}%", ha='center', color=ct.BEARISH, fontsize=10)
 
         ax.text(5.0, 0.7, f"{strategy}  |  {regime}", ha='center',
-                color='#666666', fontsize=9)
+                color=ct.TEXT_MUTED, fontsize=9)
 
         ax.text(5.0, 0.2,
                 f"⚠️ Educational only | Risk 1% of YOUR capital | {datetime.now().strftime('%d-%b %H:%M')}",
-                ha='center', color='#444444', fontsize=7)
+                ha='center', color=ct.TEXT_MUTED, fontsize=7)
 
         import time   # was imported AFTER this use → UnboundLocalError
         today = date.today().strftime("%Y%m%d")
         out_path = str(_OUTPUT_DIR / f"signal_{symbol}_{today}_{int(time.time())}.png")
         plt.savefig(out_path, dpi=120, bbox_inches='tight',
-                    facecolor='#0D1117', edgecolor='none')
+                    facecolor=ct.BG, edgecolor='none')
         plt.close()
         return out_path
 
