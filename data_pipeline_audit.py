@@ -985,6 +985,7 @@ def _score_institutional_readiness(checks: List[Dict[str, Any]]) -> Dict[str, An
     source = _find_check(checks, "internet_source_catalog")
     storage = _find_check(checks, "storage")
     labels = _find_check(checks, "labelled_dataset")
+    learning = _find_check(checks, "learning_files")
     sources = source.get("sources", []) or []
 
     def covered(domain: str) -> bool:
@@ -1011,6 +1012,14 @@ def _score_institutional_readiness(checks: List[Dict[str, Any]]) -> Dict[str, An
     distinct_days = int(labels.get("distinct_days", 0) or 0)
     target_labelled = int(labels.get("target_labelled", INSTITUTIONAL_TARGET_LABELLED) or INSTITUTIONAL_TARGET_LABELLED)
     target_days = int(labels.get("target_days", INSTITUTIONAL_TARGET_DAYS) or INSTITUTIONAL_TARGET_DAYS)
+    live_ready = int(learning.get("live_ready_count", 0) or 0)
+    # Infrastructure breadth is not trading readiness.  The evidence gate is
+    # intentionally read from the independent after-cost analysis so a large
+    # dataset or many installed modules cannot label a loss-making system as
+    # institutionally ready.
+    edge = _read_json("edge_analysis_last_run.json")
+    edge_verdict = str((edge.get("overall") or {}).get("verdict", "")).upper()
+    after_cost_edge = edge_verdict in {"EDGE", "EDGE_CONFIRMED"}
     mid_labelled = max(1000, int(target_labelled * 0.35))
     mid_days = max(5, int(target_days * 0.5))
 
@@ -1099,6 +1108,12 @@ def _score_institutional_readiness(checks: List[Dict[str, Any]]) -> Dict[str, An
         )
     if trades < 10:
         blockers.append("Need more real/paper execution fill records for slippage and order-quality learning.")
+    if fill_trades < 100:
+        blockers.append("Need at least 100 paired paper/live fill comparisons before execution readiness can be trusted.")
+    if not after_cost_edge:
+        blockers.append("No after-cost statistically confirmed strategy edge; research remains paper-only.")
+    if live_ready <= 0:
+        blockers.append("No strategy has passed the live-eligibility manifest.")
     if profile_snaps == 0:
         blockers.append("Run live scanner to populate market_profile_snapshots.db.")
     grade = "A" if total >= 82 else "B" if total >= 70 else "C" if total >= 55 else "D" if total >= 40 else "F"

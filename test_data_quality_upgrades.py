@@ -102,6 +102,30 @@ def test_option_audit_counts_verified_strike_outcomes_for_evidence():
     assert "insufficient_verified_option_signal_outcomes" not in score["evidence_blocks"]
 
 
+def test_institutional_readiness_cannot_be_ready_without_edge_or_live_eligibility(monkeypatch):
+    import data_pipeline_audit as audit
+
+    checks = [
+        {"name": "internet_source_catalog", "source_count": 1, "covered_count": 1, "sources": []},
+        {"name": "storage", "candle_cache_db": {"count": 1_000_000},
+         "option_chain_snapshots_db": {"count": 1_000},
+         "market_profile_snapshots_db": {"count": 1_000},
+         "historical_options_db": {"count": 1_000_000},
+         "trades_db": {"count": 12}, "execution_fill_telemetry": {"trades": 12},
+         "slippage_report": {"matched_pairs": 3}},
+        {"name": "labelled_dataset", "labelled": 10_000, "distinct_days": 100,
+         "target_labelled": 5_000, "target_days": 15},
+        {"name": "learning_files", "live_ready_count": 0},
+    ]
+    monkeypatch.setattr(audit, "_read_json", lambda _path: {"overall": {"verdict": "EDGE_BELOW_COST"}})
+
+    result = audit._score_institutional_readiness(checks)
+
+    assert result["readiness"] == "BUILDING"
+    assert any("after-cost" in item for item in result["blockers"])
+    assert any("live-eligibility" in item for item in result["blockers"])
+
+
 def test_manual_tracker_marks_token_missing_session_down(monkeypatch):
     from manual_trade_tracker import ManualTradeTracker
 
