@@ -805,6 +805,7 @@ class OffHoursEngine:
             import matplotlib
             matplotlib.use('Agg')
             import matplotlib.pyplot as plt
+            import chart_theme as ct
             import sqlite3, os
             conn = sqlite3.connect('trades.db')
             rows = conn.execute(
@@ -821,18 +822,15 @@ class OffHoursEngine:
                 dates.append(str(row[0])[:10])
                 equity.append(cumulative)
             fig, ax = plt.subplots(figsize=(12,5))
-            fig.patch.set_facecolor('#0D1117')
-            ax.set_facecolor('#161B22')
-            color = '#00FF88' if equity[-1] >= 0 else '#FF4444'
+            ct.apply_theme(fig, ax)
+            color = ct.BULLISH if equity[-1] >= 0 else ct.BEARISH
             ax.plot(range(len(equity)), equity, color=color, linewidth=2)
             ax.fill_between(range(len(equity)), equity, alpha=0.2, color=color)
             ax.set_title(f'Equity Curve | {_dt.now().strftime("%b %Y")}',
-                         color='white', fontsize=14)
-            ax.tick_params(colors='white')
-            for spine in ax.spines.values(): spine.set_edgecolor('#333')
-            ax.axhline(0, color='#444', linewidth=0.5)
+                         color=ct.TEXT_PRIMARY, fontsize=14)
+            ax.axhline(0, color=ct.TEXT_MUTED, linewidth=0.5)
             out = f'equity_curve_{_dt.now().strftime("%Y%m%d")}.png'
-            plt.savefig(out, dpi=120, bbox_inches='tight', facecolor='#0D1117')
+            plt.savefig(out, dpi=120, bbox_inches='tight', facecolor=ct.BG)
             plt.close()
             if self.alerts and hasattr(self.alerts, 'send_photo'):
                 self.alerts.send_photo(out,
