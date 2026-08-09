@@ -11,7 +11,16 @@ Environment=PYTHONUNBUFFERED=1
 ExecStart=/home/sridhar/Projcts/trading_robot/.venv/bin/python3 /home/sridhar/Projcts/trading_robot/daily_pipeline.py --telegram
 StandardOutput=journal
 StandardError=journal
-TimeoutStartSec=2400
+# Was 2400 (40min) -- killed mid-run 2026-08-09 after the machine's multi-day
+# outage (boot-loop crash on 2026-08-07) left several days of catch-up work
+# for this pipeline; it was still running (11min CPU time, much more wall
+# time -- I/O/network bound catching up) when systemd SIGTERM'd it, which is
+# worse than letting a oneshot batch job run long: it leaves partial/
+# incomplete output instead of a clean completion. This is a scheduled
+# batch job, not a latency-sensitive service -- a longer timeout has real
+# upside (a slow-but-complete run) and minimal downside (systemd still
+# kills it eventually if something is genuinely hung).
+TimeoutStartSec=7200
 
 [Install]
 WantedBy=multi-user.target
