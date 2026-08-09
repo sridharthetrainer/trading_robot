@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-06T18:55:03",
-  "n_modules": 543,
+  "generated_at": "2026-08-09T08:50:12",
+  "n_modules": 545,
   "orphan_modules": [
     "check_connections",
     "data_pool",
@@ -173,10 +173,6 @@
     {
       "module": "indicator_cache",
       "name": "clear_cache"
-    },
-    {
-      "module": "indicators",
-      "name": "calculate_fibonacci_levels"
     },
     {
       "module": "indicators",
@@ -719,6 +715,13 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "backtest_fibonacci": {
+      "status": "imported",
+      "imported_by": [
+        "test_backtest_fibonacci"
+      ],
+      "n_importers": 1
+    },
     "backtest_iron_condor": {
       "status": "entrypoint",
       "imported_by": [],
@@ -914,15 +917,15 @@
       "status": "imported",
       "imported_by": [
         "autonomous_param_trainer",
+        "backtest_fibonacci",
         "data_fetcher",
         "eod_signal_miner",
         "intraday_candle_recorder",
         "nse_index_history",
         "signal_engine",
-        "test_audit_safety_fixes",
-        "test_intraday_candle_recorder"
+        "test_audit_safety_fixes"
       ],
-      "n_importers": 10
+      "n_importers": 11
     },
     "candle_coverage_backfill": {
       "status": "imported",
@@ -1016,14 +1019,15 @@
       "status": "imported",
       "imported_by": [
         "executive_reporting",
+        "off_hours_engine",
         "option_oi_chart",
         "option_telegram_report",
         "scalp_signal_report",
         "test_chart_theme",
         "trade_card",
-        "visual_analytics"
+        "trade_direction_engine"
       ],
-      "n_importers": 7
+      "n_importers": 10
     },
     "check_connections": {
       "status": "ORPHAN",
@@ -1236,9 +1240,10 @@
       "imported_by": [
         "autonomous_learning_cycle",
         "idle_engine",
-        "system_readiness_report"
+        "system_readiness_report",
+        "test_data_quality_upgrades"
       ],
-      "n_importers": 3
+      "n_importers": 4
     },
     "data_pool": {
       "status": "ORPHAN",
@@ -1814,10 +1819,10 @@
         "backtest_5min_ema",
         "backtest_breakout",
         "backtest_cpr",
-        "backtest_ma_cross",
-        "backtest_mr_enhanced"
+        "backtest_fibonacci",
+        "backtest_ma_cross"
       ],
-      "n_importers": 35
+      "n_importers": 36
     },
     "institutional_alpha": {
       "status": "imported",
@@ -3644,6 +3649,11 @@
       "n_importers": 0
     },
     "test_autonomous_signal_lifecycle": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_backtest_fibonacci": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0

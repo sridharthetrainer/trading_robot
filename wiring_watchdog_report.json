@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-06T18:55:05",
-  "sweep_rows": 447,
+  "generated_at": "2026-08-09T08:50:14",
+  "sweep_rows": 876,
   "sweep_days": 5,
   "columns_checked": 156,
   "dead_columns_now": [
@@ -10,14 +10,9 @@
     "client_ce_pct",
     "cross_asset_bias",
     "daily_pnl_before",
-    "day_of_week",
     "executed",
-    "expiry_dte",
     "expiry_mod",
     "expiry_regime",
-    "fii_cum_5d",
-    "fii_fut_ratio",
-    "fii_net_cash",
     "footprint_available",
     "frozen_model_version",
     "gex_mod",
@@ -38,7 +33,6 @@
     "risk_level_source",
     "rr",
     "sensex_nifty_div",
-    "signal_date",
     "signal_spread_pct",
     "signal_spread_source",
     "sip_boost",
@@ -60,25 +54,31 @@
     {
       "file": "option_strike_autotune.json",
       "status": "stale",
-      "age_hours": 189.9,
+      "age_hours": 251.8,
       "max_hours": 80
     },
     {
       "file": "eod_signal_miner_report.json",
       "status": "stale",
-      "age_hours": 190.2,
+      "age_hours": 252.1,
       "max_hours": 80
+    },
+    {
+      "file": "eod_setup_edge_report.json",
+      "status": "stale",
+      "age_hours": 252.1,
+      "max_hours": 200
     },
     {
       "file": "strategy_performance.json",
       "status": "stale",
-      "age_hours": 237.3,
+      "age_hours": 299.2,
       "max_hours": 200
     },
     {
       "file": "option_signal_research_ledger.json",
       "status": "stale",
-      "age_hours": 190.2,
+      "age_hours": 252.1,
       "max_hours": 80
     }
   ],

@@ -1,0 +1,743 @@
+{
+  "_audit_snapshot": {
+    "sha256": "f45031c886b568cd7980682625aa061a60ae6edccdcce080d8f66aebf7943282",
+    "snapshot_file": "audit_snapshots/system_readiness_report/20260807T154938+0530_f45031c886b5.json"
+  },
+  "assurance": {
+    "execution_audit_chain": {
+      "chained_rows": 26,
+      "invalid_rows": 0,
+      "last_hash": "9add7caa84f3f622b380abbb6fffeb1413f90b1801d6bab3b9eba106019ef121",
+      "legacy_rows": 0,
+      "ok": true,
+      "path": "execution_compliance.jsonl"
+    },
+    "indicator_lookahead": {
+      "checks": [
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "sma",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "ema",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "rsi",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "atr",
+          "ok": true
+        },
+        {
+          "comparisons": 15,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "adx",
+          "ok": true
+        },
+        {
+          "comparisons": 10,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "supertrend",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "vwap",
+          "ok": true
+        },
+        {
+          "comparisons": 15,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "bollinger",
+          "ok": true
+        },
+        {
+          "comparisons": 15,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "macd",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "volume_ratio",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "obv",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "mfi",
+          "ok": true
+        },
+        {
+          "comparisons": 25,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "ichimoku",
+          "ok": true
+        },
+        {
+          "comparisons": 155,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "alternative_price_representations",
+          "ok": true
+        }
+      ],
+      "failed": [],
+      "generated_at": "2026-08-07T15:49:34+0530",
+      "method": "full_history_vs_truncated_prefix",
+      "ok": true,
+      "rows": 320,
+      "sample": {
+        "interval": "5m",
+        "source": "candle_cache",
+        "symbol": "IGL"
+      }
+    },
+    "ml_training_contract": {
+      "checks": {
+        "calibrator_contract_enforced": true,
+        "legacy_eod_weights_neutral": true,
+        "legacy_learned_filters_neutral": true,
+        "model_artifact_contract_enforced": true,
+        "outcome_fields_excluded": true
+      },
+      "clean_evidence": {
+        "clean_days": 23,
+        "clean_labelled": 23997,
+        "legacy_labelled": 33077
+      },
+      "forbidden_selected": [],
+      "generated_at": "2026-08-07T15:49:38+0530",
+      "ok": true,
+      "ordered_features": [
+        "score",
+        "volume_ratio"
+      ],
+      "primary_model": {
+        "available": false,
+        "model_used": "cross_symbol",
+        "reason": "missing_positive_profit_utility",
+        "win_prob": 0.5
+      },
+      "promotion_targets": {
+        "days": 15,
+        "min_auc": 0.55,
+        "positive_brier_skill": true,
+        "samples": 5000
+      },
+      "training_contract": "all_generated_signals_v4_causal_representations"
+    },
+    "stored_data_catalog": {
+      "databases": 23,
+      "empty_databases": [
+        "historical_options.db",
+        "option_metrics.db",
+        "signal_lifecycle.db",
+        "trading.db"
+      ],
+      "issues": [],
+      "ok": true,
+      "rows": 14818595,
+      "tables": 46
+    }
+  },
+  "blocks": [
+    "no_live_ready_strategy",
+    "no_source_attributed_selected_option_outcomes",
+    "no_executed_option_fill_evidence",
+    "no_after_cost_statistical_edge",
+    "paper_live_fill_comparisons_below_100",
+    "release_integrity_unverified",
+    "labelled_days_below_target",
+    "generated_signal_after_cost_edge_not_positive"
+  ],
+  "data": {
+    "bad_candle_groups": 11,
+    "candle_1d_symbols": 197,
+    "candle_1m_symbols": 193,
+    "derived_daily_symbols": 193,
+    "latest_option_snapshot_age_hours": 0.31,
+    "latest_option_snapshot_ok": "2026-08-07T15:31:12+0530",
+    "stale_candle_groups": 10,
+    "total_candle_groups": 970
+  },
+  "execution": {
+    "avg_entry_slippage_pct": 0.0,
+    "broker_connected": true,
+    "entry_slippage_coverage_pct": 100.0,
+    "fill_latency_coverage_pct": 0.0,
+    "fill_status_coverage_pct": 0.0,
+    "gross_pnl": -26.42,
+    "live_trades": 0,
+    "net_pnl": -625.47,
+    "order_id_coverage_pct": 100.0,
+    "paired_fill_comparison": {
+      "avg_absolute_deviation_pct": null,
+      "max_absolute_deviation_pct": null,
+      "paired_fills": 0,
+      "ready": false,
+      "target_paired_fills": 100
+    },
+    "profitable_trades": 0,
+    "role": "execution_infrastructure_validation_only",
+    "trades": 12
+  },
+  "generated_at": "2026-08-07T15:49:38+0530",
+  "learning": {
+    "custom_barrier_labels": 23999,
+    "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
+    "experiments_logged": 44,
+    "labelled_days": 23,
+    "labelled_rows": 23997,
+    "legacy_labelled_rows": 33077,
+    "sample_source": "all_training_eligible_generated_signals",
+    "shadow_portfolio": {
+      "after_cost_positive": false,
+      "average_net_r": -0.3817,
+      "days": 30,
+      "generated_at": "2026-08-07T15:49:29+0530",
+      "labelled_seen": 13476,
+      "losses": 19,
+      "ok": true,
+      "rejected_wins": 2,
+      "shadow_trades": 80,
+      "target_rate": 0.025,
+      "timeouts": 59,
+      "top": [
+        {
+          "date": "2026-07-08",
+          "executed": 0,
+          "label": 0,
+          "score": 29.0333,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "GPPL"
+        },
+        {
+          "date": "2026-07-08",
+          "executed": 0,
+          "label": 0,
+          "score": 28.299,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "RELIANCE"
+        },
+        {
+          "date": "2026-07-08",
+          "executed": 0,
+          "label": 0,
+          "score": 24.5918,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "SBIN"
+        },
+        {
+          "date": "2026-07-08",
+          "executed": 0,
+          "label": 0,
+          "score": 24.5653,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "NTPC"
+        },
+        {
+          "date": "2026-07-08",
+          "executed": 0,
+          "label": 0,
+          "score": 24.3888,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "ITC"
+        },
+        {
+          "date": "2026-07-09",
+          "executed": 0,
+          "label": 0,
+          "score": 24.8143,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "HDFCBANK"
+        },
+        {
+          "date": "2026-07-09",
+          "executed": 0,
+          "label": -1,
+          "score": 24.4743,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "CIPLA"
+        },
+        {
+          "date": "2026-07-09",
+          "executed": 0,
+          "label": 0,
+          "score": 24.3873,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "AAVAS"
+        },
+        {
+          "date": "2026-07-09",
+          "executed": 0,
+          "label": -1,
+          "score": 24.1133,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "INDIGO"
+        },
+        {
+          "date": "2026-07-09",
+          "executed": 0,
+          "label": 0,
+          "score": 23.9903,
+          "side": "SELL",
+          "strategy": "trend",
+          "symbol": "WIPRO"
+        },
+        {
+          "date": "2026-07-10",
+          "executed": 0,
+          "label": -1,
+          "score": 22.645,
+          "side": "BUY",
+          "strategy": "breakout",
+          "symbol": "JINDALSAW"
+        },
+        {
+          "date": "2026-07-10",
+          "executed": 0,
+          "label": 1,
+          "score": 22.552,
+          "side": "BUY",
+          "strategy": "orb",
+          "symbol": "RBLBANK"
+        },
+        {
+          "date": "2026-07-10",
+          "executed": 0,
+          "label": -1,
+          "score": 22.2556,
+          "side": "SELL",
+          "strategy": "chart_pattern_head_and_shoulders",
+          "symbol": "HDFCBANK"
+        },
+        {
+          "date": "2026-07-10",
+          "executed": 0,
+          "label": -1,
+          "score": 22.199,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "NETWORK18"
+        },
+        {
+          "date": "2026-07-10",
+          "executed": 0,
+          "label": -1,
+          "score": 22.078,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "IGL"
+        },
+        {
+          "date": "2026-07-13",
+          "executed": 0,
+          "label": 0,
+          "score": 28.591,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "RELIANCE"
+        },
+        {
+          "date": "2026-07-13",
+          "executed": 0,
+          "label": -1,
+          "score": 23.612,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "LEMONTREE"
+        },
+        {
+          "date": "2026-07-13",
+          "executed": 0,
+          "label": 0,
+          "score": 22.695,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "WHIRLPOOL"
+        },
+        {
+          "date": "2026-07-13",
+          "executed": 0,
+          "label": 0,
+          "score": 22.673,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "UNITDSPR"
+        },
+        {
+          "date": "2026-07-13",
+          "executed": 0,
+          "label": 0,
+          "score": 22.6556,
+          "side": "SELL",
+          "strategy": "chart_pattern_head_and_shoulders",
+          "symbol": "RELIANCE"
+        },
+        {
+          "date": "2026-07-14",
+          "executed": 0,
+          "label": 0,
+          "score": 24.4021,
+          "side": "SELL",
+          "strategy": "candlestick_evening_star",
+          "symbol": "KOTAKBANK"
+        },
+        {
+          "date": "2026-07-14",
+          "executed": 0,
+          "label": 0,
+          "score": 24.204,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "APLAPOLLO"
+        },
+        {
+          "date": "2026-07-14",
+          "executed": 0,
+          "label": 0,
+          "score": 24.05,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "CANBK"
+        },
+        {
+          "date": "2026-07-14",
+          "executed": 0,
+          "label": 0,
+          "score": 23.4022,
+          "side": "SELL",
+          "strategy": "price_structure",
+          "symbol": "MUTHOOTFIN"
+        },
+        {
+          "date": "2026-07-14",
+          "executed": 0,
+          "label": 0,
+          "score": 23.3155,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "ITC"
+        },
+        {
+          "date": "2026-07-16",
+          "executed": 0,
+          "label": 0,
+          "score": 22.7325,
+          "side": "SELL",
+          "strategy": "failed_bull_breakout",
+          "symbol": "NETWORK18"
+        },
+        {
+          "date": "2026-07-16",
+          "executed": 0,
+          "label": 0,
+          "score": 22.395,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "CIPLA"
+        },
+        {
+          "date": "2026-07-16",
+          "executed": 0,
+          "label": 0,
+          "score": 21.605,
+          "side": "BUY",
+          "strategy": "breakout",
+          "symbol": "GAIL"
+        },
+        {
+          "date": "2026-07-16",
+          "executed": 0,
+          "label": 0,
+          "score": 21.262,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "NETWORK18"
+        },
+        {
+          "date": "2026-07-16",
+          "executed": 0,
+          "label": 0,
+          "score": 21.101,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "ASHOKA"
+        },
+        {
+          "date": "2026-07-20",
+          "executed": 0,
+          "label": 1,
+          "score": 22.1439,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "JUSTDIAL"
+        },
+        {
+          "date": "2026-07-20",
+          "executed": 0,
+          "label": 0,
+          "score": 20.9889,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "CEATLTD"
+        },
+        {
+          "date": "2026-07-20",
+          "executed": 0,
+          "label": -1,
+          "score": 19.6573,
+          "side": "SELL",
+          "strategy": "failed_bull_breakout",
+          "symbol": "M&M"
+        },
+        {
+          "date": "2026-07-20",
+          "executed": 0,
+          "label": 0,
+          "score": 19.4991,
+          "side": "SELL",
+          "strategy": "candlestick_bearish_harami",
+          "symbol": "MIDCPNIFTY"
+        },
+        {
+          "date": "2026-07-20",
+          "executed": 0,
+          "label": 0,
+          "score": 19.2599,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "IGL"
+        },
+        {
+          "date": "2026-07-21",
+          "executed": 0,
+          "label": 0,
+          "score": 21.8398,
+          "side": "SELL",
+          "strategy": "price_structure",
+          "symbol": "HDFCBANK"
+        },
+        {
+          "date": "2026-07-21",
+          "executed": 0,
+          "label": 0,
+          "score": 21.7244,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "INFY"
+        },
+        {
+          "date": "2026-07-21",
+          "executed": 0,
+          "label": -1,
+          "score": 21.4174,
+          "side": "BUY",
+          "strategy": "orb",
+          "symbol": "INDUSINDBK"
+        },
+        {
+          "date": "2026-07-21",
+          "executed": 0,
+          "label": 0,
+          "score": 21.2093,
+          "side": "SELL",
+          "strategy": "failed_bull_breakout",
+          "symbol": "RELIANCE"
+        },
+        {
+          "date": "2026-07-21",
+          "executed": 0,
+          "label": -1,
+          "score": 20.6479,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "CEATLTD"
+        },
+        {
+          "date": "2026-07-22",
+          "executed": 0,
+          "label": 0,
+          "score": 21.5643,
+          "side": "BUY",
+          "strategy": "failed_bear_breakout",
+          "symbol": "YESBANK"
+        },
+        {
+          "date": "2026-07-22",
+          "executed": 0,
+          "label": 0,
+          "score": 21.1039,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "IRFC"
+        },
+        {
+          "date": "2026-07-22",
+          "executed": 0,
+          "label": 0,
+          "score": 21.0359,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "SJVN"
+        },
+        {
+          "date": "2026-07-22",
+          "executed": 0,
+          "label": 0,
+          "score": 20.5882,
+          "side": "SELL",
+          "strategy": "ma_cross",
+          "symbol": "INFY"
+        },
+        {
+          "date": "2026-07-22",
+          "executed": 0,
+          "label": -1,
+          "score": 20.4529,
+          "side": "BUY",
+          "strategy": "breakout",
+          "symbol": "SAIL"
+        },
+        {
+          "date": "2026-07-23",
+          "executed": 0,
+          "label": 0,
+          "score": 22.4908,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "AXISBANK"
+        },
+        {
+          "date": "2026-07-23",
+          "executed": 0,
+          "label": 0,
+          "score": 21.8887,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "IDFCFIRSTB"
+        },
+        {
+          "date": "2026-07-23",
+          "executed": 0,
+          "label": 0,
+          "score": 19.9377,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "DLF"
+        },
+        {
+          "date": "2026-07-23",
+          "executed": 0,
+          "label": 0,
+          "score": 19.5951,
+          "side": "SELL",
+          "strategy": "failed_bull_breakout",
+          "symbol": "PETRONET"
+        },
+        {
+          "date": "2026-07-23",
+          "executed": 0,
+          "label": 0,
+          "score": 19.4872,
+          "side": "SELL",
+          "strategy": "breakout",
+          "symbol": "IGL"
+        }
+      ],
+      "top_per_day": 5,
+      "total_net_r": -30.5337,
+      "wins": 2
+    },
+    "target_days": 45,
+    "target_labelled": 5000
+  },
+  "mode": {
+    "live_block_reason": "no_strategy_passed_live_eligibility_manifest",
+    "live_ready_count": 0,
+    "paper_training_only": true,
+    "total_strategies": 106
+  },
+  "ready_for_scaled_live": false,
+  "release_integrity": {
+    "added": [
+      "backtest_fibonacci.py",
+      "test_backtest_fibonacci.py"
+    ],
+    "changed": [
+      "backtest_orb.py",
+      "backtest_vwap_reversion.py",
+      "run_extended_validation.py",
+      "validation_harness.py"
+    ],
+    "content_digest_matches": false,
+    "current_git_head": "c0b96bdb5527018cfe44f97f0595eb312fcfdd6b",
+    "file_count": 634,
+    "git_head_matches": false,
+    "manifest_git_head": "c4a4102896a564be0ad1fd1765131f23da9bcc4a",
+    "missing": [],
+    "ok": false,
+    "reason": "release_files_changed"
+  },
+  "score_dimensions": {
+    "capability_score": 95.0,
+    "execution_evidence_score": 0.0,
+    "interpretation": "Capability measures infrastructure only; edge and execution evidence independently control trading readiness.",
+    "profitability_observed": false,
+    "verified_edge_score": 0.0
+  },
+  "scores": {
+    "data_pipeline": 92.0,
+    "data_pipeline_grade": "A",
+    "data_pipeline_raw_capability": 92.0,
+    "institutional": 59.0,
+    "institutional_grade": "F",
+    "institutional_raw_capability": 83.0,
+    "option_bot": 59.0,
+    "option_bot_capability": 95.0,
+    "option_bot_evidence": 59.0,
+    "option_bot_grade": "F"
+  },
+  "warnings": []
+}

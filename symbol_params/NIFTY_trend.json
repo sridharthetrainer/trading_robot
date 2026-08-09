@@ -14,10 +14,10 @@
   "metrics": {
     "validation_verdict": "INSUFFICIENT_DATA",
     "paper_training_only": true,
-    "total_trades": 76,
+    "total_trades": 79,
     "num_trades": 0,
-    "sharpe": 7.8086,
-    "win_rate": 0.4473684210526316,
+    "sharpe": 7.3394,
+    "win_rate": 0.43037974683544306,
     "deflated_sharpe": 1.0,
     "parameter_stability_cv": 1.0,
     "holdout_pnl": null,
@@ -26,12 +26,12 @@
   "validation_result": {
     "strategy": "trend",
     "symbol": "NIFTY",
-    "run_date": "2026-08-06",
+    "run_date": "2026-08-09",
     "n_trials": 648,
     "dev_windows": 1,
-    "dev_avg_sharpe": 7.8086,
-    "dev_avg_pnl": 152056.42,
-    "dev_avg_trades": 76.0,
+    "dev_avg_sharpe": 7.3394,
+    "dev_avg_pnl": 141148.76,
+    "dev_avg_trades": 79.0,
     "dev_pct_profitable": 1.0,
     "deflated_sharpe": 1.0,
     "min_trade_ok": true,
@@ -45,13 +45,13 @@
     "dev_windows_detail": [
       {
         "window_idx": 0,
-        "test_start": "2026-04-09",
-        "test_end": "2026-05-22",
-        "pnl": 152056.41854364946,
-        "num_trades": 76,
-        "win_rate": 0.4473684210526316,
-        "sharpe": 7.8086,
-        "max_drawdown": 17712.10505261665,
+        "test_start": "2026-04-10",
+        "test_end": "2026-05-25",
+        "pnl": 141148.76444108083,
+        "num_trades": 79,
+        "win_rate": 0.43037974683544306,
+        "sharpe": 7.3394,
+        "max_drawdown": 17863.45651272587,
         "best_params": {
           "fast_ema": 7,
           "slow_ema": 18,
@@ -77,6 +77,6 @@
     "benchmark_buyhold_sharpe": null,
     "beats_benchmark": false
   },
-  "generated_at": "2026-08-06T18:54:22+0530",
+  "generated_at": "2026-08-09T08:48:48+0530",
   "source": "autonomous_param_trainer"
 }

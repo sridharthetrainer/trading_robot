@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-06T18:53:07",
-  "overall_wr": 0.354,
-  "n_signals": 981,
+  "version": "2026-08-09T08:47:35",
+  "overall_wr": 0.3,
+  "n_signals": 427,
   "training_contract": "all_generated_signals_v4_causal_representations",
   "model_promoted": false,
   "active": false,
@@ -11,115 +11,102 @@
   "boosts": [],
   "candidate_filters": [
     {
-      "id": "strategy\u00d7regime_enc_weinstein_stage_\u00d7_2.",
-      "description": "strategy\u00d7regime_enc weinstein_stage \u00d7 2.0 \u2192 loss rate 100%",
-      "condition": {
-        "feature": "strategy\u00d7regime_enc",
-        "eq": "weinstein_stage \u00d7 2.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 15,
-        "loss_rate": 1.0
-      }
-    },
-    {
-      "id": "strategy\u00d7regime_enc_chart_pattern_ascend",
-      "description": "strategy\u00d7regime_enc chart_pattern_ascending_triangle \u00d7 2.0 \u2192 loss rate 96%",
-      "condition": {
-        "feature": "strategy\u00d7regime_enc",
-        "eq": "chart_pattern_ascending_triangle \u00d7 2.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 23,
-        "loss_rate": 0.957
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_failed_bull_breako",
-      "description": "strategy\u00d7htf_bias_enc failed_bull_breakout \u00d7 1.0 \u2192 loss rate 95%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "failed_bull_breakout \u00d7 1.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 20,
-        "loss_rate": 0.95
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_chart_pattern_asce",
-      "description": "strategy\u00d7htf_bias_enc chart_pattern_ascending_triangle \u00d7 1.0 \u2192 loss rate 88%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "chart_pattern_ascending_triangle \u00d7 1.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 25,
-        "loss_rate": 0.88
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_donchian_breakout_",
-      "description": "strategy\u00d7htf_bias_enc donchian_breakout \u00d7 0.0 \u2192 loss rate 87%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "donchian_breakout \u00d7 0.0"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 15,
-        "loss_rate": 0.867
-      }
-    },
-    {
       "id": "strategy_failed_bull_breakout",
-      "description": "strategy failed_bull_breakout \u2192 loss rate 83%",
+      "description": "strategy failed_bull_breakout \u2192 loss rate 100%",
       "condition": {
         "feature": "strategy",
         "eq": "failed_bull_breakout"
       },
       "mult": 0.2,
       "evidence": {
-        "n": 41,
-        "loss_rate": 0.829
+        "n": 16,
+        "loss_rate": 1.0
       }
     },
     {
-      "id": "strategy_weinstein_stage",
-      "description": "strategy weinstein_stage \u2192 loss rate 82%",
+      "id": "side_SELL",
+      "description": "side SELL \u2192 loss rate 90%",
       "condition": {
-        "feature": "strategy",
-        "eq": "weinstein_stage"
+        "feature": "side",
+        "eq": "SELL"
       },
       "mult": 0.2,
       "evidence": {
-        "n": 33,
-        "loss_rate": 0.818
+        "n": 165,
+        "loss_rate": 0.903
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_breakout_\u00d7_-1.0",
+      "description": "strategy\u00d7htf_bias_enc breakout \u00d7 -1.0 \u2192 loss rate 83%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "breakout \u00d7 -1.0"
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 18,
+        "loss_rate": 0.833
       }
     },
     {
       "id": "strategy_donchian_breakout",
-      "description": "strategy donchian_breakout \u2192 loss rate 79%",
+      "description": "strategy donchian_breakout \u2192 loss rate 83%",
       "condition": {
         "feature": "strategy",
         "eq": "donchian_breakout"
       },
-      "mult": 0.35,
+      "mult": 0.2,
       "evidence": {
-        "n": 28,
-        "loss_rate": 0.786
+        "n": 23,
+        "loss_rate": 0.826
       }
     },
     {
-      "id": "strategy\u00d7regime_enc_failed_bull_breakout",
-      "description": "strategy\u00d7regime_enc failed_bull_breakout \u00d7 0.0 \u2192 loss rate 78%",
+      "id": "flag_htf_aligned_0",
+      "description": "flag_htf_aligned 0 \u2192 loss rate 81%",
+      "condition": {
+        "feature": "htf_aligned",
+        "eq": 0.0
+      },
+      "mult": 0.2,
+      "evidence": {
+        "n": 206,
+        "loss_rate": 0.806
+      }
+    },
+    {
+      "id": "hour_of_day_HIGH_(>13.00)",
+      "description": "hour_of_day HIGH (>13.00) \u2192 loss rate 79%",
+      "condition": {
+        "feature": "hour_of_day",
+        "gt": 13.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 142,
+        "loss_rate": 0.789
+      }
+    },
+    {
+      "id": "flag_close_session_1",
+      "description": "flag_close_session 1 \u2192 loss rate 79%",
+      "condition": {
+        "feature": "close_session",
+        "eq": 1.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 142,
+        "loss_rate": 0.789
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_elder_triple_screen_",
+      "description": "strategy\u00d7regime_enc elder_triple_screen \u00d7 0.0 \u2192 loss rate 78%",
       "condition": {
         "feature": "strategy\u00d7regime_enc",
-        "eq": "failed_bull_breakout \u00d7 0.0"
+        "eq": "elder_triple_screen \u00d7 0.0"
       },
       "mult": 0.35,
       "evidence": {
@@ -128,286 +115,299 @@
       }
     },
     {
-      "id": "strategy\u00d7htf_bias_enc_failed_bear_breako",
-      "description": "strategy\u00d7htf_bias_enc failed_bear_breakout \u00d7 -1.0 \u2192 loss rate 77%",
+      "id": "volume_ratio_MID_(0.60\u20131.51)",
+      "description": "volume_ratio MID (0.60\u20131.51) \u2192 loss rate 77%",
       "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "failed_bear_breakout \u00d7 -1.0"
+        "feature": "volume_ratio",
+        "eq": "MID (0.60\u20131.51)"
       },
       "mult": 0.35,
       "evidence": {
-        "n": 22,
-        "loss_rate": 0.773
+        "n": 146,
+        "loss_rate": 0.774
       }
     },
     {
-      "id": "flag_htf_aligned_0",
-      "description": "flag_htf_aligned 0 \u2192 loss rate 77%",
+      "id": "pct_from_w_r1_HIGH_(>-0.26)",
+      "description": "pct_from_w_r1 HIGH (>-0.26) \u2192 loss rate 77%",
       "condition": {
-        "feature": "htf_aligned",
-        "eq": 0.0
+        "feature": "pct_from_w_r1",
+        "eq": "HIGH (>-0.26)"
       },
       "mult": 0.35,
       "evidence": {
-        "n": 457,
-        "loss_rate": 0.77
+        "n": 142,
+        "loss_rate": 0.768
       }
     },
     {
-      "id": "strategy\u00d7htf_bias_enc_weinstein_stage_\u00d7_",
-      "description": "strategy\u00d7htf_bias_enc weinstein_stage \u00d7 1.0 \u2192 loss rate 76%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "weinstein_stage \u00d7 1.0"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 17,
-        "loss_rate": 0.765
-      }
-    },
-    {
-      "id": "strategy_chart_pattern_ascending_triangl",
-      "description": "strategy chart_pattern_ascending_triangle \u2192 loss rate 76%",
-      "condition": {
-        "feature": "strategy",
-        "eq": "chart_pattern_ascending_triangle"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 54,
-        "loss_rate": 0.759
-      }
-    },
-    {
-      "id": "fii_cum_5d_HIGH_(>-1042.90)",
-      "description": "fii_cum_5d HIGH (>-1042.90) \u2192 loss rate 75%",
+      "id": "fii_cum_5d_MID_(-15496.74\u2013-12611.21)",
+      "description": "fii_cum_5d MID (-15496.74\u2013-12611.21) \u2192 loss rate 76%",
       "condition": {
         "feature": "fii_cum_5d",
-        "eq": "HIGH (>-1042.90)"
+        "eq": "MID (-15496.74\u2013-12611.21)"
       },
       "mult": 0.35,
       "evidence": {
-        "n": 100,
-        "loss_rate": 0.75
+        "n": 75,
+        "loss_rate": 0.76
       }
     },
     {
-      "id": "strategy_chart_pattern_head_and_shoulder",
-      "description": "strategy chart_pattern_head_and_shoulders \u2192 loss rate 75%",
+      "id": "score_HIGH_(>12.52)",
+      "description": "score HIGH (>12.52) \u2192 loss rate 75%",
       "condition": {
-        "feature": "strategy",
-        "eq": "chart_pattern_head_and_shoulders"
+        "feature": "score",
+        "gt": 12.52
       },
       "mult": 0.35,
       "evidence": {
-        "n": 16,
-        "loss_rate": 0.75
+        "n": 142,
+        "loss_rate": 0.754
       }
     },
     {
-      "id": "strategy_chart_pattern_range_expansion",
-      "description": "strategy chart_pattern_range_expansion \u2192 loss rate 73%",
+      "id": "score_boost_HIGH_(>5.86)",
+      "description": "score_boost HIGH (>5.86) \u2192 loss rate 75%",
       "condition": {
-        "feature": "strategy",
-        "eq": "chart_pattern_range_expansion"
+        "feature": "score_boost",
+        "gt": 5.86
       },
       "mult": 0.35,
       "evidence": {
-        "n": 15,
-        "loss_rate": 0.733
+        "n": 142,
+        "loss_rate": 0.754
       }
     },
     {
-      "id": "raw_score_HIGH_(>7.62)",
-      "description": "raw_score HIGH (>7.62) \u2192 loss rate 72%",
+      "id": "pct_from_m_r1_HIGH_(>-0.71)",
+      "description": "pct_from_m_r1 HIGH (>-0.71) \u2192 loss rate 74%",
+      "condition": {
+        "feature": "pct_from_m_r1",
+        "eq": "HIGH (>-0.71)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 142,
+        "loss_rate": 0.739
+      }
+    },
+    {
+      "id": "raw_score_HIGH_(>7.50)",
+      "description": "raw_score HIGH (>7.50) \u2192 loss rate 74%",
       "condition": {
         "feature": "raw_score",
-        "gt": 7.62
+        "gt": 7.5
       },
       "mult": 0.35,
       "evidence": {
-        "n": 319,
-        "loss_rate": 0.724
+        "n": 126,
+        "loss_rate": 0.738
       }
     },
     {
-      "id": "strategy\u00d7htf_bias_enc_failed_bear_breako",
-      "description": "strategy\u00d7htf_bias_enc failed_bear_breakout \u00d7 1.0 \u2192 loss rate 72%",
+      "id": "n_net_agree_HIGH_(>10.00)",
+      "description": "n_net_agree HIGH (>10.00) \u2192 loss rate 74%",
       "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "failed_bear_breakout \u00d7 1.0"
+        "feature": "n_net_agree",
+        "gt": 10.0
       },
       "mult": 0.35,
       "evidence": {
-        "n": 18,
-        "loss_rate": 0.722
+        "n": 137,
+        "loss_rate": 0.737
       }
     },
     {
-      "id": "score_boost_pct_LOW_(<0.45)",
-      "description": "score_boost_pct LOW (<0.45) \u2192 loss rate 71%",
+      "id": "raw_score_LOW_(<6.50)",
+      "description": "raw_score LOW (<6.50) \u2192 loss rate 74%",
       "condition": {
-        "feature": "score_boost_pct",
-        "lt": 0.45
+        "feature": "raw_score",
+        "lt": 6.5
       },
       "mult": 0.35,
       "evidence": {
-        "n": 328,
-        "loss_rate": 0.71
-      }
-    },
-    {
-      "id": "rl_bias_HIGH_(>0.00)",
-      "description": "rl_bias HIGH (>0.00) \u2192 loss rate 71%",
-      "condition": {
-        "feature": "rl_bias",
-        "gt": 0.0
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 117,
-        "loss_rate": 0.709
-      }
-    },
-    {
-      "id": "strategy_cci_trend",
-      "description": "strategy cci_trend \u2192 loss rate 71%",
-      "condition": {
-        "feature": "strategy",
-        "eq": "cci_trend"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 24,
-        "loss_rate": 0.708
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_price_structure_\u00d7_",
-      "description": "strategy\u00d7htf_bias_enc price_structure \u00d7 0.0 \u2192 loss rate 71%",
-      "condition": {
-        "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "price_structure \u00d7 0.0"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 34,
-        "loss_rate": 0.706
+        "n": 204,
+        "loss_rate": 0.735
       }
     },
     {
       "id": "flag_euro_open_window_1",
-      "description": "flag_euro_open_window 1 \u2192 loss rate 70%",
+      "description": "flag_euro_open_window 1 \u2192 loss rate 73%",
       "condition": {
         "feature": "euro_open_window",
         "eq": 1.0
       },
       "mult": 0.35,
       "evidence": {
-        "n": 64,
-        "loss_rate": 0.703
+        "n": 26,
+        "loss_rate": 0.731
       }
     },
     {
-      "id": "flag_monday_trade_1",
-      "description": "flag_monday_trade 1 \u2192 loss rate 70%",
+      "id": "expiry_dte_MID_(1.00\u20136.00)",
+      "description": "expiry_dte MID (1.00\u20136.00) \u2192 loss rate 73%",
       "condition": {
-        "feature": "monday_trade",
-        "eq": 1.0
+        "feature": "expiry_dte",
+        "eq": "MID (1.00\u20136.00)"
       },
-      "mult": 0.45,
+      "mult": 0.35,
       "evidence": {
-        "n": 162,
-        "loss_rate": 0.698
+        "n": 202,
+        "loss_rate": 0.728
       }
     },
     {
-      "id": "india_vix_LOW_(<12.90)",
-      "description": "india_vix LOW (<12.90) \u2192 loss rate 70%",
+      "id": "flag_near_expiry_0",
+      "description": "flag_near_expiry 0 \u2192 loss rate 73%",
       "condition": {
-        "feature": "india_vix",
-        "lt": 12.9
+        "feature": "near_expiry",
+        "eq": 0.0
       },
-      "mult": 0.45,
+      "mult": 0.35,
       "evidence": {
-        "n": 379,
-        "loss_rate": 0.697
-      }
-    },
-    {
-      "id": "strategy\u00d7regime_enc_price_structure_\u00d7_2.",
-      "description": "strategy\u00d7regime_enc price_structure \u00d7 2.0 \u2192 loss rate 70%",
-      "condition": {
-        "feature": "strategy\u00d7regime_enc",
-        "eq": "price_structure \u00d7 2.0"
-      },
-      "mult": 0.45,
-      "evidence": {
-        "n": 46,
-        "loss_rate": 0.696
-      }
-    },
-    {
-      "id": "score_boost_LOW_(<3.22)",
-      "description": "score_boost LOW (<3.22) \u2192 loss rate 70%",
-      "condition": {
-        "feature": "score_boost",
-        "lt": 3.22
-      },
-      "mult": 0.45,
-      "evidence": {
-        "n": 328,
-        "loss_rate": 0.695
+        "n": 202,
+        "loss_rate": 0.728
       }
     },
     {
       "id": "flag_open_session_1",
-      "description": "flag_open_session 1 \u2192 loss rate 69%",
+      "description": "flag_open_session 1 \u2192 loss rate 73%",
       "condition": {
         "feature": "open_session",
         "eq": 1.0
       },
-      "mult": 0.45,
+      "mult": 0.35,
       "evidence": {
-        "n": 204,
-        "loss_rate": 0.691
+        "n": 114,
+        "loss_rate": 0.728
       }
     },
     {
-      "id": "strategy_failed_bear_breakout",
-      "description": "strategy failed_bear_breakout \u2192 loss rate 69%",
+      "id": "score_boost_pct_HIGH_(>0.84)",
+      "description": "score_boost_pct HIGH (>0.84) \u2192 loss rate 72%",
       "condition": {
-        "feature": "strategy",
-        "eq": "failed_bear_breakout"
+        "feature": "score_boost_pct",
+        "gt": 0.84
       },
-      "mult": 0.45,
+      "mult": 0.35,
       "evidence": {
-        "n": 68,
-        "loss_rate": 0.691
+        "n": 142,
+        "loss_rate": 0.725
       }
     },
     {
-      "id": "volume_ratio_LOW_(<0.64)",
-      "description": "volume_ratio LOW (<0.64) \u2192 loss rate 69%",
+      "id": "n_agree_MID_(4.00\u201310.00)",
+      "description": "n_agree MID (4.00\u201310.00) \u2192 loss rate 72%",
+      "condition": {
+        "feature": "n_agree",
+        "eq": "MID (4.00\u201310.00)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 119,
+        "loss_rate": 0.723
+      }
+    },
+    {
+      "id": "n_agree_HIGH_(>10.00)",
+      "description": "n_agree HIGH (>10.00) \u2192 loss rate 72%",
+      "condition": {
+        "feature": "n_agree",
+        "gt": 10.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 141,
+        "loss_rate": 0.723
+      }
+    },
+    {
+      "id": "day_of_week_MID_(0.00\u20132.00)",
+      "description": "day_of_week MID (0.00\u20132.00) \u2192 loss rate 72%",
+      "condition": {
+        "feature": "day_of_week",
+        "eq": "MID (0.00\u20132.00)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 238,
+        "loss_rate": 0.718
+      }
+    },
+    {
+      "id": "ai_score_MID_(0.03\u20130.50)",
+      "description": "ai_score MID (0.03\u20130.50) \u2192 loss rate 71%",
+      "condition": {
+        "feature": "ai_score",
+        "eq": "MID (0.03\u20130.50)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 283,
+        "loss_rate": 0.714
+      }
+    },
+    {
+      "id": "volume_ratio_LOW_(<0.60)",
+      "description": "volume_ratio LOW (<0.60) \u2192 loss rate 71%",
       "condition": {
         "feature": "volume_ratio",
-        "lt": 0.64
+        "lt": 0.6
       },
-      "mult": 0.45,
+      "mult": 0.35,
       "evidence": {
-        "n": 328,
-        "loss_rate": 0.686
+        "n": 146,
+        "loss_rate": 0.712
+      }
+    },
+    {
+      "id": "pct_from_w_r1_MID_(-0.71\u2013-0.26)",
+      "description": "pct_from_w_r1 MID (-0.71\u2013-0.26) \u2192 loss rate 71%",
+      "condition": {
+        "feature": "pct_from_w_r1",
+        "eq": "MID (-0.71\u2013-0.26)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 142,
+        "loss_rate": 0.711
+      }
+    },
+    {
+      "id": "pct_from_m_r1_LOW_(<-1.68)",
+      "description": "pct_from_m_r1 LOW (<-1.68) \u2192 loss rate 71%",
+      "condition": {
+        "feature": "pct_from_m_r1",
+        "eq": "LOW (<-1.68)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 145,
+        "loss_rate": 0.71
+      }
+    },
+    {
+      "id": "india_vix_LOW_(<12.17)",
+      "description": "india_vix LOW (<12.17) \u2192 loss rate 71%",
+      "condition": {
+        "feature": "india_vix",
+        "lt": 12.17
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 165,
+        "loss_rate": 0.709
       }
     }
   ],
   "candidate_boosts": [],
-  "ml_model_auc": 0.6928,
+  "ml_model_auc": 0.7625,
   "forward_validation": {
     "validated": 88,
     "promoted_filters": 0,
     "promoted_boosts": 0,
-    "ledger_size": 142,
+    "ledger_size": 172,
     "skipped": 0,
     "alpha_corrected": 0.000568
   }

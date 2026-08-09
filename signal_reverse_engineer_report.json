@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-08-06T19:44:01+0530",
+  "generated_at": "2026-08-09T08:51:07+0530",
   "db_path": "signal_log.db",
   "days": 90,
   "min_samples": 10,
   "totals": {
-    "rows": 33262,
+    "rows": 33691,
     "labelled_rows": 33077,
-    "pending_rows": 118,
-    "labelled_pct": 0.9944
+    "pending_rows": 547,
+    "labelled_pct": 0.9818
   },
   "labelled_summary": {
     "n": 33077,
@@ -20,195 +20,207 @@
     "usable": true
   },
   "pending_profile": {
-    "pending_rows": 118,
+    "pending_rows": 547,
     "top_rejection_reasons": [
       {
         "key": "edge_negative_edge,ai_unvalidated_rule_fallback,filter_score_below_live_min",
-        "count": 70
-      },
-      {
-        "key": "missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min",
-        "count": 18
-      },
-      {
-        "key": "edge_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min",
-        "count": 16
+        "count": 276
       },
       {
         "key": "validation_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min",
-        "count": 9
+        "count": 119
+      },
+      {
+        "key": "missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min",
+        "count": 74
+      },
+      {
+        "key": "edge_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min",
+        "count": 64
       },
       {
         "key": "strategy_missing_from_live_eligibility_manifest,ai_unvalidated_rule_fallback,filter_score_below_live_min",
-        "count": 4
+        "count": 6
       },
       {
         "key": "edge_negative_edge,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min",
+        "count": 4
+      },
+      {
+        "key": "missing_rigorous_validation,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min",
+        "count": 2
+      },
+      {
+        "key": "edge_insufficient_data,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min",
+        "count": 1
+      },
+      {
+        "key": "validation_fail,ai_unvalidated_rule_fallback,filter_score_below_live_min",
         "count": 1
       }
     ],
     "top_pending_strategies": [
       {
+        "key": "breakout",
+        "count": 119
+      },
+      {
         "key": "ma_cross",
-        "count": 23
+        "count": 92
       },
       {
         "key": "elder_triple_screen",
-        "count": 14
+        "count": 64
       },
       {
         "key": "failed_bear_breakout",
-        "count": 10
-      },
-      {
-        "key": "breakout",
-        "count": 9
-      },
-      {
-        "key": "candlestick_hammer",
-        "count": 9
+        "count": 38
       },
       {
         "key": "heikin_ashi",
-        "count": 7
+        "count": 33
       },
       {
         "key": "donchian_breakout",
-        "count": 7
+        "count": 28
       },
       {
-        "key": "candlestick_three_white_soldiers",
-        "count": 4
-      },
-      {
-        "key": "candlestick_doji",
-        "count": 3
-      },
-      {
-        "key": "candlestick_bearish_marubozu",
-        "count": 3
-      },
-      {
-        "key": "candlestick_fred_tam_black_inside_out",
-        "count": 3
-      },
-      {
-        "key": "candlestick_three_black_soldiers",
-        "count": 3
+        "key": "candlestick_hammer",
+        "count": 18
       },
       {
         "key": "candlestick_bullish_engulfing",
-        "count": 2
+        "count": 16
       },
       {
-        "key": "kst",
-        "count": 2
+        "key": "candlestick_fred_tam_black_inside_out",
+        "count": 16
       },
       {
-        "key": "candlestick_tweezer_bottom",
-        "count": 2
+        "key": "candlestick_three_white_soldiers",
+        "count": 15
+      },
+      {
+        "key": "candlestick_doji",
+        "count": 12
+      },
+      {
+        "key": "candlestick_bearish_marubozu",
+        "count": 11
+      },
+      {
+        "key": "candlestick_shooting_star",
+        "count": 11
       },
       {
         "key": "uo_overbought",
-        "count": 2
-      },
-      {
-        "key": "candlestick_dark_cloud_cover",
-        "count": 2
+        "count": 8
       },
       {
         "key": "order_flow",
-        "count": 1
+        "count": 7
       },
       {
-        "key": "williams_r",
-        "count": 1
+        "key": "candlestick_three_river_evening_star",
+        "count": 6
+      },
+      {
+        "key": "candlestick_tweezer_bottom",
+        "count": 6
+      },
+      {
+        "key": "chart_pattern_diamond_bottom",
+        "count": 5
+      },
+      {
+        "key": "candlestick_fred_tam_white_inside_out",
+        "count": 4
       },
       {
         "key": "candlestick_bearish_harami",
-        "count": 1
+        "count": 3
       }
     ],
     "top_pending_symbols": [
       {
-        "key": "ARE&M",
-        "count": 8
-      },
-      {
         "key": "VOLTAS",
-        "count": 7
-      },
-      {
-        "key": "MGL",
-        "count": 6
-      },
-      {
-        "key": "SJVN",
-        "count": 6
-      },
-      {
-        "key": "IIFL",
-        "count": 5
-      },
-      {
-        "key": "HINDCOPPER",
-        "count": 5
-      },
-      {
-        "key": "HDFCAMC",
-        "count": 5
-      },
-      {
-        "key": "NATIONALUM",
-        "count": 4
-      },
-      {
-        "key": "NMDC",
-        "count": 4
-      },
-      {
-        "key": "IDFCFIRSTB",
-        "count": 4
-      },
-      {
-        "key": "WIPRO",
-        "count": 3
+        "count": 12
       },
       {
         "key": "IRFC",
-        "count": 3
+        "count": 11
+      },
+      {
+        "key": "BHARTIARTL",
+        "count": 10
+      },
+      {
+        "key": "ARE&M",
+        "count": 9
+      },
+      {
+        "key": "HDFCAMC",
+        "count": 9
+      },
+      {
+        "key": "NATIONALUM",
+        "count": 8
+      },
+      {
+        "key": "MGL",
+        "count": 8
+      },
+      {
+        "key": "SJVN",
+        "count": 8
+      },
+      {
+        "key": "NETWORK18",
+        "count": 8
+      },
+      {
+        "key": "CIPLA",
+        "count": 7
+      },
+      {
+        "key": "IOC",
+        "count": 7
       },
       {
         "key": "SUNTV",
-        "count": 3
-      },
-      {
-        "key": "TATAPOWER",
-        "count": 3
+        "count": 7
       },
       {
         "key": "DLF",
-        "count": 3
+        "count": 7
       },
       {
-        "key": "IGL",
-        "count": 3
+        "key": "ONGC",
+        "count": 7
       },
       {
-        "key": "AUBANK",
-        "count": 2
+        "key": "EICHERMOT",
+        "count": 7
       },
       {
-        "key": "CHOLAFIN",
-        "count": 2
+        "key": "POLICYBZR",
+        "count": 7
       },
       {
-        "key": "PAYTM",
-        "count": 2
+        "key": "NIFTY",
+        "count": 7
       },
       {
-        "key": "UNITDSPR",
-        "count": 2
+        "key": "GODREJCP",
+        "count": 7
+      },
+      {
+        "key": "IIFL",
+        "count": 6
+      },
+      {
+        "key": "NAZARA",
+        "count": 6
       }
     ]
   },

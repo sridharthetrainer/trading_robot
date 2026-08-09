@@ -1,11 +1,11 @@
 # Signal Reverse Engineering Report
 
-- Generated: `2026-08-06T19:44:01+0530`
+- Generated: `2026-08-09T08:51:07+0530`
 - Status: `READY`
-- Rows: `33262`
+- Rows: `33691`
 - Labelled rows: `33077`
-- Pending rows: `118`
-- Labelled pct: `0.9944`
+- Pending rows: `547`
+- Labelled pct: `0.9818`
 - Overall target/loss/timeout: `4547` / `7546` / `20984`
 - Overall average return pct: `-0.0188`
 
@@ -60,9 +60,12 @@
 
 ## Pending Signal Profile
 
-- `edge_negative_edge,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `70`
-- `missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `18`
-- `edge_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `16`
-- `validation_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `9`
-- `strategy_missing_from_live_eligibility_manifest,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `4`
-- `edge_negative_edge,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `1`
+- `edge_negative_edge,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `276`
+- `validation_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `119`
+- `missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `74`
+- `edge_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `64`
+- `strategy_missing_from_live_eligibility_manifest,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `6`
+- `edge_negative_edge,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `4`
+- `missing_rigorous_validation,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `2`
+- `edge_insufficient_data,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `1`
+- `validation_fail,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `1`
