@@ -394,7 +394,7 @@ def generate_oi_strike_profile_chart(
     spot_y = min(max(pos - 0.5, -0.5), len(strikes) - 0.5)
     ax.axhline(spot_y, color=ct.WARNING, linestyle="--", linewidth=1.5, label=f"Spot {spot:.0f}")
     ax.axvline(0, color="#888888", linewidth=0.8)
-    ax.set_title("OI levels  (bar length = open interest)", color="white", fontsize=11)
+    ax.set_title("OI levels  (bar length = open interest)", color=ct.TEXT_PRIMARY, fontsize=11)
     ax.set_xlabel("← PE OI (support)          CE OI (resistance) →", color=ct.TEXT_SECONDARY)
     ax.legend(facecolor=ct.PANEL, labelcolor=ct.TEXT_SECONDARY, loc="lower right", fontsize=8)
 
@@ -426,7 +426,7 @@ def generate_oi_strike_profile_chart(
     ax2.axhline(spot_y, color=ct.WARNING, linestyle="--", linewidth=1.5)
     ax2.axvline(0, color="#888888", linewidth=0.8)
     ax2.set_title(f"{delta_label}\n(the 'delta' driving fresh writing)",
-                   color="white", fontsize=11)
+                   color=ct.TEXT_PRIMARY, fontsize=11)
     ax2.set_xlabel("← PE Δ OI (unwind/build)   CE Δ OI (unwind/build) →", color=ct.TEXT_SECONDARY)
     ax2.legend(facecolor=ct.PANEL, labelcolor=ct.TEXT_SECONDARY, loc="lower right", fontsize=8)
 
@@ -439,7 +439,7 @@ def generate_oi_strike_profile_chart(
         f"{underlying} OI Profile  |  spot {spot:.0f}  |  exp {exp}  |  PCR {pcr_chain:.2f}\n"
         f"Resistance {resistance[0]:.0f} (max CE OI)    Support {support[0]:.0f} (max PE OI)   "
         f"dots: green=buildup grey=flat red=unwinding",
-        color="white", fontsize=12, fontweight="bold", y=0.99)
+        color=ct.TEXT_PRIMARY, fontsize=12, fontweight="bold", y=0.99)
     plt.tight_layout(rect=[0, 0, 1, 0.93])
 
     out_dir = output_dir or tempfile.gettempdir()
@@ -605,7 +605,7 @@ def generate_oi_flip_alert_image(
         ax.text(0.03, 0.11, f"PCR {e['pcr']:.2f}   •   {note}",
                 color=ct.TEXT_MUTED, fontsize=9.5, transform=ax.transAxes)
 
-    fig.suptitle("OI Direction Flips", color="white", fontsize=14,
+    fig.suptitle("OI Direction Flips", color=ct.TEXT_PRIMARY, fontsize=14,
                  fontweight="bold", y=0.995)
     plt.tight_layout(rect=[0, 0, 1, 0.97])
 
@@ -678,7 +678,7 @@ def generate_option_oi_chart(
     fig, axes = plt.subplots(3, 1, figsize=(12, 8), sharex=True, dpi=130)
     fig.patch.set_facecolor(ct.BG)
     title_strike = f" | Strike {int(strike)}" if strike is not None else " | All Snapshot Strikes"
-    fig.suptitle(f"{underlying} OI Trend | {day}{title_strike}", color="white", fontsize=14, fontweight="bold")
+    fig.suptitle(f"{underlying} OI Trend | {day}{title_strike}", color=ct.TEXT_PRIMARY, fontsize=14, fontweight="bold")
 
     for ax in axes:
         ax.set_facecolor(ct.BG)
@@ -744,7 +744,7 @@ def _render_multi_strike_chart(
 
     fig, axes = plt.subplots(3, 1, figsize=(13, 9), sharex=False, dpi=130)
     fig.patch.set_facecolor(ct.BG)
-    fig.suptitle(f"{underlying} Multi-Strike OI Comparison | {day}", color="white", fontsize=14, fontweight="bold")
+    fig.suptitle(f"{underlying} Multi-Strike OI Comparison | {day}", color=ct.TEXT_PRIMARY, fontsize=14, fontweight="bold")
     for ax in axes:
         ax.set_facecolor(ct.BG)
         ax.grid(True, color=ct.GRID, alpha=0.55)
