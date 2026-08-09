@@ -1,0 +1,39 @@
+{
+  "generated_from": "extended_validation_report.json",
+  "n_windows_labelled": 122,
+  "vix_real_coverage": 0,
+  "by_regime": [
+    {
+      "regime": "HIGH_VOL",
+      "n_windows": 45,
+      "avg_sharpe": 5.3632,
+      "pct_profitable": 1.0,
+      "parameter_stability_cv": 0.7009,
+      "stability_ok": false
+    },
+    {
+      "regime": "MEAN_REVERT",
+      "n_windows": 19,
+      "avg_sharpe": 3.3693,
+      "pct_profitable": 0.8947,
+      "parameter_stability_cv": 0.9524,
+      "stability_ok": false
+    },
+    {
+      "regime": "STRONG_TREND",
+      "n_windows": 20,
+      "avg_sharpe": 2.9341,
+      "pct_profitable": 0.9,
+      "parameter_stability_cv": 0.5998,
+      "stability_ok": false
+    },
+    {
+      "regime": "WEAK_TREND",
+      "n_windows": 38,
+      "avg_sharpe": 2.5855,
+      "pct_profitable": 0.8421,
+      "parameter_stability_cv": 0.6841,
+      "stability_ok": false
+    }
+  ]
+}
