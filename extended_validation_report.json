@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T06:08:04+0530",
+  "generated_at": "2026-08-09T09:05:10+0530",
   "coverage": {
     "NIFTY": {
       "total_bars": 190033,
@@ -22356,6 +22356,1098 @@
       "segment_start": "2026-06-01 09:15:00",
       "segment_end": "2026-08-05 15:15:00",
       "segment_bars": 3037
+    },
+    "NIFTY__fibonacci__external_2015_2024_2015-01-09_2024-01-25": {
+      "strategy": "fibonacci",
+      "symbol": "NIFTY",
+      "run_date": "2026-08-09",
+      "n_trials": 928,
+      "dev_windows": 58,
+      "dev_avg_sharpe": -9.6879,
+      "dev_avg_pnl": -47821.3,
+      "dev_avg_trades": 55.7,
+      "dev_pct_profitable": 0.0172,
+      "deflated_sharpe": 0.0,
+      "min_trade_ok": true,
+      "parameter_stability_cv": 0.1055,
+      "stability_ok": true,
+      "holdout_sharpe": null,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "holdout_win_rate": null,
+      "verdict": "FAIL",
+      "dev_windows_detail": [
+        {
+          "window_idx": 0,
+          "test_start": "2015-04-09",
+          "test_end": "2015-05-22",
+          "pnl": -20752.52,
+          "num_trades": 45,
+          "win_rate": 0.4,
+          "sharpe": -4.7443,
+          "max_drawdown": 25126.64,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 1,
+          "test_start": "2015-05-22",
+          "test_end": "2015-07-03",
+          "pnl": -14870.83,
+          "num_trades": 47,
+          "win_rate": 0.4255,
+          "sharpe": -5.5302,
+          "max_drawdown": 17092.41,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 2,
+          "test_start": "2015-07-03",
+          "test_end": "2015-08-14",
+          "pnl": -26347.15,
+          "num_trades": 57,
+          "win_rate": 0.386,
+          "sharpe": -6.5782,
+          "max_drawdown": 27790.21,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 3,
+          "test_start": "2015-08-14",
+          "test_end": "2015-09-28",
+          "pnl": -32654.68,
+          "num_trades": 50,
+          "win_rate": 0.32,
+          "sharpe": -9.3481,
+          "max_drawdown": 33928.05,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 4,
+          "test_start": "2015-09-28",
+          "test_end": "2015-11-13",
+          "pnl": -44985.92,
+          "num_trades": 57,
+          "win_rate": 0.3509,
+          "sharpe": -7.4737,
+          "max_drawdown": 52367.36,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 5,
+          "test_start": "2015-11-13",
+          "test_end": "2015-12-28",
+          "pnl": -68018.34,
+          "num_trades": 76,
+          "win_rate": 0.1711,
+          "sharpe": -18.1904,
+          "max_drawdown": 69538.34,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 6,
+          "test_start": "2015-12-28",
+          "test_end": "2016-02-09",
+          "pnl": -36465.84,
+          "num_trades": 44,
+          "win_rate": 0.25,
+          "sharpe": -11.1172,
+          "max_drawdown": 37345.84,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 7,
+          "test_start": "2016-02-09",
+          "test_end": "2016-03-22",
+          "pnl": -43404.05,
+          "num_trades": 54,
+          "win_rate": 0.2407,
+          "sharpe": -13.5138,
+          "max_drawdown": 47499.01,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 8,
+          "test_start": "2016-03-22",
+          "test_end": "2016-05-10",
+          "pnl": -26867.46,
+          "num_trades": 50,
+          "win_rate": 0.36,
+          "sharpe": -7.5045,
+          "max_drawdown": 28484.12,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 9,
+          "test_start": "2016-05-10",
+          "test_end": "2016-06-21",
+          "pnl": -18558.7,
+          "num_trades": 44,
+          "win_rate": 0.3864,
+          "sharpe": -6.8545,
+          "max_drawdown": 20165.34,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 10,
+          "test_start": "2016-06-21",
+          "test_end": "2016-08-02",
+          "pnl": -40750.2,
+          "num_trades": 57,
+          "win_rate": 0.2281,
+          "sharpe": -13.7108,
+          "max_drawdown": 41890.2,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 11,
+          "test_start": "2016-08-02",
+          "test_end": "2016-09-16",
+          "pnl": -37539.45,
+          "num_trades": 57,
+          "win_rate": 0.3509,
+          "sharpe": -12.1202,
+          "max_drawdown": 40075.48,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 12,
+          "test_start": "2016-09-16",
+          "test_end": "2016-11-01",
+          "pnl": -52582.0,
+          "num_trades": 90,
+          "win_rate": 0.2667,
+          "sharpe": -15.4522,
+          "max_drawdown": 55059.86,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 13,
+          "test_start": "2016-11-01",
+          "test_end": "2016-12-14",
+          "pnl": -37220.62,
+          "num_trades": 69,
+          "win_rate": 0.3623,
+          "sharpe": -10.1989,
+          "max_drawdown": 38752.94,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 14,
+          "test_start": "2016-12-14",
+          "test_end": "2017-01-24",
+          "pnl": -37527.65,
+          "num_trades": 52,
+          "win_rate": 0.2692,
+          "sharpe": -14.277,
+          "max_drawdown": 38749.43,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 15,
+          "test_start": "2017-01-25",
+          "test_end": "2017-03-09",
+          "pnl": -42206.79,
+          "num_trades": 59,
+          "win_rate": 0.2373,
+          "sharpe": -11.7674,
+          "max_drawdown": 43956.19,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 35
+          }
+        },
+        {
+          "window_idx": 16,
+          "test_start": "2017-03-09",
+          "test_end": "2017-04-25",
+          "pnl": -39586.27,
+          "num_trades": 74,
+          "win_rate": 0.2973,
+          "sharpe": -13.5025,
+          "max_drawdown": 41276.06,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 17,
+          "test_start": "2017-04-25",
+          "test_end": "2017-06-06",
+          "pnl": -58724.7,
+          "num_trades": 77,
+          "win_rate": 0.1948,
+          "sharpe": -16.9616,
+          "max_drawdown": 60889.17,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 18,
+          "test_start": "2017-06-06",
+          "test_end": "2017-07-19",
+          "pnl": -59858.02,
+          "num_trades": 72,
+          "win_rate": 0.1528,
+          "sharpe": -17.6271,
+          "max_drawdown": 62700.94,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 19,
+          "test_start": "2017-07-19",
+          "test_end": "2017-09-01",
+          "pnl": -62797.89,
+          "num_trades": 68,
+          "win_rate": 0.2794,
+          "sharpe": -13.6587,
+          "max_drawdown": 65471.75,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 20,
+          "test_start": "2017-09-01",
+          "test_end": "2017-10-13",
+          "pnl": -81457.31,
+          "num_trades": 79,
+          "win_rate": 0.1266,
+          "sharpe": -16.4603,
+          "max_drawdown": 83253.61,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 21,
+          "test_start": "2017-10-13",
+          "test_end": "2017-11-28",
+          "pnl": -55172.71,
+          "num_trades": 62,
+          "win_rate": 0.2258,
+          "sharpe": -14.0088,
+          "max_drawdown": 56412.71,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 22,
+          "test_start": "2017-11-28",
+          "test_end": "2018-01-09",
+          "pnl": -36432.77,
+          "num_trades": 52,
+          "win_rate": 0.3269,
+          "sharpe": -11.1909,
+          "max_drawdown": 37875.94,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 23,
+          "test_start": "2018-01-09",
+          "test_end": "2018-02-22",
+          "pnl": -65079.94,
+          "num_trades": 56,
+          "win_rate": 0.2679,
+          "sharpe": -12.5681,
+          "max_drawdown": 66199.94,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 24,
+          "test_start": "2018-02-22",
+          "test_end": "2018-04-09",
+          "pnl": -31826.22,
+          "num_trades": 60,
+          "win_rate": 0.4333,
+          "sharpe": -8.7554,
+          "max_drawdown": 33026.22,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 25,
+          "test_start": "2018-04-09",
+          "test_end": "2018-05-22",
+          "pnl": -59833.89,
+          "num_trades": 75,
+          "win_rate": 0.2533,
+          "sharpe": -14.2008,
+          "max_drawdown": 64585.37,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 35
+          }
+        },
+        {
+          "window_idx": 26,
+          "test_start": "2018-05-22",
+          "test_end": "2018-07-03",
+          "pnl": -58773.47,
+          "num_trades": 70,
+          "win_rate": 0.3143,
+          "sharpe": -13.7628,
+          "max_drawdown": 60976.61,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 27,
+          "test_start": "2018-07-03",
+          "test_end": "2018-08-13",
+          "pnl": -66199.33,
+          "num_trades": 75,
+          "win_rate": 0.2667,
+          "sharpe": -16.0887,
+          "max_drawdown": 68128.03,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 28,
+          "test_start": "2018-08-13",
+          "test_end": "2018-09-28",
+          "pnl": -35563.63,
+          "num_trades": 51,
+          "win_rate": 0.2745,
+          "sharpe": -7.3718,
+          "max_drawdown": 37124.53,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 29,
+          "test_start": "2018-09-28",
+          "test_end": "2018-11-14",
+          "pnl": -74996.46,
+          "num_trades": 47,
+          "win_rate": 0.234,
+          "sharpe": -8.3589,
+          "max_drawdown": 75936.46,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 30,
+          "test_start": "2018-11-14",
+          "test_end": "2018-12-28",
+          "pnl": -58654.99,
+          "num_trades": 64,
+          "win_rate": 0.3125,
+          "sharpe": -13.233,
+          "max_drawdown": 62833.87,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 31,
+          "test_start": "2018-12-28",
+          "test_end": "2019-02-07",
+          "pnl": -42764.38,
+          "num_trades": 53,
+          "win_rate": 0.283,
+          "sharpe": -11.2757,
+          "max_drawdown": 43824.38,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 32,
+          "test_start": "2019-02-07",
+          "test_end": "2019-03-25",
+          "pnl": -81265.17,
+          "num_trades": 85,
+          "win_rate": 0.2353,
+          "sharpe": -14.2323,
+          "max_drawdown": 83278.09,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 33,
+          "test_start": "2019-03-25",
+          "test_end": "2019-05-10",
+          "pnl": -70052.85,
+          "num_trades": 66,
+          "win_rate": 0.2273,
+          "sharpe": -14.9089,
+          "max_drawdown": 71372.85,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 34,
+          "test_start": "2019-05-10",
+          "test_end": "2019-06-21",
+          "pnl": -24505.41,
+          "num_trades": 58,
+          "win_rate": 0.5172,
+          "sharpe": -4.8307,
+          "max_drawdown": 35855.87,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 35,
+          "test_start": "2019-06-21",
+          "test_end": "2019-08-02",
+          "pnl": -24228.4,
+          "num_trades": 44,
+          "win_rate": 0.3864,
+          "sharpe": -5.0999,
+          "max_drawdown": 29159.66,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 36,
+          "test_start": "2019-08-02",
+          "test_end": "2019-09-18",
+          "pnl": -17247.33,
+          "num_trades": 37,
+          "win_rate": 0.3784,
+          "sharpe": -3.7539,
+          "max_drawdown": 20966.09,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 37,
+          "test_start": "2019-09-18",
+          "test_end": "2019-11-05",
+          "pnl": -26056.13,
+          "num_trades": 56,
+          "win_rate": 0.25,
+          "sharpe": -4.5864,
+          "max_drawdown": 50615.32,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 38,
+          "test_start": "2019-11-05",
+          "test_end": "2019-12-18",
+          "pnl": -79061.84,
+          "num_trades": 59,
+          "win_rate": 0.2034,
+          "sharpe": -13.9903,
+          "max_drawdown": 80710.41,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 39,
+          "test_start": "2019-12-18",
+          "test_end": "2020-01-29",
+          "pnl": -32624.46,
+          "num_trades": 58,
+          "win_rate": 0.3448,
+          "sharpe": -6.4017,
+          "max_drawdown": 41059.85,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 40,
+          "test_start": "2020-01-29",
+          "test_end": "2020-03-12",
+          "pnl": -49848.97,
+          "num_trades": 56,
+          "win_rate": 0.3214,
+          "sharpe": -7.6357,
+          "max_drawdown": 52552.86,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 41,
+          "test_start": "2020-03-12",
+          "test_end": "2020-04-28",
+          "pnl": -61570.56,
+          "num_trades": 16,
+          "win_rate": 0.5,
+          "sharpe": -2.3325,
+          "max_drawdown": 72860.37,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 42,
+          "test_start": "2020-04-28",
+          "test_end": "2020-06-11",
+          "pnl": 671.98,
+          "num_trades": 48,
+          "win_rate": 0.5,
+          "sharpe": 0.2216,
+          "max_drawdown": 9884.85,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 43,
+          "test_start": "2020-06-11",
+          "test_end": "2020-07-23",
+          "pnl": -71657.4,
+          "num_trades": 48,
+          "win_rate": 0.2292,
+          "sharpe": -12.1557,
+          "max_drawdown": 76300.6,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 44,
+          "test_start": "2020-07-23",
+          "test_end": "2020-09-02",
+          "pnl": -31604.38,
+          "num_trades": 41,
+          "win_rate": 0.2927,
+          "sharpe": -5.9792,
+          "max_drawdown": 41383.76,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 45,
+          "test_start": "2020-09-02",
+          "test_end": "2020-10-15",
+          "pnl": -44755.51,
+          "num_trades": 37,
+          "win_rate": 0.2973,
+          "sharpe": -8.5308,
+          "max_drawdown": 46701.69,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 46,
+          "test_start": "2020-10-15",
+          "test_end": "2020-11-26",
+          "pnl": -37847.14,
+          "num_trades": 47,
+          "win_rate": 0.3617,
+          "sharpe": -6.0996,
+          "max_drawdown": 48068.71,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 47,
+          "test_start": "2020-11-26",
+          "test_end": "2021-01-11",
+          "pnl": -86540.42,
+          "num_trades": 58,
+          "win_rate": 0.1552,
+          "sharpe": -14.9111,
+          "max_drawdown": 87939.97,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 48,
+          "test_start": "2021-01-11",
+          "test_end": "2021-02-22",
+          "pnl": -33981.03,
+          "num_trades": 39,
+          "win_rate": 0.3333,
+          "sharpe": -4.2263,
+          "max_drawdown": 47210.09,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 49,
+          "test_start": "2021-02-22",
+          "test_end": "2021-04-09",
+          "pnl": -62325.28,
+          "num_trades": 33,
+          "win_rate": 0.3333,
+          "sharpe": -7.3452,
+          "max_drawdown": 62985.28,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 50,
+          "test_start": "2021-04-09",
+          "test_end": "2021-05-25",
+          "pnl": -68103.16,
+          "num_trades": 64,
+          "win_rate": 0.3281,
+          "sharpe": -7.7412,
+          "max_drawdown": 69383.16,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "0.786",
+            "swing_lookback": 20,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 51,
+          "test_start": "2021-05-25",
+          "test_end": "2021-07-06",
+          "pnl": -70562.81,
+          "num_trades": 62,
+          "win_rate": 0.2903,
+          "sharpe": -10.0255,
+          "max_drawdown": 74295.88,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 52,
+          "test_start": "2021-07-06",
+          "test_end": "2021-08-17",
+          "pnl": -83857.0,
+          "num_trades": 60,
+          "win_rate": 0.2,
+          "sharpe": -10.1737,
+          "max_drawdown": 85057.0,
+          "best_params": {
+            "entry_level": "0.618",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 53,
+          "test_start": "2021-08-17",
+          "test_end": "2021-09-30",
+          "pnl": -37978.25,
+          "num_trades": 47,
+          "win_rate": 0.4255,
+          "sharpe": -5.1858,
+          "max_drawdown": 41922.75,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 54,
+          "test_start": "2021-09-30",
+          "test_end": "2021-11-15",
+          "pnl": -43071.89,
+          "num_trades": 46,
+          "win_rate": 0.3261,
+          "sharpe": -5.4332,
+          "max_drawdown": 44581.18,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 55,
+          "test_start": "2021-11-15",
+          "test_end": "2021-12-28",
+          "pnl": -40148.0,
+          "num_trades": 37,
+          "win_rate": 0.3784,
+          "sharpe": -5.4922,
+          "max_drawdown": 42758.07,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 56,
+          "test_start": "2021-12-28",
+          "test_end": "2022-02-09",
+          "pnl": -25673.55,
+          "num_trades": 44,
+          "win_rate": 0.3864,
+          "sharpe": -2.5684,
+          "max_drawdown": 33541.47,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 57,
+          "test_start": "2022-02-09",
+          "test_end": "2022-03-24",
+          "pnl": -101266.05,
+          "num_trades": 40,
+          "win_rate": 0.25,
+          "sharpe": -1.0744,
+          "max_drawdown": 102900.46,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        }
+      ],
+      "best_params": {
+        "entry_level": "0.5",
+        "rsi_min_long": 30,
+        "stop_level": "1.0",
+        "swing_lookback": 30
+      },
+      "benchmark_buyhold_sharpe": null,
+      "beats_benchmark": false,
+      "segment_source": "external_2015_2024",
+      "segment_start": "2015-01-09 09:15:00",
+      "segment_end": "2024-01-25 15:25:00",
+      "segment_bars": 167366
+    },
+    "NIFTY__fibonacci__live_broker_2025-05-19_2026-08-07": {
+      "strategy": "fibonacci",
+      "symbol": "NIFTY",
+      "run_date": "2026-08-09",
+      "n_trials": 96,
+      "dev_windows": 6,
+      "dev_avg_sharpe": -5.5238,
+      "dev_avg_pnl": -71136.62,
+      "dev_avg_trades": 52.3,
+      "dev_pct_profitable": 0.0,
+      "deflated_sharpe": 0.0,
+      "min_trade_ok": true,
+      "parameter_stability_cv": 0.0,
+      "stability_ok": true,
+      "holdout_sharpe": null,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "holdout_win_rate": null,
+      "verdict": "FAIL",
+      "dev_windows_detail": [
+        {
+          "window_idx": 0,
+          "test_start": "2025-08-08",
+          "test_end": "2025-09-22",
+          "pnl": -77431.06,
+          "num_trades": 60,
+          "win_rate": 0.3,
+          "sharpe": -11.153,
+          "max_drawdown": 78631.06,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 1,
+          "test_start": "2025-09-22",
+          "test_end": "2025-11-07",
+          "pnl": -81781.14,
+          "num_trades": 52,
+          "win_rate": 0.4038,
+          "sharpe": -9.2818,
+          "max_drawdown": 85503.23,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 2,
+          "test_start": "2025-11-07",
+          "test_end": "2025-12-18",
+          "pnl": -66768.21,
+          "num_trades": 60,
+          "win_rate": 0.3333,
+          "sharpe": -8.7533,
+          "max_drawdown": 67968.21,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 3,
+          "test_start": "2025-12-18",
+          "test_end": "2026-02-02",
+          "pnl": -67303.59,
+          "num_trades": 51,
+          "win_rate": 0.3137,
+          "sharpe": -3.6554,
+          "max_drawdown": 82500.16,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 4,
+          "test_start": "2026-02-02",
+          "test_end": "2026-03-16",
+          "pnl": -82158.12,
+          "num_trades": 47,
+          "win_rate": 0.3617,
+          "sharpe": 3.694,
+          "max_drawdown": 105624.51,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "1.0",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        },
+        {
+          "window_idx": 5,
+          "test_start": "2026-03-16",
+          "test_end": "2026-05-04",
+          "pnl": -51377.62,
+          "num_trades": 44,
+          "win_rate": 0.3636,
+          "sharpe": -3.993,
+          "max_drawdown": 64780.45,
+          "best_params": {
+            "entry_level": "0.5",
+            "stop_level": "0.786",
+            "swing_lookback": 30,
+            "rsi_min_long": 30
+          }
+        }
+      ],
+      "best_params": {
+        "entry_level": "0.5",
+        "rsi_min_long": 30,
+        "stop_level": "1.0",
+        "swing_lookback": 30
+      },
+      "benchmark_buyhold_sharpe": null,
+      "beats_benchmark": false,
+      "segment_source": "live_broker",
+      "segment_start": "2025-05-19 09:15:00",
+      "segment_end": "2026-08-07 15:25:00",
+      "segment_bars": 22817
     }
   }
 }
