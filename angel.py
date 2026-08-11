@@ -512,6 +512,7 @@ class AngelOne:
         limit_price:   float,
         transaction_type: str = "SELL",
         exchange:    str = "NFO",
+        producttype: str = "CARRYFORWARD",
     ) -> Optional[str]:
         """
         Place GTT (Good Till Triggered) Stop-Loss order at Angel One.
@@ -526,6 +527,13 @@ class AngelOne:
             limit_price:      limit price (set 1% below trigger for options)
             transaction_type: "SELL" (to close a long) or "BUY" (to close a short)
             exchange:         "NFO" for options, "NSE" for equity
+            producttype:      MUST match the actual position's product
+                               (INTRADAY/CARRYFORWARD). A mismatch means the
+                               broker can't net the GTT's close order against
+                               the held position when it triggers — see the
+                               2026-07-08 incident in manual_trade_tracker.py
+                               (_square_off) where the same mismatch on the
+                               direct-order path silently failed 206 closes.
 
         Returns:
             GTT order ID or None
@@ -553,7 +561,7 @@ class AngelOne:
                 "symboltoken":     token,
                 "exchange":        exchange,
                 "transactiontype": transaction_type,
-                "producttype":     "CARRYFORWARD",
+                "producttype":     producttype,
                 "qty":             str(qty),
                 "price":           str(_round_to_tick(limit_price)),
                 "triggerprice":    str(_round_to_tick(trigger_price)),

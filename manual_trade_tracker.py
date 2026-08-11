@@ -1679,6 +1679,7 @@ class ManualTradeTracker:
         ltp = trade.current_price or self._ltp_for(trade) or float(trade.entry_price)
         trade.hwm = ltp
         placed = []
+        _prod = (getattr(trade, "product", None) or "INTRADAY").upper()
 
         # SL — only if on the protective side of the current price
         sl_ok = (is_long and sl_trig < ltp) or ((not is_long) and sl_trig > ltp)
@@ -1686,7 +1687,7 @@ class ManualTradeTracker:
             lim = round(sl_trig * (0.99 if is_long else 1.01), 2)
             gid = self._angel.place_gtt_order(
                 trade.symbol, trade.qty, sl_trig, lim,
-                transaction_type=exit_side, exchange=exch)
+                transaction_type=exit_side, exchange=exch, producttype=_prod)
             if gid:
                 trade.sl_gtt_id = str(gid)
                 placed.append(f"SL ₹{sl_trig:.2f}")
@@ -1712,7 +1713,7 @@ class ManualTradeTracker:
             lim = round(tgt_trig * (0.99 if is_long else 1.01), 2)
             gid = self._angel.place_gtt_order(
                 trade.symbol, trade.qty, tgt_trig, lim,
-                transaction_type=exit_side, exchange=exch)
+                transaction_type=exit_side, exchange=exch, producttype=_prod)
             if gid:
                 trade.target_gtt_id = str(gid)
                 placed.append(f"Target ₹{tgt_trig:.2f}")
@@ -1800,9 +1801,11 @@ class ManualTradeTracker:
         is_long   = trade.side == "BUY"
         exit_side = "SELL" if is_long else "BUY"
         lim = round(new_sl * (0.99 if is_long else 1.01), 2)
+        _prod = (getattr(trade, "product", None) or "INTRADAY").upper()
         new_id = self._angel.place_gtt_order(
             trade.symbol, trade.qty, new_sl, lim,
-            transaction_type=exit_side, exchange=str(trade.exchange).upper())
+            transaction_type=exit_side, exchange=str(trade.exchange).upper(),
+            producttype=_prod)
         if not new_id:
             return
         old = trade.sl_gtt_id
@@ -1823,9 +1826,11 @@ class ManualTradeTracker:
         is_long   = trade.side == "BUY"
         exit_side = "SELL" if is_long else "BUY"
         lim = round(new_tgt * (0.99 if is_long else 1.01), 2)
+        _prod = (getattr(trade, "product", None) or "INTRADAY").upper()
         new_id = self._angel.place_gtt_order(
             trade.symbol, trade.qty, new_tgt, lim,
-            transaction_type=exit_side, exchange=str(trade.exchange).upper())
+            transaction_type=exit_side, exchange=str(trade.exchange).upper(),
+            producttype=_prod)
         if not new_id:
             return
         old = trade.target_gtt_id
