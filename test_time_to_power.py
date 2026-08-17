@@ -31,12 +31,23 @@ def test_higher_firing_rate_shortens_time_to_power():
     assert fast["time_to_power_years"] < slow["time_to_power_years"]
 
 
+def test_tiny_sample_refuses_to_extrapolate_rather_than_guess():
+    # n=3 (e.g. di_momentum_call's real holdout) -- std from 3 points is too
+    # unstable to trust a firing-rate extrapolation from, regardless of what
+    # net_mean/net_std happen to say.
+    stats = {"n": 3, "net_mean": 500.0, "net_std": 200.0}
+    r = compute(stats, holdout_days=63)
+    assert r["verdict"] == "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE"
+    assert "time_to_power_years" not in r
+
+
 def main() -> int:
     tests = [
         test_tiny_edge_relative_to_noise_is_dead_on_arrival,
         test_edge_close_to_detectable_is_worth_waiting,
         test_zero_std_or_zero_n_returns_none,
         test_higher_firing_rate_shortens_time_to_power,
+        test_tiny_sample_refuses_to_extrapolate_rather_than_guess,
     ]
     failed = 0
     for t in tests:

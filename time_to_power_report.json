@@ -31,13 +31,8 @@
   },
   "di_momentum_call": {
     "n_observed": 3,
-    "holdout_trading_days": 63,
-    "firing_rate_per_year": 12.0,
-    "net_mean": 21401.89,
-    "net_std": 18319.09,
-    "n_star": 5.7,
-    "time_to_power_years": 0.5,
-    "verdict": "WORTH_WAITING"
+    "verdict": "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE",
+    "reason": "n=3 < 10 -- std estimate itself too unstable to extrapolate a firing rate from"
   },
   "trend": {
     "n_observed": 89,
@@ -69,7 +64,9 @@
     "time_to_power_years": 1.0,
     "verdict": "WORTH_WAITING"
   },
-  "_excluded": {
-    "adx_long_straddle": "prior MDE run used a split date predating its 1-min data entirely -- measured full sample, not a genuine holdout; firing rate would be wrong."
+  "adx_long_straddle": {
+    "n_observed": 2,
+    "verdict": "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE",
+    "reason": "n=2 < 10 -- std estimate itself too unstable to extrapolate a firing rate from"
   }
 }

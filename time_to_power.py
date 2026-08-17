@@ -64,12 +64,18 @@ def _original11_holdout_days() -> int:
     return len(set(holdout_df.index.date))
 
 
+MIN_N_FOR_EXTRAPOLATION = 10   # below this, std itself is too unstable to extrapolate from
+
 def compute(stats: Dict[str, Any], holdout_days: int) -> Optional[Dict[str, Any]]:
     n = stats.get("n", 0)
     net_mean = stats.get("net_mean")
     net_std = stats.get("net_std")
     if n == 0 or net_mean is None or net_std in (None, 0.0):
         return None
+    if n < MIN_N_FOR_EXTRAPOLATION:
+        return {"n_observed": n, "verdict": "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE",
+                "reason": f"n={n} < {MIN_N_FOR_EXTRAPOLATION} -- std estimate itself "
+                          "too unstable to extrapolate a firing rate from"}
 
     firing_rate_per_year = n / holdout_days * 252.0
     if abs(net_mean) < 1e-9:
@@ -88,6 +94,25 @@ def compute(stats: Dict[str, Any], holdout_days: int) -> Optional[Dict[str, Any]
         "time_to_power_years": round(time_to_power_years, 1) if time_to_power_years != float("inf") else None,
         "verdict": verdict,
     }
+
+
+def _adx_corrected_stats():
+    """Re-run with the CORRECT 1-min split date (2026-07-31, not the
+    2026-05-19 the original MDE pass used, which predates 1-min data
+    entirely). Own holdout_days from the real 1-min day split."""
+    from single_leg_intraday_option_backtest import load_nifty_candles
+    from backtest_adx_long_straddle import backtest_adx_long_straddle
+    from minimum_detectable_edge import _per_trade_stats
+
+    days = sorted(set(load_nifty_candles(interval="1m").index.date))
+    split_idx = max(1, int(len(days) * 0.8))
+    split_date = str(days[split_idx])
+    holdout_days = len(days) - split_idx
+
+    r = backtest_adx_long_straddle(period=14, threshold=50, lots=10,
+                                    start_date=split_date, verbose=False)
+    stats = _per_trade_stats(r.get("trades", []))
+    return stats, holdout_days
 
 
 def run() -> Dict[str, Any]:
@@ -110,11 +135,11 @@ def run() -> Dict[str, Any]:
         if r is not None:
             results[key] = r
 
-    results["_excluded"] = {
-        "adx_long_straddle": "prior MDE run used a split date predating its "
-                              "1-min data entirely -- measured full sample, "
-                              "not a genuine holdout; firing rate would be wrong."
-    }
+    adx_stats, adx_holdout_days = _adx_corrected_stats()
+    adx_r = compute(adx_stats, adx_holdout_days)
+    if adx_r is not None:
+        results["adx_long_straddle"] = adx_r
+
     Path("time_to_power_report.json").write_text(json.dumps(results, indent=2, default=str))
     return results
 
@@ -122,11 +147,8 @@ def run() -> Dict[str, Any]:
 if __name__ == "__main__":
     rep = run()
     for name, r in rep.items():
-        if name == "_excluded":
-            continue
-        print(f"{name:18s} n={r['n_observed']:4d}  rate={r['firing_rate_per_year']:6.1f}/yr  "
-              f"n*={r['n_star']}  time_to_power={r['time_to_power_years']}yr  -> {r['verdict']}")
-    if rep.get("_excluded"):
-        print("\nExcluded:")
-        for name, reason in rep["_excluded"].items():
-            print(f"  {name}: {reason}")
+        if r["verdict"] == "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE":
+            print(f"{name:18s} n={r['n_observed']:4d}  -> {r['verdict']} ({r['reason']})")
+        else:
+            print(f"{name:18s} n={r['n_observed']:4d}  rate={r['firing_rate_per_year']:6.1f}/yr  "
+                  f"n*={r['n_star']}  time_to_power={r['time_to_power_years']}yr  -> {r['verdict']}")
