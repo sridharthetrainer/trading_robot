@@ -76,13 +76,37 @@ had existing code. Built from scratch:
   2.93–4.98) — not an isolated spike.
 - **Temporal stability**: holdout split into 3 chronological thirds, all 3
   positive, but unevenly: the middle third carried 68% of total P&L, the
-  last third only 7%. **Caveat raised in review, taken as fair**: at ~16-18
-  trades per third this is an underpowered test; "3/3 positive" is real but
-  weaker evidence than it sounds.
+  last third only 7%. Recency-weighted, that reads as decaying toward zero
+  — the early-warning shape of exactly the pattern that killed the
+  score-inversion candidate (see section 5) before its forward ledger caught
+  up to it. (Note: the holdout window is 2026-05-19 to 2026-08-17, ~63 days
+  — an external review characterized this as "2020-2026, ~8 trades/year" and
+  drew conclusions about a 2020-21 volatility regime; that premise is wrong,
+  checked directly against `load_nifty_5m()`'s actual date range. The
+  decay-shape observation itself doesn't depend on that wrong premise and
+  still holds on the real, much shorter timeline.)
+- **Minimum Detectable Edge** (`minimum_detectable_edge.py`, built after three
+  separate reviews converged on wanting this): at n=50, net mean ₹1,772/trade
+  doesn't clear its own MDE (₹3,237 at 80% power) — **this result cannot be
+  statistically distinguished from zero given the sample size.** Verdict:
+  `INSUFFICIENT_POWER`, not evidence of edge.
+- **Realistic OTM bid-ask spread stress** (extending `extra_cost_pct`, which
+  is a fraction of premium not underlying notional, past the 0.20% ceiling
+  tested earlier up to a review-cited realistic 5-15% range for thin OTM
+  options during volatility spikes): **the result flips negative between 8%
+  and 10% extra cost**, and is decisively negative at 15% (-₹49,665, Sharpe
+  -2.31). The earlier IV-shock robustness (all scenarios positive) tested
+  pricing-model risk; it never tested execution-cost risk at a realistic
+  magnitude for this instrument, and that's the one that broke it.
 
-Net: still below the promotion bar (DSR gate unchanged by any of this), but
-now the most extensively vetted candidate in the system — and, importantly,
-still just a candidate, not a validated edge.
+**Revised verdict on this candidate, downgraded from "most extensively
+vetted" to "thoroughly tested and found wanting":** four independent checks
+now point the same direction — statistically underpowered (MDE), doesn't
+survive realistic execution costs, shows a within-holdout decay pattern, and
+fails the DSR gate outright. The IV-shock robustness that looked reassuring
+tested the wrong risk relative to what actually breaks it. Not a near-miss;
+not promotable; not worth further stress-testing without a fundamentally
+different data source (real intraday option quotes) to re-run against.
 
 ## 3. A 50-section "autonomous adaptive trading engine" spec — scoped down, not built as-is
 
@@ -203,35 +227,91 @@ produced without checking it against the actual implementation. Recorded for
 the same reason: so a future session (or a future review) doesn't inherit
 either number as if it were verified.
 
-## 6. Standing state, unchanged by any of this
+**A third review round — the sharpest and most valuable so far, one wrong
+premise, one genuinely important catch.** One review applied the exact
+"impressive pooled statistic, check the decomposition" lens from the
+score-inversion correction directly to the Bollinger near-miss, and pushed
+three points that materially changed the conclusion (see the revised verdict
+in section 2): the temporal-decay reading, a base-rate argument (a *sold
+seminar* strategy showing a positive holdout should raise suspicion, not
+lower it — if it cleared real retail costs it wouldn't be economical to
+teach), and — the most concrete and ultimately correct catch — that the
+cost-sensitivity test never went past 0.20% of premium, far short of the
+5-15% real OTM bid-ask spread at volatility extremes. Re-testing at that
+realistic range is what actually flipped the result negative (section 2).
+
+Two things in that same review didn't hold up, checked directly rather than
+accepted:
+- It stated the Bollinger holdout was "n=50 over 2020–2026, ~8 trades/year"
+  and built a narrative around a 2020-21 volatility regime. The actual data
+  (`load_nifty_5m()`) spans 2025-05-19 to 2026-08-17; the holdout is
+  2026-05-19 to 2026-08-17, about 63 days. Wrong premise, wrong regime
+  narrative — though, notably, the *decay-shape* conclusion built on top of
+  it turned out to be right anyway, just for a much shorter and more
+  recent timeline than claimed.
+- It cited a "recorded ~10bps pipeline sensitivity floor" as if it were a
+  ready-made answer to the detection-floor question. The file
+  (`pipeline_sensitivity_floor.py`) is real and predates this session — but
+  it's a positive control calibrated specifically to
+  `option_underlying_decomposition.py`'s data structure (the score-inversion
+  research), not to the seminar option-buying strategies. The review's own
+  caveat alongside this claim — "that 10bps is on the underlying; an
+  OTM-buying strategy's floor is set by premium bid-ask, likely much
+  higher" — was the correct instinct, and the follow-up cost-stress test
+  confirmed it: the effective floor for this strategy class is far above
+  10bps of the underlying.
+
+Net effect of this round: got two facts wrong, got the two things that
+actually mattered right, and the thing it got right is what actually
+resolved the open question. Worth remembering when weighing review output —
+correctness of the specific claims and value of the overall critique aren't
+the same axis.
+
+## 6. Standing state
 
 Total tally, all methods combined: **0 of 17 tested strategies meet the
 system's predefined validated-edge promotion criteria** (11 original rule
-strategies + 6 seminar strategies) — and no, the score-inversion candidate
-does not change that; it is separately and independently rejected. System
-remains in PAPER mode. Nothing here asserts or implies profitability.
+strategies + 6 seminar strategies). The Bollinger reversal near-miss — the
+one candidate that looked interesting for several rounds of review — is now
+better described as thoroughly rejected than as a near-miss: underpowered
+(MDE), doesn't survive realistic OTM execution costs, shows within-holdout
+decay, and fails DSR outright. The score-inversion candidate remains
+separately and independently rejected (section 5). System remains in PAPER
+mode. Nothing here asserts or implies profitability.
+
+`minimum_detectable_edge.py` (new, built after three reviews converged on
+wanting it) reframes the 0/6 seminar-strategy tally usefully: only 1 of 6
+(`rolling_short_straddle`) can be said with statistical confidence to lack
+edge. The other 5 — including ones earlier reported as clean FAILs — are
+`INSUFFICIENT_POWER`: not evidence of no edge, just not enough data/trades to
+tell either way at this sample size. Scoped to the 6 seminar strategies only;
+extending it to the original 11 rule strategies would require care around
+their stored (already-annualized) Sharpe figures to avoid the same
+unit-conflation error caught in review this round.
 
 ## Things a reviewer should push on
 
-1. The 0/17-vs-detection-floor question is still genuinely open: is there a
-   principled way to estimate this pipeline's minimum detectable edge (given
-   the cost model and sample sizes in play), so "0/17" can be interpreted
-   correctly rather than left ambiguous between "no edge exists" and "edge
-   exists below our detection floor"?
-2. Is the Black-Scholes-anchored-to-prior-day-settle pricing sound enough to
-   trust the Bollinger reversal near-miss, given it now survives symmetric
-   AND leverage-effect-motivated asymmetric IV/cost stress (up to +15 vol
-   points on the down-move-triggered side), a 9-point parameter plateau, and
-   rough (if uneven) temporal stability — or is there still a pricing-model
-   failure mode none of this has tested for?
+1. The 0/17-vs-detection-floor question is now partially, not fully,
+   resolved: `minimum_detectable_edge.py` answers it for the 6 seminar
+   strategies (5 of 6 are power-limited, not edge-absent), but the same
+   analysis hasn't been run on the original 11 rule strategies, and there's
+   no single pipeline-wide detection-floor number — `pipeline_sensitivity_
+   floor.py`'s ~10bps figure is scoped to a different research pipeline
+   entirely (see section 5) and doesn't transfer.
+2. The Bollinger reversal case is likely closed pending real intraday option
+   data (a Black-Scholes-on-synthetic-premium result that dies under a
+   realistic bid-ask assumption isn't worth further stress-testing on the
+   same proxy) — is that the right place to stop, or is there still value in
+   re-testing it once/if real option quotes are captured?
 3. What is the right way to estimate the *effective* number of independent
    trials for DSR when trials are correlated (9 in one grid, but the honest
    program-wide count is much larger across the MA search, full strategy
-   catalog, and modifier pruning) — is per-session DSR ever a defensible unit,
-   or is that itself a methodological gap in this system's validation
+   catalog, and modifier pruning) — is per-session DSR ever a defensible
+   unit, or is that itself a methodological gap in this system's validation
    discipline?
 4. Should `drift_monitor.py` be redesigned so sparse strategies can eventually
-   produce a real verdict (e.g., a trade-count-based window instead of a pure
-   calendar window), so "INSUFFICIENT_DATA forever" doesn't become a blind
-   spot for exactly the low-frequency strategies most prone to undetected
-   decay?
+   produce a real verdict (trade-count-based window, or a sequential test
+   like CUSUM/SPRT that accumulates evidence at whatever rate trades arrive,
+   rather than a fixed calendar window), so "INSUFFICIENT_DATA forever"
+   doesn't become a blind spot for exactly the low-frequency strategies most
+   prone to undetected decay?

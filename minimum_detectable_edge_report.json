@@ -1,0 +1,66 @@
+{
+  "bollinger_otm_reversal": {
+    "n": 50,
+    "gross_mean": 1843.01,
+    "gross_std": 8195.710535302562,
+    "net_mean": 1772.1729999999995,
+    "net_std": 8173.75757675228,
+    "mde_gross": 3245.34,
+    "mde_net": 3236.64,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "|net_mean|=1772 < MDE=3237 at n=50"
+  },
+  "bollinger_otm_momentum": {
+    "n": 49,
+    "gross_mean": 453.2755102040816,
+    "gross_std": 18496.507174515078,
+    "net_mean": 280.5612244897955,
+    "net_std": 18483.528484798368,
+    "mde_gross": 7398.6,
+    "mde_net": 7393.41,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "|net_mean|=281 < MDE=7393 at n=49"
+  },
+  "sma20_atm_option": {
+    "n": 62,
+    "gross_mean": -1367.3064516129032,
+    "gross_std": 23030.296492748246,
+    "net_mean": -1585.9598387096771,
+    "net_std": 22989.725040698642,
+    "mde_gross": 8189.58,
+    "mde_net": 8175.15,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "|net_mean|=1586 < MDE=8175 at n=62"
+  },
+  "di_momentum_call": {
+    "n": 3,
+    "gross_mean": 21647.166666666668,
+    "gross_std": 18371.87064736015,
+    "net_mean": 21401.886666666665,
+    "net_std": 18319.09282987652,
+    "mde": null,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "n=3 < minimum 30 trades"
+  },
+  "adx_long_straddle": {
+    "n": 12,
+    "gross_mean": 15076.208333333334,
+    "gross_std": 17653.195957696535,
+    "net_mean": 14598.4125,
+    "net_std": 17742.54880791633,
+    "mde": null,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "n=12 < minimum 30 trades"
+  },
+  "rolling_short_straddle": {
+    "n": 100,
+    "gross_mean": -5111.47,
+    "gross_std": 13990.839260069823,
+    "net_mean": -5510.898899999999,
+    "net_std": 14005.630691327626,
+    "mde_gross": 3917.43,
+    "mde_net": 3921.58,
+    "verdict": "NO_EDGE",
+    "reason": "gross return itself is not detectably positive -- no signal to erode"
+  }
+}
