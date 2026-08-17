@@ -1,0 +1,138 @@
+{
+  "parameter_plateau": [
+    {
+      "period": 12,
+      "std_mult": 1.4,
+      "dev_trades": 198,
+      "dev_sharpe": 0.6138,
+      "dev_pnl": 71051.31,
+      "holdout_trades": 51,
+      "holdout_sharpe": 4.1526,
+      "holdout_pnl": 112497.3,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    },
+    {
+      "period": 12,
+      "std_mult": 1.5,
+      "dev_trades": 198,
+      "dev_sharpe": 0.8768,
+      "dev_pnl": 101345.73,
+      "holdout_trades": 50,
+      "holdout_sharpe": 4.978,
+      "holdout_pnl": 133948.5,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    },
+    {
+      "period": 12,
+      "std_mult": 1.7,
+      "dev_trades": 197,
+      "dev_sharpe": 1.7245,
+      "dev_pnl": 201237.69,
+      "holdout_trades": 50,
+      "holdout_sharpe": 3.3443,
+      "holdout_pnl": 87646.42,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    },
+    {
+      "period": 14,
+      "std_mult": 1.4,
+      "dev_trades": 196,
+      "dev_sharpe": 1.0367,
+      "dev_pnl": 122425.34,
+      "holdout_trades": 51,
+      "holdout_sharpe": 3.5028,
+      "holdout_pnl": 91086.37,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    },
+    {
+      "period": 14,
+      "std_mult": 1.5,
+      "dev_trades": 195,
+      "dev_sharpe": 1.6024,
+      "dev_pnl": 192285.0,
+      "holdout_trades": 50,
+      "holdout_sharpe": 3.4418,
+      "holdout_pnl": 88608.65,
+      "holdout_positive": true,
+      "is_grid_search_winner": true
+    },
+    {
+      "period": 14,
+      "std_mult": 1.7,
+      "dev_trades": 195,
+      "dev_sharpe": 2.0627,
+      "dev_pnl": 238931.18,
+      "holdout_trades": 50,
+      "holdout_sharpe": 2.9264,
+      "holdout_pnl": 75685.74,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    },
+    {
+      "period": 16,
+      "std_mult": 1.4,
+      "dev_trades": 194,
+      "dev_sharpe": 0.912,
+      "dev_pnl": 100879.59,
+      "holdout_trades": 51,
+      "holdout_sharpe": 4.0571,
+      "holdout_pnl": 103988.14,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    },
+    {
+      "period": 16,
+      "std_mult": 1.5,
+      "dev_trades": 194,
+      "dev_sharpe": 0.8593,
+      "dev_pnl": 94572.7,
+      "holdout_trades": 50,
+      "holdout_sharpe": 3.3759,
+      "holdout_pnl": 87949.63,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    },
+    {
+      "period": 16,
+      "std_mult": 1.7,
+      "dev_trades": 194,
+      "dev_sharpe": 1.3357,
+      "dev_pnl": 137532.36,
+      "holdout_trades": 49,
+      "holdout_sharpe": 4.0546,
+      "holdout_pnl": 102713.08,
+      "holdout_positive": true,
+      "is_grid_search_winner": false
+    }
+  ],
+  "temporal_stability": [
+    {
+      "segment": 1,
+      "n_trades": 16,
+      "date_range": "2026-05-20 to 2026-06-17",
+      "total_pnl": 21599.44,
+      "win_rate": 0.5,
+      "positive": true
+    },
+    {
+      "segment": 2,
+      "n_trades": 16,
+      "date_range": "2026-06-18 to 2026-07-15",
+      "total_pnl": 60719.08,
+      "win_rate": 0.5,
+      "positive": true
+    },
+    {
+      "segment": 3,
+      "n_trades": 18,
+      "date_range": "2026-07-16 to 2026-08-14",
+      "total_pnl": 6290.13,
+      "win_rate": 0.5,
+      "positive": true
+    }
+  ]
+}

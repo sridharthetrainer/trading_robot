@@ -1,0 +1,69 @@
+{
+  "strategy": "bollinger_otm_reversal",
+  "params": {
+    "period": 14,
+    "std_mult": 1.5,
+    "lots": 10
+  },
+  "holdout_start": "2026-05-19",
+  "scenarios": [
+    {
+      "ce_shock": 0.0,
+      "pe_shock": 0.0,
+      "num_trades": 50,
+      "total_pnl": 88608.65,
+      "sharpe": 3.4418,
+      "positive": true
+    },
+    {
+      "ce_shock": 0.02,
+      "pe_shock": 0.0,
+      "num_trades": 52,
+      "total_pnl": 80115.49,
+      "sharpe": 2.9923,
+      "positive": true
+    },
+    {
+      "ce_shock": 0.05,
+      "pe_shock": 0.0,
+      "num_trades": 53,
+      "total_pnl": 69116.96,
+      "sharpe": 2.3422,
+      "positive": true
+    },
+    {
+      "ce_shock": 0.08,
+      "pe_shock": 0.02,
+      "num_trades": 55,
+      "total_pnl": 61174.94,
+      "sharpe": 1.7641,
+      "positive": true
+    },
+    {
+      "ce_shock": 0.1,
+      "pe_shock": 0.0,
+      "num_trades": 55,
+      "total_pnl": 47200.65,
+      "sharpe": 1.3256,
+      "positive": true
+    },
+    {
+      "ce_shock": 0.1,
+      "pe_shock": -0.03,
+      "num_trades": 50,
+      "total_pnl": 35275.83,
+      "sharpe": 1.114,
+      "positive": true
+    },
+    {
+      "ce_shock": 0.15,
+      "pe_shock": 0.0,
+      "num_trades": 56,
+      "total_pnl": 36785.84,
+      "sharpe": 0.9678,
+      "positive": true
+    }
+  ],
+  "n_scenarios": 7,
+  "n_positive": 7
+}

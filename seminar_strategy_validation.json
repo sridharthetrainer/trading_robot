@@ -1,0 +1,71 @@
+{
+  "generated_at": "2026-08-13",
+  "context": "Offline-seminar-sourced NIFTY intraday option automations, backtested against real 5-min/1-min NIFTY underlying (candle_cache.db) and real NIFTY option EOD settlement prices (options_nifty.db, 2020-2026). Intraday premium path is Black-Scholes, IV solved from the PREVIOUS trading day's real settle (no lookahead) -- see option_intraday_pricer.py. Real transaction costs (brokerage/STT/slippage) via nse_cost_model.py. Verdict requires a chronological 70/30 train/holdout split with n_holdout>=30 and a one-sample t-test on holdout P&L (p<0.05, mean>0) to PASS -- same bar as validation_harness.py applies to the other 11 rule strategies in validation_results.json.",
+  "results": {
+    "bollinger_otm_reversal": {
+      "source_file": "backtest_bollinger_otm_reversal.py",
+      "description": "5-min close outside BB(20,2) -> buy 10-strike-OTM opposite-side option (fade)",
+      "lots": 10,
+      "full_history": {"n_trades": 237, "net_pnl": 193776, "sharpe": 1.637, "win_rate": 0.3924},
+      "holdout": {"n": 72, "mean_pnl": 1632.06, "total_pnl": 117508.29, "win_rate": 0.4583, "p_value": 0.14328},
+      "verdict": "HOLDOUT_FAIL",
+      "reason": "positive but not statistically distinguishable from noise (p=0.14)"
+    },
+    "sma20_atm_option": {
+      "source_file": "backtest_sma20_atm_option.py",
+      "description": "5-min close vs SMA20 -> buy ATM CE/PE (fires ~99% of days -- not a selective filter)",
+      "lots": 10,
+      "full_history": {"n_trades": 304, "net_pnl": 118478, "sharpe": 0.260, "win_rate": 0.4408, "max_drawdown": 594687},
+      "holdout": {"n": 92, "mean_pnl": -5095.65, "total_pnl": -468799.40, "win_rate": 0.3261, "p_value": 0.04083},
+      "verdict": "HOLDOUT_FAIL",
+      "reason": "SIGNIFICANTLY NEGATIVE on holdout (p=0.041) -- full-history gain was entirely carried by the earlier period; most recent 30% loses money"
+    },
+    "bollinger_otm_momentum": {
+      "source_file": "backtest_bollinger_otm_momentum.py",
+      "description": "5-min close outside BB(20,2) -> buy 1-strike-OTM same-side option (ride the breakout), 10 qty as stated",
+      "lots": 10,
+      "full_history": {"n_trades": 303, "net_pnl": 756491, "sharpe": 1.962, "win_rate": 0.4488, "max_drawdown": 149858},
+      "holdout": {"n": 91, "mean_pnl": 1044.13, "total_pnl": 95015.41, "win_rate": 0.4396, "p_value": 0.65133},
+      "verdict": "HOLDOUT_FAIL",
+      "reason": "positive but not significant (p=0.65) -- also fires on 99.3% of days, same selectivity issue as SMA20"
+    },
+    "adx_long_straddle": {
+      "source_file": "backtest_adx_long_straddle.py",
+      "description": "1-min ADX(14)>50 before 10am -> buy ATM CE + ATM PE (long straddle), 10 lots each leg",
+      "lots": 10,
+      "full_history": {"n_trades": 12, "net_pnl": 175181, "sharpe": 13.061, "win_rate": 0.5833, "max_drawdown": 7738},
+      "holdout": {"n": 4, "verdict": "INSUFFICIENT_HOLDOUT_DATA", "min_required": 30},
+      "verdict": "INSUFFICIENT_DATA",
+      "reason": "1-min candle history only covers 55 trading days (2026-05-25 onward) -- Sharpe 13 on 12 trades is the exact overfitting pattern that got supertrend_mtf rejected earlier; genuinely cannot be judged with data available"
+    },
+    "di_momentum_call": {
+      "source_file": "backtest_di_momentum_call.py",
+      "description": "5-min +DI(14)>25 AND Momentum(10)>0 -> buy ATM CE only (bull-only)",
+      "lots": 10,
+      "full_history": {"n_trades": 203, "net_pnl": 103952, "sharpe": 0.404, "win_rate": 0.4187, "max_drawdown": 196686},
+      "holdout": {"n": 61, "mean_pnl": -1188.90, "total_pnl": -72522.89, "win_rate": 0.3115, "p_value": 0.6663},
+      "verdict": "HOLDOUT_FAIL",
+      "reason": "negative on holdout, same decay pattern as sma20_atm_option though not statistically significant here"
+    },
+    "rolling_short_straddle": {
+      "source_file": "backtest_rolling_short_straddle.py",
+      "description": "10am sell ATM CE+PE, cycle exit at +-Rs15,000, 15min cooldown redeploy, one leg-level 20% SL re-entry/day, cycles until market close",
+      "lots": 10,
+      "full_history": {"n_cycles": 498, "net_pnl": -2897571, "sharpe": -7.301, "win_rate": 0.2871, "max_drawdown": 2898291},
+      "holdout": "not needed -- already clearly negative on full sample",
+      "verdict": "FAIL",
+      "reason": "58% of cycles (289/498) exit via the 20% leg-level stop -- gets whipsawed by intraday chop before theta decay or mean reversion can pay back a loss"
+    }
+  },
+  "not_yet_built": [
+    "orb_synthetic_future (opening-range breakout -> long ATM CE + short ATM PE or reverse)",
+    "rsi_guarded_short_straddle (short straddle gated on cumulative daily P&L + RSI 30-70, allows same-day re-entry)",
+    "vix_range_iron_condor (4-leg hedged condor gated on VIX %-change + 1-min 14-candle range, VIX-breach exit)",
+    "range_breakout_vertical_spread (11am opening-range breakout -> bull call spread or bear put spread)"
+  ],
+  "combined_with_earlier_this_session": {
+    "original_11_rule_strategies": "0/11 PASS (validation_results.json + extended_validation_report.json, 42 symbol/segment combos)",
+    "seminar_strategies_tested": "0/6 PASS (this file)",
+    "total": "0/17 tested strategies show validated after-cost out-of-sample edge"
+  }
+}

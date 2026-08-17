@@ -1,0 +1,121 @@
+{
+  "n_strategies": 6,
+  "results": {
+    "bollinger_otm_reversal": {
+      "strategy": "bollinger_otm_reversal",
+      "verdict": "FAIL",
+      "n_trials": 9,
+      "split_date": "2026-05-19",
+      "best_params": {
+        "lots": 10,
+        "period": 14,
+        "std_mult": 1.5
+      },
+      "dev_sharpe": 1.6024,
+      "dev_trades": 195,
+      "deflated_sharpe": 0.7741,
+      "dsr_ok": false,
+      "holdout_sharpe": 3.4418,
+      "holdout_trades": 50,
+      "holdout_total_pnl": 88608.65,
+      "holdout_win_rate": 0.5,
+      "holdout_positive": true,
+      "benchmark_buyhold_sharpe": 1.0946,
+      "beats_benchmark": true
+    },
+    "bollinger_otm_momentum": {
+      "strategy": "bollinger_otm_momentum",
+      "verdict": "FAIL",
+      "n_trials": 9,
+      "split_date": "2026-05-19",
+      "best_params": {
+        "lots": 10,
+        "period": 14,
+        "std_mult": 2.5
+      },
+      "dev_sharpe": 2.5539,
+      "dev_trades": 179,
+      "deflated_sharpe": 1.0,
+      "dsr_ok": true,
+      "holdout_sharpe": 0.241,
+      "holdout_trades": 49,
+      "holdout_total_pnl": 13747.5,
+      "holdout_win_rate": 0.4694,
+      "holdout_positive": true,
+      "benchmark_buyhold_sharpe": 1.0946,
+      "beats_benchmark": false
+    },
+    "sma20_atm_option": {
+      "strategy": "sma20_atm_option",
+      "verdict": "FAIL",
+      "n_trials": 4,
+      "split_date": "2026-05-19",
+      "best_params": {
+        "lots": 10,
+        "period": 30
+      },
+      "dev_sharpe": 3.6713,
+      "dev_trades": 246,
+      "deflated_sharpe": 1.0,
+      "dsr_ok": true,
+      "holdout_sharpe": -1.0951,
+      "holdout_trades": 62,
+      "holdout_total_pnl": -98329.51,
+      "holdout_win_rate": 0.371,
+      "holdout_positive": false,
+      "benchmark_buyhold_sharpe": 1.0946,
+      "beats_benchmark": false
+    },
+    "di_momentum_call": {
+      "strategy": "di_momentum_call",
+      "verdict": "INSUFFICIENT_HOLDOUT_DATA",
+      "n_trials": 27,
+      "best_params": {
+        "lots": 10,
+        "di_period": 21,
+        "mom_period": 5,
+        "di_threshold": 30
+      },
+      "dev_sharpe": 6.6619,
+      "dev_trades": 22,
+      "holdout_trades": 3,
+      "min_required": 30
+    },
+    "adx_long_straddle": {
+      "strategy": "adx_long_straddle",
+      "verdict": "INSUFFICIENT_HOLDOUT_DATA",
+      "n_trials": 9,
+      "best_params": {
+        "lots": 10,
+        "period": 14,
+        "threshold": 50
+      },
+      "dev_sharpe": 16.1296,
+      "dev_trades": 10,
+      "holdout_trades": 2,
+      "min_required": 30
+    },
+    "rolling_short_straddle": {
+      "strategy": "rolling_short_straddle",
+      "verdict": "FAIL",
+      "n_trials": 3,
+      "split_date": "2026-05-19",
+      "best_params": {
+        "lots": 10,
+        "leg_sl_pct": 0.15
+      },
+      "dev_sharpe": -7.014,
+      "dev_trades": 426,
+      "deflated_sharpe": 0.0,
+      "dsr_ok": false,
+      "holdout_sharpe": -6.2463,
+      "holdout_trades": 100,
+      "holdout_total_pnl": -551089.89,
+      "holdout_win_rate": 0.28,
+      "holdout_positive": false,
+      "benchmark_buyhold_sharpe": 1.0946,
+      "beats_benchmark": false
+    }
+  },
+  "n_pass": 0
+}
