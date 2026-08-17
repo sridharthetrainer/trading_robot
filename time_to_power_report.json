@@ -34,6 +34,11 @@
     "verdict": "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE",
     "reason": "n=3 < 10 -- std estimate itself too unstable to extrapolate a firing rate from"
   },
+  "adx_long_straddle": {
+    "n_observed": 2,
+    "verdict": "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE",
+    "reason": "n=2 < 10 -- std estimate itself too unstable to extrapolate a firing rate from"
+  },
   "trend": {
     "n_observed": 89,
     "holdout_trading_days": 29,
@@ -63,10 +68,5 @@
     "n_star": 699.7,
     "time_to_power_years": 1.0,
     "verdict": "WORTH_WAITING"
-  },
-  "adx_long_straddle": {
-    "n_observed": 2,
-    "verdict": "SAMPLE_TOO_SMALL_TO_EXTRAPOLATE",
-    "reason": "n=2 < 10 -- std estimate itself too unstable to extrapolate a firing rate from"
   }
 }

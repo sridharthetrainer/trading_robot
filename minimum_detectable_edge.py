@@ -60,19 +60,25 @@ Z_BETA = 0.84      # 80% power
 MDE_MULTIPLIER = Z_ALPHA_2 + Z_BETA
 MIN_N_FOR_ANY_VERDICT = 30
 
-SPLIT_DATE = "2026-05-19"
+SPLIT_DATE = "2026-05-19"           # 80/20 split for 5m-based strategies
+ADX_SPLIT_DATE = "2026-07-31"       # separate 80/20 split for ADX's 1-min data
+                                     # (2026-05-19 predates 1-min data entirely,
+                                     # which only starts 2026-05-25 -- using it
+                                     # would silently include the full sample
+                                     # as "holdout", not a genuine split)
+
 STRATEGIES = {
     "bollinger_otm_reversal": (backtest_bollinger_otm_reversal,
-                                {"period": 14, "std_mult": 1.5, "lots": 10}),
+                                {"period": 14, "std_mult": 1.5, "lots": 10}, SPLIT_DATE),
     "bollinger_otm_momentum": (backtest_bollinger_otm_momentum,
-                                {"period": 14, "std_mult": 2.5, "lots": 10}),
-    "sma20_atm_option": (backtest_sma20_atm_option, {"period": 30, "lots": 10}),
+                                {"period": 14, "std_mult": 2.5, "lots": 10}, SPLIT_DATE),
+    "sma20_atm_option": (backtest_sma20_atm_option, {"period": 30, "lots": 10}, SPLIT_DATE),
     "di_momentum_call": (backtest_di_momentum_call,
-                          {"di_period": 21, "mom_period": 5, "di_threshold": 30, "lots": 10}),
+                          {"di_period": 21, "mom_period": 5, "di_threshold": 30, "lots": 10}, SPLIT_DATE),
     "adx_long_straddle": (backtest_adx_long_straddle,
-                           {"period": 14, "threshold": 50, "lots": 10}),
+                           {"period": 14, "threshold": 50, "lots": 10}, ADX_SPLIT_DATE),
     "rolling_short_straddle": (backtest_rolling_short_straddle,
-                                {"leg_sl_pct": 0.15, "lots": 10}),
+                                {"leg_sl_pct": 0.15, "lots": 10}, SPLIT_DATE),
 }
 
 
@@ -89,10 +95,27 @@ def _per_trade_stats(trades: list) -> Dict[str, Any]:
     }
 
 
+def _confidence_interval_95(mean: float, std: float, n: int) -> Any:
+    """95% CI on the per-trade mean, t-distributed (more honest than a fixed
+    z=1.96 at small n). Per external review: a binary verdict hides whether
+    the data is consistent with a tight range around zero (genuinely dead)
+    or a wide range mostly on one side (worth waiting on) -- the same
+    INSUFFICIENT_POWER label covers both very differently-informative cases."""
+    if n < 2 or std <= 0:
+        return None
+    from scipy import stats as _stats
+    t_crit = float(_stats.t.ppf(0.975, df=n - 1))
+    half_width = t_crit * std / (n ** 0.5)
+    return [round(mean - half_width, 2), round(mean + half_width, 2)]
+
+
 def classify(stats: Dict[str, Any]) -> Dict[str, Any]:
     n = stats["n"]
+    net_ci = _confidence_interval_95(stats.get("net_mean", 0.0), stats.get("net_std", 0.0), n)
+
     if n < MIN_N_FOR_ANY_VERDICT:
-        return {**stats, "mde": None, "verdict": "INSUFFICIENT_POWER",
+        return {**stats, "mde": None, "net_mean_ci_95": net_ci,
+                "verdict": "INSUFFICIENT_POWER",
                 "reason": f"n={n} < minimum {MIN_N_FOR_ANY_VERDICT} trades"}
 
     mde_gross = MDE_MULTIPLIER * stats["gross_std"] / (n ** 0.5)
@@ -115,13 +138,13 @@ def classify(stats: Dict[str, Any]) -> Dict[str, Any]:
         reason = "net_mean clears MDE and is positive -- not a power problem (still needs DSR/holdout/benchmark gates)"
 
     return {**stats, "mde_gross": round(mde_gross, 2), "mde_net": round(mde_net, 2),
-            "verdict": verdict, "reason": reason}
+            "net_mean_ci_95": net_ci, "verdict": verdict, "reason": reason}
 
 
 def run() -> Dict[str, Any]:
     results = {}
-    for name, (fn, params) in STRATEGIES.items():
-        r = fn(**params, start_date=SPLIT_DATE, verbose=False)
+    for name, (fn, params, split_date) in STRATEGIES.items():
+        r = fn(**params, start_date=split_date, verbose=False)
         stats = _per_trade_stats(r.get("trades", []))
         results[name] = classify(stats)
     Path("minimum_detectable_edge_report.json").write_text(json.dumps(results, indent=2, default=str))

@@ -44,7 +44,9 @@ FUTILITY_YEARS = 5.0
 # on 210 days of 5m data at HOLDOUT_RATIO=0.20 -- holdout_df's own trading-day
 # count, computed once via the same call minimum_detectable_edge_original11.py
 # makes.
-SEMINAR_HOLDOUT_DAYS = 63
+SEMINAR_HOLDOUT_DAYS = 63     # 5m-based strategies (2026-05-19 split)
+ADX_HOLDOUT_DAYS = 12         # 1-min-based (2026-07-31 split) -- see
+                               # minimum_detectable_edge.py's ADX_SPLIT_DATE
 
 ENTRIES = [
     ("minimum_detectable_edge_report.json", "bollinger_otm_reversal", SEMINAR_HOLDOUT_DAYS),
@@ -52,7 +54,7 @@ ENTRIES = [
     ("minimum_detectable_edge_report.json", "sma20_atm_option", SEMINAR_HOLDOUT_DAYS),
     ("minimum_detectable_edge_report.json", "di_momentum_call", SEMINAR_HOLDOUT_DAYS),
     ("minimum_detectable_edge_report.json", "rolling_short_straddle", SEMINAR_HOLDOUT_DAYS),
-    # adx_long_straddle deliberately excluded -- see module docstring.
+    ("minimum_detectable_edge_report.json", "adx_long_straddle", ADX_HOLDOUT_DAYS),
 ]
 
 
@@ -96,25 +98,6 @@ def compute(stats: Dict[str, Any], holdout_days: int) -> Optional[Dict[str, Any]
     }
 
 
-def _adx_corrected_stats():
-    """Re-run with the CORRECT 1-min split date (2026-07-31, not the
-    2026-05-19 the original MDE pass used, which predates 1-min data
-    entirely). Own holdout_days from the real 1-min day split."""
-    from single_leg_intraday_option_backtest import load_nifty_candles
-    from backtest_adx_long_straddle import backtest_adx_long_straddle
-    from minimum_detectable_edge import _per_trade_stats
-
-    days = sorted(set(load_nifty_candles(interval="1m").index.date))
-    split_idx = max(1, int(len(days) * 0.8))
-    split_date = str(days[split_idx])
-    holdout_days = len(days) - split_idx
-
-    r = backtest_adx_long_straddle(period=14, threshold=50, lots=10,
-                                    start_date=split_date, verbose=False)
-    stats = _per_trade_stats(r.get("trades", []))
-    return stats, holdout_days
-
-
 def run() -> Dict[str, Any]:
     results: Dict[str, Any] = {}
 
@@ -134,11 +117,6 @@ def run() -> Dict[str, Any]:
         r = compute(stats, orig11_days)
         if r is not None:
             results[key] = r
-
-    adx_stats, adx_holdout_days = _adx_corrected_stats()
-    adx_r = compute(adx_stats, adx_holdout_days)
-    if adx_r is not None:
-        results["adx_long_straddle"] = adx_r
 
     Path("time_to_power_report.json").write_text(json.dumps(results, indent=2, default=str))
     return results

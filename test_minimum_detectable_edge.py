@@ -52,6 +52,23 @@ def test_noisy_small_positive_signal_is_insufficient_power():
     assert result["verdict"] == "INSUFFICIENT_POWER"
 
 
+def test_ci_distinguishes_tight_zero_from_wide_uncertain():
+    """Two INSUFFICIENT_POWER results can mean very different things -- a CI
+    tight around zero (genuinely dead) vs. wide and mostly positive (worth
+    waiting on). The binary verdict alone can't tell them apart; the CI must."""
+    tight_zero = _synthetic_trades(n=40, gross_mean=5, gross_std=50, cost_per_trade=2, seed=3)
+    wide_uncertain = _synthetic_trades(n=40, gross_mean=800, gross_std=3000, cost_per_trade=10, seed=4)
+
+    r_tight = classify(_per_trade_stats(tight_zero))
+    r_wide = classify(_per_trade_stats(wide_uncertain))
+
+    assert r_tight["verdict"] == "INSUFFICIENT_POWER"
+    assert r_wide["verdict"] == "INSUFFICIENT_POWER"
+    tight_width = r_tight["net_mean_ci_95"][1] - r_tight["net_mean_ci_95"][0]
+    wide_width = r_wide["net_mean_ci_95"][1] - r_wide["net_mean_ci_95"][0]
+    assert wide_width > tight_width
+
+
 def main() -> int:
     tests = [
         test_below_min_n_is_insufficient_power_regardless_of_result,
@@ -59,6 +76,7 @@ def main() -> int:
         test_large_clean_positive_signal_survives_costs_is_edge_detected,
         test_positive_gross_but_costs_dominate_is_cost_eroded,
         test_noisy_small_positive_signal_is_insufficient_power,
+        test_ci_distinguishes_tight_zero_from_wide_uncertain,
     ]
     failed = 0
     for t in tests:

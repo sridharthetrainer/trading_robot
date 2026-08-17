@@ -7,6 +7,10 @@
     "net_std": 8173.75757675228,
     "mde_gross": 3245.34,
     "mde_net": 3236.64,
+    "net_mean_ci_95": [
+      -550.78,
+      4095.13
+    ],
     "verdict": "INSUFFICIENT_POWER",
     "reason": "|net_mean|=1772 < MDE=3237 at n=50"
   },
@@ -18,6 +22,10 @@
     "net_std": 18483.528484798368,
     "mde_gross": 7398.6,
     "mde_net": 7393.41,
+    "net_mean_ci_95": [
+      -5028.53,
+      5589.65
+    ],
     "verdict": "INSUFFICIENT_POWER",
     "reason": "|net_mean|=281 < MDE=7393 at n=49"
   },
@@ -29,6 +37,10 @@
     "net_std": 22989.725040698642,
     "mde_gross": 8189.58,
     "mde_net": 8175.15,
+    "net_mean_ci_95": [
+      -7424.26,
+      4252.34
+    ],
     "verdict": "INSUFFICIENT_POWER",
     "reason": "|net_mean|=1586 < MDE=8175 at n=62"
   },
@@ -39,18 +51,26 @@
     "net_mean": 21401.886666666665,
     "net_std": 18319.09282987652,
     "mde": null,
+    "net_mean_ci_95": [
+      -24105.26,
+      66909.04
+    ],
     "verdict": "INSUFFICIENT_POWER",
     "reason": "n=3 < minimum 30 trades"
   },
   "adx_long_straddle": {
-    "n": 12,
-    "gross_mean": 15076.208333333334,
-    "gross_std": 17653.195957696535,
-    "net_mean": 14598.4125,
-    "net_std": 17742.54880791633,
+    "n": 2,
+    "gross_mean": -1573.0,
+    "gross_std": 128.69343417595164,
+    "net_mean": -2018.9850000000001,
+    "net_std": 75.79477587538591,
     "mde": null,
+    "net_mean_ci_95": [
+      -2699.97,
+      -1338.0
+    ],
     "verdict": "INSUFFICIENT_POWER",
-    "reason": "n=12 < minimum 30 trades"
+    "reason": "n=2 < minimum 30 trades"
   },
   "rolling_short_straddle": {
     "n": 100,
@@ -60,6 +80,10 @@
     "net_std": 14005.630691327626,
     "mde_gross": 3917.43,
     "mde_net": 3921.58,
+    "net_mean_ci_95": [
+      -8289.92,
+      -2731.88
+    ],
     "verdict": "NO_EDGE",
     "reason": "gross return itself is not detectably positive -- no signal to erode"
   }
