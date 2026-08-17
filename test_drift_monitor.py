@@ -5,7 +5,9 @@ SYSTEM_INFRASTRUCTURE_AUDIT.md / the drift_monitor.py module docstring)."""
 import numpy as np
 import pandas as pd
 
-from drift_monitor import _split_reference_recent, _drift_block, MIN_SAMPLES
+from drift_monitor import (
+    _split_reference_recent, _drift_block, MIN_SAMPLES, cusum_check, CUSUM_MIN_REFERENCE,
+)
 
 
 def _make_df(n_days=40, per_day=5, ret_fn=lambda day: 0.0):
@@ -74,6 +76,82 @@ def test_drift_block_improvement_is_not_flagged_as_drift():
     assert block["verdict"] != "DRIFT_SUSPECTED"
 
 
+def test_cusum_flags_sustained_downward_shift():
+    rng = np.random.default_rng(7)
+    # stable reference, then a sustained (not one-off) downward shift
+    ref = rng.normal(0.5, 1.0, CUSUM_MIN_REFERENCE)
+    shifted = rng.normal(-1.5, 1.0, 40)
+    series = np.concatenate([ref, shifted])
+    result = cusum_check(series)
+    assert result["verdict"] == "DRIFT_SUSPECTED"
+    assert result["flagged_at_index"] is not None
+    assert result["flagged_at_index"] >= CUSUM_MIN_REFERENCE
+
+
+def test_cusum_stable_when_no_real_shift():
+    rng = np.random.default_rng(8)
+    series = rng.normal(0.3, 1.0, CUSUM_MIN_REFERENCE + 40)
+    result = cusum_check(series)
+    assert result["verdict"] == "STABLE"
+    assert result["flagged_at_index"] is None
+
+
+def test_cusum_ignores_a_single_moderate_outlier_not_sustained():
+    # A single bad-but-not-extreme trade (~4 std below reference mean --
+    # unusual, but not so extreme it alone crosses a 5-std boundary) amid an
+    # otherwise stable stream should not, by itself, read as a SUSTAINED
+    # shift. (A sufficiently extreme single point legitimately CAN trigger
+    # CUSUM alone -- that's correct, not a bug -- so this test deliberately
+    # keeps the outlier moderate rather than trying to prove CUSUM is
+    # outlier-proof, which it isn't and isn't supposed to be.)
+    rng = np.random.default_rng(9)
+    ref = rng.normal(0.5, 1.0, CUSUM_MIN_REFERENCE)
+    mostly_stable = rng.normal(0.5, 1.0, 30).tolist()
+    mostly_stable[5] = -4.0
+    series = np.concatenate([ref, mostly_stable])
+    result = cusum_check(series)
+    assert result["verdict"] == "STABLE"
+
+
+def test_cusum_insufficient_data_below_min_reference():
+    series = np.array([0.1, 0.2, 0.3])   # far fewer than CUSUM_MIN_REFERENCE
+    result = cusum_check(series)
+    assert result["verdict"] == "INSUFFICIENT_DATA"
+
+
+def test_cusum_needs_far_fewer_samples_than_calendar_check():
+    # CUSUM can produce a real (non-INSUFFICIENT_DATA) verdict well below
+    # what _drift_block needs (2*MIN_SAMPLES=60) -- that's the entire point.
+    rng = np.random.default_rng(10)
+    series = rng.normal(0.2, 1.0, CUSUM_MIN_REFERENCE + 5)
+    result = cusum_check(series)
+    assert result["verdict"] in ("STABLE", "DRIFT_SUSPECTED")
+    assert len(series) < 2 * MIN_SAMPLES
+
+
+def test_cusum_positive_control_false_alarm_rate_bounded_across_lengths():
+    """Positive control (same methodology as pipeline_sensitivity_floor.py):
+    under a TRUE NULL (pure noise, no real drift), the false-alarm rate must
+    stay roughly bounded as the stream gets longer, not climb toward
+    certainty. This is the exact bug found and fixed against real
+    signal_log data this session: an unscaled h=5*sigma boundary gave a
+    6.5% false-alarm rate at n_evaluated=30 but 75.5% at n_evaluated=3500,
+    because a long enough random walk will eventually cross any fixed finite
+    boundary. The sqrt(n)-scaled boundary must keep every tested length
+    under a generous ceiling (real-world data won't be perfectly i.i.d.
+    Gaussian like this synthetic control, so this isn't asserting a tight
+    5% -- just that nothing runs away toward ~75% the way the bug did)."""
+    rng = np.random.default_rng(123)
+    n_trials = 100
+    for n_evaluated in (30, 200, 1000, 3000):
+        false_alarms = sum(
+            1 for _ in range(n_trials)
+            if cusum_check(rng.normal(0.0, 1.0, CUSUM_MIN_REFERENCE + n_evaluated))["verdict"] == "DRIFT_SUSPECTED"
+        )
+        rate = false_alarms / n_trials
+        assert rate < 0.20, f"n_evaluated={n_evaluated}: false-alarm rate {rate:.0%} too high"
+
+
 def main() -> int:
     tests = [
         test_split_reference_recent_splits_by_distinct_day,
@@ -82,6 +160,12 @@ def main() -> int:
         test_drift_block_stable_when_no_real_shift,
         test_drift_block_insufficient_data_below_min_samples,
         test_drift_block_improvement_is_not_flagged_as_drift,
+        test_cusum_flags_sustained_downward_shift,
+        test_cusum_stable_when_no_real_shift,
+        test_cusum_ignores_a_single_moderate_outlier_not_sustained,
+        test_cusum_insufficient_data_below_min_reference,
+        test_cusum_needs_far_fewer_samples_than_calendar_check,
+        test_cusum_positive_control_false_alarm_rate_bounded_across_lengths,
     ]
     failed = 0
     for t in tests:

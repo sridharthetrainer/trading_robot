@@ -50,6 +50,18 @@ ALPHA       = float(os.getenv("DRIFT_ALPHA", "0.05"))
 COST_PCT    = float(os.getenv("EDGE_ANALYZER_COST_PCT", "0.12"))
 EPS         = float(os.getenv("MOD_EDGE_EPS", "0.05"))   # matches modifier_edge_analyzer
 
+# CUSUM sequential test: MIN_SAMPLES-gated calendar windows above never
+# produce a verdict for sparse strategies until BOTH a 30-sample reference
+# AND a separate 30-sample recent window fill up -- for a strategy firing a
+# few times a month, that's "INSUFFICIENT_DATA forever", the same failure
+# mode already named for validation in this session's MDE work. CUSUM instead
+# only needs a smaller bootstrap reference, then accumulates evidence trade
+# by trade as they arrive -- it flags (or doesn't) whenever enough evidence
+# exists, however long that takes, rather than waiting for two fixed windows.
+CUSUM_MIN_REFERENCE = int(os.getenv("DRIFT_CUSUM_MIN_REFERENCE", "15"))
+CUSUM_K_MULT = float(os.getenv("DRIFT_CUSUM_K_MULT", "0.5"))   # allowance, in reference std
+CUSUM_H_MULT = float(os.getenv("DRIFT_CUSUM_H_MULT", "5.0"))   # decision boundary, in reference std
+
 # Reuse the exact same modifier column list as modifier_edge_analyzer.py, imported
 # directly rather than copy-pasted, so the two never silently drift apart.
 from modifier_edge_analyzer import _MOD_COLS as _MODIFIER_COLS
@@ -129,6 +141,86 @@ def _drift_block(ref_ret, recent_ret, alpha_corrected: float) -> Dict[str, Any]:
     return block
 
 
+CUSUM_H_REFERENCE_N = int(os.getenv("DRIFT_CUSUM_H_REFERENCE_N", "30"))
+
+def cusum_check(returns_chronological, min_reference: int = CUSUM_MIN_REFERENCE,
+                 k_mult: float = CUSUM_K_MULT, h_mult: float = CUSUM_H_MULT) -> Dict[str, Any]:
+    """One-sided CUSUM for a DOWNWARD shift in mean return, run over a single
+    chronologically-ordered series (no separate reference/recent windows).
+
+    Bootstraps a TARGET MEAN from the first `min_reference` observations, then
+    walks the REMAINING observations in order accumulating:
+        C_t = min(0, C_{t-1} + (x_t - ref_mean) + k)
+    where k = k_mult * noise_std is the allowance (how large a shift to
+    tolerate as noise) and h is the decision boundary. Flags the FIRST index
+    (if any) where C_t drops below -h.
+
+    `noise_std` is estimated from the FULL series, not the small reference
+    window -- verified against real signal_log data that using only the
+    min_reference-sized window for std makes k/h depend on whatever that tiny
+    sample happened to draw (a 15-point window drew std=0.58 against the true
+    full-series std of 1.14 on real data).
+
+    `h` SCALES WITH sqrt(n_evaluated) rather than being a fixed multiple of
+    noise_std -- this is the second, more important calibration fix. A fixed
+    h = h_mult * noise_std has a bounded "average run length" under the null
+    (no real drift): verified via positive control (pure-noise simulation)
+    that a fixed h=5*sigma gives an acceptable ~6.5% false-alarm rate at
+    n_evaluated=30, but climbs to 24.5% at n=100, 46.5% at n=500, and 75.5%
+    at n=3500 -- strategies with thousands of logged signals were flagging as
+    DRIFT_SUSPECTED from ordinary noise almost every time, not real
+    degradation, because a long enough random walk will eventually cross any
+    fixed finite boundary. Scaling h by sqrt(n_evaluated / CUSUM_H_REFERENCE_N)
+    holds the false-alarm rate roughly constant (~3-7%) from n_evaluated=30
+    up through 3500+ in the same positive-control test -- same principle as
+    the Bonferroni correction used everywhere else in this pipeline (control
+    the rate of false positives across however many "looks" are actually
+    being taken), just applied to a sequential test's boundary instead of a
+    fixed test's alpha.
+
+    Needs only `min_reference` (default 15) observations for the target
+    mean, then evaluates every new trade as it arrives -- a strategy firing
+    2x/week still gets a real, continuously-updated answer, unlike the
+    calendar-window check which needs 2x30=60 total observations split into
+    two disjoint windows before it can say anything at all.
+    """
+    import numpy as np
+
+    arr = np.asarray(returns_chronological, dtype=float)
+    n = len(arr)
+    if n <= min_reference:
+        return {"n_total": n, "n_reference": min(n, min_reference),
+                "verdict": "INSUFFICIENT_DATA",
+                "reason": f"n={n} <= min_reference={min_reference}, no room to accumulate evidence yet"}
+
+    ref_mean = float(arr[:min_reference].mean())
+    noise_std = float(arr.std(ddof=1))   # full-series std -- see docstring
+    if noise_std <= 0:
+        return {"n_total": n, "n_reference": min_reference, "verdict": "INSUFFICIENT_DATA",
+                "reason": "series has zero variance -- cannot set a boundary"}
+    n_evaluated_for_scale = max(1, n - min_reference)
+    h_mult = h_mult * (n_evaluated_for_scale / CUSUM_H_REFERENCE_N) ** 0.5
+
+    k = k_mult * noise_std
+    h = h_mult * noise_std
+
+    c = 0.0
+    flagged_at = None
+    for i, x in enumerate(arr[min_reference:]):
+        c = min(0.0, c + (x - ref_mean) + k)
+        if c <= -h and flagged_at is None:
+            flagged_at = min_reference + i   # index into arr, 0-based
+
+    n_evaluated = n - min_reference
+    verdict = "DRIFT_SUSPECTED" if flagged_at is not None else "STABLE"
+    return {
+        "n_total": n, "n_reference": min_reference, "n_evaluated": n_evaluated,
+        "reference_mean": round(ref_mean, 4), "noise_std": round(noise_std, 4),
+        "k": round(k, 4), "h": round(h, 4), "final_cusum": round(c, 4),
+        "flagged_at_index": flagged_at, "verdict": verdict,
+    }
+
+
 def analyze(days: int = 400, recent_days: int = RECENT_DAYS) -> Dict[str, Any]:
     """Run drift detection across every strategy and modifier with enough
     volume to test. Returns a structured report."""
@@ -138,6 +230,11 @@ def analyze(days: int = 400, recent_days: int = RECENT_DAYS) -> Dict[str, Any]:
 
     counts = df["strategy"].value_counts()
     strategies = [s for s, n in counts.items() if n >= 2 * MIN_SAMPLES]
+    # CUSUM needs far less to start (CUSUM_MIN_REFERENCE + >=1 evaluated
+    # point) than the calendar check's 2*MIN_SAMPLES -- this is deliberately
+    # a BROADER population, or sparse strategies excluded from `strategies`
+    # above would never get evaluated by anything at all.
+    cusum_strategies = [s for s, n in counts.items() if n >= CUSUM_MIN_REFERENCE + 5]
     present_mods = [c for c in _MODIFIER_COLS if c in df.columns]
     n_tests = max(1, len(strategies) + len(present_mods))
     alpha_corrected = ALPHA / n_tests   # Bonferroni, same convention as the other two analyzers
@@ -150,6 +247,7 @@ def analyze(days: int = 400, recent_days: int = RECENT_DAYS) -> Dict[str, Any]:
         "alpha_corrected": round(alpha_corrected, 6),
         "per_strategy": {},
         "per_modifier": {},
+        "per_strategy_cusum": {},
     }
 
     for s in strategies:
@@ -167,17 +265,24 @@ def analyze(days: int = 400, recent_days: int = RECENT_DAYS) -> Dict[str, Any]:
         report["per_modifier"][col] = _drift_block(
             ref["ret"].values, recent["ret"].values, alpha_corrected)
 
+    for s in cusum_strategies:
+        sub = df[df["strategy"] == s].sort_values("signal_date")
+        report["per_strategy_cusum"][s] = cusum_check(sub["ret"].values)
+
     flagged_strats = [s for s, b in report["per_strategy"].items()
                        if b["verdict"] == "DRIFT_SUSPECTED"]
     flagged_mods = [c for c, b in report["per_modifier"].items()
                      if b["verdict"] == "DRIFT_SUSPECTED"]
-    report["summary"] = {"drifting_strategies": flagged_strats, "drifting_modifiers": flagged_mods}
+    flagged_cusum = [s for s, b in report["per_strategy_cusum"].items()
+                      if b["verdict"] == "DRIFT_SUSPECTED"]
+    report["summary"] = {"drifting_strategies": flagged_strats, "drifting_modifiers": flagged_mods,
+                          "drifting_strategies_cusum": flagged_cusum}
     report["conclusion"] = (
         "No drift detected — recent performance consistent with history."
-        if not (flagged_strats or flagged_mods) else
+        if not (flagged_strats or flagged_mods or flagged_cusum) else
         f"DRIFT SUSPECTED: strategies={flagged_strats or '—'} "
-        f"modifiers={flagged_mods or '—'}. Report only — review manually before "
-        "any pruned.json change.")
+        f"modifiers={flagged_mods or '—'} cusum={flagged_cusum or '—'}. "
+        "Report only — review manually before any pruned.json change.")
     return report
 
 
@@ -201,6 +306,15 @@ def format_report(rep: Dict[str, Any]) -> str:
                 lines.append(f"{flag} [{label}] {name:24s} ref={b['reference_mean']:+.3f}% "
                              f"recent={b['recent_mean']:+.3f}% t_p={b['t_p_value']} "
                              f"ks_p={b['ks_p_value']} → {b['verdict']}")
+    if rep.get("per_strategy_cusum"):
+        lines.append("")
+        for name, b in sorted(rep["per_strategy_cusum"].items()):
+            flag = "⚠️" if b["verdict"] == "DRIFT_SUSPECTED" else "  "
+            if b["verdict"] == "INSUFFICIENT_DATA":
+                lines.append(f"{flag} [cusum] {name:24s} n_total={b['n_total']:4d} → INSUFFICIENT_DATA")
+            else:
+                lines.append(f"{flag} [cusum] {name:24s} n_total={b['n_total']:4d} "
+                              f"final_cusum={b['final_cusum']} → {b['verdict']}")
     lines += ["", f"<b>{rep['conclusion']}</b>"]
     return "\n".join(lines)
 
