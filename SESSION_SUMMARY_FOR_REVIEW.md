@@ -99,14 +99,28 @@ had existing code. Built from scratch:
   pricing-model risk; it never tested execution-cost risk at a realistic
   magnitude for this instrument, and that's the one that broke it.
 
+- **Effective number of trials for DSR** (`bollinger_effective_trials.py`,
+  eigenvalue/Li-Ji-style estimator on the 9 grid points' daily-P&L
+  correlation matrix, per external review): the 9 grid points are NOT 9
+  independent bets — mean pairwise correlation 0.66, **N_effective ≈ 1.9**.
+  Recomputing DSR with the correct effective count rather than the raw grid
+  size flips it: **0.77 (raw N=9) → 1.0 (N_effective≈1.9)** — the DSR gate
+  specifically would now pass. **This does not mean the candidate should be
+  promoted.** MDE (`INSUFFICIENT_POWER`) and the realistic OTM cost stress
+  (flips negative at 8-15%/premium) are both completely independent of trial
+  count and are untouched by this correction — fixing one miscalibrated gate
+  doesn't retroactively validate a candidate that two other, unrelated gates
+  still reject on their own terms.
+
 **Revised verdict on this candidate, downgraded from "most extensively
-vetted" to "thoroughly tested and found wanting":** four independent checks
-now point the same direction — statistically underpowered (MDE), doesn't
-survive realistic execution costs, shows a within-holdout decay pattern, and
-fails the DSR gate outright. The IV-shock robustness that looked reassuring
-tested the wrong risk relative to what actually breaks it. Not a near-miss;
-not promotable; not worth further stress-testing without a fundamentally
-different data source (real intraday option quotes) to re-run against.
+vetted" to "thoroughly tested and found wanting":** the DSR objection turned
+out to be the weakest of the four checks (it was measuring correlated trials
+as if independent), but the candidate is still correctly rejected — on
+statistical power (MDE) and execution economics (realistic bid-ask stress),
+neither of which the trial-count correction touches. Also shows a
+within-holdout decay pattern. Not a near-miss; not promotable; not worth
+further stress-testing without a fundamentally different data source (real
+intraday option quotes) to re-run against.
 
 ## 3. A 50-section "autonomous adaptive trading engine" spec — scoped down, not built as-is
 
@@ -302,17 +316,63 @@ mode already named for `drift_monitor.py`'s calendar window): for every
 `INSUFFICIENT_POWER` strategy, computes n* (trades needed at 80% power to
 detect the OBSERVED effect size) and time-to-power = n*/firing_rate. Verdict
 `DEAD_ON_ARRIVAL` if that exceeds 5 years (functionally unvalidatable, retire
-it) vs. `WORTH_WAITING`. Result: of 7 strategies checked (excludes
-`adx_long_straddle` -- its prior MDE run used a split date predating its
-1-min data entirely, so its "n" wasn't from a genuine holdout and a firing
-rate from it would be wrong), **3 are `DEAD_ON_ARRIVAL`**
+it) vs. `WORTH_WAITING`. **3 are `DEAD_ON_ARRIVAL`**
 (`bollinger_otm_momentum` at 173.6 years, `sma20_atm_option` at 6.6 years,
 `trend` at 15.7 years) and 4 are `WORTH_WAITING` (`bollinger_otm_reversal`
 0.8yr, `mean_reversion` 0.6yr, `breakout` 1.0yr, `di_momentum_call` 0.5yr —
-though the last is a low-confidence extrapolation from only 3 observed
-trades). `bollinger_otm_momentum`'s 173-year figure is the clearest case in
-the whole session of an "INSUFFICIENT_POWER" that should actually be read as
-dead, not pending.
+the last a low-confidence extrapolation from only 3 observed trades).
+`bollinger_otm_momentum`'s 173-year figure is the clearest case in the whole
+session of an "INSUFFICIENT_POWER" that should actually be read as dead, not
+pending. (`adx_long_straddle` and `di_momentum_call`, both n<10, correctly
+report `SAMPLE_TOO_SMALL_TO_EXTRAPOLATE` rather than a number built on too
+few points to trust — this includes a since-fixed bug where ADX's first MDE
+pass used a split date predating its 1-min data entirely, now corrected at
+the source in `minimum_detectable_edge.py` itself.)
+
+Two more refinements added directly on `minimum_detectable_edge.py`'s output
+and on `drift_monitor.py`, both per external review:
+
+- **95% confidence intervals** on per-trade net edge, alongside the binary
+  verdict — a bare `INSUFFICIENT_POWER` label can't distinguish a CI tight
+  around zero (genuinely dead) from one that's wide and mostly positive
+  (worth waiting on). E.g. `adx_long_straddle`'s CI is [3325, 25871] —
+  entirely positive despite only n=2 — versus `sma20_atm_option`'s
+  [-7424, 4252], which straddles zero. Same verdict, very different
+  information content.
+- **`cusum_check()`** in `drift_monitor.py` — a sequential (CUSUM) drift test
+  alongside the existing calendar-window check, needing only a 15-observation
+  bootstrap reference rather than 2×30=60 split into disjoint windows.
+  Building this surfaced two real miscalibrations, found and fixed only by
+  validating against actual `signal_log.db` data rather than synthetic tests
+  alone: (1) using the small reference window's own std for the decision
+  boundary made it depend on whatever that tiny sample happened to draw (a
+  15-point window drew std=0.58 against the true full-series std of 1.14 on
+  real data); (2) even after fixing that, a fixed boundary still gave price_
+  structure (n=3657) and similar high-volume strategies a near-certain false
+  alarm — a positive-control simulation (pure noise, same method as
+  `pipeline_sensitivity_floor.py`) found the false-alarm rate climbing from
+  6.5% at n=30 to 75.5% at n=3500, since a long enough random walk
+  eventually crosses any fixed finite boundary. Fixed by scaling the
+  boundary with √(n_evaluated), holding the simulated false-alarm rate to
+  roughly 3-7% across all tested lengths — same Bonferroni-style principle
+  used everywhere else in this pipeline, applied to a sequential test's
+  boundary instead of a fixed test's alpha. On real data, the largest-sample
+  strategies (`price_structure`, `trend`, `ma_cross`, `elder_triple_screen`)
+  now correctly read `STABLE` instead of universal false positives — though
+  the real-data flag rate (~24% of tested strategies) still runs above the
+  synthetic control's ~3-7%, an open question (see below).
+
+Finally, `bollinger_effective_trials.py` (eigenvalue/Li-Ji-style effective-
+number-of-trials, per external review) found the 9-point Bollinger grid's
+trials are far from independent — mean pairwise correlation 0.66,
+**N_effective≈1.9** — and recomputing DSR with that corrected count instead
+of the raw grid size flips the DSR verdict: **0.77→1.0**, meaning the DSR
+gate specifically would now pass. This does NOT reopen the case: MDE
+(`INSUFFICIENT_POWER`) and the realistic OTM cost stress (flips negative at
+8-15%/premium) are both independent of trial count and untouched by this —
+the strategy is still correctly rejected, just for reasons unrelated to the
+one gate whose calibration turned out to be wrong. See the revised section 2
+verdict above for the full reasoning.
 
 ## Things a reviewer should push on
 
@@ -344,15 +404,19 @@ dead, not pending.
    realistic bid-ask assumption isn't worth further stress-testing on the
    same proxy) — is that the right place to stop, or is there still value in
    re-testing it once/if real option quotes are captured?
-3. What is the right way to estimate the *effective* number of independent
-   trials for DSR when trials are correlated (9 in one grid, but the honest
-   program-wide count is much larger across the MA search, full strategy
-   catalog, and modifier pruning) — is per-session DSR ever a defensible
-   unit, or is that itself a methodological gap in this system's validation
-   discipline?
-4. Should `drift_monitor.py` be redesigned so sparse strategies can eventually
-   produce a real verdict (trade-count-based window, or a sequential test
-   like CUSUM/SPRT that accumulates evidence at whatever rate trades arrive,
-   rather than a fixed calendar window), so "INSUFFICIENT_DATA forever"
-   doesn't become a blind spot for exactly the low-frequency strategies most
+3. Effective trials for DSR is now solved LOCALLY (`bollinger_effective_
+   trials.py`, eigenvalue-based, N_eff≈1.9 for the 9-point grid — see
+   section 2) but not PROGRAM-WIDE: the honest exposure across the 648-trial
+   MA search, full strategy catalog, and modifier pruning is still
+   uncorrected. Is per-session (even effective-N-corrected) DSR ever a
+   defensible final gate, or does it need a persistent, program-wide trial
+   registry before promotion decisions can trust it?
+4. `drift_monitor.py` now has both the calendar-window check and a CUSUM
+   sequential test (`cusum_check()`, new — see below) — sparse strategies no
+   longer sit in permanent INSUFFICIENT_DATA. Still open: the CUSUM
+   false-alarm rate on real signal_log data (~24% of tested strategies
+   flagged) runs higher than its synthetic positive-control rate (~3-7%) —
+   is that genuine drift in several strategies, or does real return data
+   violate the i.i.d.-Gaussian assumption the control test relies on,
+   warranting a fatter-tailed reference distribution?
    prone to undetected decay?
