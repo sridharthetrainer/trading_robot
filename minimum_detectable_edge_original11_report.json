@@ -1,0 +1,97 @@
+{
+  "trend": {
+    "n": 89,
+    "gross_mean": 50.10357707292835,
+    "gross_std": 2538.028823732684,
+    "net_mean": -64.97715370032118,
+    "net_std": 2553.865004708021,
+    "mde_gross": 753.29,
+    "mde_net": 757.99,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "|net_mean|=65 < MDE=758 at n=89"
+  },
+  "mean_reversion": {
+    "n": 63,
+    "gross_mean": 346.4829093699394,
+    "gross_std": 2063.717375703377,
+    "net_mean": 326.4829093699394,
+    "net_std": 2063.717375703377,
+    "mde_gross": 728.01,
+    "mde_net": 728.01,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "|net_mean|=326 < MDE=728 at n=63"
+  },
+  "breakout": {
+    "n": 81,
+    "gross_mean": -37.230332415367656,
+    "gross_std": 2400.9920455597103,
+    "net_mean": -254.17199824965454,
+    "net_std": 2401.153660191807,
+    "mde_gross": 746.98,
+    "mde_net": 747.03,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "|net_mean|=254 < MDE=747 at n=81"
+  },
+  "ma_cross": {
+    "n": 143,
+    "gross_mean": -430.6140458473981,
+    "gross_std": 2054.953806052927,
+    "net_mean": -647.6090637810704,
+    "net_std": 2055.031591632792,
+    "mde_gross": 481.16,
+    "mde_net": 481.18,
+    "verdict": "NO_EDGE",
+    "reason": "gross return itself is not detectably positive -- no signal to erode"
+  },
+  "scalping": {
+    "n": 233,
+    "gross_mean": -1290.0566244688566,
+    "gross_std": 896.0449987692332,
+    "net_mean": -1625.2232223958574,
+    "net_std": 896.1049961292356,
+    "mde_gross": 164.37,
+    "mde_net": 164.38,
+    "verdict": "NO_EDGE",
+    "reason": "gross return itself is not detectably positive -- no signal to erode"
+  },
+  "ema_5min": {
+    "n": 75,
+    "gross_mean": -1194.8797333409973,
+    "gross_std": 1935.3332533372934,
+    "net_mean": -1530.1885508488956,
+    "net_std": 1935.745539444846,
+    "mde_gross": 625.72,
+    "mde_net": 625.86,
+    "verdict": "NO_EDGE",
+    "reason": "gross return itself is not detectably positive -- no signal to erode"
+  },
+  "cpr": {
+    "n": 44,
+    "gross_mean": -870.2127762446082,
+    "gross_std": 1828.9685043677446,
+    "net_mean": -870.2127762446082,
+    "net_std": 1828.9685043677446,
+    "mde_gross": 772.04,
+    "mde_net": 772.04,
+    "verdict": "NO_EDGE",
+    "reason": "gross return itself is not detectably positive -- no signal to erode"
+  },
+  "orb": {
+    "n": 0,
+    "mde": null,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "n=0 < minimum 30 trades"
+  },
+  "vwap_reversion": {
+    "n": 0,
+    "mde": null,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "n=0 < minimum 30 trades"
+  },
+  "supertrend_mtf": {
+    "n": 0,
+    "mde": null,
+    "verdict": "INSUFFICIENT_POWER",
+    "reason": "n=0 < minimum 30 trades"
+  }
+}

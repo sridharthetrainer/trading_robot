@@ -284,20 +284,61 @@ wanting it) reframes the 0/6 seminar-strategy tally usefully: only 1 of 6
 (`rolling_short_straddle`) can be said with statistical confidence to lack
 edge. The other 5 — including ones earlier reported as clean FAILs — are
 `INSUFFICIENT_POWER`: not evidence of no edge, just not enough data/trades to
-tell either way at this sample size. Scoped to the 6 seminar strategies only;
-extending it to the original 11 rule strategies would require care around
-their stored (already-annualized) Sharpe figures to avoid the same
-unit-conflation error caught in review this round.
+tell either way at this sample size.
+
+`minimum_detectable_edge_original11.py` extends the identical (unit-safe,
+recomputed-from-raw-trades) approach to the original 10 rule strategies:
+4 get a genuinely confident `NO_EDGE` (`ma_cross` n=143, `scalping` n=233,
+`ema_5min` n=75, `cpr` n=44 — independent confirmation of their earlier FAIL
+verdicts, not just a restatement), 3 are `INSUFFICIENT_POWER` (`trend`,
+`mean_reversion`, `breakout`), and 3 fired zero trades on this holdout slice
+(`orb`, `vwap_reversion`, `supertrend_mtf` — a data/parameter issue, not a
+power problem; `vwap_reversion`'s matches the known index-zero-volume issue
+found earlier this session).
+
+`time_to_power.py` (new, per a review's point that `INSUFFICIENT_POWER` was
+never actually a decision -- just "keep shadowing forever," the same failure
+mode already named for `drift_monitor.py`'s calendar window): for every
+`INSUFFICIENT_POWER` strategy, computes n* (trades needed at 80% power to
+detect the OBSERVED effect size) and time-to-power = n*/firing_rate. Verdict
+`DEAD_ON_ARRIVAL` if that exceeds 5 years (functionally unvalidatable, retire
+it) vs. `WORTH_WAITING`. Result: of 7 strategies checked (excludes
+`adx_long_straddle` -- its prior MDE run used a split date predating its
+1-min data entirely, so its "n" wasn't from a genuine holdout and a firing
+rate from it would be wrong), **3 are `DEAD_ON_ARRIVAL`**
+(`bollinger_otm_momentum` at 173.6 years, `sma20_atm_option` at 6.6 years,
+`trend` at 15.7 years) and 4 are `WORTH_WAITING` (`bollinger_otm_reversal`
+0.8yr, `mean_reversion` 0.6yr, `breakout` 1.0yr, `di_momentum_call` 0.5yr —
+though the last is a low-confidence extrapolation from only 3 observed
+trades). `bollinger_otm_momentum`'s 173-year figure is the clearest case in
+the whole session of an "INSUFFICIENT_POWER" that should actually be read as
+dead, not pending.
 
 ## Things a reviewer should push on
 
-1. The 0/17-vs-detection-floor question is now partially, not fully,
-   resolved: `minimum_detectable_edge.py` answers it for the 6 seminar
-   strategies (5 of 6 are power-limited, not edge-absent), but the same
-   analysis hasn't been run on the original 11 rule strategies, and there's
-   no single pipeline-wide detection-floor number — `pipeline_sensitivity_
-   floor.py`'s ~10bps figure is scoped to a different research pipeline
-   entirely (see section 5) and doesn't transfer.
+1. The 0/17-vs-detection-floor question is now resolved for 16 of 17
+   strategies. `minimum_detectable_edge_original11.py` extends the same
+   (unit-safe, recomputed-from-raw-trades) methodology to the original 10
+   rule strategies, reusing `validation_harness.py`'s own `split_holdout()`
+   and each strategy's real `best_params` rather than touching any stored
+   annualized Sharpe figure:
+   - **4 strategies get a genuinely confident `NO_EDGE`** on decent sample
+     sizes: `ma_cross` (n=143), `scalping` (n=233), `ema_5min` (n=75),
+     `cpr` (n=44) — statistically distinguishable from zero, and not
+     positive. Independent confirmation of their earlier FAIL verdicts, not
+     just a re-statement.
+   - **3 are `INSUFFICIENT_POWER`**: `trend` (n=89), `mean_reversion`
+     (n=63), `breakout` (n=81).
+   - **3 produced zero trades on this holdout slice** (`orb`,
+     `vwap_reversion`, `supertrend_mtf`) — a different, more basic failure
+     mode than statistical power (matches the known index-zero-volume issue
+     for `vwap_reversion` found earlier this session), not yet decomposed
+     further.
+   Not yet done: `fibonacci` (tested via a separate `run_extended_
+   validation.py` pathway with a different report shape) and any
+   pipeline-wide single detection-floor number — `pipeline_sensitivity_
+   floor.py`'s ~10bps figure remains scoped to a different research
+   pipeline (see section 5) and still doesn't transfer here.
 2. The Bollinger reversal case is likely closed pending real intraday option
    data (a Black-Scholes-on-synthetic-premium result that dies under a
    realistic bid-ask assumption isn't worth further stress-testing on the

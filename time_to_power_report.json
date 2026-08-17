@@ -1,0 +1,75 @@
+{
+  "bollinger_otm_reversal": {
+    "n_observed": 50,
+    "holdout_trading_days": 63,
+    "firing_rate_per_year": 200.0,
+    "net_mean": 1772.17,
+    "net_std": 8173.76,
+    "n_star": 166.8,
+    "time_to_power_years": 0.8,
+    "verdict": "WORTH_WAITING"
+  },
+  "bollinger_otm_momentum": {
+    "n_observed": 49,
+    "holdout_trading_days": 63,
+    "firing_rate_per_year": 196.0,
+    "net_mean": 280.56,
+    "net_std": 18483.53,
+    "n_star": 34027.5,
+    "time_to_power_years": 173.6,
+    "verdict": "DEAD_ON_ARRIVAL"
+  },
+  "sma20_atm_option": {
+    "n_observed": 62,
+    "holdout_trading_days": 63,
+    "firing_rate_per_year": 248.0,
+    "net_mean": -1585.96,
+    "net_std": 22989.73,
+    "n_star": 1647.4,
+    "time_to_power_years": 6.6,
+    "verdict": "DEAD_ON_ARRIVAL"
+  },
+  "di_momentum_call": {
+    "n_observed": 3,
+    "holdout_trading_days": 63,
+    "firing_rate_per_year": 12.0,
+    "net_mean": 21401.89,
+    "net_std": 18319.09,
+    "n_star": 5.7,
+    "time_to_power_years": 0.5,
+    "verdict": "WORTH_WAITING"
+  },
+  "trend": {
+    "n_observed": 89,
+    "holdout_trading_days": 29,
+    "firing_rate_per_year": 773.4,
+    "net_mean": -64.98,
+    "net_std": 2553.87,
+    "n_star": 12111.3,
+    "time_to_power_years": 15.7,
+    "verdict": "DEAD_ON_ARRIVAL"
+  },
+  "mean_reversion": {
+    "n_observed": 63,
+    "holdout_trading_days": 29,
+    "firing_rate_per_year": 547.4,
+    "net_mean": 326.48,
+    "net_std": 2063.72,
+    "n_star": 313.3,
+    "time_to_power_years": 0.6,
+    "verdict": "WORTH_WAITING"
+  },
+  "breakout": {
+    "n_observed": 81,
+    "holdout_trading_days": 29,
+    "firing_rate_per_year": 703.9,
+    "net_mean": -254.17,
+    "net_std": 2401.15,
+    "n_star": 699.7,
+    "time_to_power_years": 1.0,
+    "verdict": "WORTH_WAITING"
+  },
+  "_excluded": {
+    "adx_long_straddle": "prior MDE run used a split date predating its 1-min data entirely -- measured full sample, not a genuine holdout; firing rate would be wrong."
+  }
+}
