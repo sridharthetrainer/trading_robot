@@ -51,7 +51,7 @@ def _get_angel_data_fetcher():
 
 import json
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -92,6 +92,14 @@ class WindowResult:
     sharpe:        float
     max_drawdown:  float
     final_capital: float
+    # Individual trade P&Ls for this window, when the backtest_fn provides them
+    # (all 5 strategies in run_walk_forward_all's strategy_map do, via a
+    # "trades": [{"pnl": ..., ...}, ...] key). Empty for any backtest_fn that
+    # doesn't return a trade list -- existing window-level Monte Carlo
+    # (monte_carlo_trade_sequence, called on per-window total_pnl) is
+    # unaffected either way. Default factory keeps this backward compatible
+    # with any code still constructing WindowResult positionally/without it.
+    trade_pnls:    List[float] = field(default_factory=list)
 
 
 @dataclass
@@ -123,6 +131,8 @@ class WalkForwardResult:
             d["bootstrap_ci"] = self._bootstrap_ci
         if hasattr(self, "_monte_carlo"):
             d["monte_carlo"] = self._monte_carlo
+        if hasattr(self, "_monte_carlo_v2"):
+            d["monte_carlo_v2"] = self._monte_carlo_v2
         return d
 
 
@@ -265,6 +275,7 @@ def run_walk_forward(
             # Do NOT apply the cost model again here — that would double-count costs.
             gross_pnl  = float(result.get("total_pnl", 0.0))
             num_trades = int(result.get("num_trades", 0))
+            trade_pnls = [float(t["pnl"]) for t in result.get("trades", []) if "pnl" in t]
 
             wr = WindowResult(
                 window_idx    = idx,
@@ -278,6 +289,7 @@ def run_walk_forward(
                 sharpe        = float(result.get("sharpe",        0.0)),
                 max_drawdown  = float(result.get("max_drawdown",  0.0)),
                 final_capital = float(result.get("final_capital", initial_capital)),
+                trade_pnls    = trade_pnls,
             )
             window_results.append(wr)
 
@@ -352,6 +364,22 @@ def run_walk_forward(
         _mc.get("p95_max_dd", 0), _mc.get("expected_max_consec_loss", 0),
     )
     result._monte_carlo = _mc  # type: ignore[attr-defined]
+
+    # Trade-level Monte Carlo + ruin probability — additive, doesn't replace the
+    # window-level _mc above. Uses real individual trade P&Ls when the
+    # backtest_fn provided them (finer-grained than the window-total proxy);
+    # falls back to the same window-level pnls otherwise so this never errors
+    # out on a backtest_fn that doesn't return a trade list.
+    _all_trade_pnls = [p for w in window_results for p in w.trade_pnls]
+    _mc2_input = _all_trade_pnls if len(_all_trade_pnls) >= 10 else pnls
+    _mc2 = monte_carlo_with_ruin(_mc2_input, initial_capital=initial_capital)
+    logger.info(
+        "WF[%s] Monte Carlo v2 (%s-level, %d sims): ruin@20%%=%.1f%%  ruin@30%%=%.1f%%",
+        strategy_name, _mc2.get("granularity", "?"), _mc2.get("n_sim", 0),
+        _mc2.get("ruin_probability", {}).get("0.2", 0.0) * 100,
+        _mc2.get("ruin_probability", {}).get("0.3", 0.0) * 100,
+    )
+    result._monte_carlo_v2 = _mc2  # type: ignore[attr-defined]
 
     logger.info(
         "WF[%s] COMPLETE | windows=%d profitable=%d(%.0f%%) "
@@ -633,6 +661,70 @@ def monte_carlo_trade_sequence(
         "expected_max_consec_loss": int(round(float(mc_arr.mean()))),
         "p95_max_consec_loss":  int(np.quantile(mc_arr, 0.95)),
         "ci_pct":               ci,
+    }
+
+
+def monte_carlo_with_ruin(
+    trade_pnls:       List[float],
+    initial_capital:  float = 100_000.0,
+    ruin_thresholds:  Tuple[float, ...] = (0.20, 0.30),
+    n_sim:            int   = 5000,
+    seed:             int   = 42,
+) -> Dict[str, Any]:
+    """
+    Monte Carlo trade/P&L-sequence permutation, extending
+    monte_carlo_trade_sequence() with ruin probability: across the same
+    reshuffled sequences, what fraction breach each capital-floor drawdown
+    threshold? A strategy can have a fine p95 max-drawdown yet still carry a
+    non-trivial chance of a ruinous sequence if trades are heavy-tailed.
+
+    Added alongside (not replacing) monte_carlo_trade_sequence() so existing
+    callers/tests of that function are unaffected. `trade_pnls` may be either
+    real individual trade P&Ls (preferred -- finer-grained) or per-window
+    aggregate P&L (the existing proxy) -- the caller decides which it has;
+    this function just permutes whatever list it's given, same contract as
+    monte_carlo_trade_sequence(). `granularity` in the returned dict does NOT
+    know which one was passed (that's the caller's business) -- set by the
+    caller via len(trade_pnls) as a hint in run_walk_forward's log line.
+
+    Returns
+    -------
+    dict with: n_trades, n_sim, ruin_probability (per threshold, e.g.
+               {"0.2": 0.031, "0.3": 0.004}), median_max_dd_pct, p95_max_dd_pct
+    """
+    if len(trade_pnls) < 10:
+        return {"n_trades": len(trade_pnls), "n_sim": 0, "error": "too few trades"}
+
+    rng = np.random.default_rng(seed)
+    arr = np.array(trade_pnls, dtype=float)
+    n   = len(arr)
+
+    max_dds_pct = []
+    ruin_hits = {str(t): 0 for t in ruin_thresholds}
+    for _ in range(n_sim):
+        seq = rng.permutation(arr)
+        cum, peak, mdd = 0.0, 0.0, 0.0
+        for v in seq:
+            cum += v
+            if cum > peak:
+                peak = cum
+            dd = peak - cum
+            if dd > mdd:
+                mdd = dd
+        mdd_pct = mdd / initial_capital if initial_capital > 0 else 0.0
+        max_dds_pct.append(mdd_pct)
+        for t in ruin_thresholds:
+            if mdd_pct >= t:
+                ruin_hits[str(t)] += 1
+
+    dd_arr = np.array(max_dds_pct)
+    return {
+        "n_trades":         n,
+        "n_sim":            n_sim,
+        "granularity":      "trade" if n >= 30 else "window",  # heuristic hint only
+        "ruin_probability": {k: round(v / n_sim, 4) for k, v in ruin_hits.items()},
+        "median_max_dd_pct": round(float(np.median(dd_arr)), 4),
+        "p95_max_dd_pct":    round(float(np.quantile(dd_arr, 0.95)), 4),
     }
 
 

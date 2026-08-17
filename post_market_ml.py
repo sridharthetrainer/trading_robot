@@ -481,6 +481,18 @@ def run_pipeline(
     except Exception as _me:
         logger.debug("Modifier edge attribution failed: %s", _me)
 
+    # ── Drift monitor: catches a strategy/modifier that already looked fine
+    # (or was never re-checked) quietly degrading in the most recent window —
+    # complements strategy_edge_analyzer's one-time discovery gate, which never
+    # re-tests something already accepted. Report-only; writes drift_report.json.
+    logger.info("[+] Drift monitor (recent vs. reference window) …")
+    try:
+        from drift_monitor import run_nightly as _drift_run
+        _drift = _drift_run()
+        logger.info("  drift monitor: %s", _drift.get("conclusion", _drift.get("error", "n/a")))
+    except Exception as _de:
+        logger.debug("Drift monitor failed: %s", _de)
+
     # ── Meta-labeling (López de Prado): a SECONDARY model predicting P(win) on the
     # triple-barrier labels, for precision-gating + confidence sizing. Report-only;
     # refuses until enough distinct trading days accrue (guards against an intraday
