@@ -39,6 +39,90 @@ _INDEX_MAP = {
 # NSE ISIN cache for stocks (loaded from scrip master or hardcoded top 50)
 _ISIN_CACHE: dict = {}
 
+# 2026-08-18: _get_instrument_key()'s ISIN-lookup path was silently broken
+# for EVERY stock, not just the ones a data-quality audit happened to catch.
+# It searched scrip_master.json / angel_scrip_master.json (neither exists on
+# this machine) then OpenAPIScripMaster.json, which DOES exist but has no
+# "isin" field at all (confirmed: it's actually an NSE bond/debenture master,
+# not an equity one -- its symbols look like "722HPCL29-N0", a debenture, not
+# the HPCL stock). So `isin` was always "", the `if ... and isin ...` guard
+# was always false, and _get_instrument_key() returned None for every single
+# stock -- meaning this whole Upstox fallback path has been a silent no-op
+# this entire time, invisible whenever the primary source (Angel) covers a
+# symbol, but a real gap whenever it doesn't. Root-caused via 5 real symbols
+# (HPCL, HEROMOTOCO, ICICIPRULI, OIL, SHREECEM) stuck at their last-Angel-
+# covered date for 10-37+ sessions with zero working fallback.
+#
+# Fix: use Upstox's own complete, public, no-auth instrument master (this
+# endpoint, no API key needed) instead of trying to derive an ISIN from
+# Angel's files. Maps trading_symbol -> instrument_key directly -- no ISIN
+# cross-referencing needed at all.
+_UPSTOX_MASTER_URL = "https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz"
+_UPSTOX_MASTER_CACHE_FILE = "upstox_instrument_master_cache.json"
+_UPSTOX_MASTER_CACHE_TTL_SEC = 24 * 3600   # refresh once/day -- this list changes rarely
+_UPSTOX_MASTER_LOADED = False
+
+# Known NSE ticker renames where our symbol lists still use the old name but
+# Upstox's master (and the exchange) use the new one. Same pattern already
+# used for this exact symbol in angel.py's _load_nse_eq_tokens().
+_UPSTOX_SYMBOL_ALIASES = {"HPCL": "HINDPETRO"}
+
+
+def _load_upstox_instrument_master() -> dict:
+    """trading_symbol -> instrument_key, for NSE_EQ and BSE_EQ. Cached to
+    disk with a 1-day TTL so this isn't a ~3.4MB download on every call."""
+    global _UPSTOX_MASTER_LOADED
+    if _UPSTOX_MASTER_LOADED and _ISIN_CACHE:
+        return _ISIN_CACHE
+
+    import json
+    from pathlib import Path
+
+    cache_path = Path(_UPSTOX_MASTER_CACHE_FILE)
+    if cache_path.exists():
+        age = time.time() - cache_path.stat().st_mtime
+        if age < _UPSTOX_MASTER_CACHE_TTL_SEC:
+            try:
+                _ISIN_CACHE.update(json.loads(cache_path.read_text()))
+                _UPSTOX_MASTER_LOADED = True
+                return _ISIN_CACHE
+            except Exception as e:
+                logger.debug("Upstox master cache read failed: %s", e)
+
+    try:
+        import gzip
+        r = requests.get(_UPSTOX_MASTER_URL, timeout=30)
+        r.raise_for_status()
+        data = json.loads(gzip.decompress(r.content))
+        # Two passes so NSE_EQ always wins over BSE_EQ for the same symbol,
+        # matching this system's documented NSE-primary architecture --
+        # relying on the raw file's row order to do that (as a single-pass
+        # "first one wins" loop would) is not something the source format
+        # guarantees, and verified it does NOT hold for several real symbols
+        # (RELIANCE, OIL, SHREECEM all resolved to BSE_EQ under a single
+        # first-wins pass).
+        mapping = {}
+        for preferred_segment in ("NSE_EQ", "BSE_EQ"):
+            for item in data:
+                if not isinstance(item, dict) or item.get("segment") != preferred_segment:
+                    continue
+                ts = str(item.get("trading_symbol", "")).upper()
+                key = item.get("instrument_key", "")
+                if ts and key and ts not in mapping:
+                    mapping[ts] = key
+        _ISIN_CACHE.update(mapping)
+        try:
+            cache_path.write_text(json.dumps(mapping))
+        except Exception as e:
+            logger.debug("Upstox master cache write failed: %s", e)
+        logger.info("Upstox instrument master loaded: %d NSE/BSE equity symbols", len(mapping))
+        _UPSTOX_MASTER_LOADED = True
+    except Exception as e:
+        logger.warning("Upstox instrument master download failed: %s", e)
+        # Leave _UPSTOX_MASTER_LOADED False so a later call can retry rather
+        # than permanently giving up for the rest of this process's life.
+    return _ISIN_CACHE
+
 # ── Interval mapping ─────────────────────────────────────────────────────
 _INTERVAL_MAP_V2 = {
     "1m":  "1minute",
@@ -98,42 +182,16 @@ def _rate_limit():
 def _get_instrument_key(symbol: str) -> Optional[str]:
     """Convert our symbol name to Upstox instrument key."""
     sym = symbol.strip().upper()
-    
+
     # Check index map
     if sym in _INDEX_MAP:
         return _INDEX_MAP[sym]
-    
-    # Check ISIN cache
-    if sym in _ISIN_CACHE:
-        return _ISIN_CACHE[sym]
-    
-    # Try loading from Angel scrip master
-    try:
-        import json
-        from pathlib import Path
-        master_files = [
-            Path("scrip_master.json"),
-            Path("angel_scrip_master.json"),
-            Path("OpenAPIScripMaster.json"),
-        ]
-        for mf in master_files:
-            if mf.exists():
-                data = json.loads(mf.read_text())
-                for item in data:
-                    if isinstance(item, dict):
-                        s = item.get("symbol", "").upper()
-                        isin = item.get("isin", "")
-                        exch = item.get("exch_seg", "NSE")
-                        if s == sym and isin and exch in ("NSE", "BSE"):
-                            key = f"{exch}_EQ|{isin}"
-                            _ISIN_CACHE[sym] = key
-                            return key
-                break
-    except Exception:
-        pass
-    
-    # Fallback: try common format NSE_EQ|{symbol}
-    # This won't work directly but we try the v2 endpoint anyway
+
+    lookup_sym = _UPSTOX_SYMBOL_ALIASES.get(sym, sym)
+    master = _load_upstox_instrument_master()
+    if lookup_sym in master:
+        return master[lookup_sym]
+
     return None
 
 
