@@ -67,6 +67,16 @@ GUARDIAN_CHAT_ID    = os.getenv("GUARDIAN_CHAT_ID", "")
 DB_PATH             = "manual_trades.db"
 BOT_ORDER_TAG       = "ALGO_BOT"  # tag our bot uses — manual trades won't have this
 
+# 2026-08-18: re-entry cooldown warning. Real trade history shows a recurring
+# pattern -- same-symbol re-entry within minutes of a stop-out, repeated
+# several times in one morning (2026-08-11: 8 orders on NIFTY11AUG2624400CE
+# in ~90 minutes net -Rs8,990; a milder version recurred 2026-08-17). This
+# doesn't block anything (orders are placed directly at the broker, outside
+# this tracker's control) -- it warns, once per symbol per cooldown window,
+# so the pattern is visible in the moment rather than only in hindsight.
+REENTRY_COOLDOWN_MINUTES = int(os.getenv("MANUAL_REENTRY_COOLDOWN_MIN", "30"))
+REENTRY_LOSS_EXIT_MARKERS = ("STOP", "SL ", "STOPLOSS")  # substrings of exit_reason, case-insensitive
+
 # Never post manual-trade messages into the AUTOMATED bot's chat. This holds even
 # when GUARDIAN_CHAT_ID == TELEGRAM_CHAT_ID (Guardian configured to the same chat
 # as the main bot) — otherwise manual trades leak into the automated bot. Set
@@ -565,11 +575,54 @@ class ManualTradeTracker:
                 new_trades.append(trade)
                 self._known_orders.add(oid)
                 logger.info("MANUAL TRADE DETECTED: %s %s %d @ %.2f", side, symbol, qty, price)
+                try:
+                    self._check_reentry_warning(trade)
+                except Exception as e:
+                    logger.debug("Re-entry warning check failed: %s", e)
 
         except Exception as e:
             logger.debug("Order book poll: %s", e)
 
         return new_trades
+
+    def _recent_losing_closes(self, symbol: str, minutes: int = REENTRY_COOLDOWN_MINUTES):
+        """CLOSED trades on `symbol` in the last `minutes` that lost money via
+        a stop-type exit. Own short-lived connection, same pattern as
+        _save_trade/_load_open_trades — this runs on every new-trade
+        detection, not just at startup."""
+        cutoff = (datetime.now() - timedelta(minutes=minutes)).isoformat()
+        try:
+            conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+            rows = conn.execute(
+                "SELECT exit_time, exit_reason, pnl FROM manual_trades "
+                "WHERE symbol=? AND status='CLOSED' AND exit_time>=? AND pnl<0 "
+                "ORDER BY exit_time", (symbol, cutoff)).fetchall()
+            conn.close()
+        except Exception:
+            return []
+        return [
+            (exit_time, reason, pnl) for exit_time, reason, pnl in rows
+            if any(marker in str(reason).upper() for marker in REENTRY_LOSS_EXIT_MARKERS)
+        ]
+
+    def _check_reentry_warning(self, trade: "ManualTrade") -> None:
+        """Warn (never block — orders are placed directly at the broker,
+        outside this tracker's control) when a new trade re-enters a symbol
+        shortly after a losing stop-out. Real trade history: 2026-08-11 saw
+        8 same-symbol re-entries in ~90 minutes net -Rs8,990; the pattern
+        recurred, milder, on 2026-08-17. One warning per detection, not
+        repeated — the alert itself isn't the thing to spam."""
+        recent = self._recent_losing_closes(trade.symbol)
+        if not recent:
+            return
+        total_loss = sum(pnl for _, _, pnl in recent)
+        n = len(recent)
+        self.send_channel(
+            f"⚠️ <b>Re-entry so soon?</b> {trade.symbol}\n"
+            f"{n} losing stop-out{'s' if n != 1 else ''} on this symbol in the last "
+            f"{REENTRY_COOLDOWN_MINUTES} min, total ₹{total_loss:,.0f}.\n"
+            f"Not blocking this trade — just flagging the pattern before it repeats."
+        )
 
     def _find_open_trade(self, symbol: str, opposite_of_side: str) -> Optional["ManualTrade"]:
         """Find an actively-tracked OPEN trade for `symbol` whose side is the
