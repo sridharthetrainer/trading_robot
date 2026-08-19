@@ -16,6 +16,16 @@ daily_pipeline.py):
   4. Correlation downshift -- REAL pairwise correlation between the new
      signal's symbol and each open position's symbol, tiered 0.70/0.80/0.90
   5. Directional exposure caps by time-of-day
+  6. Per-underlying concentration cap -- max UNDERLYING_MAX_POSITIONS
+     concurrent positions sharing the same underlying (e.g. NIFTY futures +
+     a NIFTY strangle + a NIFTY pin trade are 3 different strategies/
+     clusters but ONE underlying). Crude on purpose: ignores delta/vega/
+     notional and direction, and is not a substitute for real portfolio
+     Greeks aggregation -- ONLY a floor against the specific "N strategies
+     stacked on one underlying" pattern the correlation-matrix check can't
+     catch when the underlying itself isn't in the correlation_matrix.json
+     symbol set (its lookup is index/equity price series, not
+     futures-vs-options-on-the-same-underlying cross-product correlation).
 
 Deliberately does NOT hardcode a strategy-pair correlation list (the numbers
 in the original spec are for a different, hypothetical strategy set) --
@@ -26,11 +36,25 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import time as dtime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from cluster_strategy_map import cluster_of
+
+UNDERLYING_MAX_POSITIONS = 2
+
+
+def underlying_of(symbol: str) -> str:
+    """Alpha root before the first digit (BANKNIFTY24AUGFUT -> BANKNIFTY,
+    NIFTY09JUN2623300CE -> NIFTY). Falls back to the whole symbol for plain
+    equity cash symbols with no digit suffix (RELIANCE -> RELIANCE). Same
+    pattern as manual_trade_tracker.py's _underlying_root, reimplemented
+    here rather than importing across subsystems for one regex."""
+    s = str(symbol or "").upper().strip()
+    m = re.match(r"^([A-Z]+)\d", s)
+    return m.group(1) if m else s
 
 logger = logging.getLogger("cluster_risk_gate")
 
@@ -189,6 +213,17 @@ class ClusterRiskGate:
             if color == "yellow":
                 size_mult = min(size_mult, 0.5)
                 reasons.append(f"yellow:{cluster}x{oc}")
+
+        # ── Per-underlying concentration cap ─────────────────────────────
+        target_underlying = underlying_of(symbol)
+        same_underlying_count = sum(
+            1 for p in open_positions if underlying_of(p.get("symbol", "")) == target_underlying
+        )
+        if same_underlying_count >= UNDERLYING_MAX_POSITIONS:
+            return False, 0.0, (
+                f"UNDERLYING_CONCENTRATION:{target_underlying} already has "
+                f"{same_underlying_count} open position(s)"
+            )
 
         # ── Intra-cluster sizing ─────────────────────────────────────────
         sizing = self._matrix.get("intra_cluster_sizing", {}).get(cluster, {})

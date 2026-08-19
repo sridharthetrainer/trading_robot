@@ -5146,6 +5146,42 @@ class AutonomousTradingSystem:
                                     _pa["positions_closed"],
                                     _pa.get("actual_gap_pct",0)*100,
                                 )
+
+                            # 2026-08-19: gap-based regime override -- the
+                            # 8:45AM regime resolver uses yesterday's EOD
+                            # indicators + a static known-event-date list, so
+                            # a surprise announcement between 8:45 and 9:15
+                            # (e.g. an unscheduled RBI move) is invisible to
+                            # it. This is a "poor man's news feed": a >1.5%
+                            # NIFTY gap at the open IS the news, regardless of
+                            # cause. Overrides the 8:45AM regime with an
+                            # already-built, already-tested regime rather
+                            # than inventing a new one -- market_crash for a
+                            # gap down (active=["G"] only), event_day for a
+                            # gap up (active=["F","G","H"], 1.5% max risk).
+                            _gap_check_today = date.today().isoformat()
+                            if not getattr(self, f"_gap_override_checked_{_gap_check_today}", False):
+                                setattr(self, f"_gap_override_checked_{_gap_check_today}", True)
+                                try:
+                                    from regime_detector import compute_gap_override
+                                    override_regime = compute_gap_override(_spot, _prev)
+                                    if override_regime:
+                                        prior_regime = getattr(self.live_engine, "daily_regime_key", None)
+                                        self.live_engine.daily_regime_key = override_regime
+                                        gap_pct = (_spot - _prev) / _prev if _prev else 0.0
+                                        logger.warning(
+                                            "REGIME OVERRIDE: NIFTY gapped %.2f%% -- statistical "
+                                            "regime (%s) suspended, forcing %s",
+                                            gap_pct * 100, prior_regime, override_regime,
+                                        )
+                                        if hasattr(self, "alerts") and self.alerts:
+                                            self.alerts.critical(
+                                                f"REGIME OVERRIDE: NIFTY gapped {gap_pct*100:+.2f}%. "
+                                                f"Statistical regime ({prior_regime}) suspended -- "
+                                                f"forcing {override_regime}."
+                                            )
+                                except Exception:
+                                    logger.exception("Gap-based regime override check failed")
                 except Exception as _oe:
                     logger.debug("Overnight protection error: %s", _oe)
 

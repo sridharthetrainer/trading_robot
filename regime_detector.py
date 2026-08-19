@@ -164,6 +164,30 @@ def get_india_vix(angel=None) -> float:
         return 0.0
 
 
+GAP_OVERRIDE_THRESHOLD_PCT = 0.015  # 1.5%
+
+
+def compute_gap_override(spot: float, prev_close: float,
+                          threshold: float = GAP_OVERRIDE_THRESHOLD_PCT) -> Optional[str]:
+    """'Poor man's news feed' (2026-08-19): the 8:45AM regime resolver uses
+    yesterday's EOD indicators plus a static known-event-date list, so a
+    surprise announcement between 8:45 and 9:15 (e.g. an unscheduled RBI
+    move) is invisible to it. A >1.5% NIFTY gap at the open IS the news,
+    regardless of cause. Returns an override regime key -- reusing the
+    already-built, already-tested regime keys rather than inventing a new
+    one -- or None if the gap isn't large enough to override anything.
+    market_crash for a gap down (active=["G"] only in cluster_matrix.json),
+    event_day for a gap up (active=["F","G","H"], 1.5% max risk)."""
+    if not prev_close:
+        return None
+    gap_pct = (spot - prev_close) / prev_close
+    if gap_pct <= -threshold:
+        return "market_crash"
+    if gap_pct >= threshold:
+        return "event_day"
+    return None
+
+
 def resolve_regime(*, angel=None, today: Optional[date] = None) -> Dict[str, Any]:
     """Full regime resolution from real data. Returns {"regime_key": ...,
     "inputs": {...}} -- the inputs dict is for logging/the 5-trading-day

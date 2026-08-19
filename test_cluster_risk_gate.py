@@ -8,7 +8,7 @@ hardcoded pair list for strategies this system doesn't have).
 import numpy as np
 import pytest
 
-from cluster_risk_gate import ClusterRiskGate
+from cluster_risk_gate import ClusterRiskGate, underlying_of
 
 
 @pytest.fixture
@@ -235,6 +235,57 @@ def test_no_time_bucket_skips_directional_check(gate):
     open_positions = [{"symbol": "TCS", "strategy": "stat_arb", "side": "BUY", "risk_pct": 10.0}]
     allowed, size, reason = gate.can_enter(
         strategy_name="orb", symbol="RELIANCE", proposed_risk_pct=0.5,
+        direction="BUY", regime_key="weak_trend_low_vol", open_positions=open_positions)
+    assert allowed is True
+
+
+# ── underlying_of() ──────────────────────────────────────────────────────
+
+def test_underlying_of_option_symbol():
+    assert underlying_of("NIFTY09JUN2623300CE") == "NIFTY"
+
+
+def test_underlying_of_futures_symbol():
+    assert underlying_of("BANKNIFTY24AUGFUT") == "BANKNIFTY"
+
+
+def test_underlying_of_plain_equity_symbol():
+    assert underlying_of("RELIANCE") == "RELIANCE"
+
+
+# ── per-underlying concentration cap (2026-08-19 tactical patch) ────────
+
+def test_third_position_on_same_underlying_blocked(gate):
+    open_positions = [
+        {"symbol": "BANKNIFTY24AUGFUT", "strategy": "stat_arb", "risk_pct": 0.2},
+        {"symbol": "BANKNIFTY09JUN2650000CE", "strategy": "vix_extreme", "risk_pct": 0.2},
+    ]
+    allowed, size, reason = gate.can_enter(
+        strategy_name="orb", symbol="BANKNIFTY09JUN2650000PE", proposed_risk_pct=0.3,
+        direction="BUY", regime_key="weak_trend_low_vol", open_positions=open_positions)
+    assert allowed is False
+    assert "UNDERLYING_CONCENTRATION" in reason
+    assert "BANKNIFTY" in reason
+
+
+def test_second_position_on_same_underlying_still_allowed(gate):
+    """Cap is >= 2 already open -> block the 3rd; the 2nd itself must pass
+    this specific check (other checks like cluster compatibility still apply
+    independently)."""
+    open_positions = [{"symbol": "BANKNIFTY24AUGFUT", "strategy": "stat_arb", "risk_pct": 0.2}]
+    allowed, size, reason = gate.can_enter(
+        strategy_name="orb", symbol="BANKNIFTY09JUN2650000CE", proposed_risk_pct=0.3,
+        direction="BUY", regime_key="weak_trend_low_vol", open_positions=open_positions)
+    assert allowed is True
+
+
+def test_different_underlyings_do_not_count_against_each_other(gate):
+    open_positions = [
+        {"symbol": "NIFTY24AUGFUT", "strategy": "stat_arb", "risk_pct": 0.2},
+        {"symbol": "TCS", "strategy": "stat_arb", "risk_pct": 0.2},
+    ]
+    allowed, size, reason = gate.can_enter(
+        strategy_name="orb", symbol="BANKNIFTY09JUN2650000CE", proposed_risk_pct=0.3,
         direction="BUY", regime_key="weak_trend_low_vol", open_positions=open_positions)
     assert allowed is True
 

@@ -191,6 +191,38 @@ def test_indicator_derived_weak_trend_high_vol(monkeypatch):
     assert rd.resolve_regime()["regime_key"] == "weak_trend_high_vol"
 
 
+# ── compute_gap_override (2026-08-19 "poor man's news feed" patch) ─────
+
+def test_gap_down_beyond_threshold_overrides_to_market_crash():
+    assert rd.compute_gap_override(spot=23500.0, prev_close=24000.0) == "market_crash"  # -2.08%
+
+
+def test_gap_down_exactly_at_threshold_overrides():
+    assert rd.compute_gap_override(spot=23640.0, prev_close=24000.0) == "market_crash"  # -1.5% exactly
+
+
+def test_gap_up_beyond_threshold_overrides_to_event_day():
+    assert rd.compute_gap_override(spot=24500.0, prev_close=24000.0) == "event_day"  # +2.08%
+
+
+def test_small_gap_does_not_override():
+    assert rd.compute_gap_override(spot=24050.0, prev_close=24000.0) is None  # +0.21%
+
+
+def test_zero_prev_close_returns_none_never_guesses():
+    assert rd.compute_gap_override(spot=24000.0, prev_close=0.0) is None
+
+
+def test_gap_override_returns_only_regimes_that_exist_in_the_real_matrix():
+    """Both override targets must be real, already-tested regime keys --
+    not an invented 9th key that would silently fall through
+    ClusterRiskGate's 'unknown regime, no restriction' path."""
+    import json
+    matrix = json.loads(open("cluster_matrix.json").read())
+    assert "market_crash" in matrix["regimes"]
+    assert "event_day" in matrix["regimes"]
+
+
 def test_resolve_regime_reports_all_raw_inputs_for_audit(monkeypatch):
     _patch_all(monkeypatch, dte=10, adx=30.0, above_ema=True, vix=10.0, bandwidth=7.5)
     result = rd.resolve_regime()
