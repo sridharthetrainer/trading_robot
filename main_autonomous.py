@@ -664,6 +664,17 @@ class AutonomousTradingSystem:
             dedup_ttl = 60,
         )
 
+        # 2026-08-19: self.kill_switch was constructed above with no
+        # trade_manager/alert_manager (neither existed yet at that point in
+        # __init__). KillSwitch.trigger()'s force-close and Telegram alert
+        # are both guarded on `is not None` -- so every kill-switch trigger
+        # via health_monitor.py/self_healing.py has been setting the active
+        # flag only, never actually closing a position or alerting anyone.
+        # Wire the real instances in now that both exist.
+        if self.kill_switch is not None:
+            self.kill_switch.trade_manager = self.live_engine.trade_manager
+            self.kill_switch.alerts        = self.alerts
+
         # Track which calendar date we last ran a new-day reset on
         self._last_trading_date:  Optional[date] = None
         self._last_market_phase:  str            = "BOOT"  # for mode-change alerts
@@ -3479,6 +3490,56 @@ class AutonomousTradingSystem:
         except Exception:
             logger.debug("_check_profit_lock failed", exc_info=True)
 
+    def _check_margin_circuit_breaker(self) -> None:
+        """Auto-liquidate toward safe margin utilization if it spikes above
+        80% (Strategy 34 gap found in the 2026-08-19 spec audit: MarginFeed
+        existed with zero callers, nothing closed existing positions on a
+        margin trigger). Real-capital-only -- paper positions have no real
+        margin to protect, so this is a no-op in paper mode."""
+        try:
+            import config as _cfg
+            if bool(getattr(_cfg, "PAPER_TRADING", True)):
+                return
+            broker = self.live_engine.broker_manager.get_execution_broker()
+            if not broker:
+                return
+            from margin_circuit_breaker import run_margin_circuit_breaker
+            run_margin_circuit_breaker(
+                broker, self.live_engine.trade_manager,
+                ltp_getter=self._get_squareoff_ltp, alerts=self.alerts,
+            )
+        except Exception:
+            logger.debug("_check_margin_circuit_breaker failed", exc_info=True)
+
+    def _check_market_shock(self) -> None:
+        """Trip the kill switch on a fast adverse market move, a VIX spike,
+        a 10% drawdown, or an 85% margin breach (spec-audit gap: kill_switch
+        previously only tripped on system-health/loss-lock events). Runs in
+        both paper and live mode -- paper trading still benefits from
+        halting on a real market shock, and the checks are read-only until
+        something actually trips."""
+        if self.kill_switch is None:
+            return
+        try:
+            from market_shock_monitor import run_market_shock_check
+            angel = None
+            try:
+                angel = self.live_engine.broker_manager.get_execution_broker()
+            except Exception:
+                pass
+            vix_feed = None
+            if _FEEDS_MA:
+                try:
+                    vix_feed = _get_market_feeds().vix
+                except Exception:
+                    pass
+            cc = getattr(self.live_engine, "capital_compounder", None)
+            run_market_shock_check(
+                self.kill_switch, angel=angel, vix_feed=vix_feed, capital_compounder=cc,
+            )
+        except Exception:
+            logger.debug("_check_market_shock failed", exc_info=True)
+
 
 
 
@@ -5113,6 +5174,12 @@ class AutonomousTradingSystem:
             self._check_capital_milestone()
             self._check_drawdown_alert()
             self._check_profit_lock()
+
+            # Margin utilization circuit breaker (real capital only)
+            self._check_margin_circuit_breaker()
+
+            # Market-shock emergency shutdown (NIFTY move / VIX spike / drawdown / margin)
+            self._check_market_shock()
 
             # High-impact event day: apply conservative overrides
             self._apply_high_impact_day_overrides()

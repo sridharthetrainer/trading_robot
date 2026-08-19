@@ -3329,6 +3329,21 @@ def generate_signal(
                                 "reason": "asm_gsm_surveillance"}
                 except Exception: pass
 
+            # ── GATE: Circuit limit check ────────────────────────────────
+            # 2026-08-19 spec audit: CircuitBreakerFeed.can_enter() existed,
+            # fully built, with zero callers anywhere in the codebase. A
+            # stock at its upper/lower circuit has no supply/demand to fill
+            # an entry, and an entry there risks a STUCK position (can't
+            # exit either). Not index-relevant (indices don't circuit).
+            if symbol and symbol not in {"NIFTY","BANKNIFTY","FINNIFTY","MIDCPNIFTY"}:
+                try:
+                    from market_data_feeds import get_market_feeds as _get_feeds_circuit
+                    if _get_feeds_circuit().circuits.is_in_circuit(symbol):
+                        logger.debug("Signal blocked: %s at price circuit", symbol)
+                        return {"strategy": strategy, "score": 0.0, "direction": None,
+                                "reason": "price_circuit"}
+                except Exception: pass
+
             # ── NEW INTELLIGENCE MODULES ──────────────────────────────────
             # 1. BhavCopy delivery % score
             if _BHAV_AVAILABLE and symbol:

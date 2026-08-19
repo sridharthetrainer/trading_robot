@@ -1301,6 +1301,13 @@ class LiveSignalEngine:
             self._last_rest_monitor_ts = now_ts_mon
             self._monitor_open_positions_rest()
 
+        # 2026-08-19: WebSocket disconnect > 30s halts NEW entries (existing
+        # positions stay protected via the REST fallback monitoring above,
+        # which runs regardless of ws_ok). Scanning on stale/no ticks during
+        # market hours risks acting on prices that are seconds to minutes
+        # stale. Alerted once per outage, not every cycle.
+        _ws_halt_new_entries = self._check_ws_disconnect_halt(ws_ok, now_ts_mon)
+
         # ── Position tick hooks — run every cycle regardless of WS state ────────
         # Time exits (zombie stop) need no LTP; partial exits + trail stops use
         # LTP from WS cache (fast, zero extra broker calls when WS is connected).
@@ -1318,6 +1325,10 @@ class LiveSignalEngine:
                     self.trade_manager.tick_trailing_stops(_tick_ltp)
             except Exception as _te:
                 logger.debug("cycle tick hooks error: %s", _te)
+
+        if _ws_halt_new_entries:
+            self._log_no_signal("ws_disconnected_halt")
+            return
 
         market_data = self._fetch_market_data_with_htf()
         self._last_scan_count = len(market_data) if market_data else 0
@@ -3173,6 +3184,71 @@ class LiveSignalEngine:
             return True, ""
         return False, f"style_{style_lc or 'unknown'}_disabled"
 
+    def _cluster_gate_check(
+        self, *, symbol: str, strategy: str, side: str, entry_price: float,
+        stop_loss: float, qty: int, regime_label: str,
+    ) -> "tuple[bool, float, str]":
+        """Cluster-level capital-allocation risk control (2026-08-19 spec
+        audit gap): fails OPEN (allowed, 1.0x, no restriction) on any
+        error or missing input -- this is an additive risk control on top
+        of PortfolioRiskManager.evaluate_new_trade(), not a hard dependency
+        that should ever be able to crash the entry path."""
+        try:
+            from cluster_risk_gate import ClusterRiskGate
+            gate = getattr(self, "_cluster_gate", None)
+            if gate is None:
+                gate = ClusterRiskGate()
+                self._cluster_gate = gate
+
+            capital = float(getattr(self.trade_manager, "capital", 0) or 0)
+            if capital <= 0:
+                return True, 1.0, "no capital reference"
+
+            proposed_risk_pct = abs(float(entry_price) - float(stop_loss)) * int(qty) / capital * 100.0
+
+            open_positions = []
+            for p in self.trade_manager.get_open_positions():
+                p_entry = float(p.get("entry_price", 0) or 0)
+                p_stop = float(p.get("stop_loss", 0) or 0)
+                p_qty = int(p.get("qty", 0) or 0)
+                p_risk_pct = (abs(p_entry - p_stop) * p_qty / capital * 100.0) if (p_entry and p_stop) else 0.0
+                open_positions.append({
+                    "symbol": p.get("symbol", ""),
+                    "strategy": p.get("strategy", ""),
+                    "side": p.get("side", ""),
+                    "risk_pct": p_risk_pct,
+                })
+
+            is_trend = None
+            regime_u = str(regime_label or "").upper()
+            if regime_u:
+                is_trend = regime_u in {"TREND", "EARLY_TREND", "BREAKOUT"}
+
+            vix = 0.0
+            try:
+                from market_data_feeds import get_market_feeds as _get_feeds_cluster
+                broker = self.broker_manager.get_execution_broker()
+                angel_obj = getattr(broker, "angel", None) or broker
+                vix = float(_get_feeds_cluster().vix.get(getattr(angel_obj, "obj", None)) or 0.0)
+            except Exception:
+                vix = 0.0
+
+            regime_key = ClusterRiskGate.resolve_regime_key(india_vix=vix, is_trend=is_trend)
+            tb = ClusterRiskGate.time_bucket(datetime.now().time())
+
+            allowed, adj_risk_pct, reason = gate.can_enter(
+                strategy_name=strategy, symbol=symbol, proposed_risk_pct=proposed_risk_pct,
+                direction=side, regime_key=regime_key, open_positions=open_positions,
+                time_bucket=tb,
+            )
+            if not allowed:
+                return False, 0.0, reason
+            mult = (adj_risk_pct / proposed_risk_pct) if proposed_risk_pct > 0 else 1.0
+            return True, mult, reason
+        except Exception as e:
+            logger.debug("cluster_gate_check failed (fail-open): %s", e)
+            return True, 1.0, "gate error (fail-open)"
+
     def _style_qty_multiplier(self, *, asset_type: str, style: str, strategy: str) -> float:
         asset = str(asset_type or "").upper()
         style_lc = str(style or "").lower().strip()
@@ -3399,11 +3475,24 @@ class LiveSignalEngine:
             self._log_no_signal("zero_qty_after_risk", {"symbol": symbol})
             return False
 
+        cluster_allowed, cluster_mult, cluster_reason = self._cluster_gate_check(
+            symbol=execution_plan["execution_symbol"],
+            strategy=strategy_lc,
+            side=execution_plan["trade_side"],
+            entry_price=execution_plan["entry_price"],
+            stop_loss=execution_plan["stop_loss"],
+            qty=final_qty,
+            regime_label=str(signal.get("regime", "") or ""),
+        )
+        if not cluster_allowed:
+            self._log_no_signal("cluster_risk_gate", {"symbol": symbol, "reason": cluster_reason})
+            return False
+
         qty_mult = self._style_qty_multiplier(
             asset_type=execution_plan.get("asset_type", "CASH"),
             style=style,
             strategy=strategy_lc,
-        )
+        ) * cluster_mult
         if qty_mult != 1.0:
             lot = max(1, int(execution_plan.get("lot_size", 1) or 1))
             if execution_plan.get("asset_type") == "OPTION":
@@ -3867,6 +3956,24 @@ class LiveSignalEngine:
                 trade_id, symbol, execution_plan["execution_symbol"],
                 final_qty, style, exchange,
             )
+            if trade_id is None:
+                # 2026-08-19: a signal that passed every strategy/risk/economic
+                # gate and reached open_trade() with NOTHING to show for it
+                # (invalid stop, cost-hurdle rejection, zero qty, duplicate
+                # guard, etc.) used to be indistinguishable from a normal
+                # trade in the logs -- trade_id=None buried in an INFO line.
+                # That's a signal the system believed it should act on and
+                # silently didn't. Alert every time, not just log it.
+                try:
+                    _oa = getattr(self.trade_manager, "alerts", None)
+                    if _oa:
+                        _oa.warning(
+                            f"Signal for {symbol} ({execution_plan.get('execution_symbol')}) "
+                            f"passed all gates but open_trade() returned no trade_id -- "
+                            f"check logs for the rejection reason."
+                        )
+                except Exception:
+                    pass
             if trade_id and execution_plan.get("asset_type") == "OPTION":
                 try:
                     from signal_lifecycle import SignalLifecycleStore
@@ -4910,6 +5017,43 @@ class LiveSignalEngine:
         except Exception as exc:
             logger.debug("_update_capital_tier failed: %s", exc)
 
+
+    def _check_ws_disconnect_halt(self, ws_ok: bool, now_ts: float) -> bool:
+        """Returns True if new entries should be halted this cycle. Tracks
+        outage duration in self._ws_disconnected_since / alert-dedup state in
+        self._ws_outage_alerted -- both lazily initialized (matches this
+        class's existing style, e.g. _last_rest_monitor_ts). Existing
+        positions are unaffected -- REST fallback monitoring in
+        _monitor_open_positions_rest runs regardless of ws_ok."""
+        alerts = getattr(self.trade_manager, "alerts", None) if self.trade_manager else None
+        if ws_ok:
+            self._ws_disconnected_since = None
+            if getattr(self, "_ws_outage_alerted", False):
+                self._ws_outage_alerted = False
+                if alerts:
+                    try:
+                        alerts.warning("WebSocket reconnected — new entries resumed.")
+                    except Exception:
+                        pass
+            return False
+
+        if getattr(self, "_ws_disconnected_since", None) is None:
+            self._ws_disconnected_since = now_ts
+        outage_sec = now_ts - self._ws_disconnected_since
+        if outage_sec < 30:
+            return False
+
+        if not getattr(self, "_ws_outage_alerted", False):
+            self._ws_outage_alerted = True
+            if alerts:
+                try:
+                    alerts.critical(
+                        f"WebSocket disconnected {outage_sec:.0f}s — halting new "
+                        f"entries (existing positions still monitored via REST)."
+                    )
+                except Exception:
+                    pass
+        return True
 
     def _monitor_open_positions_rest(self) -> None:
         """

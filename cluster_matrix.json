@@ -1,0 +1,101 @@
+{
+  "_comment": "Policy defaults for cluster_risk_gate.py (built 2026-08-19). Cluster letters A-J are this system's own taxonomy, populated by mapping the REAL ~79 live strategies (signal_engine.STRATEGIES) + 42-entry option catalog through strategy_clusters.factor_of()'s real keyword classification -- see cluster_strategy_map.py for the mapping and its reasoning. The regime table, compatibility grid, intra-cluster sizing, and directional caps below are POLICY choices (tunable), not measured facts. Pairwise strategy correlation for the downshift is NOT hardcoded here -- cluster_risk_gate.py reads it live from correlation_matrix.json (idle_engine.run_correlation_update, now scheduled nightly via daily_pipeline.py).",
+
+  "cluster_definitions": {
+    "A": "Morning Scalp / intraday breakout & structure",
+    "B": "Momentum continuation / defined-risk spreads",
+    "C": "Theta Engine (short premium: straddle/strangle/condor + dynamic adjustment)",
+    "D": "Mean Reversion",
+    "E": "Trend Core / pattern / alternative price representations",
+    "F": "Event Capture (RBI/Budget/scheduled events, long-vega)",
+    "G": "Arb & Neutrality (stat-arb, pairs, relative value)",
+    "H": "Options Tactical (volatility-regime, VIX, PCR)",
+    "I": "Volume/OI Alpha (order flow, VSA, volume profile)",
+    "J": "Expiry Special"
+  },
+
+  "regimes": {
+    "strong_trend_low_vol": {
+      "active_clusters": ["B", "E", "I", "G"],
+      "disabled_clusters": ["D", "H", "J"],
+      "max_total_risk_pct": 3.5
+    },
+    "strong_trend_high_vol": {
+      "active_clusters": ["B", "E", "H", "G"],
+      "disabled_clusters": ["C", "D", "J"],
+      "max_total_risk_pct": 3.2
+    },
+    "weak_trend_low_vol": {
+      "active_clusters": ["A", "C", "D", "G", "I"],
+      "disabled_clusters": ["E", "H"],
+      "max_total_risk_pct": 3.0
+    },
+    "weak_trend_high_vol": {
+      "active_clusters": ["A", "D", "H", "G"],
+      "disabled_clusters": ["B", "C", "E", "J"],
+      "max_total_risk_pct": 2.8
+    },
+    "expiry_week": {
+      "active_clusters": ["A", "J", "C", "G"],
+      "disabled_clusters": ["E"],
+      "post_wednesday_disabled": ["B"],
+      "max_total_risk_pct": 2.5
+    },
+    "event_day": {
+      "active_clusters": ["F", "G", "H"],
+      "disabled_clusters": ["A", "B", "C", "D", "E", "I", "J"],
+      "max_total_risk_pct": 1.5
+    },
+    "market_crash": {
+      "active_clusters": ["G"],
+      "long_vol_only": ["H"],
+      "disabled_clusters": ["A", "B", "C", "D", "E", "F", "I", "J"],
+      "max_total_risk_pct": 1.0
+    },
+    "holiday_week": {
+      "active_clusters": ["G"],
+      "disabled_clusters": ["A", "B", "C", "D", "E", "F", "H", "I", "J"],
+      "max_total_risk_pct": 0.4
+    }
+  },
+
+  "cross_cluster_compatibility": {
+    "A": {"B": "yellow", "C": "green",  "D": "green", "E": "green",  "F": "green", "G": "green", "H": "green",  "I": "green", "J": "yellow"},
+    "B": {"A": "yellow", "C": "green",  "D": "red",   "E": "green",  "F": "green", "G": "green", "H": "green",  "I": "green", "J": "yellow"},
+    "C": {"A": "green",  "B": "green",  "D": "red",   "E": "yellow", "F": "green", "G": "green", "H": "red",    "I": "green", "J": "red"},
+    "D": {"A": "green",  "B": "red",    "C": "red",   "E": "red",    "F": "green", "G": "green", "H": "green",  "I": "yellow","J": "green"},
+    "E": {"A": "green",  "B": "green",  "C": "yellow","D": "red",    "F": "green", "G": "green", "H": "yellow", "I": "green", "J": "yellow"},
+    "F": {"A": "green",  "B": "green",  "C": "green", "D": "green",  "E": "green", "G": "green", "H": "green",  "I": "green", "J": "green"},
+    "G": {"A": "green",  "B": "green",  "C": "green", "D": "green",  "E": "green", "F": "green", "H": "green",  "I": "green", "J": "green"},
+    "H": {"A": "green",  "B": "green",  "C": "red",   "D": "green",  "E": "yellow","F": "green", "G": "green",  "I": "green", "J": "red"},
+    "I": {"A": "green",  "B": "green",  "C": "green", "D": "yellow", "E": "green", "F": "green", "G": "green",  "H": "green", "J": "green"},
+    "J": {"A": "yellow", "B": "yellow", "C": "red",   "D": "green",  "E": "yellow","F": "green", "G": "green",  "H": "red",   "I": "green"}
+  },
+
+  "intra_cluster_sizing": {
+    "A": {"1": 0.5, "2": 0.3,  "3": 0.2,  "max_total": 0.6},
+    "B": {"1": 0.5, "2": 0.4,             "max_total": 0.8},
+    "C": {"1": 0.6, "2": 0.4,  "3": 0.3,  "max_total": 0.8},
+    "D": {"1": 0.5, "2": 0.35, "3": 0.25, "max_total": 0.7},
+    "E": {"1": 0.7, "2": 0.5,  "3": 0.35, "max_total": 1.0},
+    "F": {"1": 0.5, "2": 0.4,  "3": 0.3,  "max_total": 0.8},
+    "G": {"1": 0.4, "2": 0.3,  "3": 0.2,  "max_total": 0.6},
+    "H": {"1": 0.5, "2": 0.4,             "max_total": 0.8},
+    "I": {"1": 0.5, "2": 0.35, "3": 0.25, "max_total": 0.7},
+    "J": {"1": 0.4, "2": 0.3,             "max_total": 0.6}
+  },
+
+  "correlation_downshift_tiers": {
+    "_comment": "Applied against REAL pairwise correlation from correlation_matrix.json between the new signal's underlying and an existing open position's underlying -- not a static pair list.",
+    "0.70": 0.75,
+    "0.80": 0.60,
+    "0.90": 0.0
+  },
+
+  "directional_caps": {
+    "0915_1030":  {"max_long": 3.0, "max_short": 2.0, "max_net": 1.5},
+    "1030_1330":  {"max_long": 2.5, "max_short": 2.5, "max_net": 1.0},
+    "1330_1500":  {"max_long": 2.0, "max_short": 3.0, "max_net": -1.5},
+    "expiry_day": {"max_long": 1.5, "max_short": 1.5, "max_net": 0.0}
+  }
+}

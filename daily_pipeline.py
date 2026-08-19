@@ -154,6 +154,24 @@ def run_pipeline(
 
     steps.append(_run_step("candle_coverage_plan", _step_candle_coverage_plan))
 
+    # ── Step: Correlation matrix update ──────────────────────────────────────
+    # 2026-08-19: run_correlation_update() (idle_engine.py) had zero callers
+    # anywhere -- correlation_matrix.json never existed, so portfolio_heat.py's
+    # real-correlation lookup silently had nothing to load. Scheduling it here
+    # is what actually starts producing the data the live entry-gate now
+    # consumes (see portfolio_heat.py / signal_engine.py GATE: Portfolio heat).
+    def _step_correlation_update():
+        from idle_engine import run_correlation_update
+        result = run_correlation_update() if not dry_run else {}
+        high_corr = result.get("high_corr", []) if isinstance(result, dict) else []
+        logger.info("  correlation_update: %d symbols, %d pairs > 0.80",
+                    len(result.get("symbols", []) if isinstance(result, dict) else []),
+                    len(high_corr))
+        return {"symbol_count": len(result.get("symbols", []) if isinstance(result, dict) else []),
+                "high_corr_pairs": len(high_corr)}
+
+    steps.append(_run_step("correlation_matrix_update", _step_correlation_update))
+
     # ── Step 5: Derive daily candles from intraday cache ─────────────────────
     def _step_derive_daily():
         from derive_daily_candles import derive_daily_candles
