@@ -3540,6 +3540,29 @@ class AutonomousTradingSystem:
         except Exception:
             logger.debug("_check_market_shock failed", exc_info=True)
 
+    def _check_position_reconciliation(self) -> None:
+        """Periodic two-directional check that trade_manager's local
+        position state actually matches Angel's real book (2026-08-19 gap:
+        reconcile_positions() existed but never compared anything; its only
+        caller was itself never called). Every downstream risk calculation
+        -- margin circuit breaker, cluster gate, directional caps -- is
+        computed from local state, so a silent mismatch means those are all
+        computed on fake data. Real capital only; paper positions can't
+        drift against a broker book that doesn't hold them."""
+        try:
+            import config as _cfg_recon
+            if bool(getattr(_cfg_recon, "PAPER_TRADING", True)):
+                self.live_engine.reconcile_mismatch = False
+                return
+            broker = self.live_engine.broker_manager.get_execution_broker()
+            if not broker:
+                return
+            from position_reconciliation import run_reconciliation
+            result = run_reconciliation(broker, self.live_engine.trade_manager, alerts=self.alerts)
+            self.live_engine.reconcile_mismatch = bool(result.get("mismatch"))
+        except Exception:
+            logger.debug("_check_position_reconciliation failed", exc_info=True)
+
 
 
 
@@ -4564,6 +4587,18 @@ class AutonomousTradingSystem:
                     try: self._off_hours._run_morning_brief()
                     except Exception: pass
 
+                # 2026-08-19: session/TOTP preflight -- verify the broker
+                # session actually works before the trading loop starts.
+                # A dead session at 9:15 AM used to mean a silent all-day
+                # scan-and-find-nothing with no operator visibility.
+                try:
+                    from session_preflight import run_preflight
+                    _broker_pf = self.live_engine.broker_manager.get_execution_broker()
+                    _pf_result = run_preflight(_broker_pf, alerts=self.alerts)
+                    self.live_engine.preflight_failed = not _pf_result.get("ok", False)
+                except Exception:
+                    logger.exception("Session preflight failed to run")
+
         # 9:00 AM — Sector rotation + F&O ban
         if not getattr(self, f"_preopn_{_today_s}", False):
             if dtime(9,0) <= now.time() <= dtime(9,10):
@@ -5064,6 +5099,37 @@ class AutonomousTradingSystem:
                         _prev_close = getattr(self, "_prev_nifty_close", 22000.0)
                         _pm_result = self._overnight_prot.premarket_check(_prev_close)
                         logger.info("Pre-market gap check: %s", _pm_result.get("gap_data",{}))
+
+                        # 2026-08-19 regime retrofit: resolve today's cluster
+                        # regime from real raw indicators (ADX/50EMA/BandWidth/
+                        # VIX/crash/holiday/event/DTE) once per day, cached for
+                        # live_signal_engine._cluster_gate_check() to read all
+                        # day instead of recomputing NIFTY daily candles per
+                        # candidate. Falls back to its own inline heuristic if
+                        # this hasn't run yet (weekends, late start, etc).
+                        _today_regime_key = f"_regime_resolved_{date.today().isoformat()}"
+                        if not getattr(self, _today_regime_key, False):
+                            setattr(self, _today_regime_key, True)
+                            try:
+                                from regime_detector import resolve_regime
+                                _broker = self.live_engine.broker_manager.get_execution_broker()
+                                _regime_result = resolve_regime(angel=_broker)
+                                self.live_engine.daily_regime_key = _regime_result["regime_key"]
+                                self.live_engine.daily_regime_inputs = _regime_result["inputs"]
+                                logger.info(
+                                    "8:45AM regime resolved: %s | inputs=%s",
+                                    _regime_result["regime_key"], _regime_result["inputs"],
+                                )
+                                if hasattr(self, "alerts") and self.alerts:
+                                    self.alerts.send(
+                                        f"📊 Regime: <b>{_regime_result['regime_key']}</b>\n"
+                                        f"  ADX={_regime_result['inputs'].get('adx')} "
+                                        f"VIX={_regime_result['inputs'].get('india_vix')} "
+                                        f"DTE={_regime_result['inputs'].get('days_to_expiry')}",
+                                        dedup_key="daily_regime",
+                                    )
+                            except Exception:
+                                logger.exception("8:45AM regime resolution failed")
                     # Post-open assessment at 9:22 AM
                     elif _dt(9,21) <= _now_t <= _dt(9,25):
                         _spot = 0.0
@@ -5180,6 +5246,9 @@ class AutonomousTradingSystem:
 
             # Market-shock emergency shutdown (NIFTY move / VIX spike / drawdown / margin)
             self._check_market_shock()
+
+            # Position reconciliation (local state vs Angel's real book, real capital only)
+            self._check_position_reconciliation()
 
             # High-impact event day: apply conservative overrides
             self._apply_high_impact_day_overrides()

@@ -1330,6 +1330,24 @@ class LiveSignalEngine:
             self._log_no_signal("ws_disconnected_halt")
             return
 
+        # 2026-08-19: position-reconciliation mismatch (set by
+        # main_autonomous.py's periodic _check_position_reconciliation)
+        # halts new entries the same way a WS outage does -- every risk
+        # calculation downstream is computed from local position state, so
+        # a confirmed drift against the broker's real book means that state
+        # can't be trusted for new sizing decisions until it clears.
+        if getattr(self, "reconcile_mismatch", False):
+            self._log_no_signal("position_reconciliation_mismatch")
+            return
+
+        # 2026-08-19: 8:30AM session/TOTP preflight failure halts new
+        # entries the same way -- a broker session that failed auth,
+        # account, or market-data checks shouldn't be trusted for new
+        # sizing/order decisions even if a later cycle happens to work.
+        if getattr(self, "preflight_failed", False):
+            self._log_no_signal("session_preflight_failed")
+            return
+
         market_data = self._fetch_market_data_with_htf()
         self._last_scan_count = len(market_data) if market_data else 0
         self.total_symbols_scanned = self._last_scan_count
@@ -3219,21 +3237,33 @@ class LiveSignalEngine:
                     "risk_pct": p_risk_pct,
                 })
 
-            is_trend = None
-            regime_u = str(regime_label or "").upper()
-            if regime_u:
-                is_trend = regime_u in {"TREND", "EARLY_TREND", "BREAKOUT"}
+            # 2026-08-19 regime retrofit: prefer the real 8:45AM regime
+            # resolution (raw ADX/50EMA/BandWidth/VIX/crash/holiday/event/DTE,
+            # regime_detector.resolve_regime(), cached daily by
+            # main_autonomous.py) over the coarse inline heuristic below.
+            # Defaulting to weak_trend_low_vol on a crash/RBI morning (what
+            # the heuristic alone would do) is exactly the blind spot this
+            # retrofit closes -- only fall back when the daily resolution
+            # genuinely hasn't run yet (weekend testing, fresh process before
+            # 8:45AM, etc).
+            regime_key = getattr(self, "daily_regime_key", None)
+            if not regime_key:
+                is_trend = None
+                regime_u = str(regime_label or "").upper()
+                if regime_u:
+                    is_trend = regime_u in {"TREND", "EARLY_TREND", "BREAKOUT"}
 
-            vix = 0.0
-            try:
-                from market_data_feeds import get_market_feeds as _get_feeds_cluster
-                broker = self.broker_manager.get_execution_broker()
-                angel_obj = getattr(broker, "angel", None) or broker
-                vix = float(_get_feeds_cluster().vix.get(getattr(angel_obj, "obj", None)) or 0.0)
-            except Exception:
                 vix = 0.0
+                try:
+                    from market_data_feeds import get_market_feeds as _get_feeds_cluster
+                    broker = self.broker_manager.get_execution_broker()
+                    angel_obj = getattr(broker, "angel", None) or broker
+                    vix = float(_get_feeds_cluster().vix.get(getattr(angel_obj, "obj", None)) or 0.0)
+                except Exception:
+                    vix = 0.0
 
-            regime_key = ClusterRiskGate.resolve_regime_key(india_vix=vix, is_trend=is_trend)
+                regime_key = ClusterRiskGate.resolve_regime_key(india_vix=vix, is_trend=is_trend)
+
             tb = ClusterRiskGate.time_bucket(datetime.now().time())
 
             allowed, adj_risk_pct, reason = gate.can_enter(

@@ -1344,3 +1344,20 @@ MAX_SAME_SECTOR_POSITIONS = int(os.getenv("MAX_SAME_SECTOR_POSITIONS","3"))
 # enforcement/logging integrity/reproducibility/operational fixes) is NOT
 # gated by this flag.
 ALPHA_RESEARCH_MODE = _env("ALPHA_RESEARCH_MODE", "MAINTENANCE")
+
+# 2026-08-19 regime retrofit: RBI MPC + Union Budget dates for event-day
+# detection (regime_detector.py). Sourced via web search against RBI's own
+# FY27 MPC calendar announcement (RBI, 2026-03-23) and the fixed Feb-1
+# Union Budget convention -- not guessed. The RBI calendar only runs
+# through Feb 2027; FY28 (Apr-Jun 2027) dates won't be announced until
+# ~March 2027, so they can't be added here without fabricating them --
+# update this set then. The Feb 2027 Budget date follows the fixed
+# multi-year Feb-1 convention (2025, 2026 both confirmed Feb 1) but is not
+# yet an official announcement specific to 2027 -- verify closer to the date.
+from datetime import date
+HIGH_IMPACT_DATES = {
+    date(2026, 10, 7),   # RBI MPC (FY27 calendar)
+    date(2026, 12, 4),   # RBI MPC (FY27 calendar)
+    date(2027, 2, 1),    # Union Budget (Feb-1 convention, not yet officially announced for 2027)
+    date(2027, 2, 5),    # RBI MPC (FY27 calendar, final meeting)
+}

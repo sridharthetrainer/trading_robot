@@ -30,6 +30,21 @@ def _make_stub(capital=1_000_000.0, open_positions=None):
     )
 
 
+def test_cached_daily_regime_key_takes_priority_over_heuristic():
+    """A stub with daily_regime_key='market_crash' set (as main_autonomous.py's
+    8:45AM handler would) must use that real-indicator-derived regime, not
+    the coarse inline VIX/regime_label heuristic -- this is the exact blind
+    spot the regime retrofit closes."""
+    stub = _make_stub()
+    stub.daily_regime_key = "market_crash"
+    # "orb" -> cluster A; A is disabled in market_crash (only G is active).
+    allowed, mult, reason = LiveSignalEngine._cluster_gate_check(
+        stub, symbol="RELIANCE", strategy="orb", side="BUY",
+        entry_price=100.0, stop_loss=98.0, qty=100, regime_label="TREND")
+    assert allowed is False
+    assert "CLUSTER" in reason
+
+
 def test_allows_and_returns_full_multiplier_with_no_open_positions():
     stub = _make_stub()
     allowed, mult, reason = LiveSignalEngine._cluster_gate_check(

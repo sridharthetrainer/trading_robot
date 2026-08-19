@@ -779,17 +779,36 @@ class AngelOne:
                 pass
         return None
 
-    def reconcile_positions(self) -> dict:
+    def reconcile_positions(self, local_positions: Optional[Dict[str, int]] = None) -> dict:
         """Compare local tracked positions vs Angel actual positions.
-        Returns: {matched, missing_local, missing_angel, mismatched_qty}
+
+        2026-08-19: this used to only fetch Angel's side into
+        angel_positions -- matched/missing_local/missing_angel/mismatched
+        were declared and never populated, so nothing ever actually got
+        compared. Its only caller (off_hours_engine._run_recon) was itself
+        never called anywhere, so this was entirely dead in practice.
+
+        local_positions: {tradingsymbol: signed_qty} from the caller's own
+        tracking (e.g. position_reconciliation.run_reconciliation() builds
+        this from trade_manager.get_open_positions()). Signed so a same-
+        symbol long vs short drift is caught, not just magnitude. If
+        omitted, only angel_positions is populated (old behavior, backward
+        compatible with the existing off_hours_engine.py caller).
+
+        Returns: {matched, missing_local, missing_angel, mismatched,
+        angel_positions}
         """
-        result = {"matched": [], "missing_local": [], "missing_angel": [], "mismatched": []}
+        result = {"matched": [], "missing_local": [], "missing_angel": [],
+                   "mismatched": [], "angel_positions": {}}
         if not self._ensure_connected() or not self.obj:
             return result
         try:
             with self._lock:
                 resp = self.obj.position()
-            if not resp or not resp.get("data"):
+            if not resp or resp.get("data") is None:
+                # A genuinely flat book returns data=[] -- that's real,
+                # comparable information, not a fetch failure. Only bail on
+                # no response at all / an explicit null data field.
                 return result
             angel_positions = {}
             for p in resp["data"]:
@@ -798,6 +817,22 @@ class AngelOne:
                 if qty != 0:
                     angel_positions[sym] = {"qty": qty, "avg_price": float(p.get("averageprice",0) or 0)}
             result["angel_positions"] = angel_positions
+
+            if local_positions is not None:
+                local = {s: int(q) for s, q in local_positions.items() if int(q) != 0}
+                for sym in sorted(set(local) | set(angel_positions)):
+                    local_qty = local.get(sym)
+                    angel_qty = angel_positions.get(sym, {}).get("qty")
+                    if local_qty is not None and angel_qty is not None:
+                        if local_qty == angel_qty:
+                            result["matched"].append(sym)
+                        else:
+                            result["mismatched"].append(
+                                {"symbol": sym, "local_qty": local_qty, "angel_qty": angel_qty})
+                    elif local_qty is not None:
+                        result["missing_angel"].append({"symbol": sym, "local_qty": local_qty})
+                    else:
+                        result["missing_local"].append({"symbol": sym, "angel_qty": angel_qty})
         except Exception as e:
             logger.debug("reconcile: %s", e)
         return result

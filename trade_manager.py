@@ -853,6 +853,20 @@ class TradeManager:
                 logger.critical(
                     "Orphaned trade removed from active positions | trade_id=%s", trade_id
                 )
+                # 2026-08-19: this used to be log-only -- a genuine startup
+                # discrepancy (DB said OPEN, broker had rejected/cancelled
+                # it) went completely unnoticed unless someone was tailing
+                # the log file at that exact moment.
+                if self.alerts:
+                    try:
+                        self.alerts.critical(
+                            f"STARTUP RECONCILIATION: {trade.symbol} (trade_id={trade_id}) "
+                            f"was OPEN in the DB but the broker shows "
+                            f"{trade.metadata.get('reconciliation_status', 'unknown')} "
+                            f"-- removed from active positions as orphaned."
+                        )
+                    except Exception:
+                        pass
 
         if orphaned:
             logger.critical(
