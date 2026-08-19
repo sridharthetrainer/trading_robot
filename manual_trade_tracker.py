@@ -1707,8 +1707,7 @@ class ManualTradeTracker:
                         logger.debug("cancel orphaned GTT %s: %s", x.get("id"), e)
                 logger.warning("Cancelled %d orphaned/unclaimed GTT(s) for %s",
                                len(unclaimed), trade.symbol)
-            if trade.sl_gtt_id or trade.target_gtt_id:
-                trade.protected = True
+            if claimed_ids:
                 trade.hwm = trade.hwm or trade.current_price or self._ltp_for(trade) or float(trade.entry_price)
                 logger.info("Adopted %d existing GTT(s) for %s", len(claimed_ids), trade.symbol)
                 parts = []
@@ -1721,9 +1720,19 @@ class ManualTradeTracker:
                     + "  |  ".join(parts)
                     + "\n  Reused existing broker GTT.")
                 self._save_trade(trade)
+            if trade.sl_gtt_id:
+                # A real stop-loss exists (fresh or adopted) -- fully protected.
+                trade.protected = True
+                self._save_trade(trade)
                 return
-            # Nothing could be validly claimed — fall through to placing
-            # fresh GTTs below, same as if no existing GTTs had been found.
+            # 2026-08-18: adopting ONLY a leftover target-side GTT used to set
+            # protected=True and return here, permanently skipping SL
+            # placement for this trade (the top-of-function guard
+            # `if trade.protected: return` then blocked every future retry
+            # too). That left a live NIFTY CE with no broker-side stop and no
+            # armed structural stop; it rode to -Rs5,548 before a manual order
+            # closed it. Now: adopt what's there (already saved above) but
+            # fall through and actually place an SL below.
         exch      = str(trade.exchange).upper()
         sl_trig, tgt_trig = self._compute_levels(trade)
         trade.stop_loss   = sl_trig
@@ -1760,8 +1769,10 @@ class ManualTradeTracker:
                 f"⚠️ <b>{trade.symbol}</b>: price ₹{ltp:.2f} already at/through SL "
                 f"₹{sl_trig:.2f} — NO broker SL placed, manage manually.")
 
-        # Target — only if beyond the current price
-        tgt_ok = (is_long and tgt_trig > ltp) or ((not is_long) and tgt_trig < ltp)
+        # Target — only if beyond the current price, and only if one wasn't
+        # already adopted above (avoid placing a duplicate target GTT).
+        tgt_ok = (not trade.target_gtt_id) and (
+            (is_long and tgt_trig > ltp) or ((not is_long) and tgt_trig < ltp))
         if tgt_ok:
             lim = round(tgt_trig * (0.99 if is_long else 1.01), 2)
             gid = self._angel.place_gtt_order(
@@ -1776,7 +1787,12 @@ class ManualTradeTracker:
                     f"⚠️ <b>{trade.symbol}</b>: broker rejected the target order "
                     f"(trigger ₹{tgt_trig:.2f}) — no auto-exit at target.")
 
-        trade.protected = bool(trade.sl_gtt_id or trade.target_gtt_id)
+        # protected means "has a real stop-loss" -- a target alone must not
+        # satisfy this, or the top-of-function guard (`if trade.protected:
+        # return`) and the periodic unprotected-trade sweep both permanently
+        # stop retrying SL placement for a position that never got one. See
+        # the 2026-08-18 incident note above.
+        trade.protected = bool(trade.sl_gtt_id)
         if placed:
             logger.info("Protection placed %s: %s", trade.symbol, placed)
             self.send_channel(
@@ -1973,22 +1989,60 @@ class ManualTradeTracker:
                 f"  P&L: {trade.pnl_pct:+.1f}% | locked about {lock_pct:.0%} "
                 f"of peak profit.\n  {action}")
 
+    _INTERVAL_TO_DATAFETCHER = {
+        "ONE_MINUTE": "1m", "FIVE_MINUTE": "5m", "FIFTEEN_MINUTE": "15m",
+        "THIRTY_MINUTE": "30m", "ONE_HOUR": "1h",
+    }
+
+    def _data_fetcher(self):
+        """Lazily-cached DataFetcher (multi-source: Upstox-first, Angel, yfinance
+        fallback) -- used only as a fallback below, see _fetch_candles."""
+        cached = getattr(self, "_data_fetcher_cache", None)
+        if cached is None:
+            try:
+                from data_fetcher import DataFetcher
+                cached = self._data_fetcher_cache = DataFetcher()
+            except Exception:
+                cached = self._data_fetcher_cache = False
+        return cached or None
+
     def _fetch_candles(self, symbol: str, exchange: str,
                        days: int = 5, interval: str = "FIVE_MINUTE"):
-        """Fetch recent OHLC candles for any tradingsymbol (Angel getCandleData)."""
+        """Fetch recent OHLC candles for any tradingsymbol. Tries Angel's
+        getCandleData directly first, then falls back to the system's
+        multi-source DataFetcher (Upstox-first) if Angel alone comes back
+        empty/short.
+
+        2026-08-18 incident: the structural stop for a long NIFTY option never
+        armed ("no underlying candles") because this Angel-only call failed,
+        while data_fetcher/upstox_data successfully fetched 1147 bars of NIFTY
+        1m data for the rest of the system in the very same minute -- Angel
+        was the single point of failure, not a real data gap. The trade rode
+        an unenforced stop down to -Rs5,548 before a manual order closed it."""
         try:
-            if not self._angel:
-                return None
-            to_d   = datetime.now()
-            from_d = to_d - timedelta(days=days)
-            fmt = "%Y-%m-%d %H:%M"
-            return self._angel.get_historical_data(
-                symbol, interval=interval,
-                from_date=from_d.strftime(fmt), to_date=to_d.strftime(fmt),
-                exchange=str(exchange).upper())
+            if self._angel:
+                to_d   = datetime.now()
+                from_d = to_d - timedelta(days=days)
+                fmt = "%Y-%m-%d %H:%M"
+                df = self._angel.get_historical_data(
+                    symbol, interval=interval,
+                    from_date=from_d.strftime(fmt), to_date=to_d.strftime(fmt),
+                    exchange=str(exchange).upper())
+                if df is not None and len(df) >= 20:
+                    return df
         except Exception as e:
             logger.debug("candles %s: %s", symbol, e)
-            return None
+        try:
+            fetcher = self._data_fetcher()
+            if fetcher:
+                df = fetcher.get_market_data(
+                    symbol, interval=self._INTERVAL_TO_DATAFETCHER.get(interval, "5m"),
+                    days=days)
+                if df is not None and len(df) >= 20:
+                    return df
+        except Exception as e:
+            logger.debug("candles(fallback) %s: %s", symbol, e)
+        return None
 
     def _get_candles(self, trade: ManualTrade):
         """Recent OHLC candles for the traded instrument itself (option premium)."""
