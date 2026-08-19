@@ -1466,10 +1466,34 @@ class TelegramCommandHandler:
         except Exception as e:
             return f"⚠️ disarm failed: {e}"
 
-    def _cmd_kill(self, _="") -> str:
+    def _cmd_kill(self, text: str = "") -> str:
+        # 2026-08-19: /kill used to close ALL open positions on a single
+        # message with zero confirmation -- one fat-fingered or misdirected
+        # message instantly liquidated everything. The existing owner-only
+        # chat gate (line ~636) already blocks unauthorized senders; this
+        # protects the legitimate owner from an accidental send. Requires a
+        # second explicit "/kill CONFIRM" within 60 seconds.
         try:
             bot = self.bot_ref
             if not bot: return "⚠️ No bot ref"
+
+            parts = str(text or "").strip().split(maxsplit=1)
+            confirming = len(parts) > 1 and parts[1].strip().upper() == "CONFIRM"
+
+            if not confirming:
+                self._kill_pending_at = time.time()
+                open_count = len(bot.live_engine.trade_manager.open_trades)
+                return (
+                    f"🚨 <b>CONFIRM KILL SWITCH</b>\n"
+                    f"This will close ALL {open_count} open position(s) immediately.\n"
+                    f"Reply <code>/kill CONFIRM</code> within 60s to proceed."
+                )
+
+            pending_at = getattr(self, "_kill_pending_at", 0.0)
+            if not pending_at or (time.time() - pending_at) > 60:
+                return "⚠️ Kill confirmation expired or not requested — send /kill again first."
+            self._kill_pending_at = 0.0
+
             n = bot.live_engine.trade_manager.close_all_trades(reason="telegram_kill")
             return f"🚨 <b>KILL SWITCH</b>\nClosed {n} positions via Telegram command."
         except Exception as e:
