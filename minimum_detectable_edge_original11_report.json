@@ -7,6 +7,10 @@
     "net_std": 2553.865004708021,
     "mde_gross": 753.29,
     "mde_net": 757.99,
+    "net_mean_ci_95": [
+      -602.95,
+      473.0
+    ],
     "verdict": "INSUFFICIENT_POWER",
     "reason": "|net_mean|=65 < MDE=758 at n=89"
   },
@@ -18,6 +22,10 @@
     "net_std": 2063.717375703377,
     "mde_gross": 728.01,
     "mde_net": 728.01,
+    "net_mean_ci_95": [
+      -193.26,
+      846.22
+    ],
     "verdict": "INSUFFICIENT_POWER",
     "reason": "|net_mean|=326 < MDE=728 at n=63"
   },
@@ -29,6 +37,10 @@
     "net_std": 2401.153660191807,
     "mde_gross": 746.98,
     "mde_net": 747.03,
+    "net_mean_ci_95": [
+      -785.11,
+      276.77
+    ],
     "verdict": "INSUFFICIENT_POWER",
     "reason": "|net_mean|=254 < MDE=747 at n=81"
   },
@@ -40,6 +52,10 @@
     "net_std": 2055.031591632792,
     "mde_gross": 481.16,
     "mde_net": 481.18,
+    "net_mean_ci_95": [
+      -987.32,
+      -307.89
+    ],
     "verdict": "NO_EDGE",
     "reason": "gross return itself is not detectably positive -- no signal to erode"
   },
@@ -51,6 +67,10 @@
     "net_std": 896.1049961292356,
     "mde_gross": 164.37,
     "mde_net": 164.38,
+    "net_mean_ci_95": [
+      -1740.89,
+      -1509.56
+    ],
     "verdict": "NO_EDGE",
     "reason": "gross return itself is not detectably positive -- no signal to erode"
   },
@@ -62,6 +82,10 @@
     "net_std": 1935.745539444846,
     "mde_gross": 625.72,
     "mde_net": 625.86,
+    "net_mean_ci_95": [
+      -1975.56,
+      -1084.81
+    ],
     "verdict": "NO_EDGE",
     "reason": "gross return itself is not detectably positive -- no signal to erode"
   },
@@ -73,24 +97,31 @@
     "net_std": 1828.9685043677446,
     "mde_gross": 772.04,
     "mde_net": 772.04,
+    "net_mean_ci_95": [
+      -1426.27,
+      -314.16
+    ],
     "verdict": "NO_EDGE",
     "reason": "gross return itself is not detectably positive -- no signal to erode"
   },
   "orb": {
     "n": 0,
     "mde": null,
+    "net_mean_ci_95": null,
     "verdict": "INSUFFICIENT_POWER",
     "reason": "n=0 < minimum 30 trades"
   },
   "vwap_reversion": {
     "n": 0,
     "mde": null,
+    "net_mean_ci_95": null,
     "verdict": "INSUFFICIENT_POWER",
     "reason": "n=0 < minimum 30 trades"
   },
   "supertrend_mtf": {
     "n": 0,
     "mde": null,
+    "net_mean_ci_95": null,
     "verdict": "INSUFFICIENT_POWER",
     "reason": "n=0 < minimum 30 trades"
   }

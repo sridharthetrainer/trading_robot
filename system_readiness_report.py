@@ -188,6 +188,11 @@ def build_system_readiness_report(
         warnings.append("option_chain_snapshot_stale_market_day")
     if float(fill.get("fill_latency_coverage_pct", 0.0) or 0.0) < 80 and int(fill.get("live", 0) or 0) > 0:
         warnings.append("live_fill_latency_coverage_low")
+    # Any explicit watchdog failure is a live-admission failure.  A numeric
+    # threshold here previously allowed known-stale candle groups to remain a
+    # warning merely because there were fewer than 20 of them.
+    if not bool(quality.get("ok", False)):
+        blocks.append("candle_quality_watchdog_failed")
     if int(quality.get("bad_groups", 0) or 0) > 20:
         warnings.append("candle_quality_bad_groups_high")
     if int(quality.get("stale_groups", 0) or 0) > 20:

@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-09T08:47:35",
-  "overall_wr": 0.3,
-  "n_signals": 427,
+  "version": "2026-08-20T16:02:21",
+  "overall_wr": 0.333,
+  "n_signals": 384,
   "training_contract": "all_generated_signals_v4_causal_representations",
   "model_promoted": false,
   "active": false,
@@ -11,404 +11,404 @@
   "boosts": [],
   "candidate_filters": [
     {
-      "id": "strategy_failed_bull_breakout",
-      "description": "strategy failed_bull_breakout \u2192 loss rate 100%",
+      "id": "strategy\u00d7htf_bias_enc_breakout_\u00d7_0.0",
+      "description": "strategy\u00d7htf_bias_enc breakout \u00d7 0.0 \u2192 loss rate 81%",
       "condition": {
-        "feature": "strategy",
-        "eq": "failed_bull_breakout"
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "breakout \u00d7 0.0"
       },
       "mult": 0.2,
       "evidence": {
         "n": 16,
-        "loss_rate": 1.0
+        "loss_rate": 0.812
       }
     },
     {
-      "id": "side_SELL",
-      "description": "side SELL \u2192 loss rate 90%",
-      "condition": {
-        "feature": "side",
-        "eq": "SELL"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 165,
-        "loss_rate": 0.903
-      }
-    },
-    {
-      "id": "strategy\u00d7htf_bias_enc_breakout_\u00d7_-1.0",
-      "description": "strategy\u00d7htf_bias_enc breakout \u00d7 -1.0 \u2192 loss rate 83%",
+      "id": "strategy\u00d7htf_bias_enc_failed_bear_breako",
+      "description": "strategy\u00d7htf_bias_enc failed_bear_breakout \u00d7 -1.0 \u2192 loss rate 80%",
       "condition": {
         "feature": "strategy\u00d7htf_bias_enc",
-        "eq": "breakout \u00d7 -1.0"
+        "eq": "failed_bear_breakout \u00d7 -1.0"
       },
       "mult": 0.2,
       "evidence": {
-        "n": 18,
-        "loss_rate": 0.833
+        "n": 20,
+        "loss_rate": 0.8
       }
     },
     {
-      "id": "strategy_donchian_breakout",
-      "description": "strategy donchian_breakout \u2192 loss rate 83%",
-      "condition": {
-        "feature": "strategy",
-        "eq": "donchian_breakout"
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 23,
-        "loss_rate": 0.826
-      }
-    },
-    {
-      "id": "flag_htf_aligned_0",
-      "description": "flag_htf_aligned 0 \u2192 loss rate 81%",
-      "condition": {
-        "feature": "htf_aligned",
-        "eq": 0.0
-      },
-      "mult": 0.2,
-      "evidence": {
-        "n": 206,
-        "loss_rate": 0.806
-      }
-    },
-    {
-      "id": "hour_of_day_HIGH_(>13.00)",
-      "description": "hour_of_day HIGH (>13.00) \u2192 loss rate 79%",
-      "condition": {
-        "feature": "hour_of_day",
-        "gt": 13.0
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 142,
-        "loss_rate": 0.789
-      }
-    },
-    {
-      "id": "flag_close_session_1",
-      "description": "flag_close_session 1 \u2192 loss rate 79%",
-      "condition": {
-        "feature": "close_session",
-        "eq": 1.0
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 142,
-        "loss_rate": 0.789
-      }
-    },
-    {
-      "id": "strategy\u00d7regime_enc_elder_triple_screen_",
-      "description": "strategy\u00d7regime_enc elder_triple_screen \u00d7 0.0 \u2192 loss rate 78%",
-      "condition": {
-        "feature": "strategy\u00d7regime_enc",
-        "eq": "elder_triple_screen \u00d7 0.0"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 23,
-        "loss_rate": 0.783
-      }
-    },
-    {
-      "id": "volume_ratio_MID_(0.60\u20131.51)",
-      "description": "volume_ratio MID (0.60\u20131.51) \u2192 loss rate 77%",
-      "condition": {
-        "feature": "volume_ratio",
-        "eq": "MID (0.60\u20131.51)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 146,
-        "loss_rate": 0.774
-      }
-    },
-    {
-      "id": "pct_from_w_r1_HIGH_(>-0.26)",
-      "description": "pct_from_w_r1 HIGH (>-0.26) \u2192 loss rate 77%",
-      "condition": {
-        "feature": "pct_from_w_r1",
-        "eq": "HIGH (>-0.26)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 142,
-        "loss_rate": 0.768
-      }
-    },
-    {
-      "id": "fii_cum_5d_MID_(-15496.74\u2013-12611.21)",
-      "description": "fii_cum_5d MID (-15496.74\u2013-12611.21) \u2192 loss rate 76%",
-      "condition": {
-        "feature": "fii_cum_5d",
-        "eq": "MID (-15496.74\u2013-12611.21)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 75,
-        "loss_rate": 0.76
-      }
-    },
-    {
-      "id": "score_HIGH_(>12.52)",
-      "description": "score HIGH (>12.52) \u2192 loss rate 75%",
-      "condition": {
-        "feature": "score",
-        "gt": 12.52
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 142,
-        "loss_rate": 0.754
-      }
-    },
-    {
-      "id": "score_boost_HIGH_(>5.86)",
-      "description": "score_boost HIGH (>5.86) \u2192 loss rate 75%",
-      "condition": {
-        "feature": "score_boost",
-        "gt": 5.86
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 142,
-        "loss_rate": 0.754
-      }
-    },
-    {
-      "id": "pct_from_m_r1_HIGH_(>-0.71)",
-      "description": "pct_from_m_r1 HIGH (>-0.71) \u2192 loss rate 74%",
+      "id": "pct_from_m_r1_HIGH_(>-0.63)",
+      "description": "pct_from_m_r1 HIGH (>-0.63) \u2192 loss rate 79%",
       "condition": {
         "feature": "pct_from_m_r1",
-        "eq": "HIGH (>-0.71)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 142,
-        "loss_rate": 0.739
-      }
-    },
-    {
-      "id": "raw_score_HIGH_(>7.50)",
-      "description": "raw_score HIGH (>7.50) \u2192 loss rate 74%",
-      "condition": {
-        "feature": "raw_score",
-        "gt": 7.5
+        "eq": "HIGH (>-0.63)"
       },
       "mult": 0.35,
       "evidence": {
         "n": 126,
-        "loss_rate": 0.738
+        "loss_rate": 0.794
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_ma_cross_\u00d7_0.0",
+      "description": "strategy\u00d7regime_enc ma_cross \u00d7 0.0 \u2192 loss rate 79%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "ma_cross \u00d7 0.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 24,
+        "loss_rate": 0.792
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_breakout_\u00d7_0.0",
+      "description": "strategy\u00d7regime_enc breakout \u00d7 0.0 \u2192 loss rate 79%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "breakout \u00d7 0.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 28,
+        "loss_rate": 0.786
       }
     },
     {
       "id": "n_net_agree_HIGH_(>10.00)",
-      "description": "n_net_agree HIGH (>10.00) \u2192 loss rate 74%",
+      "description": "n_net_agree HIGH (>10.00) \u2192 loss rate 78%",
       "condition": {
         "feature": "n_net_agree",
         "gt": 10.0
       },
       "mult": 0.35,
       "evidence": {
-        "n": 137,
-        "loss_rate": 0.737
-      }
-    },
-    {
-      "id": "raw_score_LOW_(<6.50)",
-      "description": "raw_score LOW (<6.50) \u2192 loss rate 74%",
-      "condition": {
-        "feature": "raw_score",
-        "lt": 6.5
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 204,
-        "loss_rate": 0.735
-      }
-    },
-    {
-      "id": "flag_euro_open_window_1",
-      "description": "flag_euro_open_window 1 \u2192 loss rate 73%",
-      "condition": {
-        "feature": "euro_open_window",
-        "eq": 1.0
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 26,
-        "loss_rate": 0.731
-      }
-    },
-    {
-      "id": "expiry_dte_MID_(1.00\u20136.00)",
-      "description": "expiry_dte MID (1.00\u20136.00) \u2192 loss rate 73%",
-      "condition": {
-        "feature": "expiry_dte",
-        "eq": "MID (1.00\u20136.00)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 202,
-        "loss_rate": 0.728
-      }
-    },
-    {
-      "id": "flag_near_expiry_0",
-      "description": "flag_near_expiry 0 \u2192 loss rate 73%",
-      "condition": {
-        "feature": "near_expiry",
-        "eq": 0.0
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 202,
-        "loss_rate": 0.728
-      }
-    },
-    {
-      "id": "flag_open_session_1",
-      "description": "flag_open_session 1 \u2192 loss rate 73%",
-      "condition": {
-        "feature": "open_session",
-        "eq": 1.0
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 114,
-        "loss_rate": 0.728
-      }
-    },
-    {
-      "id": "score_boost_pct_HIGH_(>0.84)",
-      "description": "score_boost_pct HIGH (>0.84) \u2192 loss rate 72%",
-      "condition": {
-        "feature": "score_boost_pct",
-        "gt": 0.84
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 142,
-        "loss_rate": 0.725
-      }
-    },
-    {
-      "id": "n_agree_MID_(4.00\u201310.00)",
-      "description": "n_agree MID (4.00\u201310.00) \u2192 loss rate 72%",
-      "condition": {
-        "feature": "n_agree",
-        "eq": "MID (4.00\u201310.00)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 119,
-        "loss_rate": 0.723
+        "n": 122,
+        "loss_rate": 0.779
       }
     },
     {
       "id": "n_agree_HIGH_(>10.00)",
-      "description": "n_agree HIGH (>10.00) \u2192 loss rate 72%",
+      "description": "n_agree HIGH (>10.00) \u2192 loss rate 78%",
       "condition": {
         "feature": "n_agree",
         "gt": 10.0
       },
       "mult": 0.35,
       "evidence": {
-        "n": 141,
-        "loss_rate": 0.723
+        "n": 126,
+        "loss_rate": 0.778
       }
     },
     {
-      "id": "day_of_week_MID_(0.00\u20132.00)",
-      "description": "day_of_week MID (0.00\u20132.00) \u2192 loss rate 72%",
-      "condition": {
-        "feature": "day_of_week",
-        "eq": "MID (0.00\u20132.00)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 238,
-        "loss_rate": 0.718
-      }
-    },
-    {
-      "id": "ai_score_MID_(0.03\u20130.50)",
-      "description": "ai_score MID (0.03\u20130.50) \u2192 loss rate 71%",
-      "condition": {
-        "feature": "ai_score",
-        "eq": "MID (0.03\u20130.50)"
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 283,
-        "loss_rate": 0.714
-      }
-    },
-    {
-      "id": "volume_ratio_LOW_(<0.60)",
-      "description": "volume_ratio LOW (<0.60) \u2192 loss rate 71%",
-      "condition": {
-        "feature": "volume_ratio",
-        "lt": 0.6
-      },
-      "mult": 0.35,
-      "evidence": {
-        "n": 146,
-        "loss_rate": 0.712
-      }
-    },
-    {
-      "id": "pct_from_w_r1_MID_(-0.71\u2013-0.26)",
-      "description": "pct_from_w_r1 MID (-0.71\u2013-0.26) \u2192 loss rate 71%",
+      "id": "pct_from_w_r1_HIGH_(>-0.17)",
+      "description": "pct_from_w_r1 HIGH (>-0.17) \u2192 loss rate 77%",
       "condition": {
         "feature": "pct_from_w_r1",
-        "eq": "MID (-0.71\u2013-0.26)"
+        "eq": "HIGH (>-0.17)"
       },
       "mult": 0.35,
       "evidence": {
-        "n": 142,
+        "n": 127,
+        "loss_rate": 0.772
+      }
+    },
+    {
+      "id": "flag_vol_thin_1",
+      "description": "flag_vol_thin 1 \u2192 loss rate 77%",
+      "condition": {
+        "feature": "vol_thin",
+        "eq": 1.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 26,
+        "loss_rate": 0.769
+      }
+    },
+    {
+      "id": "strategy\u00d7regime_enc_failed_bear_breakout",
+      "description": "strategy\u00d7regime_enc failed_bear_breakout \u00d7 2.0 \u2192 loss rate 76%",
+      "condition": {
+        "feature": "strategy\u00d7regime_enc",
+        "eq": "failed_bear_breakout \u00d7 2.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 46,
+        "loss_rate": 0.761
+      }
+    },
+    {
+      "id": "strategy_ma_cross",
+      "description": "strategy ma_cross \u2192 loss rate 76%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "ma_cross"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 33,
+        "loss_rate": 0.758
+      }
+    },
+    {
+      "id": "flag_htf_aligned_0",
+      "description": "flag_htf_aligned 0 \u2192 loss rate 75%",
+      "condition": {
+        "feature": "htf_aligned",
+        "eq": 0.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 182,
+        "loss_rate": 0.753
+      }
+    },
+    {
+      "id": "strategy_donchian_breakout",
+      "description": "strategy donchian_breakout \u2192 loss rate 75%",
+      "condition": {
+        "feature": "strategy",
+        "eq": "donchian_breakout"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 20,
+        "loss_rate": 0.75
+      }
+    },
+    {
+      "id": "volume_ratio_MID_(0.88\u20131.97)",
+      "description": "volume_ratio MID (0.88\u20131.97) \u2192 loss rate 75%",
+      "condition": {
+        "feature": "volume_ratio",
+        "eq": "MID (0.88\u20131.97)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 123,
+        "loss_rate": 0.748
+      }
+    },
+    {
+      "id": "day_of_week_HIGH_(>3.00)",
+      "description": "day_of_week HIGH (>3.00) \u2192 loss rate 72%",
+      "condition": {
+        "feature": "day_of_week",
+        "gt": 3.0
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 120,
+        "loss_rate": 0.725
+      }
+    },
+    {
+      "id": "score_boost_pct_MID_(0.50\u20131.08)",
+      "description": "score_boost_pct MID (0.50\u20131.08) \u2192 loss rate 72%",
+      "condition": {
+        "feature": "score_boost_pct",
+        "eq": "MID (0.50\u20131.08)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 128,
+        "loss_rate": 0.719
+      }
+    },
+    {
+      "id": "india_vix_LOW_(<11.68)",
+      "description": "india_vix LOW (<11.68) \u2192 loss rate 72%",
+      "condition": {
+        "feature": "india_vix",
+        "lt": 11.68
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 135,
+        "loss_rate": 0.719
+      }
+    },
+    {
+      "id": "score_boost_MID_(3.50\u20136.60)",
+      "description": "score_boost MID (3.50\u20136.60) \u2192 loss rate 71%",
+      "condition": {
+        "feature": "score_boost",
+        "eq": "MID (3.50\u20136.60)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 128,
         "loss_rate": 0.711
       }
     },
     {
-      "id": "pct_from_m_r1_LOW_(<-1.68)",
-      "description": "pct_from_m_r1 LOW (<-1.68) \u2192 loss rate 71%",
+      "id": "rl_bias_MID_(0.00\u20130.01)",
+      "description": "rl_bias MID (0.00\u20130.01) \u2192 loss rate 71%",
       "condition": {
-        "feature": "pct_from_m_r1",
-        "eq": "LOW (<-1.68)"
+        "feature": "rl_bias",
+        "eq": "MID (0.00\u20130.01)"
       },
       "mult": 0.35,
       "evidence": {
-        "n": 145,
-        "loss_rate": 0.71
+        "n": 152,
+        "loss_rate": 0.711
       }
     },
     {
-      "id": "india_vix_LOW_(<12.17)",
-      "description": "india_vix LOW (<12.17) \u2192 loss rate 71%",
+      "id": "raw_score_HIGH_(>7.50)",
+      "description": "raw_score HIGH (>7.50) \u2192 loss rate 71%",
       "condition": {
-        "feature": "india_vix",
-        "lt": 12.17
+        "feature": "raw_score",
+        "gt": 7.5
       },
       "mult": 0.35,
       "evidence": {
-        "n": 165,
-        "loss_rate": 0.709
+        "n": 109,
+        "loss_rate": 0.706
+      }
+    },
+    {
+      "id": "strategy\u00d7htf_bias_enc_ma_cross_\u00d7_-1.0",
+      "description": "strategy\u00d7htf_bias_enc ma_cross \u00d7 -1.0 \u2192 loss rate 71%",
+      "condition": {
+        "feature": "strategy\u00d7htf_bias_enc",
+        "eq": "ma_cross \u00d7 -1.0"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 17,
+        "loss_rate": 0.706
+      }
+    },
+    {
+      "id": "score_MID_(10.43\u201313.63)",
+      "description": "score MID (10.43\u201313.63) \u2192 loss rate 70%",
+      "condition": {
+        "feature": "score",
+        "eq": "MID (10.43\u201313.63)"
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 128,
+        "loss_rate": 0.703
+      }
+    },
+    {
+      "id": "score_HIGH_(>13.63)",
+      "description": "score HIGH (>13.63) \u2192 loss rate 70%",
+      "condition": {
+        "feature": "score",
+        "gt": 13.63
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 127,
+        "loss_rate": 0.701
+      }
+    },
+    {
+      "id": "score_boost_HIGH_(>6.60)",
+      "description": "score_boost HIGH (>6.60) \u2192 loss rate 70%",
+      "condition": {
+        "feature": "score_boost",
+        "gt": 6.6
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 127,
+        "loss_rate": 0.701
+      }
+    },
+    {
+      "id": "score_boost_pct_HIGH_(>1.08)",
+      "description": "score_boost_pct HIGH (>1.08) \u2192 loss rate 70%",
+      "condition": {
+        "feature": "score_boost_pct",
+        "gt": 1.08
+      },
+      "mult": 0.35,
+      "evidence": {
+        "n": 127,
+        "loss_rate": 0.701
+      }
+    },
+    {
+      "id": "flag_close_session_1",
+      "description": "flag_close_session 1 \u2192 loss rate 70%",
+      "condition": {
+        "feature": "close_session",
+        "eq": 1.0
+      },
+      "mult": 0.45,
+      "evidence": {
+        "n": 129,
+        "loss_rate": 0.698
+      }
+    },
+    {
+      "id": "fii_cum_5d_LOW_(<2829.21)",
+      "description": "fii_cum_5d LOW (<2829.21) \u2192 loss rate 70%",
+      "condition": {
+        "feature": "fii_cum_5d",
+        "lt": 2829.21
+      },
+      "mult": 0.45,
+      "evidence": {
+        "n": 254,
+        "loss_rate": 0.697
+      }
+    },
+    {
+      "id": "flag_open_session_1",
+      "description": "flag_open_session 1 \u2192 loss rate 70%",
+      "condition": {
+        "feature": "open_session",
+        "eq": 1.0
+      },
+      "mult": 0.45,
+      "evidence": {
+        "n": 66,
+        "loss_rate": 0.697
+      }
+    },
+    {
+      "id": "flag_near_expiry_0",
+      "description": "flag_near_expiry 0 \u2192 loss rate 70%",
+      "condition": {
+        "feature": "near_expiry",
+        "eq": 0.0
+      },
+      "mult": 0.45,
+      "evidence": {
+        "n": 293,
+        "loss_rate": 0.696
+      }
+    },
+    {
+      "id": "side_SELL",
+      "description": "side SELL \u2192 loss rate 70%",
+      "condition": {
+        "feature": "side",
+        "eq": "SELL"
+      },
+      "mult": 0.45,
+      "evidence": {
+        "n": 141,
+        "loss_rate": 0.695
       }
     }
   ],
   "candidate_boosts": [],
-  "ml_model_auc": 0.7625,
+  "ml_model_auc": 0.7891,
   "forward_validation": {
-    "validated": 88,
+    "validated": 142,
     "promoted_filters": 0,
     "promoted_boosts": 0,
-    "ledger_size": 172,
+    "ledger_size": 251,
     "skipped": 0,
-    "alpha_corrected": 0.000568
+    "alpha_corrected": 0.000352
   }
 }

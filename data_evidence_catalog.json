@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-29T21:02:37+0530",
+  "generated_at": "2026-08-18T20:35:45+0530",
   "policy": {
     "preserve_all_rows": true,
     "legacy_data_role": "research_only_until_source_and_timing_are_verified",
     "promotion_rule": "only row-level verified live provenance may unlock live trading"
   },
-  "database_count": 22,
-  "table_count": 45,
-  "total_rows": 7888931,
-  "total_bytes": 1520992256,
+  "database_count": 23,
+  "table_count": 46,
+  "total_rows": 15714813,
+  "total_bytes": 2912608256,
   "ok": true,
   "issues": [],
   "empty_databases": [
@@ -20,12 +20,12 @@
   "databases": [
     {
       "path": "candle_cache.db",
-      "bytes": 782422016,
+      "bytes": 1037393920,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "cache_meta",
-          "rows": 970,
+          "rows": 987,
           "columns": [
             "symbol",
             "interval",
@@ -35,7 +35,7 @@
         },
         {
           "name": "candles",
-          "rows": 4044289,
+          "rows": 5346272,
           "columns": [
             "symbol",
             "interval",
@@ -69,12 +69,12 @@
     },
     {
       "path": "confluence_features.db",
-      "bytes": 24064000,
+      "bytes": 25731072,
       "tier": "DERIVED_RESEARCH",
       "tables": [
         {
           "name": "confluence_features",
-          "rows": 32656,
+          "rows": 35009,
           "columns": [
             "signal_id",
             "log_time",
@@ -134,12 +134,12 @@
     },
     {
       "path": "eod_signal_miner.db",
-      "bytes": 52899840,
+      "bytes": 56094720,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "eod_mined_candidates",
-          "rows": 178856,
+          "rows": 189494,
           "columns": [
             "symbol",
             "candidate_time",
@@ -161,12 +161,12 @@
     },
     {
       "path": "experiments.db",
-      "bytes": 12288,
+      "bytes": 24576,
       "tier": "DERIVED_RESEARCH",
       "tables": [
         {
           "name": "experiments",
-          "rows": 18,
+          "rows": 46,
           "columns": [
             "config_hash",
             "strategy",
@@ -189,6 +189,30 @@
       "quick_check": "ok"
     },
     {
+      "path": "external_backtest_data.db",
+      "bytes": 455041024,
+      "tier": "RAW_OR_OPERATIONAL",
+      "tables": [
+        {
+          "name": "candles",
+          "rows": 2008191,
+          "columns": [
+            "symbol",
+            "source",
+            "interval",
+            "timestamp",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume"
+          ]
+        }
+      ],
+      "ok": true,
+      "quick_check": "ok"
+    },
+    {
       "path": "historical_options.db",
       "bytes": 0,
       "tier": "RESEARCH_REPLAY",
@@ -199,12 +223,12 @@
     },
     {
       "path": "manual_learning.db",
-      "bytes": 24576,
+      "bytes": 28672,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "outcomes",
-          "rows": 64,
+          "rows": 89,
           "columns": [
             "id",
             "order_id",
@@ -232,12 +256,12 @@
     },
     {
       "path": "manual_trades.db",
-      "bytes": 45056,
+      "bytes": 65536,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "manual_trade_updates",
-          "rows": 236,
+          "rows": 263,
           "columns": [
             "id",
             "order_id",
@@ -251,7 +275,7 @@
         },
         {
           "name": "manual_trades",
-          "rows": 7,
+          "rows": 42,
           "columns": [
             "id",
             "order_id",
@@ -294,12 +318,12 @@
     },
     {
       "path": "market_profile_snapshots.db",
-      "bytes": 64909312,
+      "bytes": 147435520,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "market_profile_snapshots",
-          "rows": 159640,
+          "rows": 360427,
           "columns": [
             "id",
             "snapshot_date",
@@ -331,12 +355,12 @@
     },
     {
       "path": "market_snapshots.db",
-      "bytes": 126976,
+      "bytes": 159744,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "market_snapshots",
-          "rows": 336,
+          "rows": 434,
           "columns": [
             "ts",
             "snapshot_time",
@@ -357,12 +381,12 @@
     },
     {
       "path": "nse_cache.db",
-      "bytes": 18087936,
+      "bytes": 537231360,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "ohlcv",
-          "rows": 152074,
+          "rows": 4377304,
           "columns": [
             "symbol",
             "date",
@@ -379,12 +403,12 @@
     },
     {
       "path": "option_chain_snapshots.db",
-      "bytes": 78487552,
+      "bytes": 144523264,
       "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
       "tables": [
         {
           "name": "option_chain_snapshots",
-          "rows": 4217,
+          "rows": 7954,
           "columns": [
             "ts",
             "snapshot_time",
@@ -406,7 +430,7 @@
         },
         {
           "name": "option_strike_signals",
-          "rows": 39339,
+          "rows": 72409,
           "columns": [
             "ts",
             "snapshot_time",
@@ -477,12 +501,12 @@
     },
     {
       "path": "option_structure_training.db",
-      "bytes": 749568,
+      "bytes": 778240,
       "tier": "DERIVED_RESEARCH",
       "tables": [
         {
           "name": "option_structure_legs",
-          "rows": 800,
+          "rows": 830,
           "columns": [
             "id",
             "run_date",
@@ -532,12 +556,12 @@
     },
     {
       "path": "options_nifty.db",
-      "bytes": 450334720,
+      "bytes": 454172672,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "options_eod",
-          "rows": 3179957,
+          "rows": 3205793,
           "columns": [
             "date",
             "expiry",
@@ -555,12 +579,12 @@
     },
     {
       "path": "participant_oi.db",
-      "bytes": 1101824,
+      "bytes": 1105920,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "nifty_daily",
-          "rows": 1623,
+          "rows": 1638,
           "columns": [
             "date",
             "close"
@@ -568,7 +592,7 @@
         },
         {
           "name": "participant_oi",
-          "rows": 8125,
+          "rows": 8190,
           "columns": [
             "date",
             "client_type",
@@ -594,12 +618,12 @@
     },
     {
       "path": "runtime_telemetry.db",
-      "bytes": 2396160,
+      "bytes": 3874816,
       "tier": "RAW_OR_OPERATIONAL",
       "tables": [
         {
           "name": "api_failures",
-          "rows": 1254,
+          "rows": 2595,
           "columns": [
             "id",
             "occurred_at",
@@ -643,7 +667,7 @@
         },
         {
           "name": "cumulative_summary",
-          "rows": 330,
+          "rows": 515,
           "columns": [
             "window_days",
             "generated_at",
@@ -652,7 +676,7 @@
         },
         {
           "name": "daily_summary",
-          "rows": 28,
+          "rows": 42,
           "columns": [
             "session_date",
             "generated_at",
@@ -771,7 +795,7 @@
         },
         {
           "name": "strategy_statistics",
-          "rows": 7684,
+          "rows": 12191,
           "columns": [
             "strategy",
             "window_days",
@@ -831,12 +855,12 @@
     },
     {
       "path": "signal_log.db",
-      "bytes": 40341504,
+      "bytes": 43560960,
       "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
       "tables": [
         {
           "name": "intraday_oi_snapshots",
-          "rows": 5943,
+          "rows": 7896,
           "columns": [
             "id",
             "timestamp",
@@ -854,7 +878,7 @@
         },
         {
           "name": "macro_global_sentiment",
-          "rows": 83,
+          "rows": 100,
           "columns": [
             "id",
             "timestamp",
@@ -886,7 +910,7 @@
         },
         {
           "name": "signal_log",
-          "rows": 32656,
+          "rows": 35009,
           "columns": [
             "id",
             "log_time",
@@ -1105,12 +1129,12 @@
     },
     {
       "path": "trades.db",
-      "bytes": 4947968,
+      "bytes": 5345280,
       "tier": "MIXED_PROVENANCE_QUERY_ROW_FLAGS",
       "tables": [
         {
           "name": "bot_events",
-          "rows": 1203,
+          "rows": 1350,
           "columns": [
             "id",
             "created_at",
@@ -1121,7 +1145,7 @@
         },
         {
           "name": "eod_indicator_weights",
-          "rows": 333,
+          "rows": 403,
           "columns": [
             "date",
             "indicator",
@@ -1137,7 +1161,7 @@
         },
         {
           "name": "eod_ml_feedback",
-          "rows": 1762,
+          "rows": 1928,
           "columns": [
             "id",
             "date",
@@ -1153,7 +1177,7 @@
         },
         {
           "name": "eod_strategy_weights",
-          "rows": 3326,
+          "rows": 3965,
           "columns": [
             "date",
             "strategy",
@@ -1172,7 +1196,7 @@
         },
         {
           "name": "fii_dii_data",
-          "rows": 28,
+          "rows": 35,
           "columns": [
             "id",
             "date",
@@ -1191,7 +1215,7 @@
         },
         {
           "name": "strategy_scores",
-          "rows": 28148,
+          "rows": 30466,
           "columns": [
             "id",
             "timestamp",

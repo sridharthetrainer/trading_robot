@@ -1,104 +1,301 @@
 {
-  "report_date": "2026-08-05",
-  "generated_at": "2026-08-09T08:45:27.054596",
+  "report_date": "2026-08-17",
+  "generated_at": "2026-08-21T15:45:08.564955",
   "n_days_in_window": 5,
   "lookback_days": 5,
-  "total_signals": 427,
-  "active_strategies": 70,
+  "total_signals": 281,
+  "active_strategies": 31,
   "pause_candidates": [
-    "failed_bear_breakout"
+    "breakout"
   ],
   "promote_candidates": [],
   "strategies": {
-    "failed_bull_breakout": {
-      "strategy": "failed_bull_breakout",
-      "n_total": 16,
+    "breakout": {
+      "strategy": "breakout",
+      "n_total": 75,
+      "n_today": 10,
+      "today_wr": 0.6,
+      "roll_wr": 0.36,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          0.3158,
+          19
+        ],
+        [
+          "2026-08-11",
+          0.6154,
+          13
+        ],
+        [
+          "2026-08-13",
+          0.2857,
+          7
+        ],
+        [
+          "2026-08-14",
+          0.1923,
+          26
+        ],
+        [
+          "2026-08-17",
+          0.6,
+          10
+        ]
+      ],
+      "n_days": 5
+    },
+    "failed_bear_breakout": {
+      "strategy": "failed_bear_breakout",
+      "n_total": 28,
+      "n_today": 10,
+      "today_wr": 0.1,
+      "roll_wr": 0.3214,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          0.5,
+          6
+        ],
+        [
+          "2026-08-11",
+          0.4286,
+          7
+        ],
+        [
+          "2026-08-13",
+          0.25,
+          4
+        ],
+        [
+          "2026-08-14",
+          1.0,
+          1
+        ],
+        [
+          "2026-08-17",
+          0.1,
+          10
+        ]
+      ],
+      "n_days": 5
+    },
+    "ma_cross": {
+      "strategy": "ma_cross",
+      "n_total": 21,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.2381,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          0.125,
+          8
+        ],
+        [
+          "2026-08-11",
+          0.25,
+          4
+        ],
+        [
+          "2026-08-13",
+          0.0,
+          1
+        ],
+        [
+          "2026-08-14",
+          0.3333,
+          6
+        ],
+        [
+          "2026-08-17",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 5
+    },
+    "candlestick_tweezer_bottom": {
+      "strategy": "candlestick_tweezer_bottom",
+      "n_total": 1,
       "n_today": 0,
       "today_wr": null,
       "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-07-27",
+          "2026-08-07",
           0.0,
-          16
+          1
         ]
       ],
       "n_days": 1
     },
-    "failed_bear_breakout": {
-      "strategy": "failed_bear_breakout",
-      "n_total": 46,
-      "n_today": 29,
-      "today_wr": 0.2414,
-      "roll_wr": 0.3043,
-      "trend": "\u2193",
+    "candlestick_three_white_soldiers": {
+      "strategy": "candlestick_three_white_soldiers",
+      "n_total": 10,
+      "n_today": 3,
+      "today_wr": 1.0,
+      "roll_wr": 0.5,
+      "trend": "\u2191",
       "day_wrs": [
         [
-          "2026-07-27",
-          0.4286,
-          7
+          "2026-08-07",
+          0.0,
+          3
         ],
         [
-          "2026-07-28",
-          1.0,
-          1
-        ],
-        [
-          "2026-07-29",
-          0.2857,
-          7
-        ],
-        [
-          "2026-07-30",
+          "2026-08-13",
           0.5,
-          2
+          4
         ],
         [
-          "2026-08-05",
-          0.2414,
-          29
-        ]
-      ],
-      "n_days": 5
-    },
-    "gap_fill": {
-      "strategy": "gap_fill",
-      "n_total": 5,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.2,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-27",
+          "2026-08-17",
           1.0,
-          1
-        ],
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ],
-        [
-          "2026-07-29",
-          0.0,
           3
         ]
       ],
       "n_days": 3
     },
-    "candlestick_evening_star": {
-      "strategy": "candlestick_evening_star",
-      "n_total": 2,
+    "candlestick_bullish_engulfing": {
+      "strategy": "candlestick_bullish_engulfing",
+      "n_total": 18,
+      "n_today": 3,
+      "today_wr": 0.0,
+      "roll_wr": 0.3333,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          0.3333,
+          3
+        ],
+        [
+          "2026-08-11",
+          0.6,
+          5
+        ],
+        [
+          "2026-08-13",
+          0.3333,
+          6
+        ],
+        [
+          "2026-08-14",
+          0.0,
+          1
+        ],
+        [
+          "2026-08-17",
+          0.0,
+          3
+        ]
+      ],
+      "n_days": 5
+    },
+    "candlestick_ladder_bottom": {
+      "strategy": "candlestick_ladder_bottom",
+      "n_total": 1,
       "n_today": 0,
       "today_wr": null,
       "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-07-27",
+          "2026-08-07",
           0.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_shooting_star": {
+      "strategy": "candlestick_shooting_star",
+      "n_total": 7,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.4286,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          0.3333,
+          3
+        ],
+        [
+          "2026-08-11",
+          0.0,
+          1
+        ],
+        [
+          "2026-08-13",
+          0.6667,
+          3
+        ]
+      ],
+      "n_days": 3
+    },
+    "donchian_breakout": {
+      "strategy": "donchian_breakout",
+      "n_total": 4,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.25,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          0.25,
+          4
+        ]
+      ],
+      "n_days": 1
+    },
+    "heikin_ashi": {
+      "strategy": "heikin_ashi",
+      "n_total": 15,
+      "n_today": 6,
+      "today_wr": 0.0,
+      "roll_wr": 0.2667,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          0.6,
+          5
+        ],
+        [
+          "2026-08-11",
+          0.3333,
+          3
+        ],
+        [
+          "2026-08-14",
+          0.0,
+          1
+        ],
+        [
+          "2026-08-17",
+          0.0,
+          6
+        ]
+      ],
+      "n_days": 4
+    },
+    "candlestick_three_river_evening_star": {
+      "strategy": "candlestick_three_river_evening_star",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 1.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-08-07",
+          1.0,
           2
         ]
       ],
@@ -106,764 +303,42 @@
     },
     "elder_triple_screen": {
       "strategy": "elder_triple_screen",
-      "n_total": 48,
-      "n_today": 8,
-      "today_wr": 0.5,
-      "roll_wr": 0.4375,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.5,
-          14
-        ],
-        [
-          "2026-07-28",
-          0.3846,
-          13
-        ],
-        [
-          "2026-07-29",
-          0.3,
-          10
-        ],
-        [
-          "2026-07-30",
-          0.6667,
-          3
-        ],
-        [
-          "2026-08-05",
-          0.5,
-          8
-        ]
-      ],
-      "n_days": 5
-    },
-    "cci_zero_cross": {
-      "strategy": "cci_zero_cross",
-      "n_total": 4,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          4
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_bear_flag": {
-      "strategy": "chart_pattern_bear_flag",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_breakout_retest": {
-      "strategy": "chart_pattern_breakout_retest",
-      "n_total": 2,
-      "n_today": 1,
-      "today_wr": 0.0,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          1
-        ],
-        [
-          "2026-08-05",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 2
-    },
-    "breakout": {
-      "strategy": "breakout",
-      "n_total": 56,
-      "n_today": 16,
-      "today_wr": 0.3125,
-      "roll_wr": 0.4643,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.3333,
-          3
-        ],
-        [
-          "2026-07-28",
-          0.5333,
-          15
-        ],
-        [
-          "2026-07-29",
-          0.5714,
-          14
-        ],
-        [
-          "2026-07-30",
-          0.5,
-          8
-        ],
-        [
-          "2026-08-05",
-          0.3125,
-          16
-        ]
-      ],
-      "n_days": 5
-    },
-    "chart_pattern_falling_wedge": {
-      "strategy": "chart_pattern_falling_wedge",
-      "n_total": 5,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.4,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.6667,
-          3
-        ],
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 3
-    },
-    "chaikin_mf": {
-      "strategy": "chaikin_mf",
-      "n_total": 3,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          2
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 2
-    },
-    "cpr": {
-      "strategy": "cpr",
-      "n_total": 4,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          4
-        ]
-      ],
-      "n_days": 1
-    },
-    "smc": {
-      "strategy": "smc",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_double_bottom": {
-      "strategy": "chart_pattern_double_bottom",
-      "n_total": 4,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          4
-        ]
-      ],
-      "n_days": 1
-    },
-    "cci_trend": {
-      "strategy": "cci_trend",
-      "n_total": 3,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          3
-        ]
-      ],
-      "n_days": 1
-    },
-    "weinstein_stage": {
-      "strategy": "weinstein_stage",
-      "n_total": 7,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          7
-        ]
-      ],
-      "n_days": 1
-    },
-    "ma_cross": {
-      "strategy": "ma_cross",
-      "n_total": 20,
-      "n_today": 9,
-      "today_wr": 0.2222,
-      "roll_wr": 0.35,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.4444,
-          9
-        ],
-        [
-          "2026-07-30",
-          0.5,
-          2
-        ],
-        [
-          "2026-08-05",
-          0.2222,
-          9
-        ]
-      ],
-      "n_days": 3
-    },
-    "ichimoku": {
-      "strategy": "ichimoku",
-      "n_total": 13,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.4615,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.4615,
-          13
-        ]
-      ],
-      "n_days": 1
-    },
-    "supertrend_mtf": {
-      "strategy": "supertrend_mtf",
-      "n_total": 4,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.75,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.75,
-          4
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_ascending_triangle": {
-      "strategy": "chart_pattern_ascending_triangle",
-      "n_total": 13,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.2308,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.2308,
-          13
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_bearish_marubozu": {
-      "strategy": "candlestick_bearish_marubozu",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_cup_and_handle": {
-      "strategy": "chart_pattern_cup_and_handle",
-      "n_total": 5,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.6,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          1.0,
-          3
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 2
-    },
-    "candlestick_spinning_top_black": {
-      "strategy": "candlestick_spinning_top_black",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.5,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.5,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "donchian_breakout": {
-      "strategy": "donchian_breakout",
-      "n_total": 23,
-      "n_today": 15,
-      "today_wr": 0.2667,
-      "roll_wr": 0.1739,
-      "trend": "\u2191",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          2
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          4
-        ],
-        [
-          "2026-07-30",
-          0.0,
-          2
-        ],
-        [
-          "2026-08-05",
-          0.2667,
-          15
-        ]
-      ],
-      "n_days": 4
-    },
-    "candlestick_three_white_soldiers": {
-      "strategy": "candlestick_three_white_soldiers",
-      "n_total": 7,
-      "n_today": 2,
-      "today_wr": 0.5,
+      "n_total": 28,
+      "n_today": 7,
+      "today_wr": 0.4286,
       "roll_wr": 0.5714,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          1.0,
-          2
-        ],
-        [
-          "2026-07-28",
-          0.5,
-          2
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          1
-        ],
-        [
-          "2026-08-05",
-          0.5,
-          2
-        ]
-      ],
-      "n_days": 4
-    },
-    "chart_pattern_cup_handle": {
-      "strategy": "chart_pattern_cup_handle",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "price_structure": {
-      "strategy": "price_structure",
-      "n_total": 14,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.4286,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.4286,
-          14
-        ]
-      ],
-      "n_days": 1
-    },
-    "kama_trend": {
-      "strategy": "kama_trend",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_bearish_engulfing": {
-      "strategy": "candlestick_bearish_engulfing",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_head_and_shoulders": {
-      "strategy": "chart_pattern_head_and_shoulders",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "aroon_trend": {
-      "strategy": "aroon_trend",
-      "n_total": 3,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.3333,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.3333,
-          3
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_diamond_top": {
-      "strategy": "chart_pattern_diamond_top",
-      "n_total": 4,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.5,
       "trend": "\u2193",
       "day_wrs": [
         [
-          "2026-07-27",
+          "2026-08-07",
+          0.0,
+          2
+        ],
+        [
+          "2026-08-11",
           0.6667,
-          3
+          9
         ],
         [
-          "2026-07-29",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 2
-    },
-    "rsi2_mr": {
-      "strategy": "rsi2_mr",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.5,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.5,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "mean_reversion": {
-      "strategy": "mean_reversion",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "elder_ray": {
-      "strategy": "elder_ray",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_spinning_top_white": {
-      "strategy": "candlestick_spinning_top_white",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.5,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.5,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_hammer": {
-      "strategy": "candlestick_hammer",
-      "n_total": 3,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.3333,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          1.0,
-          1
+          "2026-08-13",
+          0.8,
+          5
         ],
         [
-          "2026-07-29",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 2
-    },
-    "candlestick_bullish_engulfing": {
-      "strategy": "candlestick_bullish_engulfing",
-      "n_total": 14,
-      "n_today": 3,
-      "today_wr": 0.0,
-      "roll_wr": 0.3571,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.3333,
-          3
-        ],
-        [
-          "2026-07-28",
+          "2026-08-14",
           0.6,
           5
         ],
         [
-          "2026-07-29",
-          1.0,
-          1
-        ],
-        [
-          "2026-07-30",
-          0.0,
-          2
-        ],
-        [
-          "2026-08-05",
-          0.0,
-          3
+          "2026-08-17",
+          0.4286,
+          7
         ]
       ],
       "n_days": 5
     },
-    "expiry_scalp": {
-      "strategy": "expiry_scalp",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-27",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "td_sequential": {
-      "strategy": "td_sequential",
-      "n_total": 3,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 2
-    },
-    "failed_auction": {
-      "strategy": "failed_auction",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_diamond_bottom": {
-      "strategy": "chart_pattern_diamond_bottom",
-      "n_total": 8,
-      "n_today": 1,
-      "today_wr": 0.0,
-      "roll_wr": 0.375,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          1.0,
-          3
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          4
-        ],
-        [
-          "2026-08-05",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 3
-    },
-    "elliott_wave": {
-      "strategy": "elliott_wave",
+    "candlestick_fred_tam_black_inside_out": {
+      "strategy": "candlestick_fred_tam_black_inside_out",
       "n_total": 2,
       "n_today": 0,
       "today_wr": null,
@@ -871,521 +346,372 @@
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-07-28",
+          "2026-08-07",
           0.0,
           2
         ]
       ],
       "n_days": 1
     },
-    "candlestick_doji": {
-      "strategy": "candlestick_doji",
+    "uo_overbought": {
+      "strategy": "uo_overbought",
       "n_total": 5,
-      "n_today": 3,
-      "today_wr": 0.0,
-      "roll_wr": 0.4,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          1.0,
-          1
-        ],
-        [
-          "2026-07-30",
-          1.0,
-          1
-        ],
-        [
-          "2026-08-05",
-          0.0,
-          3
-        ]
-      ],
-      "n_days": 3
-    },
-    "vwap_reversion": {
-      "strategy": "vwap_reversion",
-      "n_total": 4,
       "n_today": 0,
       "today_wr": null,
       "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-07-28",
-          0.0,
-          2
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 2
-    },
-    "vp_breakout": {
-      "strategy": "vp_breakout",
-      "n_total": 6,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.3333,
-      "trend": "\u2191",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          2
-        ],
-        [
-          "2026-07-29",
-          0.5,
-          4
-        ]
-      ],
-      "n_days": 2
-    },
-    "uo_overbought": {
-      "strategy": "uo_overbought",
-      "n_total": 4,
-      "n_today": 1,
-      "today_wr": 0.0,
-      "roll_wr": 0.25,
-      "trend": "\u2193",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          1.0,
-          1
-        ],
-        [
-          "2026-07-29",
+          "2026-08-07",
           0.0,
           1
         ],
         [
-          "2026-07-30",
+          "2026-08-11",
           0.0,
           1
         ],
         [
-          "2026-08-05",
+          "2026-08-13",
+          0.0,
+          2
+        ],
+        [
+          "2026-08-14",
           0.0,
           1
         ]
       ],
       "n_days": 4
     },
-    "candlestick_shooting_star": {
-      "strategy": "candlestick_shooting_star",
-      "n_total": 4,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          3
-        ]
-      ],
-      "n_days": 2
-    },
-    "candlestick_morning_star": {
-      "strategy": "candlestick_morning_star",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ],
-        [
-          "2026-07-29",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 2
-    },
-    "williams_r": {
-      "strategy": "williams_r",
-      "n_total": 2,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          2
-        ]
-      ],
-      "n_days": 1
-    },
-    "heikin_ashi": {
-      "strategy": "heikin_ashi",
-      "n_total": 8,
-      "n_today": 4,
+    "chart_pattern_diamond_bottom": {
+      "strategy": "chart_pattern_diamond_bottom",
+      "n_total": 9,
+      "n_today": 2,
       "today_wr": 0.0,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
+      "roll_wr": 0.1111,
+      "trend": "\u2193",
       "day_wrs": [
         [
-          "2026-07-28",
+          "2026-08-07",
           0.0,
           1
         ],
         [
-          "2026-07-29",
+          "2026-08-11",
+          1.0,
+          1
+        ],
+        [
+          "2026-08-14",
+          0.0,
+          5
+        ],
+        [
+          "2026-08-17",
           0.0,
           2
-        ],
-        [
-          "2026-07-30",
-          0.0,
-          1
-        ],
-        [
-          "2026-08-05",
-          0.0,
-          4
         ]
       ],
       "n_days": 4
     },
     "ehlers_fisher": {
       "strategy": "ehlers_fisher",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "uo_oversold": {
-      "strategy": "uo_oversold",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_bearish_harami": {
-      "strategy": "candlestick_bearish_harami",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_fred_tam_black_inside_out": {
-      "strategy": "candlestick_fred_tam_black_inside_out",
-      "n_total": 2,
-      "n_today": 1,
-      "today_wr": 0.0,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ],
-        [
-          "2026-08-05",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 2
-    },
-    "candlestick_on_neck_pattern": {
-      "strategy": "candlestick_on_neck_pattern",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_fred_tam_white_inside_out": {
-      "strategy": "candlestick_fred_tam_white_inside_out",
       "n_total": 2,
       "n_today": 0,
       "today_wr": null,
-      "roll_wr": 1.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-28",
-          1.0,
-          1
-        ],
-        [
-          "2026-07-29",
-          1.0,
-          1
-        ]
-      ],
-      "n_days": 2
-    },
-    "volatility_breakout": {
-      "strategy": "volatility_breakout",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
       "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-07-28",
+          "2026-08-07",
           0.0,
-          1
+          2
         ]
       ],
       "n_days": 1
     },
-    "candlestick_three_river_evening_star": {
-      "strategy": "candlestick_three_river_evening_star",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-29",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "waddah_attar": {
-      "strategy": "waddah_attar",
+    "candlestick_homing_pigeon_bullish": {
+      "strategy": "candlestick_homing_pigeon_bullish",
       "n_total": 3,
       "n_today": 0,
       "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
+      "roll_wr": 0.6667,
+      "trend": "\u2193",
       "day_wrs": [
         [
-          "2026-07-29",
+          "2026-08-07",
+          1.0,
+          2
+        ],
+        [
+          "2026-08-13",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 2
+    },
+    "candlestick_doji": {
+      "strategy": "candlestick_doji",
+      "n_total": 6,
+      "n_today": 1,
+      "today_wr": 0.0,
+      "roll_wr": 0.3333,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-08-07",
           0.0,
           2
         ],
         [
-          "2026-07-30",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 2
-    },
-    "volume_profile_full": {
-      "strategy": "volume_profile_full",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 1.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-29",
+          "2026-08-11",
           1.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "chart_pattern_symmetrical_triangle": {
-      "strategy": "chart_pattern_symmetrical_triangle",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
+          2
+        ],
         [
-          "2026-07-29",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "vwap_bands": {
-      "strategy": "vwap_bands",
-      "n_total": 1,
-      "n_today": 0,
-      "today_wr": null,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
-      "day_wrs": [
-        [
-          "2026-07-29",
-          0.0,
-          1
-        ]
-      ],
-      "n_days": 1
-    },
-    "candlestick_bullish_marubozu": {
-      "strategy": "candlestick_bullish_marubozu",
-      "n_total": 2,
-      "n_today": 1,
-      "today_wr": 1.0,
-      "roll_wr": 0.5,
-      "trend": "\u2191",
-      "day_wrs": [
-        [
-          "2026-07-29",
+          "2026-08-13",
           0.0,
           1
         ],
         [
-          "2026-08-05",
-          1.0,
+          "2026-08-17",
+          0.0,
           1
         ]
       ],
-      "n_days": 2
+      "n_days": 4
     },
-    "candlestick_three_black_soldiers": {
-      "strategy": "candlestick_three_black_soldiers",
-      "n_total": 4,
+    "candlestick_hammer": {
+      "strategy": "candlestick_hammer",
+      "n_total": 8,
       "n_today": 2,
-      "today_wr": 0.0,
-      "roll_wr": 0.0,
-      "trend": "\u2192",
+      "today_wr": 0.5,
+      "roll_wr": 0.625,
+      "trend": "\u2193",
       "day_wrs": [
         [
-          "2026-07-29",
-          0.0,
+          "2026-08-07",
+          1.0,
           1
         ],
         [
-          "2026-07-30",
-          0.0,
-          1
+          "2026-08-11",
+          0.6,
+          5
         ],
         [
-          "2026-08-05",
-          0.0,
+          "2026-08-17",
+          0.5,
           2
         ]
       ],
       "n_days": 3
     },
-    "uo_divergence": {
-      "strategy": "uo_divergence",
-      "n_total": 3,
+    "candlestick_fred_tam_white_inside_out": {
+      "strategy": "candlestick_fred_tam_white_inside_out",
+      "n_total": 4,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.75,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-08-11",
+          1.0,
+          2
+        ],
+        [
+          "2026-08-17",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "candlestick_bullish_separating_lines": {
+      "strategy": "candlestick_bullish_separating_lines",
+      "n_total": 6,
       "n_today": 0,
       "today_wr": null,
-      "roll_wr": 1.0,
+      "roll_wr": 0.8333,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-08-11",
+          0.0,
+          1
+        ],
+        [
+          "2026-08-13",
+          1.0,
+          5
+        ]
+      ],
+      "n_days": 2
+    },
+    "candlestick_bearish_harami": {
+      "strategy": "candlestick_bearish_harami",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-07-30",
-          1.0,
-          3
+          "2026-08-11",
+          0.0,
+          2
         ]
       ],
       "n_days": 1
+    },
+    "chart_pattern_cup_and_handle": {
+      "strategy": "chart_pattern_cup_and_handle",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-08-11",
+          0.0,
+          2
+        ]
+      ],
+      "n_days": 1
+    },
+    "chart_pattern_cup_handle": {
+      "strategy": "chart_pattern_cup_handle",
+      "n_total": 4,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-08-11",
+          0.0,
+          4
+        ]
+      ],
+      "n_days": 1
+    },
+    "vwap_reversion": {
+      "strategy": "vwap_reversion",
+      "n_total": 4,
+      "n_today": 2,
+      "today_wr": 1.0,
+      "roll_wr": 0.5,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-08-13",
+          0.0,
+          2
+        ],
+        [
+          "2026-08-17",
+          1.0,
+          2
+        ]
+      ],
+      "n_days": 2
     },
     "kst": {
       "strategy": "kst",
-      "n_total": 1,
-      "n_today": 1,
-      "today_wr": 0.0,
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
       "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-08-05",
+          "2026-08-13",
           0.0,
-          1
+          2
         ]
       ],
       "n_days": 1
     },
-    "orb": {
-      "strategy": "orb",
-      "n_total": 1,
-      "n_today": 1,
-      "today_wr": 0.0,
+    "kagi_reversal": {
+      "strategy": "kagi_reversal",
+      "n_total": 2,
+      "n_today": 0,
+      "today_wr": null,
       "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-08-05",
+          "2026-08-13",
           0.0,
-          1
+          2
         ]
       ],
       "n_days": 1
     },
-    "candlestick_ladder_bottom": {
-      "strategy": "candlestick_ladder_bottom",
-      "n_total": 1,
-      "n_today": 1,
-      "today_wr": 1.0,
-      "roll_wr": 1.0,
+    "candlestick_bearish_marubozu": {
+      "strategy": "candlestick_bearish_marubozu",
+      "n_total": 4,
+      "n_today": 0,
+      "today_wr": null,
+      "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-08-05",
+          "2026-08-14",
+          0.0,
+          4
+        ]
+      ],
+      "n_days": 1
+    },
+    "chart_pattern_falling_wedge": {
+      "strategy": "chart_pattern_falling_wedge",
+      "n_total": 2,
+      "n_today": 1,
+      "today_wr": 0.0,
+      "roll_wr": 0.5,
+      "trend": "\u2193",
+      "day_wrs": [
+        [
+          "2026-08-14",
           1.0,
           1
+        ],
+        [
+          "2026-08-17",
+          0.0,
+          1
         ]
       ],
-      "n_days": 1
+      "n_days": 2
     },
-    "candlestick_three_river_morning_star": {
-      "strategy": "candlestick_three_river_morning_star",
+    "candlestick_bullish_marubozu": {
+      "strategy": "candlestick_bullish_marubozu",
+      "n_total": 3,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.3333,
+      "trend": "\u2191",
+      "day_wrs": [
+        [
+          "2026-08-14",
+          0.0,
+          1
+        ],
+        [
+          "2026-08-17",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 2
+    },
+    "parabolic_sar": {
+      "strategy": "parabolic_sar",
       "n_total": 1,
       "n_today": 1,
       "today_wr": 0.0,
@@ -1393,7 +719,7 @@
       "trend": "\u2192",
       "day_wrs": [
         [
-          "2026-08-05",
+          "2026-08-17",
           0.0,
           1
         ]

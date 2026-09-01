@@ -2,8 +2,8 @@
   "strategy": "breakout",
   "symbol": "NIFTY",
   "params": {
-    "breakout_buffer_atr": 0.0,
-    "channel_period": 15,
+    "breakout_buffer_atr": 0.05,
+    "channel_period": 20,
     "min_body_atr": 0.1,
     "stop_atr_mult": 1.5,
     "trail_atr_mult": 1.5
@@ -11,10 +11,10 @@
   "metrics": {
     "validation_verdict": "INSUFFICIENT_DATA",
     "paper_training_only": true,
-    "total_trades": 100,
+    "total_trades": 81,
     "num_trades": 0,
-    "sharpe": 3.9567,
-    "win_rate": 0.36,
+    "sharpe": 5.0079,
+    "win_rate": 0.4567901234567901,
     "deflated_sharpe": 1.0,
     "parameter_stability_cv": 1.0,
     "holdout_pnl": null,
@@ -23,12 +23,12 @@
   "validation_result": {
     "strategy": "breakout",
     "symbol": "NIFTY",
-    "run_date": "2026-08-09",
+    "run_date": "2026-08-21",
     "n_trials": 72,
     "dev_windows": 1,
-    "dev_avg_sharpe": 3.9567,
-    "dev_avg_pnl": 76016.81,
-    "dev_avg_trades": 100.0,
+    "dev_avg_sharpe": 5.0079,
+    "dev_avg_pnl": 83345.24,
+    "dev_avg_trades": 81.0,
     "dev_pct_profitable": 1.0,
     "deflated_sharpe": 1.0,
     "min_trade_ok": true,
@@ -42,25 +42,25 @@
     "dev_windows_detail": [
       {
         "window_idx": 0,
-        "test_start": "2026-04-10",
-        "test_end": "2026-05-25",
-        "pnl": 76016.81416894155,
-        "num_trades": 100,
-        "win_rate": 0.36,
-        "sharpe": 3.956676370549791,
-        "max_drawdown": 31651.9071372911,
+        "test_start": "2026-04-24",
+        "test_end": "2026-06-08",
+        "pnl": 83345.24206971825,
+        "num_trades": 81,
+        "win_rate": 0.4567901234567901,
+        "sharpe": 5.007908198324328,
+        "max_drawdown": 21204.615462524293,
         "best_params": {
-          "channel_period": 15,
+          "channel_period": 20,
           "stop_atr_mult": 1.5,
           "trail_atr_mult": 1.5,
-          "breakout_buffer_atr": 0.0,
+          "breakout_buffer_atr": 0.05,
           "min_body_atr": 0.1
         }
       }
     ],
     "best_params": {
-      "breakout_buffer_atr": 0.0,
-      "channel_period": 15,
+      "breakout_buffer_atr": 0.05,
+      "channel_period": 20,
       "min_body_atr": 0.1,
       "stop_atr_mult": 1.5,
       "trail_atr_mult": 1.5
@@ -68,6 +68,6 @@
     "benchmark_buyhold_sharpe": null,
     "beats_benchmark": false
   },
-  "generated_at": "2026-08-09T08:48:57+0530",
+  "generated_at": "2026-08-21T08:30:07+0530",
   "source": "autonomous_param_trainer"
 }

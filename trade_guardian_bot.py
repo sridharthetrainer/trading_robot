@@ -118,6 +118,31 @@ def _chat() -> str:
     return str(c)
 
 
+def _is_authorized_message(message: Dict) -> bool:
+    """Allow Guardian commands only from its configured Telegram owner.
+
+    A Guardian command can change the tracked stop, target, or status of a
+    manual position.  Receiving a Telegram update is therefore never itself
+    sufficient authority.  Fail closed when the owner chat has not been
+    configured; this avoids turning initial bot setup into an open command
+    channel.
+    """
+    configured_chat = _chat().strip()
+    if not configured_chat:
+        logger.warning("Rejected Guardian command: GUARDIAN_CHAT_ID is not configured")
+        return False
+
+    chat_id = str((message.get("chat") or {}).get("id", "")).strip()
+    from_id = str((message.get("from") or {}).get("id", "")).strip()
+    owner_id = configured_chat.lstrip("-")
+    return (
+        chat_id == configured_chat
+        or from_id == configured_chat
+        or from_id == owner_id
+        or chat_id.lstrip("-") == owner_id
+    )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Telegram API
 # ─────────────────────────────────────────────────────────────────────────────
@@ -814,10 +839,16 @@ def _poll_loop() -> None:
                 _offset = update["update_id"] + 1
                 msg = update.get("message", {})
                 text = msg.get("text", "")
-                if text:
+                if text and _is_authorized_message(msg):
                     response = _dispatch(text)
                     if response:
                         send(response)
+                elif text:
+                    logger.warning(
+                        "Rejected Guardian command from chat=%s user=%s",
+                        (msg.get("chat") or {}).get("id", ""),
+                        (msg.get("from") or {}).get("id", ""),
+                    )
         except Exception as e:
             logger.debug("poll_loop: %s", e)
             time.sleep(5)

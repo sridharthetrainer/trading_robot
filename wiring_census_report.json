@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-09T08:50:12",
-  "n_modules": 545,
+  "generated_at": "2026-08-20T16:05:18",
+  "n_modules": 593,
   "orphan_modules": [
     "check_connections",
     "data_pool",
@@ -61,6 +61,10 @@
     {
       "module": "chart_theme",
       "name": "style_title"
+    },
+    {
+      "module": "cluster_strategy_map",
+      "name": "cluster_of_option_catalog_category"
     },
     {
       "module": "config",
@@ -241,10 +245,6 @@
     {
       "module": "news_aggregator",
       "name": "get_symbol_news_sentiment"
-    },
-    {
-      "module": "nse_cost_model",
-      "name": "get_cost_model"
     },
     {
       "module": "omnisource_news_engine",
@@ -475,7 +475,7 @@
       "name": "get_stage2_stocks"
     }
   ],
-  "internal_only_functions_count": 494,
+  "internal_only_functions_count": 495,
   "modules": {
     "adaptive_position_sizer": {
       "status": "imported",
@@ -564,7 +564,7 @@
         "backtest_ma_cross",
         "backtest_ma_grid"
       ],
-      "n_importers": 49
+      "n_importers": 51
     },
     "angel_broker": {
       "status": "imported",
@@ -697,6 +697,34 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "backtest_adx_long_straddle": {
+      "status": "imported",
+      "imported_by": [
+        "minimum_detectable_edge",
+        "seminar_param_search"
+      ],
+      "n_importers": 2
+    },
+    "backtest_bollinger_otm_momentum": {
+      "status": "imported",
+      "imported_by": [
+        "minimum_detectable_edge",
+        "seminar_param_search"
+      ],
+      "n_importers": 2
+    },
+    "backtest_bollinger_otm_reversal": {
+      "status": "imported",
+      "imported_by": [
+        "bollinger_effective_trials",
+        "bollinger_reversal_asymmetric_iv_shock",
+        "bollinger_reversal_robustness_check",
+        "bollinger_reversal_sensitivity",
+        "minimum_detectable_edge",
+        "seminar_param_search"
+      ],
+      "n_importers": 6
+    },
     "backtest_breakout": {
       "status": "imported",
       "imported_by": [
@@ -714,6 +742,14 @@
       "status": "dynamic",
       "imported_by": [],
       "n_importers": 0
+    },
+    "backtest_di_momentum_call": {
+      "status": "imported",
+      "imported_by": [
+        "minimum_detectable_edge",
+        "seminar_param_search"
+      ],
+      "n_importers": 2
     },
     "backtest_fibonacci": {
       "status": "imported",
@@ -787,6 +823,14 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "backtest_rolling_short_straddle": {
+      "status": "imported",
+      "imported_by": [
+        "minimum_detectable_edge",
+        "seminar_param_search"
+      ],
+      "n_importers": 2
+    },
     "backtest_sahi_strategy": {
       "status": "entrypoint",
       "imported_by": [],
@@ -798,6 +842,14 @@
         "walk_forward_backtest"
       ],
       "n_importers": 1
+    },
+    "backtest_sma20_atm_option": {
+      "status": "imported",
+      "imported_by": [
+        "minimum_detectable_edge",
+        "seminar_param_search"
+      ],
+      "n_importers": 2
     },
     "backtest_supertrend_mtf": {
       "status": "imported",
@@ -865,6 +917,26 @@
       ],
       "n_importers": 11
     },
+    "bollinger_effective_trials": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "bollinger_reversal_asymmetric_iv_shock": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "bollinger_reversal_robustness_check": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "bollinger_reversal_sensitivity": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "broker_comparison": {
       "status": "imported",
       "imported_by": [
@@ -921,11 +993,11 @@
         "data_fetcher",
         "eod_signal_miner",
         "intraday_candle_recorder",
-        "nse_index_history",
-        "signal_engine",
-        "test_audit_safety_fixes"
+        "market_shock_monitor",
+        "minimum_detectable_edge_original11",
+        "nse_index_history"
       ],
-      "n_importers": 11
+      "n_importers": 14
     },
     "candle_coverage_backfill": {
       "status": "imported",
@@ -1042,6 +1114,23 @@
       ],
       "n_importers": 2
     },
+    "cluster_risk_gate": {
+      "status": "imported",
+      "imported_by": [
+        "live_signal_engine",
+        "regime_detector",
+        "test_cluster_gate_wiring",
+        "test_cluster_risk_gate"
+      ],
+      "n_importers": 4
+    },
+    "cluster_strategy_map": {
+      "status": "imported",
+      "imported_by": [
+        "cluster_risk_gate"
+      ],
+      "n_importers": 1
+    },
     "condor_backtest_real": {
       "status": "entrypoint",
       "imported_by": [],
@@ -1067,7 +1156,7 @@
         "daily_loss_limit",
         "data_fetcher"
       ],
-      "n_importers": 53
+      "n_importers": 55
     },
     "confluence_feature_store": {
       "status": "imported",
@@ -1224,7 +1313,7 @@
         "backtest_breakout_grid",
         "backtest_ma_cross"
       ],
-      "n_importers": 47
+      "n_importers": 48
     },
     "data_gap_filler": {
       "status": "imported",
@@ -1371,6 +1460,14 @@
         "off_hours_engine"
       ],
       "n_importers": 1
+    },
+    "drift_monitor": {
+      "status": "imported",
+      "imported_by": [
+        "post_market_ml",
+        "test_drift_monitor"
+      ],
+      "n_importers": 2
     },
     "dual_mode_engine": {
       "status": "imported",
@@ -1558,11 +1655,13 @@
         "live_signal_engine",
         "main_autonomous",
         "option_strategy_regime",
+        "regime_detector",
         "signal_engine",
         "test_expiry_regime",
+        "test_regime_detector",
         "theta_strategy"
       ],
-      "n_importers": 6
+      "n_importers": 8
     },
     "expiry_strategy": {
       "status": "imported",
@@ -1723,13 +1822,14 @@
       "imported_by": [
         "gex_engine",
         "option_core_strategies",
+        "option_intraday_pricer",
         "option_strategy_regime",
         "signal_broadcaster",
         "signal_engine",
         "telegram_commands",
         "test_option_core_strategies"
       ],
-      "n_importers": 7
+      "n_importers": 8
     },
     "greeks_sizer": {
       "status": "imported",
@@ -1781,10 +1881,11 @@
     "idle_engine": {
       "status": "imported",
       "imported_by": [
+        "daily_pipeline",
         "main_autonomous",
         "telegram_commands"
       ],
-      "n_importers": 2
+      "n_importers": 3
     },
     "index_rebalancing": {
       "status": "imported",
@@ -1817,12 +1918,12 @@
         "alternative_price_representations",
         "backtest",
         "backtest_5min_ema",
-        "backtest_breakout",
-        "backtest_cpr",
-        "backtest_fibonacci",
-        "backtest_ma_cross"
+        "backtest_adx_long_straddle",
+        "backtest_bollinger_otm_momentum",
+        "backtest_bollinger_otm_reversal",
+        "backtest_breakout"
       ],
-      "n_importers": 36
+      "n_importers": 42
     },
     "institutional_alpha": {
       "status": "imported",
@@ -1967,7 +2068,7 @@
         "telegram_commands",
         "test_audit_safety_fixes"
       ],
-      "n_importers": 13
+      "n_importers": 15
     },
     "logger_setup": {
       "status": "entrypoint",
@@ -2025,9 +2126,22 @@
       "status": "imported",
       "imported_by": [
         "telegram_commands",
-        "test_data_quality_upgrades"
+        "test_data_quality_upgrades",
+        "test_manual_trade_candle_fallback",
+        "test_manual_trade_protection_adoption",
+        "test_manual_trade_reentry_warning",
+        "test_manual_trade_resell_loop"
       ],
-      "n_importers": 2
+      "n_importers": 6
+    },
+    "margin_circuit_breaker": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "market_shock_monitor",
+        "test_margin_circuit_breaker"
+      ],
+      "n_importers": 3
     },
     "market_context": {
       "status": "imported",
@@ -2052,9 +2166,10 @@
         "live_signal_engine",
         "main_autonomous",
         "market_snapshot_recorder",
+        "regime_detector",
         "signal_engine"
       ],
-      "n_importers": 4
+      "n_importers": 5
     },
     "market_intelligence": {
       "status": "imported",
@@ -2093,10 +2208,19 @@
         "main_autonomous",
         "market_snapshot_recorder",
         "option_strategy_regime",
+        "regime_breakout_analysis",
         "signal_engine",
         "telegram_commands"
       ],
-      "n_importers": 5
+      "n_importers": 6
+    },
+    "market_shock_monitor": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "test_market_shock_monitor"
+      ],
+      "n_importers": 2
     },
     "market_snapshot_recorder": {
       "status": "imported",
@@ -2152,6 +2276,20 @@
       ],
       "n_importers": 4
     },
+    "minimum_detectable_edge": {
+      "status": "imported",
+      "imported_by": [
+        "minimum_detectable_edge_original11",
+        "test_minimum_detectable_edge",
+        "time_to_power"
+      ],
+      "n_importers": 3
+    },
+    "minimum_detectable_edge_original11": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "ml_effective_n_bootstrap": {
       "status": "imported",
       "imported_by": [
@@ -2205,10 +2343,11 @@
     "modifier_edge_analyzer": {
       "status": "imported",
       "imported_by": [
+        "drift_monitor",
         "modifier_edge_holdout",
         "post_market_ml"
       ],
-      "n_importers": 2
+      "n_importers": 3
     },
     "modifier_edge_holdout": {
       "status": "imported",
@@ -2242,6 +2381,13 @@
         "test_mtf_context"
       ],
       "n_importers": 4
+    },
+    "multi_leg_intraday_option_backtest": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_adx_long_straddle"
+      ],
+      "n_importers": 1
     },
     "narrative_engine": {
       "status": "imported",
@@ -2304,9 +2450,12 @@
     "nse_cost_model": {
       "status": "imported",
       "imported_by": [
+        "backtest_rolling_short_straddle",
+        "multi_leg_intraday_option_backtest",
+        "single_leg_intraday_option_backtest",
         "test_nse_cost_model_2026"
       ],
-      "n_importers": 1
+      "n_importers": 4
     },
     "nse_data_hub": {
       "status": "imported",
@@ -2335,7 +2484,7 @@
         "nifty_scalper_bot",
         "option_chain_engine"
       ],
-      "n_importers": 13
+      "n_importers": 15
     },
     "nse_proxy": {
       "status": "imported",
@@ -2567,6 +2716,20 @@
         "main_autonomous"
       ],
       "n_importers": 2
+    },
+    "option_intraday_pricer": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_adx_long_straddle",
+        "backtest_bollinger_otm_momentum",
+        "backtest_bollinger_otm_reversal",
+        "backtest_di_momentum_call",
+        "backtest_rolling_short_straddle",
+        "backtest_sma20_atm_option",
+        "multi_leg_intraday_option_backtest",
+        "single_leg_intraday_option_backtest"
+      ],
+      "n_importers": 8
     },
     "option_live_edge_policy": {
       "status": "imported",
@@ -2914,9 +3077,11 @@
     "portfolio_heat": {
       "status": "imported",
       "imported_by": [
-        "telegram_commands"
+        "cluster_risk_gate",
+        "telegram_commands",
+        "test_cluster_risk_gate"
       ],
-      "n_importers": 1
+      "n_importers": 3
     },
     "portfolio_risk": {
       "status": "imported",
@@ -2928,6 +3093,14 @@
         "test_risk_gate"
       ],
       "n_importers": 5
+    },
+    "position_reconciliation": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "test_position_reconciliation"
+      ],
+      "n_importers": 2
     },
     "post_market_ml": {
       "status": "imported",
@@ -3019,6 +3192,19 @@
       ],
       "n_importers": 2
     },
+    "regime_breakout_analysis": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "regime_detector": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "test_regime_detector"
+      ],
+      "n_importers": 2
+    },
     "regime_meta_labeler": {
       "status": "imported",
       "imported_by": [
@@ -3051,9 +3237,10 @@
       "imported_by": [
         "angel",
         "test_angel_request_governor_wiring",
+        "test_gtt_producttype_matches_position",
         "test_system_hardening"
       ],
-      "n_importers": 3
+      "n_importers": 4
     },
     "research_admission": {
       "status": "imported",
@@ -3103,9 +3290,10 @@
     "run_extended_validation": {
       "status": "imported",
       "imported_by": [
+        "regime_breakout_analysis",
         "test_run_extended_validation"
       ],
-      "n_importers": 1
+      "n_importers": 2
     },
     "runtime_telemetry": {
       "status": "imported",
@@ -3211,11 +3399,24 @@
       ],
       "n_importers": 8
     },
+    "seminar_param_search": {
+      "status": "entrypoint",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "sensibull_client": {
       "status": "imported",
       "imported_by": [
         "chaos_tests",
         "option_chain_fetcher"
+      ],
+      "n_importers": 2
+    },
+    "session_preflight": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous",
+        "test_session_preflight"
       ],
       "n_importers": 2
     },
@@ -3303,6 +3504,7 @@
     "signal_quality": {
       "status": "imported",
       "imported_by": [
+        "drift_monitor",
         "meta_labeler",
         "ml_feature_builder",
         "modifier_edge_analyzer",
@@ -3311,7 +3513,7 @@
         "strategy_edge_analyzer",
         "test_data_quality_upgrades"
       ],
-      "n_importers": 7
+      "n_importers": 8
     },
     "signal_refinements": {
       "status": "imported",
@@ -3357,6 +3559,19 @@
         "backtest"
       ],
       "n_importers": 1
+    },
+    "single_leg_intraday_option_backtest": {
+      "status": "imported",
+      "imported_by": [
+        "backtest_bollinger_otm_momentum",
+        "backtest_bollinger_otm_reversal",
+        "backtest_di_momentum_call",
+        "backtest_rolling_short_straddle",
+        "backtest_sma20_atm_option",
+        "multi_leg_intraday_option_backtest",
+        "seminar_param_search"
+      ],
+      "n_importers": 7
     },
     "sl_hunt_guard": {
       "status": "imported",
@@ -3416,10 +3631,11 @@
     "strategy_clusters": {
       "status": "imported",
       "imported_by": [
+        "cluster_strategy_map",
         "signal_engine",
         "test_alternative_price_representations"
       ],
-      "n_importers": 2
+      "n_importers": 3
     },
     "strategy_edge_analyzer": {
       "status": "imported",
@@ -3586,9 +3802,10 @@
         "test_system_upgrade",
         "test_telegram_commands_photo_spool",
         "test_telegram_control_room",
+        "test_telegram_kill_confirmation",
         "test_telegram_navigation"
       ],
-      "n_importers": 6
+      "n_importers": 7
     },
     "telegram_views": {
       "status": "imported",
@@ -3673,12 +3890,27 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_bollinger_effective_trials": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_candlestick_patterns": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
     },
     "test_chart_theme": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_cluster_gate_wiring": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_cluster_risk_gate": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -3728,6 +3960,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_drift_monitor": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_eod_option_structure_miner": {
       "status": "test",
       "imported_by": [],
@@ -3759,6 +3996,11 @@
       "n_importers": 0
     },
     "test_external_data_loader": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_gtt_producttype_matches_position": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -3818,6 +4060,31 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_manual_trade_candle_fallback": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_manual_trade_protection_adoption": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_manual_trade_reentry_warning": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_manual_trade_resell_loop": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_margin_circuit_breaker": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_market_context_integration": {
       "status": "test",
       "imported_by": [],
@@ -3828,7 +4095,17 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_market_shock_monitor": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_meta_labeler_historical_replay": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_minimum_detectable_edge": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -3859,6 +4136,11 @@
       "n_importers": 0
     },
     "test_modifier_edge_holdout": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_monte_carlo_with_ruin": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -4043,6 +4325,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_position_reconciliation": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_prospective_freeze": {
       "status": "test",
       "imported_by": [],
@@ -4054,6 +4341,11 @@
       "n_importers": 0
     },
     "test_quant_methods": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_regime_detector": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -4103,6 +4395,11 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_session_preflight": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_signal_lifecycle_store": {
       "status": "test",
       "imported_by": [],
@@ -4124,6 +4421,11 @@
       "n_importers": 0
     },
     "test_spread_strategy": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_startup_reconciliation_alert": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -4163,12 +4465,27 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_telegram_kill_confirmation": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_telegram_navigation": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
     },
+    "test_time_to_power": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_trade_economics": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_trade_guardian_authorization": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -4193,12 +4510,22 @@
       "imported_by": [],
       "n_importers": 0
     },
+    "test_upstox_instrument_master": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
     "test_usable_edge_days": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
     },
     "test_validation_harness": {
+      "status": "test",
+      "imported_by": [],
+      "n_importers": 0
+    },
+    "test_ws_disconnect_halt": {
       "status": "test",
       "imported_by": [],
       "n_importers": 0
@@ -4237,6 +4564,13 @@
         "test_expiry_regime"
       ],
       "n_importers": 6
+    },
+    "time_to_power": {
+      "status": "imported",
+      "imported_by": [
+        "test_time_to_power"
+      ],
+      "n_importers": 1
     },
     "trade_autopsy": {
       "status": "imported",
@@ -4280,9 +4614,10 @@
     "trade_guardian_bot": {
       "status": "imported",
       "imported_by": [
-        "telegram_commands"
+        "telegram_commands",
+        "test_trade_guardian_authorization"
       ],
-      "n_importers": 1
+      "n_importers": 2
     },
     "trade_manager": {
       "status": "imported",
@@ -4296,7 +4631,7 @@
         "self_learning_engine",
         "signal_engine"
       ],
-      "n_importers": 12
+      "n_importers": 13
     },
     "trade_rationale": {
       "status": "imported",
@@ -4413,9 +4748,10 @@
       "imported_by": [
         "data_fetcher",
         "test_data_quality_upgrades",
-        "test_upstox_data"
+        "test_upstox_data",
+        "test_upstox_instrument_master"
       ],
-      "n_importers": 3
+      "n_importers": 4
     },
     "utils": {
       "status": "imported",
@@ -4472,13 +4808,15 @@
       "status": "imported",
       "imported_by": [
         "autonomous_param_trainer",
+        "bollinger_effective_trials",
+        "minimum_detectable_edge_original11",
         "options_backtest",
+        "regime_breakout_analysis",
         "run_extended_validation",
-        "test_session_modules",
-        "test_validation_harness",
-        "trend_basket_research"
+        "seminar_param_search",
+        "test_session_modules"
       ],
-      "n_importers": 6
+      "n_importers": 11
     },
     "value_at_risk": {
       "status": "imported",
@@ -4537,9 +4875,10 @@
         "daily_pipeline",
         "self_learning",
         "strategy_selector",
+        "test_monte_carlo_with_ruin",
         "test_system"
       ],
-      "n_importers": 5
+      "n_importers": 6
     },
     "watchdog": {
       "status": "entrypoint",

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T21:01:27+0530",
+  "generated_at": "2026-08-18T20:33:19+0530",
   "symbols_requested": 194,
   "intervals": [
     "1m",
@@ -8,76 +8,76 @@
     "1h",
     "1d"
   ],
-  "duration_sec": 1061.85,
+  "duration_sec": 1176.305,
   "before": {
     "exists": true,
-    "total": 4040196,
+    "total": 5189036,
     "intervals": {
       "15m": {
-        "rows": 220321,
-        "symbols": 193,
+        "rows": 284681,
+        "symbols": 197,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-29 15:15:00+05:30"
+        "last": "2026-08-17 15:15:00+05:30"
       },
       "1d": {
-        "rows": 78513,
-        "symbols": 196,
+        "rows": 78849,
+        "symbols": 197,
         "first": "2022-05-18 00:00:00+05:30",
-        "last": "2026-07-29 00:00:00+05:30"
+        "last": "2026-08-18 00:00:00+05:30"
       },
       "1h": {
-        "rows": 90209,
-        "symbols": 193,
+        "rows": 108371,
+        "symbols": 197,
         "first": "2026-04-01 09:15:00+05:30",
-        "last": "2026-07-29 15:15:00+05:30"
+        "last": "2026-08-17 15:15:00+05:30"
       },
       "1m": {
-        "rows": 3117748,
-        "symbols": 193,
+        "rows": 3993990,
+        "symbols": 197,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-29 15:29:00+05:30"
+        "last": "2026-08-18 15:26:00+05:30"
       },
       "5m": {
-        "rows": 533405,
-        "symbols": 194,
+        "rows": 723145,
+        "symbols": 197,
         "first": "2025-05-19 09:15:00+05:30",
-        "last": "2026-07-29 15:25:00+05:30"
+        "last": "2026-08-18 15:25:00+05:30"
       }
     }
   },
   "after": {
     "exists": true,
-    "total": 4044289,
+    "total": 5346268,
     "intervals": {
       "15m": {
-        "rows": 220360,
-        "symbols": 193,
+        "rows": 289871,
+        "symbols": 197,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-29 15:15:00+05:30"
+        "last": "2026-08-18 15:15:00+05:30"
       },
       "1d": {
-        "rows": 78524,
-        "symbols": 196,
+        "rows": 79534,
+        "symbols": 198,
         "first": "2022-05-18 00:00:00+05:30",
-        "last": "2026-07-29 00:00:00+05:30"
+        "last": "2026-08-18 00:00:00+05:30"
       },
       "1h": {
-        "rows": 90397,
-        "symbols": 193,
+        "rows": 109920,
+        "symbols": 197,
         "first": "2026-04-01 09:15:00+05:30",
-        "last": "2026-07-29 15:15:00+05:30"
+        "last": "2026-08-18 15:15:00+05:30"
       },
       "1m": {
-        "rows": 3121516,
-        "symbols": 193,
+        "rows": 4128626,
+        "symbols": 197,
         "first": "2026-05-25 09:15:00+05:30",
-        "last": "2026-07-29 15:29:00+05:30"
+        "last": "2026-08-18 15:29:00+05:30"
       },
       "5m": {
-        "rows": 533492,
-        "symbols": 194,
+        "rows": 738317,
+        "symbols": 197,
         "first": "2025-05-19 09:15:00+05:30",
-        "last": "2026-07-29 15:25:00+05:30"
+        "last": "2026-08-18 15:25:00+05:30"
       }
     }
   },
@@ -86,7 +86,7 @@
       "interval": "1m",
       "days": 5,
       "requested": 194,
-      "ok_count": 191,
+      "ok_count": 192,
       "sample_failures": [
         {
           "symbol": "LTIM",
@@ -97,11 +97,6 @@
           "symbol": "HPCL",
           "reason": "no_verified_intraday_data",
           "bars": 0
-        },
-        {
-          "symbol": "PNC",
-          "reason": "no_verified_intraday_data",
-          "bars": 0
         }
       ]
     },
@@ -109,10 +104,15 @@
       "interval": "5m",
       "days": 15,
       "requested": 194,
-      "ok_count": 193,
+      "ok_count": 192,
       "sample_failures": [
         {
           "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "HPCL",
           "reason": "no_verified_intraday_data",
           "bars": 0
         }
@@ -122,10 +122,15 @@
       "interval": "15m",
       "days": 30,
       "requested": 194,
-      "ok_count": 193,
+      "ok_count": 192,
       "sample_failures": [
         {
           "symbol": "LTIM",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
+        {
+          "symbol": "HPCL",
           "reason": "no_verified_intraday_data",
           "bars": 0
         }
@@ -153,8 +158,13 @@
       "interval": "1d",
       "days": 365,
       "requested": 194,
-      "ok_count": 190,
+      "ok_count": 189,
       "sample_failures": [
+        {
+          "symbol": "MIDCPNIFTY",
+          "reason": "no_verified_intraday_data",
+          "bars": 0
+        },
         {
           "symbol": "SENSEX",
           "reason": "no_verified_intraday_data",

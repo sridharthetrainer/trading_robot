@@ -1,96 +1,94 @@
 {
-  "generated_at": "2026-08-06T18:44:03",
+  "generated_at": "2026-08-21T08:38:59",
   "option_chain_snapshots": {
     "exists": true,
-    "rows": 4942,
-    "ok_rows": 4620,
-    "verified_live_rows": 3561,
-    "latest_verified_live": "2026-08-06T15:33:55+0530",
-    "latest": "2026-08-06T15:33:55+0530",
-    "latest_ok": "2026-08-06T15:33:55+0530",
-    "latest_ok_age_hours": 3.17,
+    "rows": 9019,
+    "ok_rows": 7253,
+    "verified_live_rows": 6194,
+    "latest_verified_live": "2026-08-20T13:55:39+0530",
+    "latest": "2026-08-21T08:38:55+0530",
+    "latest_ok": "2026-08-20T13:55:39+0530",
+    "latest_ok_age_hours": 18.72,
     "recent_failures": [
       {
         "underlying": "NIFTY",
         "reason": "non_live_source:cache_eod",
-        "count": 279
+        "count": 459
       },
       {
         "underlying": "NIFTY",
         "reason": "non_live_source:cache",
-        "count": 10
+        "count": 398
       },
       {
         "underlying": "BANKNIFTY",
         "reason": "non_live_source:cache",
-        "count": 8
+        "count": 396
       },
       {
         "underlying": "FINNIFTY",
         "reason": "non_live_source:cache",
-        "count": 7
+        "count": 394
       },
       {
-        "underlying": "BANKNIFTY",
+        "underlying": "SENSEX",
         "reason": "no_option_chain",
-        "count": 5
+        "count": 103
       }
     ],
-    "strike_signal_rows": 46478,
-    "strike_signal_labelled": 34411,
-    "verified_strike_outcomes": 25124,
-    "today_strike_rows": 3703,
+    "strike_signal_rows": 72885,
+    "strike_signal_labelled": 52715,
+    "verified_strike_outcomes": 43360,
+    "today_strike_rows": 0,
     "today_strike_tradable": 0,
     "today_strike_labelled": 0
   },
   "decision_journal": {
     "exists": true,
-    "rows": 7147,
+    "rows": 11028,
     "decisions": {
-      "selected": 1680,
+      "selected": 1770,
       "blocked_quality": 143,
-      "chain_snapshot_evidence": 3040,
-      "chain_snapshot_neutral": 865,
-      "chain_signal": 410,
-      "chain_neutral": 157,
-      "blocked_no_chain_data": 806,
+      "chain_snapshot_evidence": 5581,
+      "chain_snapshot_neutral": 1615,
+      "chain_signal": 544,
+      "chain_neutral": 319,
+      "blocked_no_chain_data": 926,
       "blocked_vix_too_high_for_theta": 1,
       "blocked_no_option_chain": 3,
       "blocked_no_tradeable_strike": 2,
-      "blocked_delta_unavailable": 31,
-      "blocked_regime_strong_trend": 9
+      "blocked_delta_unavailable": 96,
+      "blocked_regime_strong_trend": 28
     },
-    "today_rows": 1,
-    "today_decisions": {
-      "selected": 1
-    },
-    "today_selected": 1,
+    "today_rows": 0,
+    "today_decisions": {},
+    "today_selected": 0,
     "today_blocked": 0,
     "today_chain_signal": 0,
-    "selected_with_shadow": 1620,
+    "selected_with_shadow": 1710,
     "verified_selected": 0,
     "executed_selected": 0,
-    "synthetic_rows": 4361,
-    "research_rows": 4685,
+    "synthetic_rows": 7732,
+    "research_rows": 8056,
     "verified_outcomes": 0,
     "verified_shadow_outcomes": 0,
     "verified_generated_outcomes": 0
   },
   "strike_autotune": {
     "exists": true,
-    "labelled_selected": 1200,
-    "labelled_shadow": 9600,
-    "weights": 30,
+    "labelled_selected": 320,
+    "labelled_shadow": 2560,
+    "weights": 29,
     "verified_generated_outcomes": 8000
   },
   "option_structure_mining": {
     "report_exists": true,
     "db_exists": true,
-    "legs": 830,
+    "legs": 910,
     "symbols": 4,
-    "latest_session": "2026-07-29",
+    "latest_session": "2026-08-18",
     "top_edges": 10,
-    "report_legs": 81
+    "report_legs": 80
   },
   "hero_zero": {
     "module_exists": true,
@@ -155,18 +153,17 @@
   "historical_replay": {
     "exists": true,
     "ok": true,
-    "generated_at": "2026-07-29T20:42:10+0530",
+    "generated_at": "2026-08-18T20:11:52+0530",
     "written": 80,
     "shadow_outcomes": 640,
     "type_counts": {
-      "CE": 39,
-      "PE": 41
+      "CE": 40,
+      "PE": 40
     },
     "style_counts": {
-      "intraday": 34,
-      "swing": 24,
-      "position": 18,
-      "scalping": 4
+      "intraday": 52,
+      "swing": 16,
+      "scalping": 12
     }
   },
   "quality_layer": {
@@ -180,14 +177,14 @@
   "signal_log": {
     "exists": true,
     "signal_log_option_rows": 0,
-    "today_option_rows": 1,
+    "today_option_rows": 0,
     "today_executed_option_rows": 0
   },
   "historical_options": {
     "exists": true,
-    "rows": 3191755,
+    "rows": 3209189,
     "first_date": "2020-01-01",
-    "last_date": "2026-08-05"
+    "last_date": "2026-08-19"
   },
   "telegram_oi_tools": {
     "telegram_commands": true,
@@ -225,7 +222,7 @@
   },
   "score": {
     "total": 59.0,
-    "capability_score": 95.0,
+    "capability_score": 91.0,
     "evidence_score": 59.0,
     "max": 100,
     "grade": "F",
@@ -248,7 +245,7 @@
         "historical_options": {
           "score": 20,
           "max": 20,
-          "detail": "3191755 historical option rows"
+          "detail": "3209189 historical option rows"
         },
         "source_modules": {
           "score": 20.0,
@@ -264,7 +261,7 @@
       "raw_capability_score": 100.0,
       "evidence_blocks": []
     },
-    "raw_capability_score": 95.0,
+    "raw_capability_score": 91.0,
     "minimum_verified_outcomes": 500,
     "evidence_blocks": [
       "no_source_attributed_selected_option_outcomes",
@@ -274,27 +271,27 @@
       "snapshot_capture": {
         "score": 25,
         "max": 25,
-        "detail": "verified_live=3561, ok_rows=4620, rows=4942, latest=2026-08-06T15:33:55+0530"
+        "detail": "verified_live=6194, ok_rows=7253, rows=9019, latest=2026-08-20T13:55:39+0530"
       },
       "decision_journal": {
         "score": 12.0,
         "max": 15,
-        "detail": "rows=7147, selected=1680, verified=0, generated_outcomes=25124, executed=0, research=4685"
+        "detail": "rows=11028, selected=1770, verified=0, generated_outcomes=43360, executed=0, research=8056"
       },
       "strike_autotune": {
         "score": 20,
         "max": 20,
-        "detail": "research_selected=1200, research_shadow=9600, verified_generated=8000, weights=30"
+        "detail": "research_selected=320, research_shadow=2560, verified_generated=8000, weights=29"
       },
       "historical_options": {
         "score": 15,
         "max": 15,
-        "detail": "rows=3191755, range=2020-01-01..2026-08-05"
+        "detail": "rows=3209189, range=2020-01-01..2026-08-19"
       },
       "signal_activity": {
-        "score": 8.0,
+        "score": 4.0,
         "max": 10,
-        "detail": "today_option_rows=3703, executed=0, journal_rows=1, chain_rows=0, strike_rows=3703, signal_log_option_rows=0"
+        "detail": "today_option_rows=0, executed=0, journal_rows=0, chain_rows=0, strike_rows=0, signal_log_option_rows=0"
       },
       "telegram_oi_tools": {
         "score": 10.0,
@@ -308,11 +305,12 @@
       }
     },
     "top_improvements": [
-      "Collect source-attributed generated option signals and EOD outcomes; synthetic research does not qualify."
+      "Collect source-attributed generated option signals and EOD outcomes; synthetic research does not qualify.",
+      "No option signal rows today yet; confirm market-hour scan and option-chain availability."
     ]
   },
   "score_dimensions": {
-    "capability_score": 95.0,
+    "capability_score": 91.0,
     "verified_edge_score": 0.0,
     "execution_evidence_score": 0.0,
     "profitability_observed": false,

@@ -1,515 +1,537 @@
 {
-  "generated_at": "2026-07-29T20:43:33+0530",
+  "generated_at": "2026-08-18T20:13:06+0530",
   "symbols_seen": 194,
-  "symbols_ok": 192,
+  "symbols_ok": 193,
   "summary": {
-    "n": 23745,
-    "wins": 6305,
-    "losses": 9290,
-    "timeouts": 8150,
-    "target_rate": 0.2655,
-    "win_rate_ex_timeout": 0.4043,
-    "avg_return_pct": 0.0056
+    "n": 10638,
+    "wins": 2726,
+    "losses": 4302,
+    "timeouts": 3610,
+    "target_rate": 0.2563,
+    "win_rate_ex_timeout": 0.3879,
+    "avg_return_pct": -0.0247
   },
   "by_setup": [
     {
-      "key": "vwap_trend",
-      "n": 18990,
-      "wins": 4937,
-      "losses": 7283,
-      "timeouts": 6770,
-      "target_rate": 0.26,
-      "win_rate_ex_timeout": 0.404,
-      "avg_return_pct": 0.0153
-    },
-    {
-      "key": "volume_breakout",
-      "n": 1661,
-      "wins": 557,
-      "losses": 773,
-      "timeouts": 331,
-      "target_rate": 0.3353,
-      "win_rate_ex_timeout": 0.4188,
-      "avg_return_pct": -0.0145
+      "key": "range_break",
+      "n": 407,
+      "wins": 114,
+      "losses": 165,
+      "timeouts": 128,
+      "target_rate": 0.2801,
+      "win_rate_ex_timeout": 0.4086,
+      "avg_return_pct": 0.036
     },
     {
       "key": "mtf_momentum",
-      "n": 2225,
-      "wins": 627,
-      "losses": 818,
-      "timeouts": 780,
-      "target_rate": 0.2818,
-      "win_rate_ex_timeout": 0.4339,
-      "avg_return_pct": -0.0286
+      "n": 344,
+      "wins": 74,
+      "losses": 145,
+      "timeouts": 125,
+      "target_rate": 0.2151,
+      "win_rate_ex_timeout": 0.3379,
+      "avg_return_pct": -0.0245
     },
     {
-      "key": "range_break",
-      "n": 869,
-      "wins": 184,
-      "losses": 416,
-      "timeouts": 269,
-      "target_rate": 0.2117,
-      "win_rate_ex_timeout": 0.3067,
-      "avg_return_pct": -0.081
+      "key": "vwap_trend",
+      "n": 9205,
+      "wins": 2315,
+      "losses": 3658,
+      "timeouts": 3232,
+      "target_rate": 0.2515,
+      "win_rate_ex_timeout": 0.3876,
+      "avg_return_pct": -0.0257
+    },
+    {
+      "key": "volume_breakout",
+      "n": 682,
+      "wins": 223,
+      "losses": 334,
+      "timeouts": 125,
+      "target_rate": 0.327,
+      "win_rate_ex_timeout": 0.4004,
+      "avg_return_pct": -0.0468
     }
   ],
   "by_side": [
     {
-      "key": "BUY",
-      "n": 13361,
-      "wins": 3630,
-      "losses": 4941,
-      "timeouts": 4790,
-      "target_rate": 0.2717,
-      "win_rate_ex_timeout": 0.4235,
-      "avg_return_pct": 0.0734
+      "key": "SELL",
+      "n": 6675,
+      "wins": 1577,
+      "losses": 2678,
+      "timeouts": 2420,
+      "target_rate": 0.2363,
+      "win_rate_ex_timeout": 0.3706,
+      "avg_return_pct": -0.0144
     },
     {
-      "key": "SELL",
-      "n": 10384,
-      "wins": 2675,
-      "losses": 4349,
-      "timeouts": 3360,
-      "target_rate": 0.2576,
-      "win_rate_ex_timeout": 0.3808,
-      "avg_return_pct": -0.0816
+      "key": "BUY",
+      "n": 3963,
+      "wins": 1149,
+      "losses": 1624,
+      "timeouts": 1190,
+      "target_rate": 0.2899,
+      "win_rate_ex_timeout": 0.4144,
+      "avg_return_pct": -0.042
     }
   ],
   "by_symbol": [
     {
-      "key": "COFORGE",
-      "n": 129,
-      "wins": 43,
-      "losses": 33,
-      "timeouts": 53,
-      "target_rate": 0.3333,
-      "win_rate_ex_timeout": 0.5658,
-      "avg_return_pct": 1.0584
-    },
-    {
-      "key": "SURYODAY",
-      "n": 141,
-      "wins": 63,
-      "losses": 44,
+      "key": "HINDCOPPER",
+      "n": 71,
+      "wins": 31,
+      "losses": 6,
       "timeouts": 34,
-      "target_rate": 0.4468,
-      "win_rate_ex_timeout": 0.5888,
-      "avg_return_pct": 0.9162
+      "target_rate": 0.4366,
+      "win_rate_ex_timeout": 0.8378,
+      "avg_return_pct": 1.2301
     },
     {
-      "key": "SWIGGY",
-      "n": 121,
-      "wins": 58,
-      "losses": 22,
-      "timeouts": 41,
-      "target_rate": 0.4793,
-      "win_rate_ex_timeout": 0.725,
-      "avg_return_pct": 0.8018
-    },
-    {
-      "key": "AFFLE",
-      "n": 137,
-      "wins": 47,
-      "losses": 44,
-      "timeouts": 46,
-      "target_rate": 0.3431,
-      "win_rate_ex_timeout": 0.5165,
-      "avg_return_pct": 0.7586
-    },
-    {
-      "key": "LODHA",
-      "n": 128,
-      "wins": 46,
-      "losses": 37,
-      "timeouts": 45,
-      "target_rate": 0.3594,
-      "win_rate_ex_timeout": 0.5542,
-      "avg_return_pct": 0.7539
-    },
-    {
-      "key": "CERA",
-      "n": 121,
-      "wins": 47,
-      "losses": 35,
-      "timeouts": 39,
-      "target_rate": 0.3884,
-      "win_rate_ex_timeout": 0.5732,
-      "avg_return_pct": 0.4338
-    },
-    {
-      "key": "ETERNAL",
-      "n": 151,
-      "wins": 55,
-      "losses": 53,
-      "timeouts": 43,
-      "target_rate": 0.3642,
-      "win_rate_ex_timeout": 0.5093,
-      "avg_return_pct": 0.4296
-    },
-    {
-      "key": "VSTIND",
-      "n": 127,
-      "wins": 40,
-      "losses": 43,
-      "timeouts": 44,
-      "target_rate": 0.315,
-      "win_rate_ex_timeout": 0.4819,
-      "avg_return_pct": 0.4004
-    },
-    {
-      "key": "DIVISLAB",
-      "n": 124,
-      "wins": 50,
-      "losses": 39,
-      "timeouts": 35,
-      "target_rate": 0.4032,
-      "win_rate_ex_timeout": 0.5618,
-      "avg_return_pct": 0.3423
-    },
-    {
-      "key": "COALINDIA",
-      "n": 119,
-      "wins": 50,
-      "losses": 30,
-      "timeouts": 39,
-      "target_rate": 0.4202,
-      "win_rate_ex_timeout": 0.625,
-      "avg_return_pct": 0.3416
-    },
-    {
-      "key": "RADICO",
-      "n": 129,
-      "wins": 28,
-      "losses": 40,
-      "timeouts": 61,
-      "target_rate": 0.2171,
-      "win_rate_ex_timeout": 0.4118,
-      "avg_return_pct": 0.3245
-    },
-    {
-      "key": "POLICYBZR",
-      "n": 117,
-      "wins": 39,
-      "losses": 33,
-      "timeouts": 45,
-      "target_rate": 0.3333,
-      "win_rate_ex_timeout": 0.5417,
-      "avg_return_pct": 0.3156
-    },
-    {
-      "key": "GODREJPROP",
-      "n": 146,
-      "wins": 69,
-      "losses": 35,
-      "timeouts": 42,
-      "target_rate": 0.4726,
-      "win_rate_ex_timeout": 0.6635,
-      "avg_return_pct": 0.3135
-    },
-    {
-      "key": "MPHASIS",
-      "n": 123,
-      "wins": 33,
-      "losses": 48,
-      "timeouts": 42,
-      "target_rate": 0.2683,
-      "win_rate_ex_timeout": 0.4074,
-      "avg_return_pct": 0.2619
-    },
-    {
-      "key": "DLF",
-      "n": 130,
-      "wins": 55,
-      "losses": 32,
-      "timeouts": 43,
-      "target_rate": 0.4231,
-      "win_rate_ex_timeout": 0.6322,
-      "avg_return_pct": 0.2285
-    },
-    {
-      "key": "EQUITASBNK",
-      "n": 123,
-      "wins": 26,
-      "losses": 56,
-      "timeouts": 41,
-      "target_rate": 0.2114,
-      "win_rate_ex_timeout": 0.3171,
-      "avg_return_pct": 0.2189
-    },
-    {
-      "key": "TITAN",
-      "n": 133,
-      "wins": 61,
-      "losses": 23,
-      "timeouts": 49,
-      "target_rate": 0.4586,
-      "win_rate_ex_timeout": 0.7262,
-      "avg_return_pct": 0.215
-    },
-    {
-      "key": "PHOENIXLTD",
-      "n": 130,
+      "key": "JYOTHYLAB",
+      "n": 63,
       "wins": 36,
-      "losses": 54,
-      "timeouts": 40,
-      "target_rate": 0.2769,
-      "win_rate_ex_timeout": 0.4,
-      "avg_return_pct": 0.2141
+      "losses": 23,
+      "timeouts": 4,
+      "target_rate": 0.5714,
+      "win_rate_ex_timeout": 0.6102,
+      "avg_return_pct": 0.9733
+    },
+    {
+      "key": "CONCOR",
+      "n": 56,
+      "wins": 30,
+      "losses": 18,
+      "timeouts": 8,
+      "target_rate": 0.5357,
+      "win_rate_ex_timeout": 0.625,
+      "avg_return_pct": 0.3546
+    },
+    {
+      "key": "KNRCON",
+      "n": 58,
+      "wins": 19,
+      "losses": 17,
+      "timeouts": 22,
+      "target_rate": 0.3276,
+      "win_rate_ex_timeout": 0.5278,
+      "avg_return_pct": 0.3455
     },
     {
       "key": "NESTLEIND",
-      "n": 127,
-      "wins": 34,
-      "losses": 51,
-      "timeouts": 42,
-      "target_rate": 0.2677,
-      "win_rate_ex_timeout": 0.4,
-      "avg_return_pct": 0.2077
+      "n": 70,
+      "wins": 36,
+      "losses": 14,
+      "timeouts": 20,
+      "target_rate": 0.5143,
+      "win_rate_ex_timeout": 0.72,
+      "avg_return_pct": 0.3342
+    },
+    {
+      "key": "CERA",
+      "n": 63,
+      "wins": 8,
+      "losses": 26,
+      "timeouts": 29,
+      "target_rate": 0.127,
+      "win_rate_ex_timeout": 0.2353,
+      "avg_return_pct": 0.3036
     },
     {
       "key": "CIPLA",
-      "n": 144,
-      "wins": 56,
-      "losses": 34,
-      "timeouts": 54,
-      "target_rate": 0.3889,
-      "win_rate_ex_timeout": 0.6222,
-      "avg_return_pct": 0.2059
+      "n": 69,
+      "wins": 31,
+      "losses": 29,
+      "timeouts": 9,
+      "target_rate": 0.4493,
+      "win_rate_ex_timeout": 0.5167,
+      "avg_return_pct": 0.2643
+    },
+    {
+      "key": "HDFCAMC",
+      "n": 65,
+      "wins": 18,
+      "losses": 32,
+      "timeouts": 15,
+      "target_rate": 0.2769,
+      "win_rate_ex_timeout": 0.36,
+      "avg_return_pct": 0.2617
+    },
+    {
+      "key": "ASTRAL",
+      "n": 71,
+      "wins": 17,
+      "losses": 18,
+      "timeouts": 36,
+      "target_rate": 0.2394,
+      "win_rate_ex_timeout": 0.4857,
+      "avg_return_pct": 0.2371
+    },
+    {
+      "key": "PAYTM",
+      "n": 60,
+      "wins": 23,
+      "losses": 10,
+      "timeouts": 27,
+      "target_rate": 0.3833,
+      "win_rate_ex_timeout": 0.697,
+      "avg_return_pct": 0.2369
+    },
+    {
+      "key": "AFFLE",
+      "n": 59,
+      "wins": 34,
+      "losses": 20,
+      "timeouts": 5,
+      "target_rate": 0.5763,
+      "win_rate_ex_timeout": 0.6296,
+      "avg_return_pct": 0.2242
+    },
+    {
+      "key": "NAZARA",
+      "n": 66,
+      "wins": 28,
+      "losses": 18,
+      "timeouts": 20,
+      "target_rate": 0.4242,
+      "win_rate_ex_timeout": 0.6087,
+      "avg_return_pct": 0.2107
+    },
+    {
+      "key": "DELHIVERY",
+      "n": 56,
+      "wins": 10,
+      "losses": 23,
+      "timeouts": 23,
+      "target_rate": 0.1786,
+      "win_rate_ex_timeout": 0.303,
+      "avg_return_pct": 0.2077
+    },
+    {
+      "key": "MGL",
+      "n": 67,
+      "wins": 19,
+      "losses": 29,
+      "timeouts": 19,
+      "target_rate": 0.2836,
+      "win_rate_ex_timeout": 0.3958,
+      "avg_return_pct": 0.2057
+    },
+    {
+      "key": "TATACONSUM",
+      "n": 65,
+      "wins": 27,
+      "losses": 18,
+      "timeouts": 20,
+      "target_rate": 0.4154,
+      "win_rate_ex_timeout": 0.6,
+      "avg_return_pct": 0.2051
+    },
+    {
+      "key": "HINDALCO",
+      "n": 63,
+      "wins": 24,
+      "losses": 23,
+      "timeouts": 16,
+      "target_rate": 0.381,
+      "win_rate_ex_timeout": 0.5106,
+      "avg_return_pct": 0.2011
+    },
+    {
+      "key": "BOSCHLTD",
+      "n": 45,
+      "wins": 14,
+      "losses": 17,
+      "timeouts": 14,
+      "target_rate": 0.3111,
+      "win_rate_ex_timeout": 0.4516,
+      "avg_return_pct": 0.1952
+    },
+    {
+      "key": "PHOENIXLTD",
+      "n": 56,
+      "wins": 24,
+      "losses": 20,
+      "timeouts": 12,
+      "target_rate": 0.4286,
+      "win_rate_ex_timeout": 0.5455,
+      "avg_return_pct": 0.193
+    },
+    {
+      "key": "NAUKRI",
+      "n": 50,
+      "wins": 19,
+      "losses": 17,
+      "timeouts": 14,
+      "target_rate": 0.38,
+      "win_rate_ex_timeout": 0.5278,
+      "avg_return_pct": 0.1913
+    },
+    {
+      "key": "WIPRO",
+      "n": 57,
+      "wins": 13,
+      "losses": 20,
+      "timeouts": 24,
+      "target_rate": 0.2281,
+      "win_rate_ex_timeout": 0.3939,
+      "avg_return_pct": 0.1847
     }
   ],
   "by_factor": [
     {
-      "key": "macd_positive",
-      "n": 8349,
-      "wins": 2330,
-      "losses": 3068,
-      "timeouts": 2951,
-      "target_rate": 0.2791,
-      "win_rate_ex_timeout": 0.4316,
-      "avg_return_pct": 0.0917
-    },
-    {
-      "key": "trend_15m_up",
-      "n": 11960,
-      "wins": 3222,
-      "losses": 4350,
-      "timeouts": 4388,
-      "target_rate": 0.2694,
-      "win_rate_ex_timeout": 0.4255,
-      "avg_return_pct": 0.0805
-    },
-    {
-      "key": "micro_1m_up",
-      "n": 10035,
-      "wins": 2805,
-      "losses": 3825,
-      "timeouts": 3405,
-      "target_rate": 0.2795,
-      "win_rate_ex_timeout": 0.4231,
-      "avg_return_pct": 0.0778
-    },
-    {
-      "key": "ema21_gt_ema50",
-      "n": 12038,
-      "wins": 3217,
-      "losses": 4366,
-      "timeouts": 4455,
-      "target_rate": 0.2672,
-      "win_rate_ex_timeout": 0.4242,
-      "avg_return_pct": 0.0754
-    },
-    {
-      "key": "above_vwap",
-      "n": 12039,
-      "wins": 3224,
-      "losses": 4514,
-      "timeouts": 4301,
-      "target_rate": 0.2678,
-      "win_rate_ex_timeout": 0.4166,
-      "avg_return_pct": 0.0724
-    },
-    {
-      "key": "ema9_gt_ema21",
-      "n": 12645,
-      "wins": 3443,
-      "losses": 4654,
-      "timeouts": 4548,
-      "target_rate": 0.2723,
-      "win_rate_ex_timeout": 0.4252,
-      "avg_return_pct": 0.065
-    },
-    {
-      "key": "rsi_above_55",
-      "n": 9438,
-      "wins": 2552,
-      "losses": 3422,
-      "timeouts": 3464,
-      "target_rate": 0.2704,
-      "win_rate_ex_timeout": 0.4272,
-      "avg_return_pct": 0.0646
+      "key": "macd_negative",
+      "n": 3950,
+      "wins": 1038,
+      "losses": 1372,
+      "timeouts": 1540,
+      "target_rate": 0.2628,
+      "win_rate_ex_timeout": 0.4307,
+      "avg_return_pct": 0.0489
     },
     {
       "key": "breakout_20",
-      "n": 1438,
-      "wins": 436,
-      "losses": 658,
-      "timeouts": 344,
-      "target_rate": 0.3032,
-      "win_rate_ex_timeout": 0.3985,
-      "avg_return_pct": 0.043
-    },
-    {
-      "key": "volume_expansion",
-      "n": 6692,
-      "wins": 2259,
-      "losses": 2960,
-      "timeouts": 1473,
-      "target_rate": 0.3376,
-      "win_rate_ex_timeout": 0.4328,
-      "avg_return_pct": 0.0391
-    },
-    {
-      "key": "micro_volume_expansion",
-      "n": 6121,
-      "wins": 1780,
-      "losses": 2600,
-      "timeouts": 1741,
-      "target_rate": 0.2908,
-      "win_rate_ex_timeout": 0.4064,
-      "avg_return_pct": 0.0358
-    },
-    {
-      "key": "trend_1h_up",
-      "n": 1587,
-      "wins": 380,
-      "losses": 607,
-      "timeouts": 600,
-      "target_rate": 0.2394,
-      "win_rate_ex_timeout": 0.385,
-      "avg_return_pct": 0.0134
-    },
-    {
-      "key": "trend_15m_down",
-      "n": 9081,
-      "wins": 2415,
-      "losses": 3708,
-      "timeouts": 2958,
-      "target_rate": 0.2659,
-      "win_rate_ex_timeout": 0.3944,
-      "avg_return_pct": -0.0681
-    },
-    {
-      "key": "below_vwap",
-      "n": 9075,
-      "wins": 2338,
-      "losses": 3767,
-      "timeouts": 2970,
-      "target_rate": 0.2576,
-      "win_rate_ex_timeout": 0.383,
-      "avg_return_pct": -0.0712
+      "n": 476,
+      "wins": 182,
+      "losses": 199,
+      "timeouts": 95,
+      "target_rate": 0.3824,
+      "win_rate_ex_timeout": 0.4777,
+      "avg_return_pct": 0.0164
     },
     {
       "key": "rsi_below_45",
-      "n": 7486,
-      "wins": 1860,
-      "losses": 3184,
-      "timeouts": 2442,
-      "target_rate": 0.2485,
-      "win_rate_ex_timeout": 0.3688,
-      "avg_return_pct": -0.0781
-    },
-    {
-      "key": "ema21_lt_ema50",
-      "n": 9324,
-      "wins": 2458,
-      "losses": 3863,
-      "timeouts": 3003,
-      "target_rate": 0.2636,
-      "win_rate_ex_timeout": 0.3889,
-      "avg_return_pct": -0.0785
+      "n": 4551,
+      "wins": 1101,
+      "losses": 1758,
+      "timeouts": 1692,
+      "target_rate": 0.2419,
+      "win_rate_ex_timeout": 0.3851,
+      "avg_return_pct": 0.0078
     },
     {
       "key": "micro_1m_down",
-      "n": 8011,
-      "wins": 2071,
-      "losses": 3387,
-      "timeouts": 2553,
-      "target_rate": 0.2585,
-      "win_rate_ex_timeout": 0.3794,
-      "avg_return_pct": -0.0807
+      "n": 5018,
+      "wins": 1221,
+      "losses": 2018,
+      "timeouts": 1779,
+      "target_rate": 0.2433,
+      "win_rate_ex_timeout": 0.377,
+      "avg_return_pct": 0.0021
     },
     {
-      "key": "macd_negative",
-      "n": 6655,
-      "wins": 1617,
-      "losses": 2794,
-      "timeouts": 2244,
-      "target_rate": 0.243,
-      "win_rate_ex_timeout": 0.3666,
-      "avg_return_pct": -0.0834
+      "key": "below_vwap",
+      "n": 6600,
+      "wins": 1545,
+      "losses": 2656,
+      "timeouts": 2399,
+      "target_rate": 0.2341,
+      "win_rate_ex_timeout": 0.3678,
+      "avg_return_pct": -0.0147
     },
     {
       "key": "ema9_lt_ema21",
-      "n": 9906,
-      "wins": 2551,
-      "losses": 4175,
-      "timeouts": 3180,
-      "target_rate": 0.2575,
-      "win_rate_ex_timeout": 0.3793,
-      "avg_return_pct": -0.0851
+      "n": 6390,
+      "wins": 1482,
+      "losses": 2572,
+      "timeouts": 2336,
+      "target_rate": 0.2319,
+      "win_rate_ex_timeout": 0.3656,
+      "avg_return_pct": -0.0172
     },
     {
-      "key": "trend_1h_down",
-      "n": 804,
-      "wins": 137,
-      "losses": 385,
-      "timeouts": 282,
-      "target_rate": 0.1704,
-      "win_rate_ex_timeout": 0.2625,
-      "avg_return_pct": -0.1121
+      "key": "macd_positive",
+      "n": 2660,
+      "wins": 776,
+      "losses": 1077,
+      "timeouts": 807,
+      "target_rate": 0.2917,
+      "win_rate_ex_timeout": 0.4188,
+      "avg_return_pct": -0.0228
+    },
+    {
+      "key": "trend_15m_down",
+      "n": 6132,
+      "wins": 1400,
+      "losses": 2468,
+      "timeouts": 2264,
+      "target_rate": 0.2283,
+      "win_rate_ex_timeout": 0.3619,
+      "avg_return_pct": -0.0245
+    },
+    {
+      "key": "rsi_above_55",
+      "n": 2969,
+      "wins": 883,
+      "losses": 1217,
+      "timeouts": 869,
+      "target_rate": 0.2974,
+      "win_rate_ex_timeout": 0.4205,
+      "avg_return_pct": -0.0256
+    },
+    {
+      "key": "ema21_lt_ema50",
+      "n": 6227,
+      "wins": 1418,
+      "losses": 2517,
+      "timeouts": 2292,
+      "target_rate": 0.2277,
+      "win_rate_ex_timeout": 0.3604,
+      "avg_return_pct": -0.0262
+    },
+    {
+      "key": "micro_volume_expansion",
+      "n": 6216,
+      "wins": 1481,
+      "losses": 2456,
+      "timeouts": 2279,
+      "target_rate": 0.2383,
+      "win_rate_ex_timeout": 0.3762,
+      "avg_return_pct": -0.0325
+    },
+    {
+      "key": "volume_expansion",
+      "n": 2763,
+      "wins": 913,
+      "losses": 1282,
+      "timeouts": 568,
+      "target_rate": 0.3304,
+      "win_rate_ex_timeout": 0.4159,
+      "avg_return_pct": -0.0361
     },
     {
       "key": "breakdown_20",
-      "n": 1092,
-      "wins": 305,
-      "losses": 531,
-      "timeouts": 256,
-      "target_rate": 0.2793,
-      "win_rate_ex_timeout": 0.3648,
-      "avg_return_pct": -0.143
+      "n": 613,
+      "wins": 155,
+      "losses": 300,
+      "timeouts": 158,
+      "target_rate": 0.2529,
+      "win_rate_ex_timeout": 0.3407,
+      "avg_return_pct": -0.0409
+    },
+    {
+      "key": "trend_15m_up",
+      "n": 3604,
+      "wins": 1048,
+      "losses": 1473,
+      "timeouts": 1083,
+      "target_rate": 0.2908,
+      "win_rate_ex_timeout": 0.4157,
+      "avg_return_pct": -0.0411
+    },
+    {
+      "key": "ema9_gt_ema21",
+      "n": 3841,
+      "wins": 1117,
+      "losses": 1575,
+      "timeouts": 1149,
+      "target_rate": 0.2908,
+      "win_rate_ex_timeout": 0.4149,
+      "avg_return_pct": -0.0415
+    },
+    {
+      "key": "above_vwap",
+      "n": 3607,
+      "wins": 1063,
+      "losses": 1475,
+      "timeouts": 1069,
+      "target_rate": 0.2947,
+      "win_rate_ex_timeout": 0.4188,
+      "avg_return_pct": -0.0468
+    },
+    {
+      "key": "ema21_gt_ema50",
+      "n": 3587,
+      "wins": 1026,
+      "losses": 1472,
+      "timeouts": 1089,
+      "target_rate": 0.286,
+      "win_rate_ex_timeout": 0.4107,
+      "avg_return_pct": -0.0483
+    },
+    {
+      "key": "micro_1m_up",
+      "n": 1851,
+      "wins": 486,
+      "losses": 903,
+      "timeouts": 462,
+      "target_rate": 0.2626,
+      "win_rate_ex_timeout": 0.3499,
+      "avg_return_pct": -0.1175
     }
   ],
   "top_candidates": [
     {
-      "symbol": "SULA",
-      "time": "2026-07-28 15:00:00+05:30",
+      "symbol": "OBEROIRLTY",
+      "time": "2026-08-17 11:15:00+05:30",
       "label": 1,
-      "return_pct": 10.949,
+      "return_pct": 5.407,
+      "side": "BUY",
+      "setup": "mtf_momentum",
+      "score": 5,
+      "opposition": 3,
+      "factors": [
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_volume_expansion",
+        "trend_15m_up"
+      ],
+      "entry_price": 1843.9,
+      "volume_ratio": 0.554,
+      "micro_volume_ratio": 1.632,
+      "rsi14": 50.4
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:15:00+05:30",
+      "label": 1,
+      "return_pct": 4.8439,
+      "side": "BUY",
+      "setup": "range_break",
+      "score": 8,
+      "opposition": 0,
+      "factors": [
+        "above_vwap",
+        "breakout_20",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 202.11,
+      "volume_ratio": 0.333,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 85.44
+    },
+    {
+      "symbol": "HINDCOPPER",
+      "time": "2026-08-14 15:10:00+05:30",
+      "label": 1,
+      "return_pct": 4.798,
       "side": "BUY",
       "setup": "vwap_trend",
-      "score": 9,
+      "score": 6,
       "opposition": 2,
       "factors": [
         "above_vwap",
         "ema21_gt_ema50",
         "ema9_gt_ema21",
         "macd_positive",
-        "micro_1m_up",
-        "micro_volume_expansion",
-        "rsi_above_55",
         "trend_15m_up",
         "volume_expansion"
       ],
-      "entry_price": 152.8,
-      "volume_ratio": 3.181,
-      "micro_volume_ratio": 1.253,
-      "rsi14": 70.43
+      "entry_price": 528.35,
+      "volume_ratio": 1.873,
+      "micro_volume_ratio": 0.795,
+      "rsi14": 51.7
     },
     {
-      "symbol": "COFORGE",
-      "time": "2026-07-27 15:15:00+05:30",
+      "symbol": "HINDCOPPER",
+      "time": "2026-08-14 15:25:00+05:30",
       "label": 1,
-      "return_pct": 9.5562,
+      "return_pct": 4.6993,
       "side": "BUY",
       "setup": "vwap_trend",
       "score": 6,
@@ -522,36 +544,16 @@
         "trend_15m_up",
         "volume_expansion"
       ],
-      "entry_price": 1529.9,
-      "volume_ratio": 3.184,
-      "micro_volume_ratio": 3.378,
-      "rsi14": 48.19
+      "entry_price": 528.8,
+      "volume_ratio": 1.568,
+      "micro_volume_ratio": 2.523,
+      "rsi14": 54.65
     },
     {
-      "symbol": "COFORGE",
-      "time": "2026-07-27 15:05:00+05:30",
+      "symbol": "HINDCOPPER",
+      "time": "2026-08-14 15:20:00+05:30",
       "label": 1,
-      "return_pct": 9.468,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 4,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "trend_15m_up"
-      ],
-      "entry_price": 1526.2,
-      "volume_ratio": 1.11,
-      "micro_volume_ratio": 0.458,
-      "rsi14": 50.38
-    },
-    {
-      "symbol": "COFORGE",
-      "time": "2026-07-27 14:55:00+05:30",
-      "label": 1,
-      "return_pct": 9.4209,
+      "return_pct": 4.6362,
       "side": "BUY",
       "setup": "vwap_trend",
       "score": 5,
@@ -560,88 +562,47 @@
         "above_vwap",
         "ema21_gt_ema50",
         "ema9_gt_ema21",
-        "micro_volume_expansion",
-        "trend_15m_up"
-      ],
-      "entry_price": 1526.4,
-      "volume_ratio": 1.139,
-      "micro_volume_ratio": 1.281,
-      "rsi14": 52.87
-    },
-    {
-      "symbol": "COFORGE",
-      "time": "2026-07-27 15:20:00+05:30",
-      "label": 1,
-      "return_pct": 9.3556,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 6,
-      "opposition": 4,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "micro_volume_expansion",
         "trend_15m_up",
         "volume_expansion"
       ],
-      "entry_price": 1531.7,
-      "volume_ratio": 2.957,
-      "micro_volume_ratio": 1.404,
-      "rsi14": 54.98
+      "entry_price": 528.45,
+      "volume_ratio": 1.434,
+      "micro_volume_ratio": 0.809,
+      "rsi14": 50.29
     },
     {
-      "symbol": "COFORGE",
-      "time": "2026-07-27 15:25:00+05:30",
+      "symbol": "KNRCON",
+      "time": "2026-08-14 15:20:00+05:30",
       "label": 1,
-      "return_pct": 9.3534,
-      "side": "BUY",
+      "return_pct": 4.4454,
+      "side": "SELL",
       "setup": "vwap_trend",
-      "score": 7,
+      "score": 8,
       "opposition": 3,
       "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "micro_1m_up",
+        "below_vwap",
+        "ema21_lt_ema50",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
         "micro_volume_expansion",
-        "trend_15m_up",
+        "rsi_below_45",
         "volume_expansion"
       ],
-      "entry_price": 1531.0,
-      "volume_ratio": 1.964,
-      "micro_volume_ratio": 1.243,
-      "rsi14": 50.62
+      "entry_price": 132.72,
+      "volume_ratio": 1.974,
+      "micro_volume_ratio": 1.96,
+      "rsi14": 29.95
     },
     {
-      "symbol": "COFORGE",
-      "time": "2026-07-27 15:00:00+05:30",
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:05:00+05:30",
       "label": 1,
-      "return_pct": 9.1974,
+      "return_pct": 4.4024,
       "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 4,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "trend_15m_up"
-      ],
-      "entry_price": 1527.6,
-      "volume_ratio": 1.096,
-      "micro_volume_ratio": 0.805,
-      "rsi14": 54.55
-    },
-    {
-      "symbol": "SULA",
-      "time": "2026-07-28 15:05:00+05:30",
-      "label": 1,
-      "return_pct": 8.7799,
-      "side": "BUY",
-      "setup": "volume_breakout",
-      "score": 10,
-      "opposition": 2,
+      "setup": "range_break",
+      "score": 8,
+      "opposition": 0,
       "factors": [
         "above_vwap",
         "breakout_20",
@@ -649,639 +610,112 @@
         "ema9_gt_ema21",
         "macd_positive",
         "micro_1m_up",
-        "micro_volume_expansion",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 154.9,
-      "volume_ratio": 10.039,
-      "micro_volume_ratio": 4.666,
-      "rsi14": 79.13
-    },
-    {
-      "symbol": "COFORGE",
-      "time": "2026-07-27 14:50:00+05:30",
-      "label": 1,
-      "return_pct": 8.7554,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 6,
-      "opposition": 4,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "micro_volume_expansion",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1528.2,
-      "volume_ratio": 2.01,
-      "micro_volume_ratio": 1.891,
-      "rsi14": 51.81
-    },
-    {
-      "symbol": "LODHA",
-      "time": "2026-07-27 14:55:00+05:30",
-      "label": 1,
-      "return_pct": 8.4178,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 7,
-      "opposition": 0,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
         "rsi_above_55",
         "trend_15m_up"
       ],
-      "entry_price": 1193.9,
-      "volume_ratio": 0.76,
-      "micro_volume_ratio": 0.675,
-      "rsi14": 59.02
+      "entry_price": 201.71,
+      "volume_ratio": 0.129,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 71.37
     },
     {
-      "symbol": "LODHA",
-      "time": "2026-07-27 15:10:00+05:30",
+      "symbol": "HINDCOPPER",
+      "time": "2026-08-14 15:15:00+05:30",
       "label": 1,
-      "return_pct": 7.0434,
+      "return_pct": 4.3709,
       "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1195.45,
-      "volume_ratio": 2.852,
-      "micro_volume_ratio": 0.536,
-      "rsi14": 63.34
-    },
-    {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 15:20:00+05:30",
-      "label": 1,
-      "return_pct": 6.8969,
-      "side": "SELL",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_1m_down",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 184.14,
-      "volume_ratio": 3.022,
-      "micro_volume_ratio": 1.032,
-      "rsi14": 25.42
-    },
-    {
-      "symbol": "LODHA",
-      "time": "2026-07-27 14:50:00+05:30",
-      "label": 1,
-      "return_pct": 6.8428,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 7,
-      "opposition": 0,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "rsi_above_55",
-        "trend_15m_up"
-      ],
-      "entry_price": 1192.5,
-      "volume_ratio": 0.497,
-      "micro_volume_ratio": 0.766,
-      "rsi14": 56.25
-    },
-    {
-      "symbol": "AFFLE",
-      "time": "2026-07-27 15:25:00+05:30",
-      "label": 1,
-      "return_pct": 6.5633,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1490.1,
-      "volume_ratio": 1.826,
-      "micro_volume_ratio": 1.007,
-      "rsi14": 61.16
-    },
-    {
-      "symbol": "LODHA",
-      "time": "2026-07-27 14:45:00+05:30",
-      "label": 1,
-      "return_pct": 6.3358,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 6,
-      "opposition": 0,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "trend_15m_up"
-      ],
-      "entry_price": 1194.0,
-      "volume_ratio": 0.725,
-      "micro_volume_ratio": 0.526,
-      "rsi14": 54.41
-    },
-    {
-      "symbol": "LODHA",
-      "time": "2026-07-27 14:40:00+05:30",
-      "label": 1,
-      "return_pct": 6.3039,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 7,
-      "opposition": 1,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "micro_volume_expansion",
-        "trend_15m_up"
-      ],
-      "entry_price": 1193.7,
-      "volume_ratio": 0.678,
-      "micro_volume_ratio": 2.121,
-      "rsi14": 52.63
-    },
-    {
-      "symbol": "AFFLE",
-      "time": "2026-07-27 15:10:00+05:30",
-      "label": 1,
-      "return_pct": 6.2214,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 7,
-      "opposition": 4,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "micro_volume_expansion",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1486.8,
-      "volume_ratio": 1.566,
-      "micro_volume_ratio": 1.742,
-      "rsi14": 60.42
-    },
-    {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 15:05:00+05:30",
-      "label": 1,
-      "return_pct": 6.182,
-      "side": "SELL",
-      "setup": "vwap_trend",
-      "score": 9,
-      "opposition": 2,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_1m_down",
-        "micro_volume_expansion",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 186.51,
-      "volume_ratio": 4.132,
-      "micro_volume_ratio": 1.553,
-      "rsi14": 28.76
-    },
-    {
-      "symbol": "LODHA",
-      "time": "2026-07-27 15:20:00+05:30",
-      "label": 1,
-      "return_pct": 6.1427,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1197.35,
-      "volume_ratio": 3.521,
-      "micro_volume_ratio": 0.973,
-      "rsi14": 62.92
-    },
-    {
-      "symbol": "LODHA",
-      "time": "2026-07-27 15:25:00+05:30",
-      "label": 1,
-      "return_pct": 6.0401,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1204.45,
-      "volume_ratio": 1.619,
-      "micro_volume_ratio": 1.186,
-      "rsi14": 65.45
-    },
-    {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 15:15:00+05:30",
-      "label": 1,
-      "return_pct": 6.0385,
-      "side": "SELL",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_1m_down",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 183.49,
-      "volume_ratio": 3.628,
-      "micro_volume_ratio": 0.985,
-      "rsi14": 18.06
-    },
-    {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 15:25:00+05:30",
-      "label": 1,
-      "return_pct": 6.024,
-      "side": "SELL",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_1m_down",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 183.6,
-      "volume_ratio": 1.555,
-      "micro_volume_ratio": 0.283,
-      "rsi14": 27.35
-    },
-    {
-      "symbol": "LODHA",
-      "time": "2026-07-27 15:15:00+05:30",
-      "label": 1,
-      "return_pct": 5.7696,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 7,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1199.4,
-      "volume_ratio": 1.839,
-      "micro_volume_ratio": 1.023,
-      "rsi14": 67.86
-    },
-    {
-      "symbol": "SULA",
-      "time": "2026-07-28 15:15:00+05:30",
-      "label": 1,
-      "return_pct": 5.6762,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 9,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "micro_volume_expansion",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 158.38,
-      "volume_ratio": 7.236,
-      "micro_volume_ratio": 3.493,
-      "rsi14": 86.93
-    },
-    {
-      "symbol": "SULA",
-      "time": "2026-07-28 15:10:00+05:30",
-      "label": 1,
-      "return_pct": 5.6498,
-      "side": "BUY",
-      "setup": "volume_breakout",
-      "score": 10,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "breakout_20",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "micro_volume_expansion",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 158.59,
-      "volume_ratio": 9.438,
-      "micro_volume_ratio": 2.871,
-      "rsi14": 88.82
-    },
-    {
-      "symbol": "VSTIND",
-      "time": "2026-07-28 14:40:00+05:30",
-      "label": 1,
-      "return_pct": 5.6497,
-      "side": "SELL",
       "setup": "vwap_trend",
       "score": 5,
-      "opposition": 2,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "micro_1m_down",
-        "trend_15m_down"
-      ],
-      "entry_price": 230.1,
-      "volume_ratio": 0.245,
-      "micro_volume_ratio": 0.517,
-      "rsi14": 61.36
-    },
-    {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 15:10:00+05:30",
-      "label": 1,
-      "return_pct": 5.635,
-      "side": "SELL",
-      "setup": "volume_breakout",
-      "score": 10,
-      "opposition": 2,
-      "factors": [
-        "below_vwap",
-        "breakdown_20",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_1m_down",
-        "micro_volume_expansion",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 184.03,
-      "volume_ratio": 4.066,
-      "micro_volume_ratio": 2.678,
-      "rsi14": 19.97
-    },
-    {
-      "symbol": "SULA",
-      "time": "2026-07-28 15:20:00+05:30",
-      "label": 1,
-      "return_pct": 5.5409,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 159.0,
-      "volume_ratio": 3.705,
-      "micro_volume_ratio": 0.905,
-      "rsi14": 87.64
-    },
-    {
-      "symbol": "AFFLE",
-      "time": "2026-07-27 15:20:00+05:30",
-      "label": 1,
-      "return_pct": 5.5236,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 9,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "micro_1m_up",
-        "micro_volume_expansion",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 1495.4,
-      "volume_ratio": 2.647,
-      "micro_volume_ratio": 3.757,
-      "rsi14": 72.46
-    },
-    {
-      "symbol": "AFFLE",
-      "time": "2026-07-27 15:15:00+05:30",
-      "label": 1,
-      "return_pct": 5.4935,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 8,
       "opposition": 3,
       "factors": [
         "above_vwap",
         "ema21_gt_ema50",
         "ema9_gt_ema21",
+        "trend_15m_up",
+        "volume_expansion"
+      ],
+      "entry_price": 528.5,
+      "volume_ratio": 1.688,
+      "micro_volume_ratio": 0.983,
+      "rsi14": 51.7
+    },
+    {
+      "symbol": "ZEEL",
+      "time": "2026-08-17 13:00:00+05:30",
+      "label": 1,
+      "return_pct": 4.3415,
+      "side": "BUY",
+      "setup": "volume_breakout",
+      "score": 7,
+      "opposition": 5,
+      "factors": [
+        "above_vwap",
+        "breakout_20",
         "macd_positive",
         "micro_volume_expansion",
         "rsi_above_55",
         "trend_15m_up",
         "volume_expansion"
       ],
-      "entry_price": 1494.5,
-      "volume_ratio": 5.148,
-      "micro_volume_ratio": 1.911,
-      "rsi14": 71.75
+      "entry_price": 102.5,
+      "volume_ratio": 3.459,
+      "micro_volume_ratio": 1.336,
+      "rsi14": 58.75
     },
     {
-      "symbol": "RADICO",
-      "time": "2026-07-28 14:20:00+05:30",
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 11:50:00+05:30",
       "label": 1,
-      "return_pct": 5.4594,
+      "return_pct": 4.2434,
       "side": "BUY",
       "setup": "mtf_momentum",
       "score": 6,
-      "opposition": 3,
+      "opposition": 1,
       "factors": [
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 4114.0,
-      "volume_ratio": 2.992,
-      "micro_volume_ratio": 0.664,
-      "rsi14": 55.04
-    },
-    {
-      "symbol": "SWIGGY",
-      "time": "2026-07-28 15:20:00+05:30",
-      "label": 1,
-      "return_pct": 5.4296,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 9,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
         "ema21_gt_ema50",
         "ema9_gt_ema21",
         "macd_positive",
         "micro_1m_up",
-        "micro_volume_expansion",
         "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
+        "trend_15m_up"
       ],
-      "entry_price": 268.71,
-      "volume_ratio": 2.391,
-      "micro_volume_ratio": 1.796,
-      "rsi14": 76.24
+      "entry_price": 199.37,
+      "volume_ratio": 0.034,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 56.87
     },
     {
-      "symbol": "CARTRADE",
-      "time": "2026-07-29 10:45:00+05:30",
+      "symbol": "KNRCON",
+      "time": "2026-08-14 15:25:00+05:30",
       "label": 1,
-      "return_pct": 5.3832,
+      "return_pct": 4.1981,
       "side": "SELL",
-      "setup": "mtf_momentum",
-      "score": 5,
-      "opposition": 2,
+      "setup": "vwap_trend",
+      "score": 7,
+      "opposition": 4,
       "factors": [
+        "below_vwap",
+        "ema21_lt_ema50",
         "ema9_lt_ema21",
         "macd_negative",
-        "micro_1m_down",
+        "micro_volume_expansion",
         "rsi_below_45",
-        "trend_15m_down"
+        "volume_expansion"
       ],
-      "entry_price": 2981.5,
-      "volume_ratio": 0.232,
-      "micro_volume_ratio": 0.509,
-      "rsi14": 38.93
+      "entry_price": 132.44,
+      "volume_ratio": 1.394,
+      "micro_volume_ratio": 1.612,
+      "rsi14": 27.43
     },
     {
-      "symbol": "RADICO",
-      "time": "2026-07-28 14:45:00+05:30",
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 11:55:00+05:30",
       "label": 1,
-      "return_pct": 5.3464,
+      "return_pct": 4.192,
       "side": "BUY",
       "setup": "vwap_trend",
       "score": 7,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
-      ],
-      "entry_price": 4161.7,
-      "volume_ratio": 1.949,
-      "micro_volume_ratio": 0.703,
-      "rsi14": 60.75
-    },
-    {
-      "symbol": "SWIGGY",
-      "time": "2026-07-28 15:15:00+05:30",
-      "label": 1,
-      "return_pct": 5.3122,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 8,
-      "opposition": 1,
+      "opposition": 0,
       "factors": [
         "above_vwap",
         "ema21_gt_ema50",
@@ -1289,23 +723,154 @@
         "macd_positive",
         "micro_1m_up",
         "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
+        "trend_15m_up"
       ],
-      "entry_price": 268.25,
-      "volume_ratio": 2.008,
-      "micro_volume_ratio": 0.884,
-      "rsi14": 58.54
+      "entry_price": 200.38,
+      "volume_ratio": 0.217,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 65.13
     },
     {
-      "symbol": "SWIGGY",
-      "time": "2026-07-28 15:25:00+05:30",
+      "symbol": "KNRCON",
+      "time": "2026-08-14 15:15:00+05:30",
       "label": 1,
-      "return_pct": 5.2906,
+      "return_pct": 4.1679,
+      "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 6,
+      "opposition": 1,
+      "factors": [
+        "below_vwap",
+        "ema21_lt_ema50",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "rsi_below_45"
+      ],
+      "entry_price": 132.44,
+      "volume_ratio": 0.829,
+      "micro_volume_ratio": 0.09,
+      "rsi14": 31.84
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:20:00+05:30",
+      "label": 1,
+      "return_pct": 4.0125,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 7,
+      "opposition": 0,
+      "factors": [
+        "above_vwap",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 202.37,
+      "volume_ratio": 0.131,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 82.08
+    },
+    {
+      "symbol": "KNRCON",
+      "time": "2026-08-14 14:30:00+05:30",
+      "label": 1,
+      "return_pct": 3.9904,
+      "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 6,
+      "opposition": 3,
+      "factors": [
+        "below_vwap",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "micro_volume_expansion",
+        "rsi_below_45"
+      ],
+      "entry_price": 133.32,
+      "volume_ratio": 0.375,
+      "micro_volume_ratio": 1.752,
+      "rsi14": 26.26
+    },
+    {
+      "symbol": "HINDCOPPER",
+      "time": "2026-08-14 14:45:00+05:30",
+      "label": 1,
+      "return_pct": 3.8811,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 6,
+      "opposition": 1,
+      "factors": [
+        "above_vwap",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 528.2,
+      "volume_ratio": 0.993,
+      "micro_volume_ratio": 0.939,
+      "rsi14": 59.65
+    },
+    {
+      "symbol": "KNRCON",
+      "time": "2026-08-14 14:50:00+05:30",
+      "label": 1,
+      "return_pct": 3.8624,
+      "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 5,
+      "opposition": 2,
+      "factors": [
+        "below_vwap",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "rsi_below_45"
+      ],
+      "entry_price": 132.82,
+      "volume_ratio": 0.037,
+      "micro_volume_ratio": 0.007,
+      "rsi14": 21.79
+    },
+    {
+      "symbol": "KNRCON",
+      "time": "2026-08-17 12:20:00+05:30",
+      "label": 1,
+      "return_pct": 3.8319,
       "side": "BUY",
       "setup": "volume_breakout",
-      "score": 10,
-      "opposition": 2,
+      "score": 6,
+      "opposition": 4,
+      "factors": [
+        "breakout_20",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "volume_expansion"
+      ],
+      "entry_price": 129.7,
+      "volume_ratio": 6.741,
+      "micro_volume_ratio": 0.333,
+      "rsi14": 73.67
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:00:00+05:30",
+      "label": 1,
+      "return_pct": 3.7722,
+      "side": "BUY",
+      "setup": "range_break",
+      "score": 8,
+      "opposition": 0,
       "factors": [
         "above_vwap",
         "breakout_20",
@@ -1313,158 +878,107 @@
         "ema9_gt_ema21",
         "macd_positive",
         "micro_1m_up",
-        "micro_volume_expansion",
         "rsi_above_55",
-        "trend_15m_up",
-        "volume_expansion"
+        "trend_15m_up"
       ],
-      "entry_price": 270.1,
-      "volume_ratio": 3.4,
-      "micro_volume_ratio": 1.732,
-      "rsi14": 83.64
+      "entry_price": 201.21,
+      "volume_ratio": 0.195,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 68.29
     },
     {
-      "symbol": "SWIGGY",
-      "time": "2026-07-28 15:05:00+05:30",
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 11:45:00+05:30",
       "label": 1,
-      "return_pct": 5.2278,
+      "return_pct": 3.6996,
       "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 7,
-      "opposition": 4,
+      "setup": "mtf_momentum",
+      "score": 5,
+      "opposition": 1,
       "factors": [
-        "above_vwap",
         "ema21_gt_ema50",
+        "ema9_gt_ema21",
         "macd_positive",
         "micro_1m_up",
-        "micro_volume_expansion",
-        "trend_15m_up",
-        "volume_expansion"
+        "trend_15m_up"
       ],
-      "entry_price": 267.99,
-      "volume_ratio": 1.462,
-      "micro_volume_ratio": 1.869,
-      "rsi14": 40.85
+      "entry_price": 199.21,
+      "volume_ratio": 0.039,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 54.35
     },
     {
-      "symbol": "DMART",
-      "time": "2026-07-28 11:20:00+05:30",
+      "symbol": "KNRCON",
+      "time": "2026-08-14 15:10:00+05:30",
       "label": 1,
-      "return_pct": 5.2251,
+      "return_pct": 3.6886,
       "side": "SELL",
-      "setup": "volume_breakout",
+      "setup": "vwap_trend",
       "score": 7,
-      "opposition": 3,
+      "opposition": 2,
+      "factors": [
+        "below_vwap",
+        "ema21_lt_ema50",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "rsi_below_45",
+        "volume_expansion"
+      ],
+      "entry_price": 132.3,
+      "volume_ratio": 2.965,
+      "micro_volume_ratio": 0.341,
+      "rsi14": 26.39
+    },
+    {
+      "symbol": "KNRCON",
+      "time": "2026-08-14 14:45:00+05:30",
+      "label": 1,
+      "return_pct": 3.6685,
+      "side": "SELL",
+      "setup": "range_break",
+      "score": 6,
+      "opposition": 2,
       "factors": [
         "below_vwap",
         "breakdown_20",
         "ema9_lt_ema21",
         "macd_negative",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
+        "micro_1m_down",
+        "rsi_below_45"
       ],
-      "entry_price": 4009.5,
-      "volume_ratio": 4.623,
-      "micro_volume_ratio": 0.438,
-      "rsi14": 32.9
+      "entry_price": 132.75,
+      "volume_ratio": 0.433,
+      "micro_volume_ratio": 0.172,
+      "rsi14": 17.95
     },
     {
-      "symbol": "VSTIND",
-      "time": "2026-07-28 14:45:00+05:30",
+      "symbol": "HINDCOPPER",
+      "time": "2026-08-14 14:35:00+05:30",
       "label": 1,
-      "return_pct": 5.2242,
-      "side": "SELL",
-      "setup": "vwap_trend",
-      "score": 5,
-      "opposition": 3,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 229.7,
-      "volume_ratio": 3.033,
-      "micro_volume_ratio": 0.721,
-      "rsi14": 54.0
-    },
-    {
-      "symbol": "SAIL",
-      "time": "2026-07-28 15:15:00+05:30",
-      "label": 1,
-      "return_pct": 5.207,
+      "return_pct": 3.6472,
       "side": "BUY",
       "setup": "vwap_trend",
-      "score": 7,
+      "score": 6,
       "opposition": 3,
       "factors": [
         "above_vwap",
-        "ema21_gt_ema50",
+        "ema9_gt_ema21",
         "macd_positive",
         "micro_1m_up",
-        "micro_volume_expansion",
-        "trend_15m_up",
+        "rsi_above_55",
         "volume_expansion"
       ],
-      "entry_price": 165.93,
-      "volume_ratio": 3.662,
-      "micro_volume_ratio": 1.634,
-      "rsi14": 47.27
+      "entry_price": 527.8,
+      "volume_ratio": 1.491,
+      "micro_volume_ratio": 0.755,
+      "rsi14": 62.3
     },
     {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 14:50:00+05:30",
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:10:00+05:30",
       "label": 1,
-      "return_pct": 5.1589,
-      "side": "SELL",
-      "setup": "vwap_trend",
-      "score": 6,
-      "opposition": 1,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "rsi_below_45",
-        "trend_15m_down"
-      ],
-      "entry_price": 187.25,
-      "volume_ratio": 0.784,
-      "micro_volume_ratio": 0.286,
-      "rsi14": 34.34
-    },
-    {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 15:00:00+05:30",
-      "label": 1,
-      "return_pct": 5.1367,
-      "side": "SELL",
-      "setup": "vwap_trend",
-      "score": 9,
-      "opposition": 2,
-      "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_1m_down",
-        "micro_volume_expansion",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 186.89,
-      "volume_ratio": 1.337,
-      "micro_volume_ratio": 2.388,
-      "rsi14": 36.97
-    },
-    {
-      "symbol": "AFFLE",
-      "time": "2026-07-27 15:05:00+05:30",
-      "label": 1,
-      "return_pct": 5.1335,
+      "return_pct": 3.616,
       "side": "BUY",
       "setup": "vwap_trend",
       "score": 7,
@@ -1478,107 +992,511 @@
         "rsi_above_55",
         "trend_15m_up"
       ],
-      "entry_price": 1490.2,
-      "volume_ratio": 0.884,
-      "micro_volume_ratio": 0.98,
-      "rsi14": 75.86
+      "entry_price": 201.88,
+      "volume_ratio": 0.053,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 59.32
     },
     {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 14:45:00+05:30",
+      "symbol": "KNRCON",
+      "time": "2026-08-14 14:40:00+05:30",
       "label": 1,
-      "return_pct": 5.0952,
+      "return_pct": 3.5196,
       "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 5,
+      "opposition": 2,
+      "factors": [
+        "below_vwap",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "rsi_below_45"
+      ],
+      "entry_price": 132.97,
+      "volume_ratio": 0.938,
+      "micro_volume_ratio": 0.809,
+      "rsi14": 20.47
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 11:35:00+05:30",
+      "label": 1,
+      "return_pct": 3.3462,
+      "side": "BUY",
+      "setup": "mtf_momentum",
+      "score": 6,
+      "opposition": 1,
+      "factors": [
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 199.33,
+      "volume_ratio": 0.033,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 55.38
+    },
+    {
+      "symbol": "ZEEL",
+      "time": "2026-08-17 13:05:00+05:30",
+      "label": 1,
+      "return_pct": 3.3431,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 7,
+      "opposition": 4,
+      "factors": [
+        "above_vwap",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_volume_expansion",
+        "rsi_above_55",
+        "trend_15m_up",
+        "volume_expansion"
+      ],
+      "entry_price": 102.6,
+      "volume_ratio": 4.09,
+      "micro_volume_ratio": 1.336,
+      "rsi14": 59.59
+    },
+    {
+      "symbol": "HINDCOPPER",
+      "time": "2026-08-14 14:40:00+05:30",
+      "label": 1,
+      "return_pct": 3.2951,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 5,
+      "opposition": 2,
+      "factors": [
+        "above_vwap",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55"
+      ],
+      "entry_price": 528.05,
+      "volume_ratio": 1.185,
+      "micro_volume_ratio": 0.33,
+      "rsi14": 60.68
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:25:00+05:30",
+      "label": 1,
+      "return_pct": 3.2241,
+      "side": "BUY",
+      "setup": "range_break",
+      "score": 8,
+      "opposition": 0,
+      "factors": [
+        "above_vwap",
+        "breakout_20",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 203.16,
+      "volume_ratio": 0.244,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 88.37
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 11:30:00+05:30",
+      "label": 1,
+      "return_pct": 3.2108,
+      "side": "BUY",
+      "setup": "mtf_momentum",
+      "score": 6,
+      "opposition": 1,
+      "factors": [
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 199.33,
+      "volume_ratio": 0.025,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 57.49
+    },
+    {
+      "symbol": "KNRCON",
+      "time": "2026-08-14 14:35:00+05:30",
+      "label": 1,
+      "return_pct": 3.2096,
+      "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 6,
+      "opposition": 3,
+      "factors": [
+        "below_vwap",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "micro_volume_expansion",
+        "rsi_below_45"
+      ],
+      "entry_price": 133.04,
+      "volume_ratio": 0.653,
+      "micro_volume_ratio": 1.346,
+      "rsi14": 28.57
+    },
+    {
+      "symbol": "OBEROIRLTY",
+      "time": "2026-08-17 11:40:00+05:30",
+      "label": 1,
+      "return_pct": 3.1551,
+      "side": "BUY",
+      "setup": "volume_breakout",
+      "score": 9,
+      "opposition": 3,
+      "factors": [
+        "above_vwap",
+        "breakout_20",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_volume_expansion",
+        "rsi_above_55",
+        "trend_15m_up",
+        "volume_expansion"
+      ],
+      "entry_price": 1870.0,
+      "volume_ratio": 8.599,
+      "micro_volume_ratio": 1.632,
+      "rsi14": 78.43
+    },
+    {
+      "symbol": "KNRCON",
+      "time": "2026-08-17 12:25:00+05:30",
+      "label": 1,
+      "return_pct": 3.1457,
+      "side": "BUY",
+      "setup": "volume_breakout",
+      "score": 6,
+      "opposition": 4,
+      "factors": [
+        "breakout_20",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "volume_expansion"
+      ],
+      "entry_price": 131.29,
+      "volume_ratio": 9.706,
+      "micro_volume_ratio": 0.333,
+      "rsi14": 85.66
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 11:40:00+05:30",
+      "label": 1,
+      "return_pct": 3.0511,
+      "side": "BUY",
+      "setup": "mtf_momentum",
+      "score": 5,
+      "opposition": 1,
+      "factors": [
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "trend_15m_up"
+      ],
+      "entry_price": 199.27,
+      "volume_ratio": 0.022,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 54.57
+    },
+    {
+      "symbol": "ZEEL",
+      "time": "2026-08-17 13:10:00+05:30",
+      "label": 1,
+      "return_pct": 2.5316,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 7,
+      "opposition": 4,
+      "factors": [
+        "above_vwap",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_volume_expansion",
+        "rsi_above_55",
+        "trend_15m_up",
+        "volume_expansion"
+      ],
+      "entry_price": 102.7,
+      "volume_ratio": 1.438,
+      "micro_volume_ratio": 1.336,
+      "rsi14": 66.67
+    },
+    {
+      "symbol": "VOLTAS",
+      "time": "2026-08-14 15:05:00+05:30",
+      "label": 1,
+      "return_pct": 2.4069,
+      "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 7,
+      "opposition": 4,
+      "factors": [
+        "below_vwap",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "micro_volume_expansion",
+        "rsi_below_45",
+        "volume_expansion"
+      ],
+      "entry_price": 1321.2,
+      "volume_ratio": 2.578,
+      "micro_volume_ratio": 3.915,
+      "rsi14": 24.0
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:40:00+05:30",
+      "label": 1,
+      "return_pct": 2.2888,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 8,
+      "opposition": 1,
+      "factors": [
+        "above_vwap",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up",
+        "volume_expansion"
+      ],
+      "entry_price": 205.35,
+      "volume_ratio": 1.621,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 89.81
+    },
+    {
+      "symbol": "VOLTAS",
+      "time": "2026-08-14 15:25:00+05:30",
+      "label": 1,
+      "return_pct": 2.234,
+      "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 5,
+      "opposition": 2,
+      "factors": [
+        "below_vwap",
+        "ema9_lt_ema21",
+        "macd_negative",
+        "micro_1m_down",
+        "rsi_below_45"
+      ],
+      "entry_price": 1320.5,
+      "volume_ratio": 0.384,
+      "micro_volume_ratio": 1.156,
+      "rsi14": 28.45
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 13:25:00+05:30",
+      "label": 1,
+      "return_pct": 2.1792,
+      "side": "BUY",
       "setup": "vwap_trend",
       "score": 7,
       "opposition": 0,
       "factors": [
-        "below_vwap",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_1m_down",
-        "rsi_below_45",
-        "trend_15m_down"
+        "above_vwap",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
       ],
-      "entry_price": 187.43,
-      "volume_ratio": 1.198,
-      "micro_volume_ratio": 0.951,
-      "rsi14": 35.07
+      "entry_price": 209.71,
+      "volume_ratio": 0.822,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 73.6
     },
     {
-      "symbol": "VSTIND",
-      "time": "2026-07-28 14:30:00+05:30",
+      "symbol": "ZEEL",
+      "time": "2026-08-17 13:20:00+05:30",
       "label": 1,
-      "return_pct": 5.025,
-      "side": "SELL",
+      "return_pct": 2.1513,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 7,
+      "opposition": 2,
+      "factors": [
+        "above_vwap",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_volume_expansion",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 102.73,
+      "volume_ratio": 0.879,
+      "micro_volume_ratio": 1.336,
+      "rsi14": 78.26
+    },
+    {
+      "symbol": "NMDC",
+      "time": "2026-08-17 13:00:00+05:30",
+      "label": 1,
+      "return_pct": 2.1472,
+      "side": "BUY",
+      "setup": "volume_breakout",
+      "score": 6,
+      "opposition": 4,
+      "factors": [
+        "above_vwap",
+        "breakout_20",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "rsi_above_55",
+        "volume_expansion"
+      ],
+      "entry_price": 82.9,
+      "volume_ratio": 2.349,
+      "micro_volume_ratio": 0.992,
+      "rsi14": 77.83
+    },
+    {
+      "symbol": "JYOTHYLAB",
+      "time": "2026-08-17 12:30:00+05:30",
+      "label": 1,
+      "return_pct": 2.1387,
+      "side": "BUY",
+      "setup": "range_break",
+      "score": 8,
+      "opposition": 0,
+      "factors": [
+        "above_vwap",
+        "breakout_20",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 205.73,
+      "volume_ratio": 0.346,
+      "micro_volume_ratio": 0.371,
+      "rsi14": 96.31
+    },
+    {
+      "symbol": "KNRCON",
+      "time": "2026-08-17 12:45:00+05:30",
+      "label": 1,
+      "return_pct": 2.096,
+      "side": "BUY",
+      "setup": "mtf_momentum",
+      "score": 5,
+      "opposition": 2,
+      "factors": [
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 131.2,
+      "volume_ratio": 0.339,
+      "micro_volume_ratio": 0.333,
+      "rsi14": 81.75
+    },
+    {
+      "symbol": "ZEEL",
+      "time": "2026-08-17 13:15:00+05:30",
+      "label": 1,
+      "return_pct": 1.988,
+      "side": "BUY",
+      "setup": "volume_breakout",
+      "score": 9,
+      "opposition": 3,
+      "factors": [
+        "above_vwap",
+        "breakout_20",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_volume_expansion",
+        "rsi_above_55",
+        "trend_15m_up",
+        "volume_expansion"
+      ],
+      "entry_price": 103.12,
+      "volume_ratio": 2.189,
+      "micro_volume_ratio": 1.336,
+      "rsi14": 73.61
+    },
+    {
+      "symbol": "SUMICHEM",
+      "time": "2026-08-14 14:20:00+05:30",
+      "label": 1,
+      "return_pct": 1.961,
+      "side": "BUY",
       "setup": "vwap_trend",
       "score": 6,
+      "opposition": 1,
+      "factors": [
+        "above_vwap",
+        "ema21_gt_ema50",
+        "ema9_gt_ema21",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 555.85,
+      "volume_ratio": 0.566,
+      "micro_volume_ratio": 0.787,
+      "rsi14": 68.83
+    },
+    {
+      "symbol": "DCBBANK",
+      "time": "2026-08-14 14:20:00+05:30",
+      "label": 1,
+      "return_pct": 1.9586,
+      "side": "SELL",
+      "setup": "vwap_trend",
+      "score": 5,
       "opposition": 1,
       "factors": [
         "below_vwap",
         "ema21_lt_ema50",
         "ema9_lt_ema21",
         "micro_1m_down",
-        "rsi_below_45",
         "trend_15m_down"
       ],
-      "entry_price": 229.85,
-      "volume_ratio": 0.298,
-      "micro_volume_ratio": 0.021,
-      "rsi14": 41.51
+      "entry_price": 185.34,
+      "volume_ratio": 0.078,
+      "micro_volume_ratio": 0.382,
+      "rsi14": 48.08
     },
     {
       "symbol": "EQUITASBNK",
-      "time": "2026-07-28 14:55:00+05:30",
+      "time": "2026-08-14 14:40:00+05:30",
       "label": 1,
-      "return_pct": 4.9633,
-      "side": "SELL",
-      "setup": "volume_breakout",
-      "score": 9,
-      "opposition": 3,
-      "factors": [
-        "below_vwap",
-        "breakdown_20",
-        "ema21_lt_ema50",
-        "ema9_lt_ema21",
-        "macd_negative",
-        "micro_volume_expansion",
-        "rsi_below_45",
-        "trend_15m_down",
-        "volume_expansion"
-      ],
-      "entry_price": 76.36,
-      "volume_ratio": 11.858,
-      "micro_volume_ratio": 5.2,
-      "rsi14": 39.85
-    },
-    {
-      "symbol": "MPHASIS",
-      "time": "2026-07-27 14:45:00+05:30",
-      "label": 1,
-      "return_pct": 4.9573,
-      "side": "BUY",
-      "setup": "vwap_trend",
-      "score": 5,
-      "opposition": 2,
-      "factors": [
-        "above_vwap",
-        "ema21_gt_ema50",
-        "ema9_gt_ema21",
-        "macd_positive",
-        "trend_15m_up"
-      ],
-      "entry_price": 2331.9,
-      "volume_ratio": 0.814,
-      "micro_volume_ratio": 0.583,
-      "rsi14": 44.39
-    },
-    {
-      "symbol": "SURYODAY",
-      "time": "2026-07-27 14:55:00+05:30",
-      "label": 1,
-      "return_pct": 4.9006,
+      "return_pct": 1.9385,
       "side": "SELL",
       "setup": "vwap_trend",
       "score": 8,
@@ -1593,42 +1511,66 @@
         "trend_15m_down",
         "volume_expansion"
       ],
-      "entry_price": 186.71,
-      "volume_ratio": 1.399,
-      "micro_volume_ratio": 0.52,
-      "rsi14": 32.68
+      "entry_price": 74.8,
+      "volume_ratio": 1.949,
+      "micro_volume_ratio": 0.131,
+      "rsi14": 24.39
     },
     {
-      "symbol": "VSTIND",
-      "time": "2026-07-28 14:50:00+05:30",
+      "symbol": "EQUITASBNK",
+      "time": "2026-08-14 14:30:00+05:30",
       "label": 1,
-      "return_pct": 4.8387,
+      "return_pct": 1.9354,
       "side": "SELL",
       "setup": "vwap_trend",
-      "score": 7,
-      "opposition": 0,
+      "score": 9,
+      "opposition": 2,
       "factors": [
         "below_vwap",
         "ema21_lt_ema50",
         "ema9_lt_ema21",
         "macd_negative",
         "micro_1m_down",
+        "micro_volume_expansion",
         "rsi_below_45",
-        "trend_15m_down"
+        "trend_15m_down",
+        "volume_expansion"
       ],
-      "entry_price": 229.4,
-      "volume_ratio": 0.698,
-      "micro_volume_ratio": 0.488,
-      "rsi14": 42.0
+      "entry_price": 74.92,
+      "volume_ratio": 1.307,
+      "micro_volume_ratio": 3.075,
+      "rsi14": 23.33
     },
     {
-      "symbol": "SWIGGY",
-      "time": "2026-07-28 15:10:00+05:30",
+      "symbol": "UGROCAP",
+      "time": "2026-08-14 14:30:00+05:30",
       "label": 1,
-      "return_pct": 4.8033,
+      "return_pct": 1.9239,
       "side": "BUY",
       "setup": "vwap_trend",
-      "score": 8,
+      "score": 6,
+      "opposition": 1,
+      "factors": [
+        "above_vwap",
+        "ema9_gt_ema21",
+        "macd_positive",
+        "micro_1m_up",
+        "rsi_above_55",
+        "trend_15m_up"
+      ],
+      "entry_price": 92.0,
+      "volume_ratio": 0.001,
+      "micro_volume_ratio": 0.0,
+      "rsi14": 62.5
+    },
+    {
+      "symbol": "SUMICHEM",
+      "time": "2026-08-14 14:30:00+05:30",
+      "label": 1,
+      "return_pct": 1.8731,
+      "side": "BUY",
+      "setup": "vwap_trend",
+      "score": 9,
       "opposition": 2,
       "factors": [
         "above_vwap",
@@ -1637,891 +1579,892 @@
         "macd_positive",
         "micro_1m_up",
         "micro_volume_expansion",
+        "rsi_above_55",
         "trend_15m_up",
         "volume_expansion"
       ],
-      "entry_price": 267.94,
-      "volume_ratio": 1.471,
-      "micro_volume_ratio": 2.061,
-      "rsi14": 49.2
+      "entry_price": 557.9,
+      "volume_ratio": 1.237,
+      "micro_volume_ratio": 1.692,
+      "rsi14": 69.62
     }
   ],
   "symbol_results": [
     {
       "symbol": "NIFTY",
       "ok": true,
-      "bars_5m": 225,
+      "bars_5m": 150,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 225,
+        "bars_5m": 150,
         "source_1m": "candle_cache",
-        "bars_1m": 1123
+        "bars_1m": 1122
       },
-      "candidate_count": 110
+      "candidate_count": 51
     },
     {
       "symbol": "BANKNIFTY",
       "ok": true,
-      "bars_5m": 225,
+      "bars_5m": 149,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 225,
+        "bars_5m": 149,
         "source_1m": "candle_cache",
-        "bars_1m": 1123
+        "bars_1m": 1122
       },
-      "candidate_count": 103
+      "candidate_count": 57
     },
     {
       "symbol": "FINNIFTY",
       "ok": true,
-      "bars_5m": 225,
+      "bars_5m": 149,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 225,
+        "bars_5m": 149,
         "source_1m": "candle_cache",
-        "bars_1m": 1124
+        "bars_1m": 1122
       },
-      "candidate_count": 122
+      "candidate_count": 50
     },
     {
       "symbol": "MIDCPNIFTY",
       "ok": true,
-      "bars_5m": 225,
+      "bars_5m": 149,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 225,
+        "bars_5m": 149,
         "source_1m": "candle_cache",
-        "bars_1m": 1121
+        "bars_1m": 732
       },
-      "candidate_count": 108
+      "candidate_count": 59
     },
     {
       "symbol": "SENSEX",
       "ok": true,
-      "bars_5m": 225,
+      "bars_5m": 149,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 225,
+        "bars_5m": 149,
         "source_1m": "candle_cache",
-        "bars_1m": 1120
+        "bars_1m": 732
       },
-      "candidate_count": 110
+      "candidate_count": 50
     },
     {
       "symbol": "NIFTYNEXT50",
       "ok": true,
-      "bars_5m": 300,
+      "bars_5m": 144,
       "data": {
-        "source_5m": "data_fetcher",
-        "bars_5m": 300,
+        "source_5m": "candle_cache",
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1121
+        "bars_1m": 375
       },
-      "candidate_count": 173
+      "candidate_count": 57
     },
     {
       "symbol": "RELIANCE",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 860
+        "bars_1m": 361
       },
-      "candidate_count": 132
+      "candidate_count": 59
     },
     {
       "symbol": "TCS",
       "ok": true,
-      "bars_5m": 250,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 250,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 854
+        "bars_1m": 361
       },
-      "candidate_count": 141
+      "candidate_count": 53
     },
     {
       "symbol": "HDFCBANK",
       "ok": true,
-      "bars_5m": 247,
+      "bars_5m": 129,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 247,
+        "bars_5m": 129,
         "source_1m": "candle_cache",
-        "bars_1m": 804
+        "bars_1m": 361
       },
-      "candidate_count": 129
+      "candidate_count": 46
     },
     {
       "symbol": "INFY",
       "ok": true,
-      "bars_5m": 247,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 247,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 791
+        "bars_1m": 361
       },
-      "candidate_count": 115
+      "candidate_count": 64
     },
     {
       "symbol": "ICICIBANK",
       "ok": true,
-      "bars_5m": 246,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 246,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 794
+        "bars_1m": 361
       },
-      "candidate_count": 114
+      "candidate_count": 64
     },
     {
       "symbol": "HINDUNILVR",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 766
+        "bars_1m": 361
       },
-      "candidate_count": 123
+      "candidate_count": 46
     },
     {
       "symbol": "SBIN",
       "ok": true,
-      "bars_5m": 242,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 242,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 818
+        "bars_1m": 361
       },
-      "candidate_count": 122
+      "candidate_count": 59
     },
     {
       "symbol": "BAJFINANCE",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 133,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 133,
         "source_1m": "candle_cache",
-        "bars_1m": 767
+        "bars_1m": 361
       },
-      "candidate_count": 105
+      "candidate_count": 52
     },
     {
       "symbol": "BHARTIARTL",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 775
+        "bars_1m": 361
       },
-      "candidate_count": 127
+      "candidate_count": 53
     },
     {
       "symbol": "ITC",
       "ok": true,
-      "bars_5m": 243,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 243,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 799
+        "bars_1m": 361
       },
-      "candidate_count": 130
+      "candidate_count": 64
     },
     {
       "symbol": "KOTAKBANK",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1151
+        "bars_1m": 361
       },
-      "candidate_count": 134
+      "candidate_count": 53
     },
     {
       "symbol": "LT",
       "ok": true,
-      "bars_5m": 239,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 239,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1157
+        "bars_1m": 361
       },
-      "candidate_count": 124
+      "candidate_count": 60
     },
     {
       "symbol": "AXISBANK",
       "ok": true,
-      "bars_5m": 243,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 243,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1169
+        "bars_1m": 361
       },
-      "candidate_count": 108
+      "candidate_count": 55
     },
     {
       "symbol": "ASIANPAINT",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 125
+      "candidate_count": 39
     },
     {
       "symbol": "MARUTI",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 143
+      "candidate_count": 56
     },
     {
       "symbol": "SUNPHARMA",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 125
+      "candidate_count": 58
     },
     {
       "symbol": "TITAN",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1142
+        "bars_1m": 361
       },
-      "candidate_count": 133
+      "candidate_count": 59
     },
     {
       "symbol": "ULTRACEMCO",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 104
+      "candidate_count": 56
     },
     {
       "symbol": "WIPRO",
       "ok": true,
-      "bars_5m": 245,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 245,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1170
+        "bars_1m": 361
       },
-      "candidate_count": 139
+      "candidate_count": 57
     },
     {
       "symbol": "HCLTECH",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 129,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 129,
         "source_1m": "candle_cache",
-        "bars_1m": 1142
+        "bars_1m": 361
       },
-      "candidate_count": 121
+      "candidate_count": 54
     },
     {
       "symbol": "NESTLEIND",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1141
+        "bars_1m": 361
       },
-      "candidate_count": 127
+      "candidate_count": 70
     },
     {
       "symbol": "TECHM",
       "ok": true,
-      "bars_5m": 236,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 236,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 130
+      "candidate_count": 53
     },
     {
       "symbol": "M&M",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 133,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 133,
         "source_1m": "candle_cache",
-        "bars_1m": 1148
+        "bars_1m": 361
       },
-      "candidate_count": 141
+      "candidate_count": 38
     },
     {
       "symbol": "NTPC",
       "ok": true,
-      "bars_5m": 237,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 237,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1159
+        "bars_1m": 361
       },
-      "candidate_count": 120
+      "candidate_count": 52
     },
     {
       "symbol": "POWERGRID",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 111
+      "candidate_count": 50
     },
     {
       "symbol": "ADANIENT",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 129,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 129,
         "source_1m": "candle_cache",
-        "bars_1m": 1153
+        "bars_1m": 361
       },
-      "candidate_count": 124
+      "candidate_count": 34
     },
     {
       "symbol": "ADANIPORTS",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1149
+        "bars_1m": 361
       },
-      "candidate_count": 132
+      "candidate_count": 54
     },
     {
       "symbol": "ONGC",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 122
+      "candidate_count": 59
     },
     {
       "symbol": "TATASTEEL",
       "ok": true,
-      "bars_5m": 244,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 244,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1164
+        "bars_1m": 361
       },
-      "candidate_count": 144
+      "candidate_count": 54
     },
     {
       "symbol": "JSWSTEEL",
       "ok": true,
-      "bars_5m": 223,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 223,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1141
+        "bars_1m": 361
       },
-      "candidate_count": 122
+      "candidate_count": 57
     },
     {
       "symbol": "BAJAJFINSV",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 137
+      "candidate_count": 53
     },
     {
       "symbol": "HINDALCO",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 128
+      "candidate_count": 63
     },
     {
       "symbol": "COALINDIA",
       "ok": true,
-      "bars_5m": 236,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 236,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1151
+        "bars_1m": 361
       },
-      "candidate_count": 119
+      "candidate_count": 43
     },
     {
       "symbol": "BPCL",
       "ok": true,
-      "bars_5m": 237,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 237,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1147
+        "bars_1m": 361
       },
-      "candidate_count": 129
+      "candidate_count": 52
     },
     {
       "symbol": "GRASIM",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 121
+      "candidate_count": 63
     },
     {
       "symbol": "CIPLA",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 144
+      "candidate_count": 69
     },
     {
       "symbol": "DRREDDY",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1145
+        "bars_1m": 361
       },
-      "candidate_count": 115
+      "candidate_count": 45
     },
     {
       "symbol": "EICHERMOT",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 117
+      "candidate_count": 67
     },
     {
       "symbol": "BRITANNIA",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 361
       },
-      "candidate_count": 115
+      "candidate_count": 47
     },
     {
       "symbol": "DABUR",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 134
+      "candidate_count": 53
     },
     {
       "symbol": "TATACONSUM",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1137
+        "bars_1m": 361
       },
-      "candidate_count": 128
+      "candidate_count": 65
     },
     {
       "symbol": "GODREJCP",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1134
+        "bars_1m": 361
       },
-      "candidate_count": 115
+      "candidate_count": 50
     },
     {
       "symbol": "MARICO",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 112
+      "candidate_count": 61
     },
     {
       "symbol": "PIDILITIND",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1137
+        "bars_1m": 361
       },
-      "candidate_count": 116
+      "candidate_count": 68
     },
     {
       "symbol": "BERGEPAINT",
       "ok": true,
-      "bars_5m": 236,
+      "bars_5m": 140,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 236,
+        "bars_5m": 140,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 375
       },
-      "candidate_count": 126
+      "candidate_count": 46
     },
     {
       "symbol": "TATAPOWER",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1142
+        "bars_1m": 361
       },
-      "candidate_count": 139
+      "candidate_count": 51
     },
     {
       "symbol": "TORNTPHARM",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1135
+        "bars_1m": 361
       },
-      "candidate_count": 126
+      "candidate_count": 48
     },
     {
       "symbol": "AUROPHARMA",
       "ok": true,
-      "bars_5m": 227,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 227,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 147
+      "candidate_count": 63
     },
     {
       "symbol": "DIVISLAB",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 124
+      "candidate_count": 57
     },
     {
       "symbol": "LUPIN",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 132
+      "candidate_count": 59
     },
     {
       "symbol": "BIOCON",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 109
+      "candidate_count": 52
     },
     {
       "symbol": "APOLLOHOSP",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 148
+      "candidate_count": 43
     },
     {
       "symbol": "FORTIS",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1131
+        "bars_1m": 361
       },
-      "candidate_count": 130
+      "candidate_count": 54
     },
     {
       "symbol": "UNITDSPR",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 124,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 124,
         "source_1m": "candle_cache",
-        "bars_1m": 1135
+        "bars_1m": 359
       },
-      "candidate_count": 118
+      "candidate_count": 43
     },
     {
       "symbol": "HAVELLS",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 359
       },
-      "candidate_count": 114
+      "candidate_count": 65
     },
     {
       "symbol": "ABB",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 117
+      "candidate_count": 65
     },
     {
       "symbol": "SIEMENS",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1135
+        "bars_1m": 361
       },
-      "candidate_count": 116
+      "candidate_count": 48
     },
     {
       "symbol": "BOSCHLTD",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1129
+        "bars_1m": 359
       },
-      "candidate_count": 124
+      "candidate_count": 45
     },
     {
       "symbol": "CUMMINSIND",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1137
+        "bars_1m": 361
       },
-      "candidate_count": 121
+      "candidate_count": 53
     },
     {
       "symbol": "WHIRLPOOL",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1118
+        "bars_1m": 374
       },
-      "candidate_count": 120
+      "candidate_count": 57
     },
     {
       "symbol": "VOLTAS",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 134,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 134,
         "source_1m": "candle_cache",
-        "bars_1m": 1122
+        "bars_1m": 361
       },
-      "candidate_count": 118
+      "candidate_count": 57
     },
     {
       "symbol": "BATAINDIA",
       "ok": true,
-      "bars_5m": 241,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 241,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1117
+        "bars_1m": 375
       },
-      "candidate_count": 123
+      "candidate_count": 59
     },
     {
       "symbol": "PAGEIND",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1054
+        "bars_1m": 361
       },
-      "candidate_count": 131
+      "candidate_count": 47
     },
     {
       "symbol": "MPHASIS",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 134,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 134,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 123
+      "candidate_count": 46
     },
     {
       "symbol": "LTTS",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 372
       },
-      "candidate_count": 111
+      "candidate_count": 69
     },
     {
       "symbol": "PERSISTENT",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 361
       },
-      "candidate_count": 84
+      "candidate_count": 50
     },
     {
       "symbol": "COFORGE",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 129
+      "candidate_count": 47
     },
     {
       "symbol": "LTIM",
@@ -2538,1447 +2481,1447 @@
     {
       "symbol": "TATAELXSI",
       "ok": true,
-      "bars_5m": 228,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 228,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 360
       },
-      "candidate_count": 89
+      "candidate_count": 57
     },
     {
       "symbol": "INDIGO",
       "ok": true,
-      "bars_5m": 227,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 227,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 120
+      "candidate_count": 54
     },
     {
       "symbol": "INDHOTEL",
       "ok": true,
-      "bars_5m": 228,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 228,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1141
+        "bars_1m": 361
       },
-      "candidate_count": 117
+      "candidate_count": 62
     },
     {
       "symbol": "LEMONTREE",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1137
+        "bars_1m": 374
       },
-      "candidate_count": 127
+      "candidate_count": 57
     },
     {
       "symbol": "JUBLFOOD",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 138
+      "candidate_count": 50
     },
     {
       "symbol": "DMART",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 117
+      "candidate_count": 66
     },
     {
       "symbol": "TRENT",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 126
+      "candidate_count": 54
     },
     {
       "symbol": "VSTIND",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1054
+        "bars_1m": 341
       },
-      "candidate_count": 127
+      "candidate_count": 71
     },
     {
       "symbol": "COLPAL",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 117
+      "candidate_count": 46
     },
     {
       "symbol": "EMAMILTD",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1104
+        "bars_1m": 345
       },
-      "candidate_count": 109
+      "candidate_count": 66
     },
     {
       "symbol": "JYOTHYLAB",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 375
       },
-      "candidate_count": 92
+      "candidate_count": 63
     },
     {
       "symbol": "RADICO",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 361
       },
-      "candidate_count": 129
+      "candidate_count": 61
     },
     {
       "symbol": "BANKBARODA",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 134,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 134,
         "source_1m": "candle_cache",
-        "bars_1m": 1148
+        "bars_1m": 361
       },
-      "candidate_count": 124
+      "candidate_count": 51
     },
     {
       "symbol": "CANBK",
       "ok": true,
-      "bars_5m": 239,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 239,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1151
+        "bars_1m": 361
       },
-      "candidate_count": 135
+      "candidate_count": 64
     },
     {
       "symbol": "UNIONBANK",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 130,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 130,
         "source_1m": "candle_cache",
-        "bars_1m": 1137
+        "bars_1m": 361
       },
-      "candidate_count": 138
+      "candidate_count": 52
     },
     {
       "symbol": "PNB",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1150
+        "bars_1m": 361
       },
-      "candidate_count": 119
+      "candidate_count": 59
     },
     {
       "symbol": "FEDERALBNK",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 106
+      "candidate_count": 64
     },
     {
       "symbol": "BANDHANBNK",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 138
+      "candidate_count": 55
     },
     {
       "symbol": "IDFCFIRSTB",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 115
+      "candidate_count": 52
     },
     {
       "symbol": "RBLBANK",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 361
       },
-      "candidate_count": 119
+      "candidate_count": 58
     },
     {
       "symbol": "YESBANK",
       "ok": true,
-      "bars_5m": 243,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 243,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1168
+        "bars_1m": 361
       },
-      "candidate_count": 148
+      "candidate_count": 51
     },
     {
       "symbol": "INDUSINDBK",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1147
+        "bars_1m": 361
       },
-      "candidate_count": 135
+      "candidate_count": 63
     },
     {
       "symbol": "AUBANK",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 125,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 125,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 103
+      "candidate_count": 45
     },
     {
       "symbol": "LICHSGFIN",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1134
+        "bars_1m": 361
       },
-      "candidate_count": 134
+      "candidate_count": 61
     },
     {
       "symbol": "HDFCAMC",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 121
+      "candidate_count": 65
     },
     {
       "symbol": "CHOLAFIN",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 116,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 116,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 118
+      "candidate_count": 34
     },
     {
       "symbol": "MFSL",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 118
+      "candidate_count": 57
     },
     {
       "symbol": "HDFCLIFE",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 130,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 130,
         "source_1m": "candle_cache",
-        "bars_1m": 1141
+        "bars_1m": 361
       },
-      "candidate_count": 130
+      "candidate_count": 49
     },
     {
       "symbol": "SBILIFE",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1135
+        "bars_1m": 361
       },
-      "candidate_count": 124
+      "candidate_count": 51
     },
     {
       "symbol": "ICICIGI",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 360
       },
-      "candidate_count": 129
+      "candidate_count": 52
     },
     {
       "symbol": "NIACL",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 141,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 141,
         "source_1m": "candle_cache",
-        "bars_1m": 1093
+        "bars_1m": 354
       },
-      "candidate_count": 123
+      "candidate_count": 60
     },
     {
       "symbol": "STARHEALTH",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1123
+        "bars_1m": 375
       },
-      "candidate_count": 123
+      "candidate_count": 57
     },
     {
       "symbol": "SBICARD",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1137
+        "bars_1m": 352
       },
-      "candidate_count": 119
+      "candidate_count": 57
     },
     {
       "symbol": "ABCAPITAL",
       "ok": true,
-      "bars_5m": 236,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 236,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1145
+        "bars_1m": 361
       },
-      "candidate_count": 134
+      "candidate_count": 40
     },
     {
       "symbol": "MUTHOOTFIN",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 119
+      "candidate_count": 64
     },
     {
       "symbol": "MANAPPURAM",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 128
+      "candidate_count": 56
     },
     {
       "symbol": "IIFL",
       "ok": true,
-      "bars_5m": 237,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 237,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1155
+        "bars_1m": 375
       },
-      "candidate_count": 105
+      "candidate_count": 59
     },
     {
       "symbol": "RECLTD",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 124
+      "candidate_count": 57
     },
     {
       "symbol": "PFC",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 361
       },
-      "candidate_count": 131
+      "candidate_count": 48
     },
     {
       "symbol": "IRFC",
       "ok": true,
-      "bars_5m": 239,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 239,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1150
+        "bars_1m": 361
       },
-      "candidate_count": 138
+      "candidate_count": 54
     },
     {
       "symbol": "NATIONALUM",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 129
+      "candidate_count": 64
     },
     {
       "symbol": "SAIL",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1147
+        "bars_1m": 361
       },
-      "candidate_count": 120
+      "candidate_count": 58
     },
     {
       "symbol": "VEDL",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1145
+        "bars_1m": 361
       },
-      "candidate_count": 133
+      "candidate_count": 60
     },
     {
       "symbol": "HINDCOPPER",
       "ok": true,
-      "bars_5m": 236,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 236,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1149
+        "bars_1m": 375
       },
-      "candidate_count": 145
+      "candidate_count": 71
     },
     {
       "symbol": "NMDC",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 132
+      "candidate_count": 64
     },
     {
       "symbol": "GAIL",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 121
+      "candidate_count": 57
     },
     {
       "symbol": "IOC",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1141
+        "bars_1m": 361
       },
-      "candidate_count": 126
+      "candidate_count": 49
     },
     {
       "symbol": "HPCL",
       "ok": true,
-      "bars_5m": 159,
+      "bars_5m": 150,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 159,
+        "bars_5m": 150,
         "source_1m": "candle_cache",
-        "bars_1m": 390
+        "bars_1m": 750
       },
-      "candidate_count": 76
+      "candidate_count": 57
     },
     {
       "symbol": "MGL",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1091
+        "bars_1m": 366
       },
-      "candidate_count": 119
+      "candidate_count": 67
     },
     {
       "symbol": "IGL",
       "ok": true,
-      "bars_5m": 236,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 236,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 366
       },
-      "candidate_count": 114
+      "candidate_count": 54
     },
     {
       "symbol": "PETRONET",
       "ok": true,
-      "bars_5m": 227,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 227,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 361
       },
-      "candidate_count": 125
+      "candidate_count": 55
     },
     {
       "symbol": "ATGL",
       "ok": true,
-      "bars_5m": 236,
+      "bars_5m": 132,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 236,
+        "bars_5m": 132,
         "source_1m": "candle_cache",
-        "bars_1m": 1144
+        "bars_1m": 369
       },
-      "candidate_count": 138
+      "candidate_count": 57
     },
     {
       "symbol": "SJVN",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1148
+        "bars_1m": 374
       },
-      "candidate_count": 139
+      "candidate_count": 47
     },
     {
       "symbol": "NHPC",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1143
+        "bars_1m": 361
       },
-      "candidate_count": 148
+      "candidate_count": 59
     },
     {
       "symbol": "IRCTC",
       "ok": true,
-      "bars_5m": 245,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 245,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1157
+        "bars_1m": 375
       },
-      "candidate_count": 165
+      "candidate_count": 58
     },
     {
       "symbol": "CONCOR",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 139,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 139,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 116
+      "candidate_count": 56
     },
     {
       "symbol": "BLUEDART",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 141,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 141,
         "source_1m": "candle_cache",
-        "bars_1m": 935
+        "bars_1m": 288
       },
-      "candidate_count": 98
+      "candidate_count": 56
     },
     {
       "symbol": "CIEINDIA",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1130
+        "bars_1m": 371
       },
-      "candidate_count": 135
+      "candidate_count": 58
     },
     {
       "symbol": "MOTHERSON",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 122
+      "candidate_count": 49
     },
     {
       "symbol": "MINDACORP",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 132,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 132,
         "source_1m": "candle_cache",
-        "bars_1m": 1027
+        "bars_1m": 375
       },
-      "candidate_count": 122
+      "candidate_count": 46
     },
     {
       "symbol": "EXIDEIND",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 141,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 141,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 375
       },
-      "candidate_count": 129
+      "candidate_count": 55
     },
     {
       "symbol": "ARE&M",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1144
+        "bars_1m": 375
       },
-      "candidate_count": 116
+      "candidate_count": 48
     },
     {
       "symbol": "BALKRISIND",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 375
       },
-      "candidate_count": 142
+      "candidate_count": 54
     },
     {
       "symbol": "APOLLOTYRE",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 132,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 132,
         "source_1m": "candle_cache",
-        "bars_1m": 1118
+        "bars_1m": 372
       },
-      "candidate_count": 106
+      "candidate_count": 44
     },
     {
       "symbol": "MRF",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 137,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 137,
         "source_1m": "candle_cache",
-        "bars_1m": 931
+        "bars_1m": 332
       },
-      "candidate_count": 115
+      "candidate_count": 38
     },
     {
       "symbol": "CEATLTD",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 128,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 128,
         "source_1m": "candle_cache",
-        "bars_1m": 1109
+        "bars_1m": 364
       },
-      "candidate_count": 110
+      "candidate_count": 51
     },
     {
       "symbol": "JKTYRE",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1116
+        "bars_1m": 375
       },
-      "candidate_count": 100
+      "candidate_count": 57
     },
     {
       "symbol": "OBEROIRLTY",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 135,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 135,
         "source_1m": "candle_cache",
-        "bars_1m": 1135
+        "bars_1m": 361
       },
-      "candidate_count": 119
+      "candidate_count": 58
     },
     {
       "symbol": "DLF",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1145
+        "bars_1m": 361
       },
-      "candidate_count": 130
+      "candidate_count": 62
     },
     {
       "symbol": "GODREJPROP",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 146
+      "candidate_count": 57
     },
     {
       "symbol": "PRESTIGE",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 144,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 144,
         "source_1m": "candle_cache",
-        "bars_1m": 1134
+        "bars_1m": 361
       },
-      "candidate_count": 130
+      "candidate_count": 52
     },
     {
       "symbol": "PHOENIXLTD",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 140,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 140,
         "source_1m": "candle_cache",
-        "bars_1m": 1130
+        "bars_1m": 361
       },
-      "candidate_count": 130
+      "candidate_count": 56
     },
     {
       "symbol": "SUNTV",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 132,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 132,
         "source_1m": "candle_cache",
-        "bars_1m": 1033
+        "bars_1m": 362
       },
-      "candidate_count": 138
+      "candidate_count": 27
     },
     {
       "symbol": "ZEEL",
       "ok": true,
-      "bars_5m": 243,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 243,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1161
+        "bars_1m": 375
       },
-      "candidate_count": 132
+      "candidate_count": 65
     },
     {
       "symbol": "NETWORK18",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 142,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 142,
         "source_1m": "candle_cache",
-        "bars_1m": 1086
+        "bars_1m": 356
       },
-      "candidate_count": 122
+      "candidate_count": 61
     },
     {
       "symbol": "PVRINOX",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 364
       },
-      "candidate_count": 119
+      "candidate_count": 54
     },
     {
       "symbol": "NAZARA",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 142,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 142,
         "source_1m": "candle_cache",
-        "bars_1m": 968
+        "bars_1m": 369
       },
-      "candidate_count": 129
+      "candidate_count": 66
     },
     {
       "symbol": "AFFLE",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1141
+        "bars_1m": 372
       },
-      "candidate_count": 137
+      "candidate_count": 59
     },
     {
       "symbol": "NAUKRI",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 130,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 130,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 117
+      "candidate_count": 50
     },
     {
       "symbol": "JUSTDIAL",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1110
+        "bars_1m": 315
       },
-      "candidate_count": 116
+      "candidate_count": 56
     },
     {
       "symbol": "INDIAMART",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 373
       },
-      "candidate_count": 120
+      "candidate_count": 59
     },
     {
       "symbol": "POLICYBZR",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 135,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 135,
         "source_1m": "candle_cache",
-        "bars_1m": 1135
+        "bars_1m": 361
       },
-      "candidate_count": 117
+      "candidate_count": 47
     },
     {
       "symbol": "PAYTM",
       "ok": true,
-      "bars_5m": 235,
+      "bars_5m": 140,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 235,
+        "bars_5m": 140,
         "source_1m": "candle_cache",
-        "bars_1m": 1146
+        "bars_1m": 361
       },
-      "candidate_count": 110
+      "candidate_count": 60
     },
     {
       "symbol": "ETERNAL",
       "ok": true,
-      "bars_5m": 237,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 237,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1147
+        "bars_1m": 361
       },
-      "candidate_count": 151
+      "candidate_count": 46
     },
     {
       "symbol": "SWIGGY",
       "ok": true,
-      "bars_5m": 222,
+      "bars_5m": 140,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 222,
+        "bars_5m": 140,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 121
+      "candidate_count": 47
     },
     {
       "symbol": "CARTRADE",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 375
       },
-      "candidate_count": 116
+      "candidate_count": 55
     },
     {
       "symbol": "LICI",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 140,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 140,
         "source_1m": "candle_cache",
-        "bars_1m": 1142
+        "bars_1m": 361
       },
-      "candidate_count": 127
+      "candidate_count": 50
     },
     {
       "symbol": "LODHA",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 140,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 140,
         "source_1m": "candle_cache",
-        "bars_1m": 1139
+        "bars_1m": 361
       },
-      "candidate_count": 128
+      "candidate_count": 56
     },
     {
       "symbol": "NYKAA",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 131,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 131,
         "source_1m": "candle_cache",
-        "bars_1m": 1140
+        "bars_1m": 361
       },
-      "candidate_count": 121
+      "candidate_count": 42
     },
     {
       "symbol": "DELHIVERY",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 140,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 140,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 360
       },
-      "candidate_count": 121
+      "candidate_count": 56
     },
     {
       "symbol": "CAMPUS",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1062
+        "bars_1m": 320
       },
-      "candidate_count": 131
+      "candidate_count": 61
     },
     {
       "symbol": "SULA",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 133,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 133,
         "source_1m": "candle_cache",
-        "bars_1m": 1024
+        "bars_1m": 347
       },
-      "candidate_count": 122
+      "candidate_count": 49
     },
     {
       "symbol": "MEDANTA",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 109,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 109,
         "source_1m": "candle_cache",
-        "bars_1m": 1124
+        "bars_1m": 355
       },
-      "candidate_count": 128
+      "candidate_count": 36
     },
     {
       "symbol": "YATHARTH",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1063
+        "bars_1m": 369
       },
-      "candidate_count": 135
+      "candidate_count": 58
     },
     {
       "symbol": "KIMS",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1103
+        "bars_1m": 374
       },
-      "candidate_count": 128
+      "candidate_count": 68
     },
     {
       "symbol": "MAXHEALTH",
       "ok": true,
-      "bars_5m": 232,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 232,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1141
+        "bars_1m": 361
       },
-      "candidate_count": 114
+      "candidate_count": 71
     },
     {
       "symbol": "RAINBOW",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1065
+        "bars_1m": 375
       },
-      "candidate_count": 132
+      "candidate_count": 55
     },
     {
       "symbol": "APTUS",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 133,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 133,
         "source_1m": "candle_cache",
-        "bars_1m": 1131
+        "bars_1m": 374
       },
-      "candidate_count": 109
+      "candidate_count": 51
     },
     {
       "symbol": "HOMEFIRST",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1127
+        "bars_1m": 339
       },
-      "candidate_count": 110
+      "candidate_count": 66
     },
     {
       "symbol": "FIVESTAR",
       "ok": true,
-      "bars_5m": 228,
+      "bars_5m": 142,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 228,
+        "bars_5m": 142,
         "source_1m": "candle_cache",
-        "bars_1m": 1136
+        "bars_1m": 372
       },
-      "candidate_count": 130
+      "candidate_count": 63
     },
     {
       "symbol": "UGROCAP",
       "ok": true,
-      "bars_5m": 208,
+      "bars_5m": 146,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 208,
+        "bars_5m": 146,
         "source_1m": "candle_cache",
-        "bars_1m": 543
+        "bars_1m": 236
       },
-      "candidate_count": 110
+      "candidate_count": 54
     },
     {
       "symbol": "CREDITACC",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1135
+        "bars_1m": 375
       },
-      "candidate_count": 120
+      "candidate_count": 58
     },
     {
       "symbol": "POWERMECH",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1060
+        "bars_1m": 374
       },
-      "candidate_count": 110
+      "candidate_count": 61
     },
     {
       "symbol": "KNRCON",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1030
+        "bars_1m": 372
       },
-      "candidate_count": 126
+      "candidate_count": 58
     },
     {
       "symbol": "PNC",
-      "ok": false,
-      "reason": "insufficient_5m_bars:58",
+      "ok": true,
+      "bars_5m": 98,
       "data": {
-        "source_5m": "candle_cache_short",
-        "bars_5m": 58,
+        "source_5m": "data_fetcher",
+        "bars_5m": 98,
         "source_1m": "candle_cache",
-        "bars_1m": 390
+        "bars_1m": 48
       },
-      "candidate_count": 0
+      "candidate_count": 22
     },
     {
       "symbol": "ASHOKA",
       "ok": true,
-      "bars_5m": 221,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 221,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1039
+        "bars_1m": 375
       },
-      "candidate_count": 115
+      "candidate_count": 55
     },
     {
       "symbol": "GPPL",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1101
+        "bars_1m": 375
       },
-      "candidate_count": 119
+      "candidate_count": 43
     },
     {
       "symbol": "APLAPOLLO",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 360
       },
-      "candidate_count": 111
+      "candidate_count": 67
     },
     {
       "symbol": "RATNAMANI",
       "ok": true,
-      "bars_5m": 224,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 224,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 867
+        "bars_1m": 368
       },
-      "candidate_count": 123
+      "candidate_count": 54
     },
     {
       "symbol": "JINDALSAW",
       "ok": true,
-      "bars_5m": 233,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 233,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1098
+        "bars_1m": 375
       },
-      "candidate_count": 128
+      "candidate_count": 50
     },
     {
       "symbol": "JSL",
       "ok": true,
-      "bars_5m": 230,
+      "bars_5m": 142,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 230,
+        "bars_5m": 142,
         "source_1m": "candle_cache",
-        "bars_1m": 1122
+        "bars_1m": 375
       },
-      "candidate_count": 126
+      "candidate_count": 51
     },
     {
       "symbol": "KAJARIACER",
       "ok": true,
-      "bars_5m": 234,
+      "bars_5m": 138,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 234,
+        "bars_5m": 138,
         "source_1m": "candle_cache",
-        "bars_1m": 1124
+        "bars_1m": 375
       },
-      "candidate_count": 131
+      "candidate_count": 42
     },
     {
       "symbol": "CERA",
       "ok": true,
-      "bars_5m": 225,
+      "bars_5m": 143,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 225,
+        "bars_5m": 143,
         "source_1m": "candle_cache",
-        "bars_1m": 863
+        "bars_1m": 226
       },
-      "candidate_count": 121
+      "candidate_count": 63
     },
     {
       "symbol": "ASTRAL",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 145,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 145,
         "source_1m": "candle_cache",
-        "bars_1m": 1138
+        "bars_1m": 361
       },
-      "candidate_count": 116
+      "candidate_count": 71
     },
     {
       "symbol": "SUMICHEM",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1090
+        "bars_1m": 363
       },
-      "candidate_count": 118
+      "candidate_count": 48
     },
     {
       "symbol": "AAVAS",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1099
+        "bars_1m": 341
       },
-      "candidate_count": 126
+      "candidate_count": 69
     },
     {
       "symbol": "DCBBANK",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1131
+        "bars_1m": 334
       },
-      "candidate_count": 117
+      "candidate_count": 66
     },
     {
       "symbol": "UJJIVANSFB",
       "ok": true,
-      "bars_5m": 240,
+      "bars_5m": 142,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 240,
+        "bars_5m": 142,
         "source_1m": "candle_cache",
-        "bars_1m": 1156
+        "bars_1m": 375
       },
-      "candidate_count": 128
+      "candidate_count": 58
     },
     {
       "symbol": "SURYODAY",
       "ok": true,
-      "bars_5m": 229,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 229,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1134
+        "bars_1m": 341
       },
-      "candidate_count": 141
+      "candidate_count": 63
     },
     {
       "symbol": "EQUITASBNK",
       "ok": true,
-      "bars_5m": 231,
+      "bars_5m": 147,
       "data": {
         "source_5m": "candle_cache",
-        "bars_5m": 231,
+        "bars_5m": 147,
         "source_1m": "candle_cache",
-        "bars_1m": 1133
+        "bars_1m": 375
       },
-      "candidate_count": 123
+      "candidate_count": 60
     }
   ],
   "persist": {
     "ok": true,
-    "inserted": 13347,
-    "seen": 23745
+    "inserted": 10638,
+    "seen": 10638
   }
 }

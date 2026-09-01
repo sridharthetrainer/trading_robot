@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-29T21:02:35+0530",
+  "generated_at": "2026-08-18T20:35:11+0530",
   "training_contract": "all_generated_signals_v4_causal_representations",
   "checks": {
     "outcome_fields_excluded": true,
-    "model_artifact_contract_enforced": false,
+    "model_artifact_contract_enforced": true,
     "legacy_learned_filters_neutral": true,
     "legacy_eod_weights_neutral": true,
     "calibrator_contract_enforced": true
   },
-  "ok": false,
+  "ok": true,
   "forbidden_selected": [],
   "ordered_features": [
     "score",
@@ -21,9 +21,9 @@
     "reason": "missing_positive_profit_utility"
   },
   "clean_evidence": {
-    "legacy_labelled": 32282,
-    "clean_labelled": 23202,
-    "clean_days": 21
+    "legacy_labelled": 34565,
+    "clean_labelled": 25485,
+    "clean_days": 27
   },
   "promotion_targets": {
     "samples": 5000,
