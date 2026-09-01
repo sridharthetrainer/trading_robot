@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T08:38:58+0530",
+  "generated_at": "2026-09-02T04:34:51+0530",
   "fetch_sample": 3,
   "internet_probe": true,
   "ok": true,
@@ -27,7 +27,7 @@
       "storage_capture": {
         "score": 15,
         "max": 15,
-        "detail": "candles=5537036, 1m_symbols=197, 1d_symbols=198, signals=35009, option_snaps=9018, historical_options=3209189, confluence=35009, coverage_plan=yes"
+        "detail": "candles=5754403, 1m_symbols=197, 1d_symbols=198, signals=35041, option_snaps=9682, historical_options=3209189, confluence=35009, coverage_plan=yes"
       },
       "learning_readiness": {
         "score": 6.5,
@@ -60,12 +60,12 @@
       "tick_or_1sec_data": {
         "score": 8,
         "max": 10,
-        "detail": "tick modules=True, candles=5537036"
+        "detail": "tick modules=True, candles=5754403"
       },
       "all_strike_option_history": {
         "score": 14,
         "max": 15,
-        "detail": "option_snapshots=9018, historical_options=3209189"
+        "detail": "option_snapshots=9682, historical_options=3209189"
       },
       "market_depth_spread": {
         "score": 8,
@@ -80,7 +80,7 @@
       "labelled_learning_dataset": {
         "score": 10,
         "max": 18,
-        "detail": "labelled=25676/5000, days=28/45"
+        "detail": "labelled=25830/5000, days=28/45"
       },
       "participant_fii_flows": {
         "score": 10,
@@ -90,7 +90,7 @@
       "market_profile_history": {
         "score": 8,
         "max": 8,
-        "detail": "profile_snapshots=409111"
+        "detail": "profile_snapshots=412402"
       },
       "sector_news_events": {
         "score": 7,
@@ -738,11 +738,11 @@
       },
       "signal_log_db": {
         "exists": true,
-        "count": 35009
+        "count": 35041
       },
       "candle_cache_db": {
         "exists": true,
-        "count": 5537036
+        "count": 5754403
       },
       "candle_cache_meta": {
         "exists": true,
@@ -750,43 +750,43 @@
       },
       "candle_intervals": {
         "15m": {
-          "rows": 299555,
+          "rows": 310699,
           "symbols": 197,
           "first": "2026-05-25 09:15:00+05:30",
-          "last": "2026-08-20 15:15:00+05:30"
+          "last": "2026-09-01 15:15:00+05:30"
         },
         "1d": {
-          "rows": 79544,
+          "rows": 79951,
           "symbols": 198,
           "first": "2022-05-18 00:00:00+05:30",
-          "last": "2026-08-20 00:00:00+05:30"
+          "last": "2026-09-01 00:00:00+05:30"
         },
         "1h": {
-          "rows": 109920,
+          "rows": 112628,
           "symbols": 197,
           "first": "2026-04-01 09:15:00+05:30",
-          "last": "2026-08-18 15:15:00+05:30"
+          "last": "2026-08-21 09:15:00+05:30"
         },
         "1m": {
-          "rows": 4280097,
+          "rows": 4448378,
           "symbols": 197,
           "first": "2026-05-25 09:15:00+05:30",
-          "last": "2026-08-20 15:29:00+05:30"
+          "last": "2026-09-01 15:29:00+05:30"
         },
         "5m": {
-          "rows": 767920,
+          "rows": 802747,
           "symbols": 197,
           "first": "2025-05-19 09:15:00+05:30",
-          "last": "2026-08-20 15:25:00+05:30"
+          "last": "2026-09-01 15:25:00+05:30"
         }
       },
       "option_chain_snapshots_db": {
         "exists": true,
-        "count": 9018
+        "count": 9682
       },
       "market_profile_snapshots_db": {
         "exists": true,
-        "count": 409111
+        "count": 412402
       },
       "historical_options_db": {
         "exists": true,
@@ -796,7 +796,7 @@
       },
       "market_snapshots_db": {
         "exists": true,
-        "count": 435
+        "count": 502
       },
       "confluence_features_db": {
         "exists": true,
@@ -807,10 +807,10 @@
         "ok": true,
         "ok_count": 10,
         "dataset_count": 10,
-        "date": "2026-08-21"
+        "date": "2026-09-02"
       },
       "candle_coverage_plan": {
-        "generated_at": "2026-08-21T08:26:50+0530",
+        "generated_at": "2026-08-21T15:45:39+0530",
         "db_path": "candle_cache.db",
         "db_exists": true,
         "target_symbols": 194,
@@ -826,13 +826,8 @@
             "target_symbols": 194,
             "present_symbols": 197,
             "missing_symbols": 1,
-            "stale_symbols": 193,
+            "stale_symbols": 188,
             "stale": [
-              "NIFTY",
-              "BANKNIFTY",
-              "FINNIFTY",
-              "MIDCPNIFTY",
-              "SENSEX",
               "NIFTYNEXT50",
               "RELIANCE",
               "TCS",
@@ -1026,19 +1021,15 @@
             "priority_missing": [
               "LTIM"
             ],
-            "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO"
+            "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND,TECHM,M&M"
           },
           {
             "interval": "1d",
             "target_symbols": 194,
             "present_symbols": 198,
             "missing_symbols": 0,
-            "stale_symbols": 194,
+            "stale_symbols": 190,
             "stale": [
-              "NIFTY",
-              "BANKNIFTY",
-              "FINNIFTY",
-              "MIDCPNIFTY",
               "SENSEX",
               "NIFTYNEXT50",
               "RELIANCE",
@@ -1232,7 +1223,7 @@
             ],
             "coverage_pct": 100.0,
             "priority_missing": [],
-            "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO"
+            "recommended_command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND,TECHM,M&M"
           }
         ],
         "missing_by_interval": {
@@ -1248,13 +1239,13 @@
             "priority_missing": [
               "LTIM"
             ],
-            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO"
+            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols LTIM,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND,TECHM,M&M"
           },
           {
             "interval": "1d",
             "missing_symbols": 0,
             "priority_missing": [],
-            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols NIFTY,BANKNIFTY,FINNIFTY,MIDCPNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO"
+            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH,NESTLEIND,TECHM,M&M"
           }
         ]
       },
@@ -2052,446 +2043,446 @@
         ]
       },
       "derived_daily_candles": {
-        "generated_at": "2026-08-21T08:27:47+0530",
+        "generated_at": "2026-08-21T15:46:44+0530",
         "ok": true,
         "db_path": "candle_cache.db",
         "source_interval": "1m",
         "symbols_requested": 197,
         "symbols_ok": 197,
         "symbols_skipped": 0,
-        "inserted_rows": 11964,
+        "inserted_rows": 12354,
         "removed_non_daily_rows": 0,
         "per_symbol": [
           {
             "symbol": "AAVAS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ABB",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ABCAPITAL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ADANIENT",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ADANIPORTS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "AFFLE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "APLAPOLLO",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "APOLLOHOSP",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "APOLLOTYRE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "APTUS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ARE&M",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ASHOKA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ASIANPAINT",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ASTRAL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ATGL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "AUBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "AUROPHARMA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "AXISBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BAJAJFINSV",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BAJFINANCE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BALKRISIND",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BANDHANBNK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BANKBARODA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BANKNIFTY",
             "ok": true,
-            "days": 60,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BATAINDIA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BERGEPAINT",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BHARTIARTL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BIOCON",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BLUEDART",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BOSCHLTD",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BPCL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "BRITANNIA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CAMPUS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CANBK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CARTRADE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CEATLTD",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CERA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CHOLAFIN",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CIEINDIA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CIPLA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "COALINDIA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "COFORGE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "COLPAL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CONCOR",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CREDITACC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "CUMMINSIND",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "DABUR",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "DCBBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "DELHIVERY",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "DIVISLAB",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "DLF",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "DMART",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "DRREDDY",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "EICHERMOT",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "EMAMILTD",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "EQUITASBNK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ETERNAL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "EXIDEIND",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "FEDERALBNK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "FINNIFTY",
             "ok": true,
-            "days": 60,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "FIVESTAR",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "FORTIS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "GAIL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "GODREJCP",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "GODREJPROP",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "GPPL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "GRASIM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HAVELLS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HCLTECH",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HDFCAMC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HDFCBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HDFCLIFE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
@@ -2503,43 +2494,43 @@
           {
             "symbol": "HINDALCO",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HINDCOPPER",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HINDUNILVR",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HOMEFIRST",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "HPCL",
             "ok": true,
-            "days": 24,
+            "days": 27,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ICICIBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ICICIGI",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
@@ -2551,343 +2542,343 @@
           {
             "symbol": "IDFCFIRSTB",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "IGL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "IIFL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "INDHOTEL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "INDIAMART",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "INDIGO",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "INDUSINDBK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "INFY",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "IOC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "IRCTC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "IRFC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ITC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "JINDALSAW",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "JKTYRE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "JSL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "JSWSTEEL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "JUBLFOOD",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "JUSTDIAL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "JYOTHYLAB",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "KAJARIACER",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "KIMS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "KNRCON",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "KOTAKBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "LEMONTREE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "LICHSGFIN",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "LICI",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "LODHA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "LT",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "LTTS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "LUPIN",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "M&M",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MANAPPURAM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MARICO",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MARUTI",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MAXHEALTH",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MEDANTA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MFSL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MGL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MIDCPNIFTY",
             "ok": true,
-            "days": 60,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MINDACORP",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MOTHERSON",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MPHASIS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MRF",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "MUTHOOTFIN",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NATIONALUM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NAUKRI",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NAZARA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NESTLEIND",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NETWORK18",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NHPC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NIACL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NIFTY",
             "ok": true,
-            "days": 62,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NIFTYNEXT50",
             "ok": true,
-            "days": 59,
+            "days": 61,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NMDC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NTPC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "NYKAA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "OBEROIRLTY",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
@@ -2899,157 +2890,157 @@
           {
             "symbol": "ONGC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PAGEIND",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PAYTM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PERSISTENT",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PETRONET",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PFC",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PHOENIXLTD",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PIDILITIND",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PNB",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PNC",
             "ok": true,
-            "days": 29,
+            "days": 31,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "POLICYBZR",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "POWERGRID",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "POWERMECH",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PRESTIGE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "PVRINOX",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "RADICO",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "RAINBOW",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "RATNAMANI",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "RBLBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "RECLTD",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "RELIANCE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SAIL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SBICARD",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SBILIFE",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SBIN",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SENSEX",
             "ok": true,
-            "days": 60,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
@@ -3061,187 +3052,187 @@
           {
             "symbol": "SIEMENS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SJVN",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "STARHEALTH",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SULA",
             "ok": true,
-            "days": 61,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SUMICHEM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SUNPHARMA",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SUNTV",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SURYODAY",
             "ok": true,
-            "days": 61,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "SWIGGY",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TATACONSUM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TATAELXSI",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TATAPOWER",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TATASTEEL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TCS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TECHM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TITAN",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TORNTPHARM",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "TRENT",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "UGROCAP",
             "ok": true,
-            "days": 61,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "UJJIVANSFB",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ULTRACEMCO",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "UNIONBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "UNITDSPR",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "VEDL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "VOLTAS",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "VSTIND",
             "ok": true,
-            "days": 61,
+            "days": 63,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "WHIRLPOOL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "WIPRO",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "YATHARTH",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "YESBANK",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           },
           {
             "symbol": "ZEEL",
             "ok": true,
-            "days": 62,
+            "days": 64,
             "removed_non_daily_rows": 0
           }
         ]
@@ -18079,7 +18070,7 @@
         "count": 46
       },
       "option_journal_exists": true,
-      "option_journal_size": 44206028
+      "option_journal_size": 44240945
     },
     {
       "name": "learning_files",
@@ -18093,17 +18084,17 @@
     {
       "name": "labelled_dataset",
       "ok": true,
-      "total": 35009,
-      "labelled": 25676,
-      "legacy_labelled": 34756,
+      "total": 35041,
+      "labelled": 25830,
+      "legacy_labelled": 34910,
       "executed": 3,
       "distinct_days": 28,
       "by_label": {
-        "-99": 186,
+        "-99": 64,
         "-2": 67,
-        "-1": 7727,
-        "0": 22379,
-        "1": 4650
+        "-1": 7742,
+        "0": 22508,
+        "1": 4660
       },
       "target_labelled": 5000,
       "target_days": 45,
@@ -18118,7 +18109,7 @@
         {
           "symbol": "NIFTY",
           "ok": true,
-          "bars": 300,
+          "bars": 150,
           "columns": [
             "close",
             "high",
@@ -18126,13 +18117,13 @@
             "open",
             "volume"
           ],
-          "duration_sec": 0.155,
-          "last_index": "2026-08-20 15:25:00+05:30"
+          "duration_sec": 0.167,
+          "last_index": "2026-08-31 15:25:00+05:30"
         },
         {
           "symbol": "BANKNIFTY",
           "ok": true,
-          "bars": 300,
+          "bars": 225,
           "columns": [
             "close",
             "high",
@@ -18140,13 +18131,13 @@
             "open",
             "volume"
           ],
-          "duration_sec": 0.36,
-          "last_index": "2026-08-20 15:25:00+05:30"
+          "duration_sec": 0.304,
+          "last_index": "2026-09-01 15:25:00+05:30"
         },
         {
           "symbol": "FINNIFTY",
           "ok": true,
-          "bars": 300,
+          "bars": 225,
           "columns": [
             "close",
             "high",
@@ -18154,8 +18145,8 @@
             "open",
             "volume"
           ],
-          "duration_sec": 0.345,
-          "last_index": "2026-08-20 15:25:00+05:30"
+          "duration_sec": 0.378,
+          "last_index": "2026-09-01 15:25:00+05:30"
         }
       ]
     },
@@ -18176,84 +18167,84 @@
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.134
+          "duration_sec": 0.145
         },
         {
           "url": "https://smartapi.angelbroking.com/docs/WebSocket2",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.094
+          "duration_sec": 0.098
         },
         {
           "url": "https://www.nseindia.com/option-chain",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.161
+          "duration_sec": 0.123
         },
         {
           "url": "https://www.bseindia.com/",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.074
+          "duration_sec": 0.067
         },
         {
           "url": "https://api.bseindia.com/",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.161
+          "duration_sec": 0.178
         },
         {
           "url": "https://www.nseindia.com/all-reports-derivatives",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.145
+          "duration_sec": 0.201
         },
         {
           "url": "https://www.nseindia.com/reports/fii-dii",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.159
+          "duration_sec": 0.126
         },
         {
           "url": "https://www.nseindia.com/report-detail/display-bulk-and-block-deals",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.06
+          "duration_sec": 0.055
         },
         {
           "url": "https://www.nseindia.com/all-reports",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.18
+          "duration_sec": 0.155
         },
         {
           "url": "https://www.bseindia.com/corporates/ann.html",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.082
+          "duration_sec": 0.079
         },
         {
           "url": "https://www.nseindia.com/companies-listing/corporate-filings-announcements",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.161
+          "duration_sec": 0.127
         },
         {
           "url": "https://newsapi.org/",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.354
+          "duration_sec": 0.535
         }
       ]
     }

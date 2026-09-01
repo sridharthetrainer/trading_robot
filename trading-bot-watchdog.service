@@ -7,13 +7,17 @@ StartLimitBurst=10
 
 [Service]
 Type=simple
-User=sridhar
-WorkingDirectory=/home/sridhar/Projcts/trading_robot
-ExecStart=/home/sridhar/Projcts/trading_robot/.venv/bin/python3 /home/sridhar/Projcts/trading_robot/watchdog.py
+User=owner
+WorkingDirectory=/home/owner/Desktop/trading_robot
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/watchdog.py
 Restart=always
 RestartSec=30
 UMask=0077
 NoNewPrivileges=true
+# Lightweight monitor process only (no pandas/tensorflow imports) - small cap
+MemoryMax=256M
+# Filesystem hardening attempted 2026-09-02 but reverted: same 203/EXEC
+# failure as trading-bot.service (see that file's comment).
 
 [Install]
 WantedBy=multi-user.target

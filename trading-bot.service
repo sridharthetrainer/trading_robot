@@ -7,11 +7,11 @@ StartLimitBurst=10
 
 [Service]
 Type=simple
-User=sridhar
-WorkingDirectory=/home/sridhar/Projcts/trading_robot
-Environment=PATH=/home/sridhar/Projcts/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+User=owner
+WorkingDirectory=/home/owner/Desktop/trading_robot
+Environment=PATH=/home/owner/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/sridhar/Projcts/trading_robot/.venv/bin/python3 /home/sridhar/Projcts/trading_robot/main_autonomous.py
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/main_autonomous.py
 # CRITICAL: Restart=always so SIGTERM (clean exit) also triggers restart
 # Without this, every /deploy permanently kills the bot
 Restart=always
@@ -21,6 +21,15 @@ NoNewPrivileges=true
 StandardOutput=journal
 StandardError=journal
 TimeoutStartSec=60
+# Cap RAM so this bot can't crowd out the other trading system on this host.
+# Raised from 1.2G/1.5G after audit flagged OOM-kill risk during market-open
+# load spikes (TensorFlow + pandas across 57 strategies).
+MemoryHigh=1800M
+MemoryMax=2560M
+# Filesystem hardening attempted 2026-09-02 but reverted: ProtectSystem=strict
+# + ProtectHome=true + ReadWritePaths caused status=203/EXEC (systemd couldn't
+# even launch python3 in the hardened mount namespace) - needs offline
+# debugging before retrying, not while this is the live bot.
 
 [Install]
 WantedBy=multi-user.target
