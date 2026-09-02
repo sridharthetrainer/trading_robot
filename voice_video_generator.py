@@ -257,23 +257,25 @@ def create_video_from_chart_and_audio(
     Uses moviepy (free). Duration = audio length.
     """
     try:
-        from moviepy.editor import ImageClip, AudioFileClip, CompositeVideoClip
-        from moviepy.editor import TextClip, concatenate_videoclips
+        # moviepy>=2.0 removed the `moviepy.editor` submodule and renamed
+        # several clip methods (resize->resized, set_audio->with_audio);
+        # this targets the moviepy 2.x API actually pinned in requirements.txt.
+        from moviepy import ImageClip, AudioFileClip, CompositeVideoClip
+        from moviepy import TextClip, concatenate_videoclips
 
         audio = AudioFileClip(audio_path)
         duration = audio.duration
 
         # Chart slide
         clip = ImageClip(chart_path, duration=duration)
-        clip = clip.set_audio(audio)
-        clip = clip.resize(width=1280)
+        clip = clip.with_audio(audio)
+        clip = clip.resized(width=1280)
 
         clip.write_videofile(
             output_path,
             fps=1,
             codec='libx264',
             audio_codec='aac',
-            verbose=False,
             logger=None,
         )
         logger.info("Video created: %s (%.0fs)", output_path, duration)
