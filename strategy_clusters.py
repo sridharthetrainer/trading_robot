@@ -15,6 +15,21 @@ from __future__ import annotations
 
 from typing import Iterable, List
 
+# These 5 strategy names (signal_engine.py:1288-1339) all call the SAME
+# underlying computation, calculate_signal_score() (signal_score.py:57),
+# differing only by a hardcoded score offset - same direction, every time.
+# The keyword table below would otherwise split them across 4 different
+# factors (TREND, BREAKOUT, MEAN_REVERSION, MOMENTUM via "scalping"),
+# letting one computation masquerade as up to 4 independent confirmations.
+# Exact-match, checked before the keyword loop, so it can't accidentally
+# catch any other strategy and doesn't change the keyword table's
+# behavior for anything else. Does NOT touch the strategy functions
+# themselves, their offsets, or delete anything - factor accounting only.
+_SHARED_CALCULATE_SIGNAL_SCORE = {
+    "trend", "mean_reversion", "breakout", "scalping", "ma_cross",
+}
+_SHARED_CALCULATE_SIGNAL_SCORE_FACTOR = "CORE_SIGNAL_SCORE"
+
 # Order matters: the FIRST matching factor wins, so put the more specific
 # keywords (pattern, breakout, mean-reversion) ahead of the broad ones.
 _FACTOR_KEYWORDS = [
@@ -53,6 +68,8 @@ _FACTOR_KEYWORDS = [
 def factor_of(strategy: str) -> str:
     """Return the market factor for a strategy name."""
     s = str(strategy).lower()
+    if s in _SHARED_CALCULATE_SIGNAL_SCORE:
+        return _SHARED_CALCULATE_SIGNAL_SCORE_FACTOR
     for factor, kws in _FACTOR_KEYWORDS:
         if any(k in s for k in kws):
             return factor
