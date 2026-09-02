@@ -285,7 +285,19 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
 def _is_trading_day(d: Optional[date] = None) -> bool:
     """
     Return True if d is a valid NSE trading day.
-    Uses NSEMaster (live data) when available, hardcoded fallback otherwise.
+    Uses NSEMaster (live data) when available; falls back to
+    trading_calendar.py (trading_holidays.json - the same file NSEMaster
+    itself writes/refreshes) when NSEMaster is unavailable; the hardcoded
+    NSE_HOLIDAYS set is the last-resort fallback if even that fails.
+
+    2026-09-02: this used to fall back straight to the hardcoded
+    NSE_HOLIDAYS set, which had already drifted from reality - missing 8
+    of the 24 real 2026 NSE holidays present in trading_holidays.json at
+    the time (2026-01-15, 02-15, 02-19, 03-19, 04-01, 08-15, 08-26,
+    11-08). off_hours_engine.is_market_holiday() already preferred
+    trading_calendar for its own fallback; this brings both holiday
+    checks into structural agreement instead of each drifting
+    independently. See git history for the full investigation.
     """
     if d is None:
         d = date.today()
@@ -297,7 +309,14 @@ def _is_trading_day(d: Optional[date] = None) -> bool:
             return not _get_nse_master_ma().is_trading_holiday(d)
         except Exception as _e:
             import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
-    # Fallback: hardcoded list
+    # Fallback: trading_calendar (reads trading_holidays.json directly,
+    # independent of whether the live NSEMaster object is available)
+    try:
+        from trading_calendar import is_trading_day as _tc_is_trading_day
+        return _tc_is_trading_day(d)
+    except Exception as _e:
+        import logging; logging.getLogger(__name__).debug("suppressed: %s", _e)
+    # Last resort: hardcoded list
     return d not in NSE_HOLIDAYS
 
 
