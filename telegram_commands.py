@@ -4771,10 +4771,17 @@ class TelegramCommandHandler:
             return f"❌ GitHub: {e}"
 
     def _cmd_manual_buy(self, args="") -> str:
-        return f"ℹ️ Manual buy: use /signals to see live signals\nBot will auto-execute when conditions are met"
+        return (
+            "🚫 /buy does NOT place a trade — no order was sent.\n"
+            "This bot only auto-executes its own strategy signals, not manual orders.\n"
+            "Use /signals to see live signals; the bot auto-executes when conditions are met."
+        )
 
     def _cmd_manual_sell(self, args="") -> str:
-        return f"ℹ️ Use /kill to exit all positions immediately\nOr /pause to stop new entries"
+        return (
+            "🚫 /sell does NOT close a trade — no order was sent.\n"
+            "Use /kill to exit ALL positions immediately, or /pause to stop new entries."
+        )
 
     def _cmd_exit_all(self, args="") -> str:
         try:
