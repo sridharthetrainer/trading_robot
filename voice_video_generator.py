@@ -329,6 +329,13 @@ def generate_daily_brief_video(brief_data: dict, alerts=None) -> Optional[str]:
                 logger.info("Video sent via Telegram")
             elif chart_ok and os.path.exists(chart_path):
                 # Send image as fallback
+                logger.warning(
+                    "VIDEO_ENCODE_FALLBACK: sending static PNG instead of MP4 "
+                    "for daily market brief (chart_ok=%s audio_ok=%s video_ok=%s) "
+                    "- see the preceding 'Video creation failed' warning above "
+                    "for the root-cause exception, if any.",
+                    chart_ok, audio_ok, video_ok,
+                )
                 alerts.send_photo(chart_path,
                     caption=f"📊 Market Brief | {date.today().strftime('%d %b %Y')}")
                 logger.info("Chart sent via Telegram (video fallback)")
