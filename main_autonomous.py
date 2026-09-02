@@ -1385,13 +1385,10 @@ class AutonomousTradingSystem:
                     except Exception: pass
 
             def _reset_daily():
-                for _f in ['_gap_warn_sent','_video_sent','_brief_sent',
-                            '_fno_sent','_mkt_hb_sent','_acc_sent',
+                for _f in ['_mkt_hb_sent','_acc_sent',
                             '_eodml_sent',
                             '_meta_train_sent','_bhav_sent',
                             '_omni_sent_10','_omni_sent_12','_omni_sent_14',
-                            '_lp_sent_10_0','_lp_sent_11_30',
-                            '_lp_sent_13_0','_lp_sent_14_30',
                             '_early_prep_sent','_eod_final_sent']:
                     setattr(self, _f, False)
 
@@ -1401,19 +1398,19 @@ class AutonomousTradingSystem:
 
             if _h < 7: _reset_daily()
 
+            # Shared morning schedule (gap warning, morning video/brief, FNO
+            # ban check, live position updates) - see schedule_config.py.
+            # Both this trading-day path and _run_holiday_off_hours_tasks()'s
+            # holiday/weekend path dispatch from the same table now, so the
+            # two can no longer drift out of sync the way they had.
+            from schedule_config import run_morning_schedule
+            run_morning_schedule(self, _ohe, _now_t.date().isoformat(), _now_t.time())
+
             # 07:00 — pre-session prep; extends the active window to 07:00–20:00.
             if _h == 7 and _m == 0:   _once('_early_prep_sent',    lambda: _bg(self._run_early_prep))
-            if _h == 7 and _m >= 43:  _once('_gap_warn_sent',     _ohe._run_swing_gap_warning)
-            if _h == 8 and _m < 10:   _once('_video_sent',        _ohe._run_morning_video)
-            if _h == 8 and _m >= 28:  _once('_brief_sent',        _ohe._run_morning_brief)
-            if _h == 9 and _m >= 4:   _once('_fno_sent',          _ohe._run_fno_ban_check)
             if _h == 10 and _m == 0:  _once('_omni_sent_10',      _ohe._run_omnisource_refresh)
-            if _h == 10 and _m == 0:  _once('_lp_sent_10_0',      _ohe._run_live_position_update)
-            if _h == 11 and _m == 30: _once('_lp_sent_11_30',     _ohe._run_live_position_update)
             if _h == 12 and _m == 0:  _once('_omni_sent_12',      _ohe._run_omnisource_refresh)
-            if _h == 13 and _m == 0:  _once('_lp_sent_13_0',      _ohe._run_live_position_update)
             if _h == 14 and _m == 0:  _once('_omni_sent_14',      _ohe._run_omnisource_refresh)
-            if _h == 14 and _m == 29: _once('_lp_sent_14_30',     _ohe._run_live_position_update)
             if _h == 14 and _m >= 29: _once('_mkt_hb_sent',       _ohe._run_heartbeat)
             # accuracy post (15:39) CUT per user — intraday noise. (Omnisource
             # 10/12/14 KEPT: it's a silent data-cache refresh, not a message.)
@@ -4571,34 +4568,25 @@ class AutonomousTradingSystem:
         # ══ PRE-MARKET & INTRADAY SCHEDULED TASKS ══════════════════════════
         _today_s = date.today().isoformat()
 
-        # 7:45 AM — Swing gap warning
-        if not getattr(self, f"_gap_warn_{_today_s}", False):
-            if dtime(7,45) <= now.time() <= dtime(8,0):
-                setattr(self, f"_gap_warn_{_today_s}", True)
-                if _OFFHOURS_AVAIL and self._off_hours:
-                    try: self._off_hours._run_swing_gap_warning()
-                    except Exception: pass
+        # Shared morning schedule (gap warning, morning video/brief, FNO ban
+        # check, live position updates) - see schedule_config.py. Both this
+        # holiday/weekend path and _after_hours_tasks()'s trading-day path
+        # dispatch from the same table now, so the two can no longer drift
+        # out of sync the way they had (e.g. morning brief was >=08:28 in
+        # one, 08:30-08:45 in the other).
+        if _OFFHOURS_AVAIL and self._off_hours:
+            from schedule_config import run_morning_schedule
+            run_morning_schedule(self, self._off_hours, _today_s, now.time())
 
-        # 8:00 AM — Morning video
-        if not getattr(self, f"_vid_{_today_s}", False):
-            if dtime(8,0) <= now.time() <= dtime(8,15):
-                setattr(self, f"_vid_{_today_s}", True)
-                if _OFFHOURS_AVAIL and self._off_hours:
-                    try: self._off_hours._run_morning_video()
-                    except Exception: pass
-
-        # 8:30 AM — Morning brief
-        if not getattr(self, f"_brief_{_today_s}", False):
+        # 8:30 AM — session/TOTP preflight. Holiday/weekend-path-only, same
+        # as before this reconciliation - _after_hours_tasks() never ran
+        # this on trading days either, so it's not part of the shared table.
+        # (2026-08-19: verify the broker session actually works before the
+        # trading loop starts. A dead session at 9:15 AM used to mean a
+        # silent all-day scan-and-find-nothing with no operator visibility.)
+        if not getattr(self, f"_preflight_{_today_s}", False):
             if dtime(8,30) <= now.time() <= dtime(8,45):
-                setattr(self, f"_brief_{_today_s}", True)
-                if _OFFHOURS_AVAIL and self._off_hours:
-                    try: self._off_hours._run_morning_brief()
-                    except Exception: pass
-
-                # 2026-08-19: session/TOTP preflight -- verify the broker
-                # session actually works before the trading loop starts.
-                # A dead session at 9:15 AM used to mean a silent all-day
-                # scan-and-find-nothing with no operator visibility.
+                setattr(self, f"_preflight_{_today_s}", True)
                 try:
                     from session_preflight import run_preflight
                     _broker_pf = self.live_engine.broker_manager.get_execution_broker()
@@ -4607,25 +4595,20 @@ class AutonomousTradingSystem:
                 except Exception:
                     logger.exception("Session preflight failed to run")
 
-        # 9:00 AM — Sector rotation + F&O ban
-        if not getattr(self, f"_preopn_{_today_s}", False):
+        # 9:00 AM — Sector rotation refresh. Holiday/weekend-path-only, same
+        # as before - _after_hours_tasks() never ran this either, so (like
+        # the preflight above) it stays out of the shared table rather than
+        # silently starting to fire on every trading day too. Now has its
+        # own try/except, decoupled from FNO ban check (which moved into
+        # the shared schedule above): previously the two shared one
+        # try/except, so FNO ban check silently never ran if sector
+        # rotation raised first.
+        if not getattr(self, f"_sector_{_today_s}", False):
             if dtime(9,0) <= now.time() <= dtime(9,10):
-                setattr(self, f"_preopn_{_today_s}", True)
+                setattr(self, f"_sector_{_today_s}", True)
                 if _OFFHOURS_AVAIL and self._off_hours:
-                    try:
-                        self._off_hours._run_sector_rotation_refresh()
-                        self._off_hours._run_fno_ban_check()
+                    try: self._off_hours._run_sector_rotation_refresh()
                     except Exception: pass
-
-        # 10:00/11:30/13:00/14:30 — Live position updates
-        for _luh, _lum in [(10,0),(11,30),(13,0),(14,30)]:
-            _lu_k = f"_lu_{_today_s}_{_luh}{_lum}"
-            if not getattr(self, _lu_k, False):
-                if dtime(_luh,_lum) <= now.time() <= dtime(_luh, _lum+5 if _lum<55 else 59):
-                    setattr(self, _lu_k, True)
-                    if _OFFHOURS_AVAIL and self._off_hours:
-                        try: self._off_hours._run_live_position_update()
-                        except Exception: pass
 
         # 15:40 — Accuracy post + heartbeat
         if not getattr(self, f"_acc_{_today_s}", False):
