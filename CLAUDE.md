@@ -25,8 +25,19 @@ reviewable changes — never to rewrite or replace it.
 ## Verified architecture (correct only with file/line evidence)
 - Entry point: `main_autonomous.py`
 - Signal flow: `main_autonomous.py` -> `LiveSignalEngine` (`live_signal_engine.py`,
-  orchestrator) -> `generate_signal` in `signal_engine.py` (holds the ~57-strategy
+  orchestrator) -> `generate_signal` in `signal_engine.py` (holds the strategy
   registry + confluence scoring). BOTH engines are needed; neither is a duplicate.
+  Registry size (2026-09-02, measured via `len(STRATEGIES)`, not a comment):
+  **79 strategies**, not the previously-documented "~57" — 22 always-on core
+  functions plus conditional imports (available-module flags), 15 of the 79
+  from `strategies_new.py`. Confluence scoring (`signal_engine.py:4302-4342`)
+  de-correlates raw votes into distinct market "factors"
+  (`strategy_clusters.py`) before applying the effective-count boost; as of
+  2026-09-02 the `trend`/`mean_reversion`/`breakout`/`scalping`/`ma_cross`
+  strategies — which all call the same underlying `calculate_signal_score()`
+  (`signal_score.py:57`) with only a hardcoded offset — are mapped to one
+  shared `CORE_SIGNAL_SCORE` factor rather than counting as up to 4
+  independent votes.
 - Manual-trade protection: `manual_trade_tracker.py` + `manual-tracker.service`.
 - Data sources (priority): Angel `getCandleData` is PRIMARY for intraday candles;
   direct NSE APIs for option chain / indices / FII-DII; bhavcopy for EOD history;
