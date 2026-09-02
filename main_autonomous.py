@@ -1474,9 +1474,17 @@ class AutonomousTradingSystem:
                     _thr = __import__("threading").Thread(
                         target=self._off_hours.run_holiday_tasks, daemon=True)
                     _thr.start()
-                elif _is_weekend:
-                    _is_sat = _today.weekday() == 5
-                    self._off_hours.run_weekend_tasks(is_saturday=_is_sat)
+                # NOTE: an `elif _is_weekend: run_weekend_tasks(...)` branch
+                # used to live here. It was provably unreachable: this whole
+                # block only runs from _after_hours_tasks(), which is only
+                # ever called from _run_one_iteration() in the branch where
+                # window["is_trading_day"] is already True - and
+                # _is_trading_day() checks `weekday() >= 5` unconditionally
+                # before anything else, so an actual Sat/Sun can never reach
+                # here (unlike the holiday case above, which has a narrow
+                # live path if _is_trading_day() and is_market_holiday()
+                # disagree on a weekday). Removed 2026-09-02 after tracing
+                # the full call graph; see AUDIT git history for the analysis.
             except Exception: pass
         # ── Connection check at 8:50 AM ─────────────────────────────────
         try:
