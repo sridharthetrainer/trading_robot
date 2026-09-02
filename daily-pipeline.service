@@ -4,11 +4,11 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-User=sridhar
-WorkingDirectory=/home/sridhar/Projcts/trading_robot
-Environment=PATH=/home/sridhar/Projcts/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+User=owner
+WorkingDirectory=/home/owner/Desktop/trading_robot
+Environment=PATH=/home/owner/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/sridhar/Projcts/trading_robot/.venv/bin/python3 /home/sridhar/Projcts/trading_robot/daily_pipeline.py --telegram
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/daily_pipeline.py --telegram
 StandardOutput=journal
 StandardError=journal
 # Was 2400 (40min) -- killed mid-run 2026-08-09 after the machine's multi-day

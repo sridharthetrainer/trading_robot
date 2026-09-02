@@ -7,10 +7,10 @@ After=trading-bot.service
 
 [Service]
 Type=simple
-User=sridhar
-WorkingDirectory=/home/sridhar/Projcts/trading_robot
-EnvironmentFile=/home/sridhar/Projcts/trading_robot/.env
-ExecStart=/home/sridhar/Projcts/trading_robot/.venv/bin/python3 /home/sridhar/Projcts/trading_robot/trade_guardian_bot.py
+User=owner
+WorkingDirectory=/home/owner/Desktop/trading_robot
+EnvironmentFile=/home/owner/Desktop/trading_robot/.env
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/trade_guardian_bot.py
 Restart=on-failure
 RestartSec=15
 UMask=0077
