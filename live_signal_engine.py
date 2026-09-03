@@ -1163,6 +1163,38 @@ class LiveSignalEngine:
                 logger.debug("option-chain snapshot skipped: %s", exc)
 
     def _run_cycle(self) -> None:
+        # 2026-09-03: ws_engine.start() previously only had ONE caller in the
+        # whole codebase - LiveSignalEngine.run() - which main_autonomous.py
+        # never calls (it drives the bot via _run_cycle() directly instead).
+        # Result: WebSocketEngine was constructed every startup but never
+        # started, so ws_engine.is_connected() was permanently False and
+        # _check_ws_disconnect_halt() halted ALL new entries indefinitely
+        # after the first 30s of every session, silently, for as long as
+        # this gap existed. One-time start here, guarded so it only runs
+        # once per process (not every ~20s cycle).
+        if self.ws_engine and not getattr(self, "_ws_start_attempted", False):
+            self._ws_start_attempted = True
+            try:
+                started = self.ws_engine.start()
+                if started:
+                    logger.info(
+                        "WebSocket streaming started (from _run_cycle) - "
+                        "trailing stops now real-time"
+                    )
+                    if bool(getattr(cfg, "WS_SUBSCRIBE_SIGNAL_UNIVERSE", True)):
+                        self.ws_engine.subscribe(self._symbols, exchange="NSE")
+                        logger.info(
+                            "WebSocket signal universe requested: %d NSE symbols",
+                            len(self._symbols),
+                        )
+                else:
+                    logger.warning(
+                        "ws_engine.start() returned False - WebSocket not "
+                        "available, staying on REST-only monitoring"
+                    )
+            except Exception as e:
+                logger.warning("WebSocket engine failed to start: %s", e)
+
         self._refresh_feed_degradation()
         # ── Pre-market gap adjustment ────────────────────────────────
         # Computed once per cycle; APPLIED to final_qty in _execute_candidate.
