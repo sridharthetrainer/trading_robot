@@ -244,4 +244,6 @@ def get_history(symbol: str, days: int = 60, interval: str = "5m"):
 
 def get_daily_history(symbol: str, days: int = 252):
     """Daily OHLCV for regime detection, Weinstein stage, etc."""
-    return get_ohlcv(symbol, days=days, interval="1d")
+    # get_ohlcv() takes no interval kwarg (bhavcopy is daily-only data) -
+    # this call raised TypeError unconditionally until fixed 2026-09-02.
+    return get_ohlcv(symbol, days=days)

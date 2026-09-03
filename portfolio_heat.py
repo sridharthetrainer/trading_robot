@@ -49,8 +49,18 @@ def _get_correlation_group(symbol: str) -> str:
     return su  # unique group = no correlation assumed
 
 
+_warned_missing_corr_matrix = False  # log the fail-open once, not every call
+
+
 def _load_correlation_matrix() -> Tuple[List[str], np.ndarray]:
-    """Load pre-computed correlation matrix from idle_engine output."""
+    """Load pre-computed correlation matrix from idle_engine output.
+
+    Fails open (returns empty) if the file is missing/malformed - this is
+    intentional (no data yet -> no restriction, per cluster_risk_gate.py's
+    docstring), but that used to be completely silent. Warn once per
+    process so a nightly job that's stopped running (e.g. its systemd
+    timer never enabled) doesn't fail open indefinitely unnoticed."""
+    global _warned_missing_corr_matrix
     try:
         if _CORR_FILE.exists():
             data = json.loads(_CORR_FILE.read_text())
@@ -58,8 +68,25 @@ def _load_correlation_matrix() -> Tuple[List[str], np.ndarray]:
             mat  = np.array(data.get("matrix", []))
             if len(syms) > 0 and mat.shape[0] == len(syms):
                 return syms, mat
-    except Exception:
-        pass
+            if not _warned_missing_corr_matrix:
+                _warned_missing_corr_matrix = True
+                logger.warning(
+                    "%s exists but is empty/malformed (symbols=%d) - "
+                    "correlation gate is failing OPEN (no restriction)",
+                    _CORR_FILE, len(syms),
+                )
+        elif not _warned_missing_corr_matrix:
+            _warned_missing_corr_matrix = True
+            logger.warning(
+                "%s not found - correlation gate is failing OPEN (no "
+                "restriction) until idle_engine.run_correlation_update() "
+                "produces it", _CORR_FILE,
+            )
+    except Exception as e:
+        if not _warned_missing_corr_matrix:
+            _warned_missing_corr_matrix = True
+            logger.warning("%s failed to load (%s) - correlation gate is "
+                            "failing OPEN (no restriction)", _CORR_FILE, e)
     return [], np.array([])
 
 
