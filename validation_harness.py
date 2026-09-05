@@ -655,9 +655,15 @@ def _build_default_param_grid(strategy_name: str) -> Dict[str, List[Any]]:
     """Return a default param grid for known strategies."""
     grids = {
         "trend": {
-            "fast_ema": [7, 9, 12],
+            # 2026-09-05: widened per operator request ("check all combinations
+            # for a given indicator") - added a shorter fast EMA and a higher
+            # ADX threshold option. Kept modest here since this grid was
+            # already the largest (648 combos) and had already been run
+            # successfully once (autonomous_param_training_report.json,
+            # 2026-08-21) - not blowing it up further without a reason.
+            "fast_ema": [5, 7, 9, 12],
             "slow_ema": [18, 21, 26],
-            "adx_threshold": [None, 20, 25],
+            "adx_threshold": [None, 20, 25, 30],
             "stop_atr_mult": [1.5, 2.0, 2.5],
             "trail_atr_mult": [1.0, 1.5],
             "min_body_atr": [0.0, 0.10],
@@ -668,38 +674,47 @@ def _build_default_param_grid(strategy_name: str) -> Dict[str, List[Any]]:
             # NOTE: keys must match backtest_mr()'s signature exactly — the grid
             # is splatted as **params, so a wrong name raises TypeError and the
             # window is silently dropped (was rsi_oversold/rsi_overbought).
-            "rsi_period":  [7, 10, 14],
-            "oversold":    [25, 30, 35],
-            "overbought":  [65, 70, 75],
+            # 2026-09-05: widened per operator request - old grid only covered
+            # RSI period 7-14 and thresholds 65-75/25-35, missing well-known
+            # variants like Connors RSI-2/RSI-21 and wider 60/40-80/20 bands.
+            "rsi_period":  [2, 7, 10, 14, 21],
+            "oversold":    [20, 25, 30, 35, 40],
+            "overbought":  [60, 65, 70, 75, 80],
             "bb_period":   [15, 20],
             "bb_std":      [1.5, 2.0],
         },
         "breakout": {
             # Keys must match backtest_breakout()'s signature (was
             # lookback/atr_mult/min_vol_ratio — none of which it accepts).
-            "channel_period": [10, 15, 20],
+            # 2026-09-05: added a shorter and a longer channel period.
+            "channel_period": [5, 10, 15, 20, 30],
             "stop_atr_mult":  [1.5, 2.0, 2.5],
             "trail_atr_mult": [1.0, 1.5],
             "breakout_buffer_atr": [0.0, 0.05],
             "min_body_atr": [0.0, 0.10],
         },
         "ma_cross": {
-            "fast_ma": [5, 9, 12],
-            "slow_ma": [20, 26, 50],
+            # 2026-09-05: was only 18 combos - added a shorter fast MA and a
+            # long-term (100) slow MA variant.
+            "fast_ma": [3, 5, 9, 12, 15],
+            "slow_ma": [20, 26, 50, 100],
             "min_body_atr": [0.0, 0.10],
             "max_entry_atr_extension": [2.5],
         },
         "scalping": {
+            # 2026-09-05: rsi_period widened to include Connors RSI-2/RSI-5,
+            # same gap flagged for mean_reversion.
             "fast_ema":               [7, 9],
             "slow_ema":               [20, 26],
-            "rsi_period":             [7, 14],
+            "rsi_period":             [2, 5, 7, 14],
             "stop_atr_mult":          [1.0, 1.5],
             "profit_target_atr_mult": [1.2, 2.0],
             "min_body_atr":           [0.0, 0.08],
             "max_entry_atr_extension": [2.0],
         },
         "ema_5min": {
-            "fast_ema":          [7, 9],
+            # 2026-09-05: added a shorter fast EMA option.
+            "fast_ema":          [5, 7, 9],
             "slow_ema":          [18, 21],
             "stop_atr_mult":     [1.5, 1.8],
             "trail_atr_mult":    [1.0, 1.2],
@@ -717,24 +732,32 @@ def _build_default_param_grid(strategy_name: str) -> Dict[str, List[Any]]:
             "invert_signals":   [False, True],
         },
         "orb": {
-            "adx_min":    [16.0, 18.0, 20.0],
-            "volume_min": [1.1, 1.3],
+            # 2026-09-05: was only 12 combos - widened ADX/volume/target ranges.
+            "adx_min":    [14.0, 16.0, 18.0, 20.0, 22.0],
+            "volume_min": [1.0, 1.1, 1.3, 1.5],
             "stop_mult":  [1.0],
-            "target_mult": [1.5, 2.0],
+            "target_mult": [1.5, 2.0, 2.5],
         },
         "vwap_reversion": {
+            # 2026-09-05: widened RSI oversold/overbought bands (was only
+            # 35/38 and 62/65 - two very close values each).
             "dev_min": [0.0025, 0.0035],
-            "rsi_os":  [35, 38],
-            "rsi_ob":  [62, 65],
+            "rsi_os":  [30, 32, 35, 38],
+            "rsi_ob":  [62, 65, 68, 70],
             "vol_min": [0.8, 1.0],
         },
         "supertrend_mtf": {
-            "st_period": [7, 10],
-            "st_mult":   [2.5, 3.0],
+            # 2026-09-05: was only 4 combos (2x2) - the smallest grid of any
+            # strategy. Added a longer period and both a tighter and wider
+            # multiplier.
+            "st_period": [7, 10, 14],
+            "st_mult":   [2.0, 2.5, 3.0, 3.5],
         },
         "fibonacci": {
-            "entry_level":   ["0.5", "0.618"],
-            "stop_level":    ["0.786", "1.0"],
+            # 2026-09-05: added the 0.382 retracement level (a standard
+            # Fibonacci level that was missing) and the 0.618 stop variant.
+            "entry_level":   ["0.382", "0.5", "0.618"],
+            "stop_level":    ["0.618", "0.786", "1.0"],
             "swing_lookback": [20, 30],
             "rsi_min_long":  [30, 35],
         },
