@@ -1,14 +1,16 @@
 {
-  "elapsed_sec": 319.3,
+  "elapsed_sec": 193.0,
   "labels_updated": 0,
-  "signals_used": 384,
-  "overall_wr": 0.333,
-  "danger_zones": 69,
-  "ml_auc": 0.7891,
+  "signals_used": 25,
+  "overall_wr": 0.36,
+  "danger_zones": 7,
+  "ml_auc": 0.4019,
   "per_symbol_models": 0,
   "filters_written": true,
   "filters_path": "learned_filters.json",
   "decay_strategies": [
+    "failed_bear_breakout",
+    "elder_triple_screen",
     "alligator_ao",
     "vrvp_zone",
     "trend",
@@ -33,5 +35,5 @@
   "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
   "edge_candidates": [],
   "dry_run": false,
-  "timestamp": "2026-08-20T16:05:20.077970"
+  "timestamp": "2026-09-05T11:41:46.012797"
 }

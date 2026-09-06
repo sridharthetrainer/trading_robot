@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-20T16:05:18",
-  "n_modules": 593,
+  "generated_at": "2026-09-05T11:41:44",
+  "n_modules": 594,
   "orphan_modules": [
     "check_connections",
     "data_pool",
@@ -8,6 +8,7 @@
     "diag_telegram",
     "fix_missing_tokens",
     "mean_reversion_signal",
+    "seed_cache",
     "setup_gdrive_backup",
     "telegram_backup",
     "validate_telegram"
@@ -3339,6 +3340,13 @@
       ],
       "n_importers": 2
     },
+    "schedule_config": {
+      "status": "imported",
+      "imported_by": [
+        "main_autonomous"
+      ],
+      "n_importers": 1
+    },
     "score_calibrator": {
       "status": "imported",
       "imported_by": [
@@ -3367,7 +3375,7 @@
       "n_importers": 7
     },
     "seed_cache": {
-      "status": "entrypoint",
+      "status": "ORPHAN",
       "imported_by": [],
       "n_importers": 0
     },
@@ -4655,11 +4663,11 @@
         "candle_coverage_backfill",
         "data_quality_watchdog",
         "idle_engine",
+        "main_autonomous",
         "off_hours_engine",
-        "option_bot_audit",
-        "post_market_ml"
+        "option_bot_audit"
       ],
-      "n_importers": 17
+      "n_importers": 18
     },
     "tradingview_strategies": {
       "status": "imported",

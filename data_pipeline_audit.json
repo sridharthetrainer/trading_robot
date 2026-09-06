@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T04:34:51+0530",
+  "generated_at": "2026-09-05T21:15:52+0530",
   "fetch_sample": 3,
   "internet_probe": true,
   "ok": true,
@@ -27,7 +27,7 @@
       "storage_capture": {
         "score": 15,
         "max": 15,
-        "detail": "candles=5754403, 1m_symbols=197, 1d_symbols=198, signals=35041, option_snaps=9682, historical_options=3209189, confluence=35009, coverage_plan=yes"
+        "detail": "candles=6137695, 1m_symbols=197, 1d_symbols=198, signals=35520, option_snaps=10750, historical_options=3226963, confluence=35009, coverage_plan=yes"
       },
       "learning_readiness": {
         "score": 6.5,
@@ -60,12 +60,12 @@
       "tick_or_1sec_data": {
         "score": 8,
         "max": 10,
-        "detail": "tick modules=True, candles=5754403"
+        "detail": "tick modules=True, candles=6137695"
       },
       "all_strike_option_history": {
         "score": 14,
         "max": 15,
-        "detail": "option_snapshots=9682, historical_options=3209189"
+        "detail": "option_snapshots=10750, historical_options=3226963"
       },
       "market_depth_spread": {
         "score": 8,
@@ -80,7 +80,7 @@
       "labelled_learning_dataset": {
         "score": 10,
         "max": 18,
-        "detail": "labelled=25830/5000, days=28/45"
+        "detail": "labelled=26156/5000, days=32/45"
       },
       "participant_fii_flows": {
         "score": 10,
@@ -90,7 +90,7 @@
       "market_profile_history": {
         "score": 8,
         "max": 8,
-        "detail": "profile_snapshots=412402"
+        "detail": "profile_snapshots=444805"
       },
       "sector_news_events": {
         "score": 7,
@@ -738,11 +738,11 @@
       },
       "signal_log_db": {
         "exists": true,
-        "count": 35041
+        "count": 35520
       },
       "candle_cache_db": {
         "exists": true,
-        "count": 5754403
+        "count": 6137695
       },
       "candle_cache_meta": {
         "exists": true,
@@ -750,53 +750,53 @@
       },
       "candle_intervals": {
         "15m": {
-          "rows": 310699,
+          "rows": 328658,
           "symbols": 197,
           "first": "2026-05-25 09:15:00+05:30",
-          "last": "2026-09-01 15:15:00+05:30"
+          "last": "2026-09-05 13:15:00+05:30"
         },
         "1d": {
-          "rows": 79951,
+          "rows": 79970,
           "symbols": 198,
           "first": "2022-05-18 00:00:00+05:30",
-          "last": "2026-09-01 00:00:00+05:30"
+          "last": "2026-09-04 00:00:00+05:30"
         },
         "1h": {
-          "rows": 112628,
+          "rows": 125972,
           "symbols": 197,
           "first": "2026-04-01 09:15:00+05:30",
-          "last": "2026-08-21 09:15:00+05:30"
+          "last": "2026-09-04 15:15:00+05:30"
         },
         "1m": {
-          "rows": 4448378,
+          "rows": 4716120,
           "symbols": 197,
           "first": "2026-05-25 09:15:00+05:30",
-          "last": "2026-09-01 15:29:00+05:30"
+          "last": "2026-09-05 13:29:00+05:30"
         },
         "5m": {
-          "rows": 802747,
+          "rows": 886975,
           "symbols": 197,
           "first": "2025-05-19 09:15:00+05:30",
-          "last": "2026-09-01 15:25:00+05:30"
+          "last": "2026-09-05 13:25:00+05:30"
         }
       },
       "option_chain_snapshots_db": {
         "exists": true,
-        "count": 9682
+        "count": 10750
       },
       "market_profile_snapshots_db": {
         "exists": true,
-        "count": 412402
+        "count": 444805
       },
       "historical_options_db": {
         "exists": true,
-        "count": 3209189,
+        "count": 3226963,
         "db_path": "options_nifty.db",
         "table": "options_eod"
       },
       "market_snapshots_db": {
         "exists": true,
-        "count": 502
+        "count": 654
       },
       "confluence_features_db": {
         "exists": true,
@@ -805,9 +805,9 @@
       "nse_data_hub": {
         "exists": true,
         "ok": true,
-        "ok_count": 10,
+        "ok_count": 6,
         "dataset_count": 10,
-        "date": "2026-09-02"
+        "date": "2026-09-05"
       },
       "candle_coverage_plan": {
         "generated_at": "2026-08-21T15:45:39+0530",
@@ -18070,7 +18070,7 @@
         "count": 46
       },
       "option_journal_exists": true,
-      "option_journal_size": 44240945
+      "option_journal_size": 44675891
     },
     {
       "name": "learning_files",
@@ -18084,17 +18084,17 @@
     {
       "name": "labelled_dataset",
       "ok": true,
-      "total": 35041,
-      "labelled": 25830,
-      "legacy_labelled": 34910,
+      "total": 35520,
+      "labelled": 26156,
+      "legacy_labelled": 35236,
       "executed": 3,
-      "distinct_days": 28,
+      "distinct_days": 32,
       "by_label": {
-        "-99": 64,
+        "-99": 217,
         "-2": 67,
-        "-1": 7742,
-        "0": 22508,
-        "1": 4660
+        "-1": 7772,
+        "0": 22774,
+        "1": 4690
       },
       "target_labelled": 5000,
       "target_days": 45,
@@ -18109,7 +18109,7 @@
         {
           "symbol": "NIFTY",
           "ok": true,
-          "bars": 150,
+          "bars": 375,
           "columns": [
             "close",
             "high",
@@ -18117,13 +18117,13 @@
             "open",
             "volume"
           ],
-          "duration_sec": 0.167,
-          "last_index": "2026-08-31 15:25:00+05:30"
+          "duration_sec": 0.163,
+          "last_index": "2026-09-04 15:25:00+05:30"
         },
         {
           "symbol": "BANKNIFTY",
           "ok": true,
-          "bars": 225,
+          "bars": 375,
           "columns": [
             "close",
             "high",
@@ -18131,13 +18131,13 @@
             "open",
             "volume"
           ],
-          "duration_sec": 0.304,
-          "last_index": "2026-09-01 15:25:00+05:30"
+          "duration_sec": 0.441,
+          "last_index": "2026-09-04 15:25:00+05:30"
         },
         {
           "symbol": "FINNIFTY",
           "ok": true,
-          "bars": 225,
+          "bars": 375,
           "columns": [
             "close",
             "high",
@@ -18145,8 +18145,8 @@
             "open",
             "volume"
           ],
-          "duration_sec": 0.378,
-          "last_index": "2026-09-01 15:25:00+05:30"
+          "duration_sec": 0.253,
+          "last_index": "2026-09-04 15:25:00+05:30"
         }
       ]
     },
@@ -18167,21 +18167,21 @@
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.145
+          "duration_sec": 0.141
         },
         {
           "url": "https://smartapi.angelbroking.com/docs/WebSocket2",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.098
+          "duration_sec": 0.09
         },
         {
           "url": "https://www.nseindia.com/option-chain",
           "ok": true,
-          "status": 200,
-          "method": "HEAD",
-          "duration_sec": 0.123
+          "status": 403,
+          "method": "GET",
+          "duration_sec": 0.128
         },
         {
           "url": "https://www.bseindia.com/",
@@ -18195,56 +18195,56 @@
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.178
+          "duration_sec": 0.211
         },
         {
           "url": "https://www.nseindia.com/all-reports-derivatives",
           "ok": true,
-          "status": 200,
-          "method": "HEAD",
-          "duration_sec": 0.201
+          "status": 403,
+          "method": "GET",
+          "duration_sec": 0.099
         },
         {
           "url": "https://www.nseindia.com/reports/fii-dii",
           "ok": true,
-          "status": 200,
-          "method": "HEAD",
-          "duration_sec": 0.126
+          "status": 403,
+          "method": "GET",
+          "duration_sec": 0.107
         },
         {
           "url": "https://www.nseindia.com/report-detail/display-bulk-and-block-deals",
           "ok": true,
-          "status": 200,
-          "method": "HEAD",
-          "duration_sec": 0.055
+          "status": 403,
+          "method": "GET",
+          "duration_sec": 0.119
         },
         {
           "url": "https://www.nseindia.com/all-reports",
           "ok": true,
-          "status": 200,
-          "method": "HEAD",
-          "duration_sec": 0.155
+          "status": 403,
+          "method": "GET",
+          "duration_sec": 0.098
         },
         {
           "url": "https://www.bseindia.com/corporates/ann.html",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.079
+          "duration_sec": 0.345
         },
         {
           "url": "https://www.nseindia.com/companies-listing/corporate-filings-announcements",
           "ok": true,
-          "status": 200,
-          "method": "HEAD",
-          "duration_sec": 0.127
+          "status": 403,
+          "method": "GET",
+          "duration_sec": 0.135
         },
         {
           "url": "https://newsapi.org/",
           "ok": true,
           "status": 200,
           "method": "HEAD",
-          "duration_sec": 0.535
+          "duration_sec": 0.537
         }
       ]
     }
