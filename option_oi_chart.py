@@ -522,11 +522,19 @@ _FLIP_ICON = {"BULLISH": "📈", "BEARISH": "📉"}
 def generate_oi_flip_alert_image(
     events: List[Dict[str, Any]],
     output_dir: Optional[str] = None,
+    history: Optional[Dict[str, list]] = None,
 ) -> OIChartResult:
     """Render oi_tracker.py's OI-direction-flip alerts (already sent as plain
     text to this channel) as a stack of picture cards -- one per event, each
     showing the before->after direction, CE/PE delta bars, and PCR, so the
-    same information is scannable at a glance instead of read line by line."""
+    same information is scannable at a glance instead of read line by line.
+
+    `history`, if given, maps symbol -> that symbol's self._directions list
+    (ts, direction_dict, spot) tuples, up to a full session's worth of ~5min
+    bars. 2026-09-03: the CE/PE bars only ever showed the single bar that
+    triggered the flip, with no way to tell whether it capped off a steady
+    session-long build-up or was a one-off spike - added a session-cumulative
+    summary line per card when history is available."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -602,8 +610,32 @@ def generate_oi_flip_alert_image(
 
         note = ("Put writing dominant — supports bullish move" if curr == "BULLISH"
                 else "Call writing dominant — caps upside")
-        ax.text(0.03, 0.11, f"PCR {e['pcr']:.2f}   •   {note}",
+        ax.text(0.03, 0.15, f"PCR {e['pcr']:.2f}   •   {note}",
                 color=ct.TEXT_MUTED, fontsize=9.5, transform=ax.transAxes)
+
+        # 2026-09-03: the bars above only ever showed the single ~5min bar
+        # that triggered this flip - no way to tell whether it capped off a
+        # steady session-long build-up or was a one-off spike. When the
+        # caller passes this symbol's full-session direction history
+        # (oi_tracker.py's self._directions[symbol], (ts, direction_dict,
+        # spot) tuples, up to a session's worth of ~5min bars), sum the
+        # CE/PE deltas across every bar to show the cumulative move since
+        # market open alongside the single-bar figures above. Backward
+        # compatible: if history isn't passed, this line is simply omitted,
+        # matching the exact old rendering.
+        sym_history = (history or {}).get(e["symbol"]) or []
+        if sym_history:
+            cum_ce = sum(float(d.get("ce_delta", 0) or 0) for _, d, _ in sym_history)
+            cum_pe = sum(float(d.get("pe_delta", 0) or 0) for _, d, _ in sym_history)
+            first_ts = sym_history[0][0]
+            def _kk(v: float) -> str:
+                sign = "+" if v >= 0 else "-"
+                return f"{sign}{abs(v)/1000:.0f}K"
+            ax.text(0.03, 0.07,
+                    f"Since {first_ts}: CE {_kk(cum_ce)}   PE {_kk(cum_pe)}  "
+                    f"(cumulative, {len(sym_history)} bars)",
+                    color=ct.TEXT_MUTED, fontsize=8.5, fontstyle="italic",
+                    transform=ax.transAxes)
 
     fig.suptitle("OI Direction Flips", color=ct.TEXT_PRIMARY, fontsize=14,
                  fontweight="bold", y=0.995)

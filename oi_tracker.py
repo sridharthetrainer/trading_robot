@@ -495,7 +495,8 @@ class OITracker:
                 "conviction": conv, "ce_delta": ce_d, "pe_delta": pe_d,
                 "pcr": d["net_pcr"],
             }
-            result = generate_oi_flip_alert_image([event])
+            result = generate_oi_flip_alert_image(
+                [event], history={sym: self._directions.get(sym, [])})
             if result.ok:
                 sent = self.alerts.send_photo(result.path, caption=text)
                 if sent:
