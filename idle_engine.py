@@ -496,11 +496,33 @@ def run_correlation_update(alerts=None) -> dict:
         symbols = _nifty200_symbols()[:50]
         prices  = {}
 
+        # 2026-09-07: was _yf_ticker/_yf_download (yfinance via yf_compat),
+        # which explicitly does NOT serve individual NSE stocks - yf_compat's
+        # own code returns empty for anything outside its small index/FX
+        # _TICKER_MAP, so this loop could never populate `prices` and
+        # correlation_matrix.json was never written (verified 2026-09-05).
+        # jugaad_data.nse.stock_df fetches real per-symbol NSE history
+        # directly - verified live against this host: single-symbol and a
+        # 10-symbol batch both succeeded in ~1-2s total, no rate-limiting.
+        try:
+            from jugaad_data.nse import stock_df
+        except ImportError:
+            logger.warning("jugaad_data not installed - correlation matrix "
+                            "update skipped (pip install jugaad-data)")
+            return {}
+
+        fetch_from = date.today() - timedelta(days=60)
         for sym in symbols:
-            ticker = _yf_ticker(sym)
-            df     = _yf_download(ticker, period="3mo", interval="1d")
-            if df is not None and "close" in df.columns and len(df) >= 30:
-                prices[sym] = df["close"].values[-30:]  # last 30 days
+            try:
+                df = stock_df(symbol=sym, from_date=fetch_from,
+                               to_date=date.today(), series="EQ")
+            except Exception as e:
+                logger.debug("correlation fetch %s: %s", sym, e)
+                continue
+            if df is not None and not df.empty and "CLOSE" in df.columns:
+                closes = df.sort_values("DATE")["CLOSE"].values
+                if len(closes) >= 30:
+                    prices[sym] = closes[-30:]  # last 30 trading days
 
         if len(prices) < 5:
             return {}

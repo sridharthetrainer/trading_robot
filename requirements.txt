@@ -56,6 +56,8 @@ lxml>=4.9.0
 tweepy>=4.14.0
 pytrends>=4.9.2
 yfinance>=0.2.28
+jugaad-data>=0.35.5   # per-symbol NSE historical data - idle_engine.run_correlation_update()
+                      # (yf_compat doesn't serve individual stocks; this does, verified 2026-09-07)
 
 # ── Storage & Utilities ────────────────────────────────────────
 SQLAlchemy>=2.0.0
