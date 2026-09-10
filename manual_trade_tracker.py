@@ -65,7 +65,11 @@ BOT_TOKEN           = os.getenv("TELEGRAM_BOT_TOKEN", "")
 GUARDIAN_BOT_TOKEN  = os.getenv("GUARDIAN_BOT_TOKEN", "")
 GUARDIAN_CHAT_ID    = os.getenv("GUARDIAN_CHAT_ID", "")
 DB_PATH             = "manual_trades.db"
-BOT_ORDER_TAG       = "ALGO_BOT"  # tag our bot uses — manual trades won't have this
+BOT_ORDER_TAG       = "ALGO"  # PREFIX our bot's order tags always start with (see
+# trade_manager._build_order_tag). Angel sanitizes tags to alphanumeric-only
+# (angel.py:_sanitize_order_tag strips underscores), so a real algo tag is
+# "ALGOBOT"/"ALGO<strategy>", never "ALGO_BOT" -- the old literal-underscore
+# constant could never match, so every algo trade was misidentified as manual.
 
 # 2026-08-18: re-entry cooldown warning. Real trade history shows a recurring
 # pattern -- same-symbol re-entry within minutes of a stop-out, repeated
@@ -519,7 +523,7 @@ class ManualTradeTracker:
                 
                 # Skip: placed by our bot (has algo tag)
                 tag = str(order.get("tag", "") or order.get("ordertag", "") or "")
-                if BOT_ORDER_TAG in tag.upper():
+                if tag.upper().startswith(BOT_ORDER_TAG):
                     self._known_orders.add(oid)
                     continue
                 # Skip: legs of a one-tap defined-risk spread (2026-07-12).
