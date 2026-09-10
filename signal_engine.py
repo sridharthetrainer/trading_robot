@@ -3576,7 +3576,9 @@ def generate_signal(
                         _cand_meta["sr_level_mod_applied"] = _sr_applied
                         _cand_meta["sr_level_ctx"] = " | ".join(_sr_ctx[:2])
                         if _sr_mod > 0:
-                            _cand_factors.add("SUPPORT_RESISTANCE")
+                            pass  # 2026-09-10: measured HURTS (net_of_cost=-0.15,
+                            # significant) -- no longer counts as a quality
+                            # confirmation. Still logged above for re-measurement.
                         else:
                             _cand_meta["sr_headwind"] = _sr_mod
                 except Exception: pass
@@ -3862,7 +3864,9 @@ def generate_signal(
                         _cand_meta["mtf_pivot_mod"] = round(float(_mtf_mod), 3)
                         _cand_meta["mtf_pivot_ctx"] = _mtf_ctx
                         if _mtf_mod > 0:
-                            _cand_factors.add("MTF_PIVOT")
+                            pass  # 2026-09-10: measured HURTS (net_of_cost=-0.18,
+                            # t=-9.3, p<0.001) -- no longer counts as a quality
+                            # confirmation. Still logged above for re-measurement.
                         else:
                             _cand_meta["mtf_pivot_headwind"] = round(float(_mtf_mod), 3)
                 except Exception: pass
