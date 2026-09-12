@@ -3124,6 +3124,27 @@ def generate_signal(
 
             adjusted_score = _adjust_score_for_regime(strategy, raw_score, regime) + _cross_modifier
 
+            # BREAKOUT-regime preferred-strategy penalty (2026-09-12, evidence-based):
+            # signal_log shows non-preferred strategies in BREAKOUT regime average
+            # -0.243 net-R vs -0.035 for REGIME_STRATEGY_MAP's "preferred" list for
+            # that regime -- consistent across two independent time-halves (first
+            # half -0.029/wr=39.4%, second half -0.039/wr=51.6%). Still net-negative
+            # (this reduces loss, it does not create profit) and NOT universal --
+            # RANGE regime showed the opposite effect (preferred did WORSE there),
+            # so this stays scoped to BREAKOUT only, not a blanket regime-preference
+            # rule. get_preferred_strategies_for_regime() existed but was never
+            # called anywhere before this.
+            if str(regime or "").upper() == "BREAKOUT":
+                try:
+                    from market_intelligence_hub import get_preferred_strategies_for_regime as _gpsr
+                    _preferred_breakout = _gpsr("BREAKOUT")
+                    _strat_lower = strategy.lower().replace("run_", "").replace("_strategy", "")
+                    if _preferred_breakout and not any(
+                            p.lower() in _strat_lower for p in _preferred_breakout):
+                        adjusted_score *= 0.7
+                except Exception:
+                    pass
+
             # Hurst Exponent soft multiplier — adjusts score by market memory type
             # Trend strategies get a boost in H>0.55 markets; MR strategies in H<0.45.
             # Cap multiplier to [0.6, 1.4] so no strategy is hard-blocked.
