@@ -3142,8 +3142,8 @@ def generate_signal(
                     if _preferred_breakout and not any(
                             p.lower() in _strat_lower for p in _preferred_breakout):
                         adjusted_score *= 0.7
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("BREAKOUT preferred-strategy penalty skipped: %s", e)
 
             # Hurst Exponent soft multiplier — adjusts score by market memory type
             # Trend strategies get a boost in H>0.55 markets; MR strategies in H<0.45.
