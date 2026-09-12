@@ -856,6 +856,12 @@ class IdleEngine:
     Runs as a background thread inside main_autonomous.
     """
 
+    # Per-task execution timeout (minutes) -- see the 2026-09-12 incident note
+    # at the call site below. Only autolearn is known to legitimately need
+    # longer than the default; everything else gets a generous but bounded cap.
+    _TASK_TIMEOUT_MIN = {"autolearn": 360}
+    _DEFAULT_TASK_TIMEOUT_MIN = 90
+
     SCHEDULE = [
         # (hour, min, key, fn, desc[, max_late_min])
         # "backtest" 16:28 and "ml_train" 17:30 were fn=None placeholders that
@@ -1006,10 +1012,33 @@ class IdleEngine:
                     dedup_key=f"idle_start:{task_key}",
                     dedup_cooldown_override=3600,
                 ) if self.alerts else None
-                try:
-                    fn(self.alerts)
-                except Exception as e:
-                    logger.warning("IdleEngine task %s: %s", key, e)
+                # 2026-09-12 incident: alt_data hung on 2026-08-18 (started, logged,
+                # never returned -- no exception, nothing) and silently froze every
+                # task after it in this loop for 3.5+ weeks (correlation, calibrator,
+                # eod_weights, autolearn, edge_monitor, etc. never ran again). A plain
+                # blocking call has no way to recover from a hang that isn't an
+                # exception, so each task now runs in its own thread with a hard
+                # join-timeout -- the scheduler moves on regardless of what caused a
+                # future hang. autolearn genuinely runs long on a slow day (up to
+                # ~5.5h, autonomous_learning_report.json 2026-07-13) so it gets a
+                # longer allowance than the rest.
+                def _run_with_capture(_fn=fn, _alerts=self.alerts, _key=key):
+                    try:
+                        _fn(_alerts)
+                    except Exception as e:
+                        logger.warning("IdleEngine task %s: %s", _key, e)
+                _timeout_min = self._TASK_TIMEOUT_MIN.get(task_key, self._DEFAULT_TASK_TIMEOUT_MIN)
+                _task_thread = threading.Thread(
+                    target=_run_with_capture, daemon=True, name=f"idle_{task_key}")
+                _task_thread.start()
+                _task_thread.join(timeout=_timeout_min * 60)
+                if _task_thread.is_alive():
+                    logger.warning(
+                        "IdleEngine task %s [%s] exceeded %d min -- abandoning so "
+                        "later tasks aren't blocked. The stuck thread keeps running "
+                        "in the background (daemon) rather than being killed.",
+                        key, task_key, _timeout_min,
+                    )
                 self._ran[task_key] = True
                 self._save_state()
                 self._record_run(key, task_key, f"{h:02d}:{m:02d}", mode)
