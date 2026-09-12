@@ -333,6 +333,10 @@ class AngelOne:
         self.refresh_token: Optional[str] = None
         self.feed_token: Optional[str] = None
 
+        try:
+            self.download_master_contract()
+        except Exception as e:
+            logger.debug("Master contract refresh at startup: %s", e)
         self.master = MasterContract("MasterContract_NFO.csv")
         self._token_cache: Dict[str, str] = {}
         # Negative cache: cache_key -> ts of last failed resolution. Stops stale/
@@ -375,34 +379,50 @@ class AngelOne:
             return False
 
 
-    def download_master_contract(self) -> bool:
-        """Download MasterContract_NFO.csv from Angel One API if missing."""
+    def download_master_contract(self, max_age_hours: float = 20.0) -> bool:
+        """Refresh MasterContract_NFO.csv from Angel One's live scrip master
+        if missing or older than max_age_hours.
+
+        2026-09-12 incident: this used to return True immediately whenever
+        the file already existed and was non-trivially sized, regardless of
+        AGE -- so once created, it never actually refreshed again. Two of
+        the three master-contract files on disk hadn't been touched since
+        2026-06-04 / 2026-07-30, so any option contract listed after those
+        dates (e.g. a routine new weekly expiry) failed every GTT stop-loss
+        placement with "token not found", leaving a real, live position
+        (NIFTY15SEP2623300CE) with zero broker-side protection for two days
+        before this was caught. Also now includes BFO (SENSEX/BANKEX)
+        contracts, not just NFO -- the old filter dropped them entirely even
+        though place_gtt_order()/place_order() explicitly support BFO.
+        """
         from pathlib import Path
+        import time as _t
         mc_path = Path("MasterContract_NFO.csv")
         if mc_path.exists() and mc_path.stat().st_size > 10000:
-            return True  # already exists and non-trivial
+            age_hours = (_t.time() - mc_path.stat().st_mtime) / 3600.0
+            if age_hours < max_age_hours:
+                return True  # exists, non-trivial, and fresh enough
         try:
-            import requests, os
-            # Angel One provides instrument list as JSON
-            headers = {"Authorization": f"Bearer {getattr(self, '_jwt_token', '')}",
-                       "X-ClientCode": getattr(self, 'client_id', ''),
-                       "X-SourceID": "WEB", "X-UserType": "USER",
-                       "Accept": "application/json",
-                       "Content-Type": "application/json"}
+            import requests
             r = requests.get(
                 "https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json",
                 timeout=30)
             if r.status_code == 200:
-                import json, pandas as pd
+                import pandas as pd
                 data = r.json()
                 df = pd.DataFrame(data)
-                # Filter NFO instruments
-                nfo = df[df['exch_seg'].str.upper() == 'NFO'] if 'exch_seg' in df.columns else df
-                nfo.to_csv("MasterContract_NFO.csv", index=False)
-                logger.info("MasterContract downloaded: %d NFO instruments", len(nfo))
+                # NFO (NSE F&O) + BFO (SENSEX/BANKEX) -- both are used
+                # elsewhere in this class, unlike the old NFO-only filter.
+                if 'exch_seg' in df.columns:
+                    fo = df[df['exch_seg'].str.upper().isin(['NFO', 'BFO'])]
+                else:
+                    fo = df
+                fo.to_csv("MasterContract_NFO.csv", index=False)
+                logger.info("MasterContract refreshed: %d NFO+BFO instruments", len(fo))
                 return True
+            logger.warning("MasterContract download: HTTP %s", r.status_code)
         except Exception as e:
-            logger.debug("MasterContract download: %s", e)
+            logger.warning("MasterContract download failed: %s", e)
         return False
 
     def connect(self) -> bool:
