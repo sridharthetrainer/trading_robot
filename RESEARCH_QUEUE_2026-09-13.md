@@ -95,7 +95,33 @@ writing any new trailing logic. Even fully solving this cannot compensate
 for the 16,987-loser vs 9,202-winner population if entry quality is
 unchanged.
 
-### 4. Option-level P&L translation
+### 4. ML: predict MFE threshold, not final win/loss
+Current meta-labeler (`meta_labeler.py`/`regime_meta_labeler.py`) predicts
+final WIN/LOSS. Latest state (2026-09-13): AUC=0.7217 (single split),
+CPCV mean=0.619 (15 paths, min=0.554), bootstrap 95% CI=[0.506, 0.822]
+excludes 0.5 (`ml_effective_n_bootstrap_report.json` verdict:
+`REAL_SIGNAL`) — so the model has genuine, non-noise predictive
+information. But every threshold tested still nets negative after costs
+(best -0.143R vs baseline -0.1654R, ~13% relative improvement, not a
+flip to positive), and `ml_pipeline_last_run.json` explicitly states no
+edge survives multiple-testing correction. `model_saved: False` in both
+reports — correctly not promoted.
+Given today's MFE finding (81.6% of losers never reach +0.5R, winners
+vs losers clearly separated by median MFE 0.85R vs 0.234R), the more
+economically meaningful question is whether the model can predict
+**favorable excursion** rather than final outcome. Proposed next
+experiment: train the same feature set against `MFE >= 0.5R` / `>= 0.75R`
+/ `>= 1.0R` as separate binary labels (not final win/loss), using the
+existing `max_favorable_move` column (94% populated already, no new
+instrumentation needed) as ground truth. Same discipline as everything
+else: purged CPCV, locked holdout, cost-adjusted R, and — critically —
+do not optimize the classification threshold against the holdout (choose
+it on the training/CV side only, then apply once to holdout). Compare
+against the current WIN/LOSS-label model's economics, not just AUC.
+Do not promote to live under any circumstance until it clears the same
+full validation gate as everything else.
+
+### 5. Option-level P&L translation
 Currently unmeasured. Every R-multiple discussed today (49-strategy table,
 MFE/MAE, BREAKOUT-regime fix, HTF-alignment finding) is computed on the
 **underlying's price movement as a proxy** — `triple_barrier.py`'s own
