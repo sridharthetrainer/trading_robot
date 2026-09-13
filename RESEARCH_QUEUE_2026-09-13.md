@@ -145,6 +145,48 @@ build the underlying-signal -> option-selection -> executable-option-P&L
 translation layer, and check whether it changes which signals look
 promising, before trusting any of today's findings as directly tradable.
 
+## External repos for the volatility-surface idea (verified real, not yet reviewed)
+
+An AI response (source not identified) proposed a concrete methodology
+for the volatility-surface research direction below: fit a per-expiry
+SVI (raw stochastic volatility inspired) smile to the option chain,
+measure each option's residual deviation from the fitted smile, and test
+whether that residual shows repeatable convergence — before ever
+constructing a trade. It cited six specific GitHub repos as references.
+All six checked directly (`gh repo view`) and are REAL, with descriptions
+matching exactly what was cited — no hallucinated URLs this time:
+- `crollila/implied-vol-surface-svi` — SVI surface calibration + static-
+  arbitrage diagnostics, from-scratch Black-Scholes/IV inversion. The
+  one worth reading first for methodology.
+- `darshkale/nse-options-data-pipeline` — NSE option data
+  normalization/enrichment (IV, Greeks, liquidity filters).
+- `oracl8/OptionsAnalytics` — implied vs. forecast-realized volatility
+  research methodology.
+- `builditwithgk/dhan-nifty-algo-trading-lab`, `chandrunit/nifty-options-
+  backtester`, `aaryansinha16/AI-trader` — reviewed and correctly
+  assessed as NOT worth pulling in: redundant with infrastructure this
+  project already has, or more variants of the directional-strategy
+  approach already tested and rejected six times.
+
+**"Verified to exist" is not "safe to import."** None of this code has
+been read, license-checked, or security-reviewed. This project holds
+real broker credentials and will eventually handle real capital —
+pulling in any third-party code is a fundamentally different risk class
+than everything else in this queue, which is all internal analysis of
+data and code already in this repo. Before cloning or adapting anything:
+read the actual source (not just the README), check the license, and
+treat it the same as reviewing any other unaudited third-party
+dependency being added to a system with financial and credential access
+— a materially higher bar than "the methodology looks sound."
+
+The one sound, generalizable principle from this exchange, worth keeping
+regardless of whether any of this gets used: **borrow methodology and
+ideas from public research; never borrow a public repo's claimed alpha
+figures at face value** (one repo cited claimed +₹53,715 over ~49 trades
+in a month — nowhere near enough sample to mean anything, exactly the
+same insufficient-power failure mode already found in this project's own
+`minimum_detectable_edge.py` work).
+
 ## Options-side audit (2026-09-13): one new research direction
 (volatility-surface relative-value idea and the pivot_scalping diagnostic
 matrix below came from an external review by ChatGPT, checked for
