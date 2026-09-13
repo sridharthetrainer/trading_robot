@@ -208,6 +208,28 @@ than raising — that failure mode looks externally identical to "the
 strategy stopped finding setups" while actually being a broken filter/
 data dependency further downstream, unrelated to the direction question.
 
+**Regime-shift hypothesis added and verified (2026-09-13, from an
+unlabeled AI response — source not identified despite asking twice)**:
+proposed that pivot_scalping's active window coincided with a higher-VIX
+period than its silent window, and specifically cited real market data
+(Nifty +264.85 points/+1.10% on 2026-07-29, VIX moderating to 12-13 by
+late July) as supporting context. Both specific factual claims checked
+directly against this repo's own data and matched exactly: NIFTY daily
+close 2026-07-28=23,985.35 -> 2026-07-29=24,250.20 (exactly +264.85,
++1.10%, via upstox_data); VIX 12.01-14.03 in that window (vix_history.csv).
+Extended the check directly: VIX during the ACTIVE window (2026-06-29 to
+2026-07-29, n=14) has mean=13.19 (range 12.01-14.03); VIX during the
+SILENT window (2026-07-30 onward, n=24 through today) has mean=11.59
+(range 10.58-12.27) — the entire silent-window range sits below the
+active window's mean. This is genuine, verified supporting evidence that
+a volatility-regime shift (not a code defect) plausibly explains why the
+strategy stopped generating ANY signals — a separate question from the
+win-rate-inversion question, which the diagnostic-checklist trace above
+still needs to resolve on its own. When running that trace, explicitly
+check whether the qualifying-setup threshold (score >= 4.2) or any VIX/
+volatility-dependent input is what's suppressing signal generation in
+the current, calmer regime.
+
 ## Correction: Bollinger OTM reversal is NOT an open lead
 
 An external AI review (2026-09-13) recommended promoting a "Bollinger OTM
