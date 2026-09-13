@@ -94,6 +94,16 @@ how much a trailing-stop change could realistically capture — before
 writing any new trailing logic. Even fully solving this cannot compensate
 for the 16,987-loser vs 9,202-winner population if entry quality is
 unchanged.
+Specific trail-shape variants worth testing once the ceiling estimate is
+done (per an external AI review, checked as reasonable engineering
+proposals, not yet validated): trail only activates after +1R rather
+than from entry; trail behind structure (swing high/low, VWAP, or the
+Supertrend line) instead of a second ATR multiple; scale out ~50% near
+the realized average win (~0.8-1.0R) with a structural trail on the
+remainder, rather than a single fixed 2R target that only 3.3% of trades
+ever reach. Test one changed element at a time against the locked
+holdout, same as everything else — do not combine multiple exit changes
+in one experiment or a passing result won't say which change mattered.
 
 ### 4. ML: predict MFE threshold, not final win/loss
 Current meta-labeler (`meta_labeler.py`/`regime_meta_labeler.py`) predicts
@@ -164,6 +174,39 @@ review can cite real files and real numbers accurately while still being
 wrong about current status, if it's missing later work in the same
 project. Verify against the project's own most recent documents, not just
 whether individual cited numbers check out.
+
+## Additional queue item: ORB as its own parameter family
+
+Flagged by an external AI review, checked and confirmed accurate: the
+current `orb` grid (`adx_min`, `volume_min`, `stop_mult=[1.0]`,
+`target_mult=[1.5,2.0,2.5]`) treats ADX/volume as the only knobs and
+locks the opening-range window itself. Real gap: no range-window
+variants (5/15/30/45/60 min), no max-OR-width cap, no breakout-buffer-
+as-%-of-range option, no time-of-day cutoff for late breakouts, no
+previous-range confirmation. Worth building as a distinct grid, not
+another ADX threshold tick — same discipline as everything else (walk-
+forward + deflated Sharpe + locked holdout) before any promotion.
+
+## Concrete next step for the pivot_scalping investigation
+
+Two things worth doing before more shadow data accumulates, both cheap
+and mechanical rather than more code-reading:
+1. **Reconstruct one full signal end-to-end**: pick one pre-2026-07-29
+   signal and trace index bar -> CPR/Camarilla level values -> which
+   comparison fired -> option symbol selected -> final signed
+   BUY/SELL order. If the signed order comes out opposite what the CPR
+   scenario intended, that's a labeling/sign bug with an exact name and
+   line, not a mystery.
+2. **Feed one synthetic bar dated after 2026-07-29** through the same
+   path and see exactly where it stops (silently filtered by a guard
+   that started failing closed? a data dependency now empty/renamed?
+   the score just never reaching the 4.2 threshold under current
+   conditions?). This directly tests whether the "stopped firing since
+   July 29" behavior is a data/guard failure (unrelated to the direction
+   question) rather than assuming it's connected to the inversion.
+Both of these are stronger diagnostic moves than more static code
+reading of the already-checked bias/cross/formula functions, which came
+back clean on inspection.
 
 ## Confirmed bug (not yet investigated): ai_score frozen at 0.5 since July 28
 
