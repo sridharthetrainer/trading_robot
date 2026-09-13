@@ -61,18 +61,40 @@ base signal quality, not just about this one gate.
    before `as_of_ts`. This is reusable infrastructure for any future
    multi-timeframe backtest work, not specific to this one test.
 2. **Prove it's correct with a poisoned-input assertion**, not a code-review
-   checklist item: run the backtest twice on the same data — once normally,
-   once with every HTF bar at/after each simulated signal's timestamp set to
-   NaN (or shuffled). If any signal changes between the two runs, causality
-   is violated somewhere in the slicing — fix it before proceeding. This
-   assertion should be a permanent, automated part of the harness, not a
-   one-time manual check.
-3. **Only after step 2 passes**, build the `breakout` HTF-alignment gate
-   using the exact definition above, and wire it into `validation_harness.py`
-   as a new backtest variant (or a parameter on the existing `backtest_breakout`
-   path).
-4. Run full walk-forward + deflated Sharpe validation (same harness as the
-   other 10 strategies).
+   checklist item. Pass criteria, fixed now, before the helper is written:
+   - Injection: set every HTF bar at or after each simulated signal's
+     `as_of_ts` to NaN (not shuffled — NaN is unambiguous: any code path
+     that touches a poisoned bar either crashes or produces a NaN-derived
+     result, both detectable; a shuffled value could coincidentally
+     produce a plausible-looking bias/direction and mask a leak).
+   - Run the full `breakout` backtest twice on identical underlying data:
+     once with the real HTF frame, once with the poisoned one.
+   - Pass condition: the two runs produce the **exact same set of
+     signals** (same count, same entries, same directions) — zero
+     tolerance, not "mostly the same." Any single differing or NaN-
+     contaminated signal is a fail.
+   - This assertion becomes a permanent, automated part of the harness
+     (not a one-time manual check) and must be re-run, still green,
+     after any future change to `causal_htf_slice()` or its callers.
+3. **Re-run the `trend` control under the exact same slicing/alignment
+   definition the helper actually implements** before trusting the
+   `breakout` result. The original control finding (`trend`: -0.208
+   aligned vs -0.189 unaligned, no benefit) used the pre-build,
+   exploratory `htf_bias` field directly from `signal_log`, not whatever
+   the built `causal_htf_slice()` produces — if the helper's window,
+   threshold, or alignment convention differs at all from that field's
+   own definition, the control has to be redone on the new definition,
+   not assumed to still hold. **If the re-run control comes back
+   positive (shows a benefit for `trend` too), the pre-registration is
+   VOID, not merely weakened** — it means the effect isn't
+   `breakout`-specific and the whole premise (a narrow, strategy-specific
+   finding, not a general MTF-alignment principle) has failed.
+4. **Only after steps 2 and 3 both pass**, build the `breakout`
+   HTF-alignment gate using the exact definition above, and wire it into
+   `validation_harness.py` as a new backtest variant (or a parameter on
+   the existing `backtest_breakout` path).
+5. Run full walk-forward + deflated Sharpe validation (same harness as
+   the other 10 strategies).
 
 ## Pass criteria (all required, pre-registered before seeing results)
 
@@ -85,8 +107,20 @@ base signal quality, not just about this one gate.
 - Must show **consistent effect across two independent time-halves** of
   whatever data window the validation uses (same method already applied to
   the BREAKOUT-regime preference fix and the `pivot_scalping` anomaly).
-- The poisoned-input assertion (step 2 above) must be green before this
-  gate's own results are trusted at all.
+- The poisoned-input assertion (step 2 above) must be green, and the
+  re-run `trend` control (step 3 above) must still show no benefit,
+  before this gate's own results are trusted at all.
+
+## Standing reminder — read this again once results start coming in
+
+The honest prior is: **this candidate probably fails the full walk-forward
++ deflated Sharpe gate**, same as every other candidate tested this
+session. A clean pre-registration, a specific surviving control, and
+healthy retention are exactly the ingredients that make a result *look*
+trustworthy enough to start being reported as "promising" once
+intermediate numbers appear — resist that. Nothing before the locked
+holdout's final verdict changes the prior. If it passes, it passes on the
+holdout's own terms, not on how good the setup story sounds along the way.
 
 ## Context / where this came from
 
