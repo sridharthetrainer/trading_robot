@@ -165,6 +165,24 @@ wrong about current status, if it's missing later work in the same
 project. Verify against the project's own most recent documents, not just
 whether individual cited numbers check out.
 
+## Confirmed bug (not yet investigated): ai_score frozen at 0.5 since July 28
+
+Verified directly against signal_log.db: `ai_score` has exactly ONE
+distinct value (0.5) across every single signal from 2026-07-28 onward
+(checked: `SELECT COUNT(DISTINCT ai_score) FROM signal_log WHERE
+signal_date >= '2026-07-28'` returns 1). This was flagged by an external
+AI review and verified as accurate (unlike the Bollinger claim above).
+`signal_log.py:649` sets `ai_score = signal.get("confidence", 0)` — so
+`signal["confidence"]` itself has been stuck at exactly 0.5 (a neutral/
+50-50-looking default, not the 0 fallback) for 6+ weeks somewhere upstream,
+most likely in `signal_engine.py` or `live_signal_engine.py`'s confidence
+computation. Same pattern as today's other bugs: a component that still
+"looks" populated (non-null, in a plausible range) but has silently
+stopped producing real information. Not investigated further tonight —
+start here next session: find where `confidence` gets assigned on the
+signal object and check for a silently-triggered fallback/exception path
+that would explain a hard freeze starting exactly around July 28.
+
 ## Ground rule for all four items
 
 Same standard as everything shipped today: purged k-fold CV + deflated
