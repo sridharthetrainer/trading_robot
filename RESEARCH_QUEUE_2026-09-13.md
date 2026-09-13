@@ -293,23 +293,40 @@ Both of these are stronger diagnostic moves than more static code
 reading of the already-checked bias/cross/formula functions, which came
 back clean on inspection.
 
-## Confirmed bug (not yet investigated): ai_score frozen at 0.5 since July 28
+## RESOLVED (2026-09-13, later the same night): ai_score=0.5 is not a bug
 
-Verified directly against signal_log.db: `ai_score` has exactly ONE
-distinct value (0.5) across every single signal from 2026-07-28 onward
-(checked: `SELECT COUNT(DISTINCT ai_score) FROM signal_log WHERE
-signal_date >= '2026-07-28'` returns 1). This was flagged by an external
-AI review and verified as accurate (unlike the Bollinger claim above).
-`signal_log.py:649` sets `ai_score = signal.get("confidence", 0)` — so
-`signal["confidence"]` itself has been stuck at exactly 0.5 (a neutral/
-50-50-looking default, not the 0 fallback) for 6+ weeks somewhere upstream,
-most likely in `signal_engine.py` or `live_signal_engine.py`'s confidence
-computation. Same pattern as today's other bugs: a component that still
-"looks" populated (non-null, in a plausible range) but has silently
-stopped producing real information. Not investigated further tonight —
-start here next session: find where `confidence` gets assigned on the
-signal object and check for a silently-triggered fallback/exception path
-that would explain a hard freeze starting exactly around July 28.
+Full trace completed. `signal_log.py:649` reads `signal["confidence"]`,
+set in `live_signal_engine.py:2267` from `ai_prob = self._get_ai_probability(signal)`.
+That function's fallback chain (`_get_ai_probability`, ~line 2441) tries
+`ml_trainer.predict()` first; direct test:
+```
+ml_trainer.predict({}, symbol='NIFTY')
+-> {'win_prob': 0.5, 'available': False, 'reason': 'missing_positive_profit_utility'}
+```
+The saved model it would otherwise use (`ml_models/cross_symbol_model.pkl`,
+2026-07-27) has `promoted: True` in its own metadata — it cleared
+*statistical* promotion (AUC, calibration, purged Brier skill). But
+`ml_trainer.predict()` enforces a separate, stricter *economic* check
+(positive profit utility) that this model does not clear — the same
+standard behind every "REJECTED for live gating on cost-adjusted
+evidence" verdict already found in `meta_labeler_report.json` and
+`regime_meta_labeler_report.json`. Given no model has positive economic
+utility, the code correctly falls through the whole chain
+(`_get_ai_probability`'s final fallback, `signal_engine.py`'s own
+comment: "A score-derived heuristic is not an independent probability...
+treating it as AI confidence would amplify the same error twice") and
+returns a neutral 0.5 rather than serve false confidence from an
+unprofitable model.
+
+**This is the capital-preservation discipline working correctly one
+level deeper than anyone had checked, not a defect.** No code change
+needed or made. The external AI review that flagged this got the
+*observation* right (ai_score really is frozen at 0.5) but the
+*diagnosis* wrong (called it a dead/broken component) — worth remembering
+alongside the Bollinger correction: verify not just whether an observed
+fact is true, but whether the proposed explanation for it is the right
+one, especially when "constant value" could mean either "broken" or
+"correctly reporting nothing to report."
 
 ## Ground rule for all four items
 
