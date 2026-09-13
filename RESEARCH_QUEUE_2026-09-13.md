@@ -135,6 +135,36 @@ build the underlying-signal -> option-selection -> executable-option-P&L
 translation layer, and check whether it changes which signals look
 promising, before trusting any of today's findings as directly tradable.
 
+## Correction: Bollinger OTM reversal is NOT an open lead
+
+An external AI review (2026-09-13) recommended promoting a "Bollinger OTM
+reversal" option strategy to top research priority, citing a positive
+holdout (+₹88,609, Sharpe 3.44, n=50) and a failed DSR gate (0.77 vs 0.95)
+as if that were the current, live obstacle. Checked against
+`SESSION_SUMMARY_FOR_REVIEW.md` (predates this session, untouched) — this
+candidate already went through extensive multi-round investigation and is
+correctly, conclusively REJECTED on two grounds independent of DSR:
+1. `minimum_detectable_edge.py`: net mean ₹1,772/trade at n=50 doesn't
+   clear its own MDE (₹3,237 at 80% power) — statistically indistinguishable
+   from zero.
+2. Realistic OTM bid-ask spread stress (5-15% of premium, not the 0.20%
+   originally tested): flips negative between 8-10%, decisively negative
+   at 15% (-₹49,665, Sharpe -2.31).
+Also: within-holdout decay (last third of holdout carried only 7% of
+total P&L vs 68% in the middle third). The DSR effective-trials correction
+(0.77→1.0, since the 9 grid points are correlated at 0.66 mean pairwise,
+not independent) is real and was applied — it does not reopen the case,
+since MDE and the cost-stress result don't depend on trial count at all.
+**Do not add this to the research queue.** The one legitimately open
+question is whether it's worth re-testing if real intraday option quotes
+(not the current Black-Scholes-on-EOD-settlement proxy) ever become
+available — not something to prioritize now.
+This is worth remembering as a pattern, not just a one-off: an external
+review can cite real files and real numbers accurately while still being
+wrong about current status, if it's missing later work in the same
+project. Verify against the project's own most recent documents, not just
+whether individual cited numbers check out.
+
 ## Ground rule for all four items
 
 Same standard as everything shipped today: purged k-fold CV + deflated
