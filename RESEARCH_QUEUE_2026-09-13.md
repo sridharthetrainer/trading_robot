@@ -146,6 +146,12 @@ translation layer, and check whether it changes which signals look
 promising, before trusting any of today's findings as directly tradable.
 
 ## Options-side audit (2026-09-13): one new research direction
+(volatility-surface relative-value idea and the pivot_scalping diagnostic
+matrix below came from an external review by ChatGPT, checked for
+internal consistency against this project's own files before being
+recorded — no factual error found this round, unlike the earlier
+Bollinger recommendation from a different ChatGPT exchange the same
+night)
 
 Compiled a full accounting of the four separate option-related systems
 (42-strategy shadow catalog, iron condor forward test, `pivot_scalping`,
