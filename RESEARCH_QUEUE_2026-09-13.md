@@ -145,6 +145,63 @@ build the underlying-signal -> option-selection -> executable-option-P&L
 translation layer, and check whether it changes which signals look
 promising, before trusting any of today's findings as directly tradable.
 
+## Options-side audit (2026-09-13): one new research direction
+
+Compiled a full accounting of the four separate option-related systems
+(42-strategy shadow catalog, iron condor forward test, `pivot_scalping`,
+six seminar strategies) for external review. All six seminar strategies
+are REJECTED or INSUFFICIENT_DATA on a chronological 70/30 holdout t-test
+(`seminar_strategy_validation.json`): `bollinger_otm_reversal` p=0.143,
+`sma20_atm_option` -₹5,096/trade holdout p=0.041 (significantly negative),
+`bollinger_otm_momentum` p=0.651, `di_momentum_call` p=0.666,
+`adx_long_straddle` n=4 insufficient, `rolling_short_straddle` -₹2.9M
+full-sample (58% of cycles whipsawed out via leg-level stop). The condor
+forward test's true win/loss split, recomputed: ~₹3,465 average win (9
+wins) vs. one -₹17,719 loss — confirms the tail-risk read, not "promising."
+
+**New research direction worth queuing, genuinely different from
+everything tried**: instead of predicting underlying direction and
+buying/selling an option accordingly (what all six seminar strategies,
+`pivot_scalping`, and the 42-strategy catalog all do in different forms),
+test whether the **option market's own cross-sectional structure**
+contains exploitable, mean-reverting information — skew changes, ATM/OTM
+IV term-structure relationships, realized-vs-implied volatility spread,
+or temporary IV distortion following a large underlying shock. Requires,
+before any code: one specific hypothesis (not several tested at once),
+a defined observable, an explicit statement of whether it depends on
+real intraday IV repricing (the current Black-Scholes-on-EOD-settlement
+pricer cannot represent this — see the epistemic asymmetry note below),
+realistic execution costs, a genuinely untouched chronological holdout,
+and a pre-committed rejection threshold. If this fails, the reasonable
+conclusion is to freeze NIFTY-options strategy research generally, not
+attempt an eighth variant.
+
+**Epistemic asymmetry worth keeping as a standing rule for the options
+pricer**: a NEGATIVE result from `option_intraday_pricer.py` (Black-
+Scholes anchored to real EOD settlement, no lookahead) is meaningful
+evidence against a strategy — the engine is generous (accurate underlying,
+no stale quotes, smooth pricing), so a loss under those favorable
+conditions is informative. A POSITIVE result is much weaker evidence,
+since the synthetic price may not reflect a real, executable option
+price. Exception: if the tested hypothesis's edge specifically depends on
+real intraday IV repricing (e.g. "IV expands after a shock and that's the
+edge"), a negative result is also weaker, since the pricer holds IV fixed
+to the prior day's settlement and may be removing the exact phenomenon
+being tested. Check this before trusting any negative result on such a
+hypothesis.
+
+**Refinement to the pivot_scalping debug plan**: build the two-step trace
+already specified as a full diagnostic checklist (bar exists → session
+accepted → CPR/Camarilla computed → EMA state → directional condition →
+option contract selected → expiry/strike valid → liquidity filter →
+cooldown/state → generic dispatcher → final signed signal) and run both
+the known pre-07-29 signal and a synthetic post-07-29 candidate through
+it side by side to find the exact first point of divergence. Specifically
+watch for a caught exception that silently returns "no signal" rather
+than raising — that failure mode looks externally identical to "the
+strategy stopped finding setups" while actually being a broken filter/
+data dependency further downstream, unrelated to the direction question.
+
 ## Correction: Bollinger OTM reversal is NOT an open lead
 
 An external AI review (2026-09-13) recommended promoting a "Bollinger OTM
