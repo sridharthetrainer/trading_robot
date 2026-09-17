@@ -52,16 +52,33 @@ the high-MFE trades *before* entry, not add more indicators or loosen exits.
 
 ## Research queue, in priority order — none of these are validated yet
 
-### 1. HTF-alignment gate for the `breakout` strategy
-Full pre-registration in `PREREG_BREAKOUT_HTF_ALIGNMENT.md` — read that
-file in full before touching this. Summary: `breakout` signals where side
-agrees with the already-computed `htf_bias` field show -0.081R vs -0.364R
-unaligned (aggregate), and this survives a within-regime confound check
-(not just re-discovering the BREAKOUT-regime effect). `trend` shows no
-such benefit (control). Must build a causal-slicing helper with a
-poisoned-input assertion in `validation_harness.py` BEFORE writing the
-gate itself, so the gate is tested against infrastructure already proven
-free of lookahead leakage — do not build both at once.
+### 1. CLOSED 2026-09-17 — VOID. HTF-alignment gate for `breakout` (was item 1)
+Built exactly per `PREREG_BREAKOUT_HTF_ALIGNMENT.md`'s sequence: causal
+slicing helper (`causal_htf.py`) → poisoned-input test (PASSED, byte-
+identical pre-cutoff trades) → trend-control re-run under the real causal
+definition, on `candle_cache.db`'s full 16-month history (24,913 bars,
+not the original small exploratory sample). Result: **trend shows the
+same benefit breakout does** (aligned avg +819.49 vs unaligned +337.59,
+n=247/594, large sample) — this is the pre-registration's own explicit
+void condition. The effect isn't breakout-specific; do not build the
+gate or run full validation on this candidate as scoped. Full detail and
+reasoning in the pre-reg file's resolution header — read it before
+considering a broader "general HTF-alignment" hypothesis, which would
+need its own fresh pre-registration and ideally different data, not a
+reuse of the data that just falsified this narrower claim.
+
+**Reusable infrastructure this build still produced** (keep, don't
+discard just because the candidate voided): `causal_htf.py` — causally-
+correct HTF resampling + strict truncation, verified via poisoned-input
+test — is real, tested infrastructure for any future multi-timeframe
+work. Also found, as a byproduct, a real separate lookahead-bias bug in
+already-shipped `backtest_supertrend_mtf.py` (its `.reindex(method="ffill")`
+pattern leaks ~10-15 min of future data via pandas' default resample
+labeling) — not fixed yet, worth its own dedicated fix. Also: discovered
+`candle_cache.db` (24,913 5-min NIFTY bars, 2025-05-19 onward) as a far
+better backtest data source than live-API pulls (~30-day cap) — use it
+by default for any future backtest needing real historical depth, as
+`rerun_trend_control_causal.py` now does.
 
 ### 2. Hour-of-day pattern
 New finding, not yet validated: fraction of trades reaching >=0.5R MFE

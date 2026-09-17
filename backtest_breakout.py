@@ -222,6 +222,13 @@ def backtest_breakout(
     stt_rate: float = 0.000125,         # 0.0125% NSE futures sell-side STT (actual rate)
     interval_minutes: int = 5,
     verbose: bool = True,
+    # 2026-09-17: PREREG_BREAKOUT_HTF_ALIGNMENT.md step 1/4 -- optional,
+    # off by default (require_htf_alignment=False preserves every existing
+    # caller's behavior exactly). See causal_htf.py's module docstring for
+    # why this reconstruction avoids backtest_supertrend_mtf.py's existing
+    # ffill-reindex lookahead leak instead of reusing that pattern.
+    df_htf: Optional[pd.DataFrame] = None,
+    require_htf_alignment: bool = False,
 ) -> Dict:
     """
     Donchian breakout backtest.
@@ -243,6 +250,19 @@ def backtest_breakout(
         - Optional opposite breakout exit
         - Optional close at end
     """
+    # _validate_input() below does data.dropna(...).reset_index(drop=True) --
+    # it discards any DatetimeIndex entirely. Reconstruct one, aligned to the
+    # post-cleaning positions, using the identical coercion+dropna mask
+    # _validate_input applies internally, so entry_idx below can be mapped
+    # back to a real timestamp for the (optional, off-by-default) HTF-
+    # alignment check -- without modifying the shared _validate_input
+    # function itself, which many other callers rely on unchanged.
+    _entry_timestamps = None
+    if require_htf_alignment and isinstance(data.index, pd.DatetimeIndex):
+        _mask = data[["Open", "High", "Low", "Close"]].apply(
+            pd.to_numeric, errors="coerce").notna().all(axis=1)
+        _entry_timestamps = data.index[_mask.values]
+
     data = _validate_input(data)
 
     if channel_period <= 1:
@@ -265,6 +285,11 @@ def backtest_breakout(
     min_required = max(channel_period, 14) + 10
     if len(data) < min_required:
         raise ValueError(f"Insufficient data: need at least {min_required} candles, got {len(data)}")
+
+    _htf_ready = None
+    if require_htf_alignment and df_htf is not None:
+        from causal_htf import resample_to_htf, add_htf_emas
+        _htf_ready = add_htf_emas(resample_to_htf(df_htf, "15min"))
 
     capital = float(initial_capital)
     equity_curve: List[float] = [capital]
@@ -449,13 +474,27 @@ def backtest_breakout(
         raw_entry = float(open_series.iloc[entry_idx])
 
         if bullish_breakout:
+            side = "BUY"
+        else:
+            side = "SELL"
+
+        if require_htf_alignment and _htf_ready is not None and _entry_timestamps is not None:
+            from causal_htf import htf_bias_asof
+            if entry_idx >= len(_entry_timestamps):
+                continue
+            entry_ts = _entry_timestamps[entry_idx]
+            bias = htf_bias_asof(_htf_ready, entry_ts)
+            aligned = (side == "BUY" and bias == "BULLISH") or (side == "SELL" and bias == "BEARISH")
+            if not aligned:
+                skipped_due_to_filters += 1
+                continue
+
+        if side == "BUY":
             actual_entry = slippage_model.apply_slippage(raw_entry, is_buy=True)
             initial_stop = actual_entry - stop_atr_mult * current_atr
-            side = "BUY"
         else:
             actual_entry = slippage_model.apply_slippage(raw_entry, is_buy=False)
             initial_stop = actual_entry + stop_atr_mult * current_atr
-            side = "SELL"
 
         capital -= brokerage_per_order
         equity_curve.append(capital)

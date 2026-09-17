@@ -1,5 +1,48 @@
 # Pre-registration: BREAKOUT strategy HTF-alignment gate
 
+## RESOLVED 2026-09-17: VOID per the candidate's own pre-committed criteria
+
+Build executed in the exact order specified below:
+1. `causal_htf.py` built (causally-correct resample + strict truncation).
+   Found and avoided, along the way, a REAL separate lookahead bug in
+   already-shipped `backtest_supertrend_mtf.py` (its `.reindex(method="ffill")`
+   pattern leaks ~10-15 min of future data via pandas' default left-labeled
+   resample) — not fixed here (out of scope), flagged for its own dedicated
+   fix.
+2. Poisoned-input test (`test_causal_htf_poisoned_input.py`): **PASSED**.
+   25 pre-cutoff trades byte-identical between real and poisoned HTF runs.
+3. Trend-control re-run (`rerun_trend_control_causal.py`) under the exact
+   causal definition, first on a 25-day sample (too small to trust — flagged
+   as such before drawing any conclusion), then on the full `candle_cache.db`
+   history (2025-05-19 to 2026-09-17, 24,913 bars, 841 trend trades / 961
+   breakout trades — a real, large sample): **trend shows a clear benefit
+   too** (aligned avg +819.49 vs unaligned +337.59, n=247/594). This is the
+   exact void condition pre-registered below: *"If the re-run control comes
+   back positive, the pre-registration is VOID... it means the effect isn't
+   breakout-specific after all."*
+
+**Verdict: VOID. Do not build the gate (step 4) or run full walk-forward
+validation (step 5) on this candidate as scoped.** The effect measured
+tonight isn't a breakout-specific finding — it appears to be a more general
+pattern (both `trend` and `breakout` show a similar benefit). That is a
+genuinely different, broader hypothesis, and using the SAME data that just
+falsified the narrow claim to now validate a broader one would be exactly
+the after-the-fact rationalization this whole pre-registration discipline
+exists to prevent. A general HTF-alignment hypothesis, if pursued, needs
+its own fresh pre-registration and ideally a different/held-out data slice
+— not a quiet reframe of this result.
+
+**Durable, reusable output from this build regardless of the void
+verdict**: `causal_htf.py` (causally-correct HTF resampling + truncation,
+verified via poisoned-input test) is real, tested, permanent infrastructure
+for any future multi-timeframe backtest work — including a properly
+pre-registered general-HTF-alignment test, should one be specified later.
+`candle_cache.db` (24,913 5-min NIFTY bars, 2025-05-19 onward) is a far
+better backtest data source than live-API pulls (~30-day cap) and should
+be the default for any future backtest needing real historical depth.
+
+---
+
 Written 2026-09-13, before any build work, so validation criteria are fixed
 before results exist to put pressure on them. Read this file before writing
 any code for this test — do not reconstruct the criteria from memory.

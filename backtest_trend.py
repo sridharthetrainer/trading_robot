@@ -276,6 +276,12 @@ def backtest_trend(
     # Metrics
     interval_minutes: int              = 5,       # for Sharpe annualization
     verbose: bool                      = True,
+    # 2026-09-17: PREREG_BREAKOUT_HTF_ALIGNMENT.md step 3 -- trend-control
+    # re-run under the exact causal_htf.py definition, not the old
+    # exploratory signal_log.htf_bias field. Off by default; see
+    # backtest_breakout.py's identical wiring for the full rationale.
+    df_htf: Optional[pd.DataFrame] = None,
+    require_htf_alignment: bool = False,
 ) -> Dict:
     """
     Trend-following backtest using EMA crossover.
@@ -292,6 +298,12 @@ def backtest_trend(
         - Optional opposite crossover exit
         - Optional close at end
     """
+    _entry_timestamps = None
+    if require_htf_alignment and isinstance(data.index, pd.DatetimeIndex):
+        _mask = data[["Open", "High", "Low", "Close"]].apply(
+            pd.to_numeric, errors="coerce").notna().all(axis=1)
+        _entry_timestamps = data.index[_mask.values]
+
     data = _validate_input(data)
 
     if fast_ema <= 1 or slow_ema <= 1:
@@ -320,6 +332,11 @@ def backtest_trend(
         raise ValueError(
             f"Insufficient data: need at least {min_required} candles, got {len(data)}"
         )
+
+    _htf_ready = None
+    if require_htf_alignment and df_htf is not None:
+        from causal_htf import resample_to_htf, add_htf_emas
+        _htf_ready = add_htf_emas(resample_to_htf(df_htf, "15min"))
 
     # SlippageModel is now local — not module-level
     slippage_model = SlippageModel(slippage_percent, 0.5)
@@ -508,14 +525,25 @@ def backtest_trend(
 
         raw_entry = float(open_series.iloc[entry_idx])
 
-        if bullish_cross:
+        side = "BUY" if bullish_cross else "SELL"
+
+        if require_htf_alignment and _htf_ready is not None and _entry_timestamps is not None:
+            from causal_htf import htf_bias_asof
+            if entry_idx >= len(_entry_timestamps):
+                continue
+            entry_ts = _entry_timestamps[entry_idx]
+            bias = htf_bias_asof(_htf_ready, entry_ts)
+            aligned = (side == "BUY" and bias == "BULLISH") or (side == "SELL" and bias == "BEARISH")
+            if not aligned:
+                skipped_due_to_filters += 1
+                continue
+
+        if side == "BUY":
             actual_entry  = slippage_model.apply_slippage(raw_entry, is_buy=True)
             initial_stop  = actual_entry - stop_atr_mult * current_atr
-            side          = "BUY"
         else:
             actual_entry  = slippage_model.apply_slippage(raw_entry, is_buy=False)
             initial_stop  = actual_entry + stop_atr_mult * current_atr
-            side          = "SELL"
 
         capital -= brokerage_per_order
         equity_curve.append(capital)
