@@ -56,25 +56,22 @@ def fetch_data(symbol: str, days: int) -> Optional[pd.DataFrame]:
 
 
 def _resample_to_15m(df: pd.DataFrame) -> pd.DataFrame:
-    if df is None or not isinstance(df.index, pd.DatetimeIndex):
-        return df
-
-    open_col = "Open" if "Open" in df.columns else "open"
-    high_col = "High" if "High" in df.columns else "high"
-    low_col = "Low" if "Low" in df.columns else "low"
-    close_col = "Close" if "Close" in df.columns else "close"
-    volume_col = "Volume" if "Volume" in df.columns else "volume" if "volume" in df.columns else None
-
-    agg = {
-        open_col: "first",
-        high_col: "max",
-        low_col: "min",
-        close_col: "last",
-    }
-    if volume_col:
-        agg[volume_col] = "sum"
-
-    return df.resample("15min").agg(agg).dropna(subset=[open_col, high_col, low_col, close_col])
+    # 2026-09-18: this used to call df.resample("15min") directly, which
+    # uses pandas' default label="left" -- a bar labeled "09:15" actually
+    # aggregates data through 09:29:59 (confirmed by direct reproduction
+    # while building causal_htf.py for PREREG_BREAKOUT_HTF_ALIGNMENT.md).
+    # The .reindex(method="ffill") below onto the 5m index then let 5m bars
+    # AT 09:15/09:20/09:25 see information that, at their own timestamps,
+    # hadn't happened yet -- up to ~10-15 minutes of real lookahead leakage
+    # into every dir15_5m value this whole backtest's entries depend on.
+    # causal_htf.resample_to_htf() labels each bar by its CLOSE time
+    # instead (a bar labeled "09:30" represents [09:15, 09:30) and is fully
+    # known exactly at 09:30) -- with that fix, the ffill reindex below
+    # becomes correct: "last known value at or before now" is standard,
+    # non-leaky trading logic once the label itself stops lying about when
+    # the bar's data became available.
+    from causal_htf import resample_to_htf
+    return resample_to_htf(df, "15min")
 
 
 def backtest_supertrend_mtf(
@@ -154,10 +151,12 @@ def backtest_supertrend_mtf(
         if d5 != 0 and d5 == d15 and just_flipped:
             if d5 == 1:
                 stop     = close - 2 * atr_v
-                position = {"side": "BUY",  "entry": close, "stop": stop}
+                position = {"side": "BUY",  "entry": close, "stop": stop,
+                            "entry_idx": i, "entry_ts": ts}
             else:
                 stop     = close + 2 * atr_v
-                position = {"side": "SELL", "entry": close, "stop": stop}
+                position = {"side": "SELL", "entry": close, "stop": stop,
+                            "entry_idx": i, "entry_ts": ts}
             capital -= brokerage
 
         prev_dir5 = d5
@@ -200,7 +199,11 @@ def backtest_supertrend_mtf(
 
     return {"symbol": symbol, "total_pnl": round(total_pnl,2), "num_trades": n,
             "win_rate": round(wr,4), "sharpe": round(sharpe,4),
-            "max_drawdown": round(dd,2), "final_capital": round(capital,2)}
+            "max_drawdown": round(dd,2), "final_capital": round(capital,2),
+            # 2026-09-18: added for poisoned-input verification of the HTF
+            # resample fix (see test_supertrend_mtf_poisoned_input.py) --
+            # purely additive, no existing key changed or removed.
+            "trades": trades}
 
 
 def _empty(symbol, reason):
