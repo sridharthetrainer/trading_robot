@@ -71,14 +71,20 @@ reuse of the data that just falsified this narrower claim.
 discard just because the candidate voided): `causal_htf.py` — causally-
 correct HTF resampling + strict truncation, verified via poisoned-input
 test — is real, tested infrastructure for any future multi-timeframe
-work. Also found, as a byproduct, a real separate lookahead-bias bug in
-already-shipped `backtest_supertrend_mtf.py` (its `.reindex(method="ffill")`
-pattern leaks ~10-15 min of future data via pandas' default resample
-labeling) — not fixed yet, worth its own dedicated fix. Also: discovered
-`candle_cache.db` (24,913 5-min NIFTY bars, 2025-05-19 onward) as a far
-better backtest data source than live-API pulls (~30-day cap) — use it
-by default for any future backtest needing real historical depth, as
-`rerun_trend_control_causal.py` now does.
+work. Also discovered `candle_cache.db` (24,913 5-min NIFTY bars,
+2025-05-19 onward) as a far better backtest data source than live-API
+pulls (~30-day cap) — use it by default for any future backtest needing
+real historical depth, as `rerun_trend_control_causal.py` now does.
+
+**FIXED 2026-09-18** — the `backtest_supertrend_mtf.py` lookahead bug
+found above: reused `causal_htf.resample_to_htf()`'s close-time labeling
+in place of the leaky default resample. Verified via a new poisoned-input
+test (`test_supertrend_mtf_poisoned_input.py`, PASSED — 148 pre-cutoff
+trades byte-identical). Compared old vs fixed on the full 16-month
+history: old (leaky) 245 trades/-₹203,316.71/Sharpe -0.92, fixed 211
+trades/-₹152,201.87/Sharpe -0.86. **The fix does not flip the verdict —
+`supertrend_mtf` remains clearly net-negative either way.** Real
+data-integrity fix, not a strategy rescue; nothing further to do here.
 
 ### 2. Hour-of-day pattern
 New finding, not yet validated: fraction of trades reaching >=0.5R MFE
