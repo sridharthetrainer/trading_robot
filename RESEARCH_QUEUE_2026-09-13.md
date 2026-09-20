@@ -789,3 +789,54 @@ sample already failed to find, so there's nothing to gain by testing
 them. Re-run this same check again once meaningfully more days accrue
 past 2026-08-21, particularly for sip_boost (needs a window that
 actually contains some of its trigger condition to be testable at all).
+
+## pivot_scalping diagnostic trace completed (2026-09-20)
+
+Forward monitor (`pivot_scalping_inversion_monitor.py`) re-run: **still
+zero new signals** since the 2026-09-12 discovery date, and zero since
+2026-07-29 originally -- an 8-week-plus persistent stall, not a temporary
+lull. Ran the two-step trace the queue specified:
+
+**1. Why it stopped firing** -- mechanistic explanation, not just
+correlational. `pivot_scalping_strategy.py`'s own score has two penalty
+terms that fire specifically in range-bound conditions: `no_trade_zone`
+(-1.0 to BOTH buy_score and sell_score, lines 278-280) and "in_cpr
+without golden-pivot/EMA-cross confirmation" (-0.8 to both, lines
+281-283). Both trigger more often in a calmer market (tighter ranges ->
+more time spent inside CPR/between Camarilla levels without a genuine
+breakout). This directly explains the already-verified VIX regime shift
+(active window 2026-06-29 to 07-29 mean=13.19 vs silent window from
+07-30 mean=11.59, entire silent range below the active mean) at the
+CODE level, not just as a correlation: lower volatility mechanically
+produces more of exactly the score-suppressing conditions this strategy
+was designed to sit out in.
+
+**2. Sign-inversion check** -- built a reproducible synthetic-bar test
+(`pivot_scalping_sign_check.py`, scratch) rather than rely on
+historical-signal reconstruction, which turned out to be infeasible:
+signal_log only stores side + outcome for this strategy, not the
+intermediate CPR levels/reasons/score components that produced each
+historical signal, so byte-for-byte reproduction of a specific logged
+signal isn't possible with what's actually recorded. Instead: fed an
+unambiguous synthetic breakout-above-resistance scenario and an
+unambiguous breakdown-below-support scenario through the CURRENT code.
+Result: breakout-up correctly returns BUY (score=8.0, cpr_bias=BULLISH),
+breakdown correctly returns SELL (score=8.0, cpr_bias=BEARISH).
+**No sign-inversion bug** -- confirms the original static-code audit's
+finding with a live, direct test instead of just code reading.
+
+**Combined conclusion**: since there's no code bug to fix and the
+strategy currently produces zero signals to test against, the original
+92.9%-if-flipped win-rate finding remains an unconfirmed, unexplained
+empirical pattern from one specific ~1-month window -- if real at all,
+it would have to come from a genuine market-regime mismatch (CPR/
+Camarilla "reversal" signals getting run through by an underlying trend
+rather than holding, during what the earlier VIX check already showed
+was the more volatile of the two windows), not a labeling defect. This
+is a hypothesis, not a verified mechanism -- untestable further right
+now since there's no new data. **Standing verdict unchanged: do NOT
+flip the signal live.** Discovery method (scanning 49 strategies for the
+most extreme outlier) carries high multiple-testing risk on its own, and
+there is nothing to act on regardless while the strategy produces zero
+signals. Re-run the forward monitor periodically; nothing else to do on
+this thread until either new signals appear or the regime shifts back.
