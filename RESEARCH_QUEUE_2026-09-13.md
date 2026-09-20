@@ -890,3 +890,139 @@ prev_range_confirm=True) are only "less negative," never break even.
 this out comprehensively rather than leaving it as an open question --
 ORB's failure (already known from the adx/volume/target grid) isn't
 fixable by any of the structural variants this item proposed.
+
+## Item 2 (hour-of-day pattern): both required checks run (2026-09-20)
+
+**Two-halves consistency**: hour9-vs-hour13 MFE>=0.5R-rate gap holds in
+both halves (OLDER +0.269, NEWER +0.195, same sign, same order of
+magnitude).
+
+**Regime confound check**: the MFE>=0.5R-rate gap survives within EVERY
+regime tested (EARLY_TREND +0.243, BREAKOUT +0.093, TREND +0.246, RANGE
++0.237) -- not a regime artifact.
+
+**Critical reframing, found by checking the economically relevant
+metric alongside the originally-cited one**: the queue's original
+observation used MFE-hit-rate only. Checking net R-multiple by hour
+(the metric that actually matters for P&L) shows the OPPOSITE story:
+hour 9 has the WORST mean net R of any hour (-0.246), while hour 13 --
+the hour with the WORST MFE-hit-rate -- has one of the BEST (-0.175).
+**Hour 9 doesn't win more; it wins early and gives it back.** This
+"giveback" reading holds in both time halves (OLDER gap -0.076, NEWER
+gap -0.065, same sign) and in 3 of 4 regimes (BREAKOUT -0.291, TREND
+-0.102, RANGE -0.060), but is essentially flat within EARLY_TREND
+specifically (+0.012, the single largest regime bucket by n) -- so the
+giveback problem is concentrated in TREND/BREAKOUT/RANGE conditions, not
+uniform across all regimes.
+
+**Conclusion: this is not "trade more at the open," it's a live lead for
+item 3 (winner-giveback/trailing-stop efficiency), concentrated at
+market open specifically.** The original "opposite of the avoid-the-open
+assumption" framing was based on an incomplete metric (MFE-hit-rate
+alone) and, now corrected against net R, actually supports the opposite
+practical conclusion: hour-9 entries are where exit/trailing mechanics
+are losing the most ground, not where they're working best. No code
+change made -- this is an analysis result, feeding directly into item 3
+below.
+
+## Item 3 (winner-giveback ceiling): computed, hard bound found (2026-09-20)
+
+Used only the existing MFE dataset (28,123 training-eligible trades with
+both `max_favorable_move` and `tb_r_multiple_net` populated), no new
+signal generation, per the item's own instruction. Winners' median MFE
+reproduces the cited figure almost exactly (0.847R vs 0.85R cited) --
+good sanity check that this is the same data/method. Winners' median
+*realized* R is 0.385R (lower than the 0.63R cited on 09-13, consistent
+with more data having accrued and/or a mean-vs-median difference in the
+earlier note) -- either way, directionally the same large gap between
+peak and close.
+
+**Per-threshold ceiling** (idealized, NOT achievable in practice -- zero
+slippage, exact-peak lock-in the instant each threshold is first
+touched, the most generous possible assumption):
+
+| threshold | % of all trades touching it | mean realized R (of those) | ceiling uplift (aggregate R) |
+|---|---|---|---|
+| 0.5R | 39.5% | 0.188 | +3,465.8 |
+| 0.75R | 25.4% | 0.391 | +2,566.6 |
+| 1.0R | 16.5% | 0.595 | +1,882.1 |
+| 1.25R | 11.4% | 0.786 | +1,487.3 |
+| 1.5R | 8.4% | 0.973 | +1,237.0 |
+| 2.0R | 4.5% | 1.159 | +1,070.4 |
+
+**Applied against the actual aggregate (-5,615.1R across all 28,123
+trades), NONE of the six idealized ceilings flip the portfolio
+positive.** The best case (locking in at 0.5R, the most inclusive
+threshold) closes 61.7% of the deficit (-5,615.1 -> -2,149.3) but
+remains solidly negative; every other threshold closes less (down to
+19.1% at 2.0R, since fewer trades ever reach it).
+
+**This is a hard, quantified ceiling, not just a qualitative caution: an
+idealized, unrealistically perfect trailing-stop mechanism -- something
+no real implementation could actually achieve -- still cannot make this
+system profitable on its own.** Confirms and now numerically bounds the
+"Sharpened research thesis" already at the top of this file (entry
+quality is the dominant problem, exit/trailing is real but secondary):
+at most ~62% of the current deficit is closeable via exit mechanics
+alone, under the most generous possible assumption; a real, implementable
+trailing-stop change (with actual slippage, imperfect timing, and the
+practical cost of testing/deploying it) would close meaningfully less
+than even that.
+
+**Recommendation: do not prioritize building new trailing-stop logic as
+primary research effort.** The three trail-shape variants proposed
+earlier (delay activation to +1R, trail behind structure, scale out at
+the realized average) remain reasonable engineering ideas and could
+still be tested cheaply if there's appetite, but none of them should be
+expected to fix the system's overall economics -- that requires
+entry-quality work (items 4-5), not exit-mechanics work. No trailing
+logic was written this pass; the ceiling estimate itself is the
+deliverable this item asked for, and it argues against spending further
+effort here before entry quality improves.
+
+## Item 4 (ML: predict MFE threshold, not win/loss) -- built and run (2026-09-20)
+
+New module `mfe_threshold_labeler.py`, reusing `meta_labeler.py`'s
+existing feature list (`_FEATURES`, not duplicated) and cleaning
+pipeline, but trained against `(max_favorable_move >= T)` for
+T in {0.5R, 0.75R, 1.0R} instead of final win/loss.
+
+**Deliberately stricter split than meta_labeler.py's own methodology**:
+that module picks its best P(win) gating threshold by scanning multiple
+thresholds directly against its held-out test set -- a mild form of
+threshold-shopping against the holdout. This module uses a genuine
+3-way, date-ordered split instead: TRAIN (60%) fits the model,
+VALIDATION (20%) selects the single cutoff using only its own
+avg_net_r, and the HOLDOUT (20%) is touched exactly once with the
+already-chosen cutoff, never used for model or cutoff selection. CPCV
+is computed on train+validation only, holdout excluded from that too.
+
+**Results (holdout AUC / CPCV mean, then the one locked-holdout
+application)**:
+- MFE>=0.5R: AUC=0.619, CPCV mean=0.624 (15/15 paths). Validation chose
+  cutoff 0.65 -> holdout: n=11 (0.5% coverage), avg_net_r=-0.112 vs
+  baseline -0.167 (beats baseline, still net negative).
+- MFE>=0.75R: AUC=0.638, CPCV mean=0.651. Cutoff 0.65 -> holdout: n=21
+  (0.95% coverage), avg_net_r=-0.066 vs baseline -0.167 (beats baseline
+  by the largest margin of the three, still net negative).
+- MFE>=1.0R: AUC=0.641, CPCV mean=0.679 -- the STRONGEST discriminative
+  power of the three targets. Cutoff 0.65 -> holdout: n=19 (0.86%
+  coverage), avg_net_r=-0.194 vs baseline -0.167 -- **does NOT beat
+  baseline**, despite having the best AUC/CPCV. A direct demonstration
+  of why the locked-holdout discipline matters: predictive power alone
+  doesn't guarantee the chosen cutoff generalizes economically.
+
+**Conclusion**: genuine, non-noise predictive signal exists for all
+three MFE targets (CPCV mean 0.62-0.68, comparable to or better than the
+existing WIN/LOSS model's own 0.611) -- confirms, from a different
+angle, today's earlier finding that entry-time features carry real
+information about a trade's eventual favorable excursion. But every
+gated cutoff selects an extremely thin slice (11-21 trades out of
+~2,200 holdout rows, well under 1% coverage) -- too small a sample to
+trust any of these avg_net_r numbers as validated economic evidence
+either direction, and even the "beats baseline" cases remain solidly
+net-negative in absolute terms. **Not promoted, per this item's own
+instruction, regardless of result.** No further action -- this closes
+the item as "real signal exists, not economically actionable at current
+coverage," distinct from meta_labeler's existing WIN/LOSS model, which
+is "real signal exists, actively HURTS economics when gated."
