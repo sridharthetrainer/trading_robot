@@ -615,3 +615,108 @@ requested -- diminishing returns from testing more instances of the same
 already-falsified pattern (technical crossover/breakout screened across a
 liquid Indian equity/index universe, no fundamental or flow data behind
 any of them).
+
+## Option-SELLING strategy audit: standalone vs pair (2026-09-20)
+
+User instruction: "any other improvements required" surfaced that
+option-selling coverage was thin (only 1 of ~17 selling-type entries in
+`option_strategy_registry.py`'s 42-strategy catalog had ever been
+rigorously backtested); user then asked to "include all option selling
+standalone and pair option selling" -- i.e. both undefined-risk naked
+selling (straddle/strangle, no protective wings) and defined-risk paired
+spreads (credit spreads, iron condor, iron butterfly, each short leg
+hedged by a long leg).
+
+**Pre-existing state found**: `condor_backtest_real.py` (built 2026-06-19
+as the real-premia replacement for the blocked, synthetic-credit
+`backtest_iron_condor.py`) had never actually been run over its full
+available history -- only a live 10-cycle forward test existed
+(`condor_forward_test.json`, +Rs16,877/10 cycles/90% win rate). Flagged
+explicitly that n=10 is nowhere near enough to have seen this structure's
+defining tail risk yet.
+
+**PAIR (defined-risk) results, real options_nifty.db premia, 2020-01-01
+to 2026-09-18 (1,660 trading days, 3.24M option rows), qty=75, weekly
+entries, real brokerage+slippage costs:**
+
+- **Iron Condor (C3)** -- REJECTED. Default params (otm=1.5%, wing=300):
+  n=350, win_rate=71.4%, expectancy_R=-0.0355, total_R=-12.42, OOS
+  expectancy also negative (-0.0585). 7 of 9 grid combos (otm x wing)
+  negative; the 2 marginally positive ones (otm=1.5-2.0%, wing=500) are
+  small enough to be noise from a 9-combo search, not a finding. Worst
+  weeks include 3 from the 2020-03 COVID crash -- the tail event the
+  10-cycle live sample hadn't seen. Built-in verdict function:
+  "negative expectancy after costs -- NO edge."
+- **Iron Butterfly (C4)** -- REJECTED, more decisively than the condor
+  (same code, `otm_pct=0` so the short strikes sit at-the-money instead
+  of OTM). All 4 wing widths tested (150/200/300/500) show negative
+  expectancy, win rate drops to 40-47% (an ATM short straddle center gets
+  breached far more often than an OTM strangle).
+  New file: `credit_spread_backtest_real.py` (reuses condor_backtest_
+  real.py's already-validated helpers -- `_load`, `_prep`, `_nearest`,
+  `_leg_price`, `_metrics`, `_report` -- rather than re-deriving them).
+- **Bear Call Spread (B4)** -- REJECTED cleanly, all 9 otm/wing combos
+  negative.
+- **Bull Put Spread (B3)** -- the one genuinely interesting case today.
+  Best-looking config (otm=2.0%, wing=500): n=350, win_rate=91.7%,
+  expectancy_R=+0.0185, total_R=+6.47, net +Rs186,415 over 350 trades.
+  Survived BOTH in-sample and OOS with the same sign (IN exp_R=0.0146,
+  OOS exp_R=0.0275 -- actually improved OOS, unusual), and passed the
+  tail-dependence check cleanly (total_R excluding the 3 worst trades =
+  9.51, HIGHER than the full 6.47 -- meaning the result isn't propped up
+  by a few lucky weeks, unlike every "fragile positive" pattern seen
+  elsewhere today; the defined-risk cap also kept the 2020-03 COVID weeks
+  to about -1.0R instead of catastrophic, unlike the naked structures
+  below). This was, on its face, the most robust-looking positive result
+  of the entire day. **Then rejected anyway** once given the same rigor
+  as everything else: full-sample t=2.06/p=0.039 looks nominally
+  significant, but Bonferroni-corrected across the 18 combos actually
+  tested (both spread sides x 9 grid points), p=0.710 -- not significant
+  at all. Worse, the IN-SAMPLE split alone never clears significance on
+  its own terms (t=1.366, p=0.172, LCB95=-0.003, crosses zero) -- the
+  full-sample p-value was doing all the work by pooling train+holdout
+  together, exactly the kind of pooling this project's day-split
+  discipline exists to prevent. **Verdict: NOISE, not a real edge** --
+  the apparent Rs186,415 is not statistically distinguishable from zero.
+
+**STANDALONE (naked, undefined-risk) results**, same real EOD-settle-
+anchored Black-Scholes intraday pricer as this session's other intraday
+backtests (`option_intraday_pricer.py`), full `candle_cache.db` history
+(334 candidate days), qty=65, real costs. New file:
+`naked_straddle_strangle_backtest.py`.
+
+- **09:20 Short Straddle (C1)**, single entry/day (no re-entry, distinct
+  from the already-tested E4 Rolling Short Straddle's cycling version)
+  -- REJECTED. 329 trades, 86.0% hit the leg-level 30% stop-loss before
+  square-off, win rate 22.8%, net -Rs115,671, Sharpe -11.14.
+- **Short Strangle OTM3 (C2)** -- REJECTED, same mechanism. 332 trades,
+  91.3% hit leg SL, win rate 19.0%, net -Rs75,739, Sharpe -10.47.
+- Consistent with E4's earlier result (-Rs2,897,571, 58% whipsawed): the
+  fundamental problem for every naked/undefined-risk short-premium
+  structure tested in this system is the SAME -- a leg-level percentage
+  stop-loss gets whipsawed by ordinary intraday chop long before theta
+  decay can pay off, regardless of entry time or strike distance.
+
+**Full standalone-vs-pair scorecard: 7 tested, 7 rejected** (C1, C2, C3,
+C4, B3, B4, plus E4 from earlier this session). The defined-risk
+structures (C3, C4, B4) fail cleanly on raw expectancy; the ONE that
+looked genuinely promising (B3) failed only once proper significance
+testing was applied, not on a first look -- worth remembering as the
+clearest demonstration all day of why this project never reports a raw
+number without the day-split + Bonferroni step. The undefined-risk
+structures (C1, C2, E4) all fail catastrophically via the same leg-SL
+whipsaw mechanism, regardless of specific parameters.
+
+**Consciously not built**: B5 (Ratio Spread 1:2) and E7 (Ratio Spread
+with Tail Hedge) are both tagged DANGEROUS in the user's own spec
+(asymmetric/uncapped risk on the extra naked leg) -- given 7/7 rejections
+across every reasonably-testable structure in this family already, and
+capital-preservation-first being this project's explicit standing rule,
+building an intentionally higher-risk untested structure wasn't judged
+worth doing without being specifically asked. Also untested: C5
+(Calendar Spread), C6 (Expiry-Day OTM Decay Harvest), C9 (Short
+Straddle->Strangle Conversion), D2 (Post-Event Vol Crush Short
+Strangle), E2/E3/E5/E6 -- flagged here rather than silently dropped, but
+the honest prior after this comprehensive a rejection pattern is that
+they would very likely reproduce either the naked-whipsaw or the
+paired-noise result already established, not something structurally new.
