@@ -1026,3 +1026,74 @@ instruction, regardless of result.** No further action -- this closes
 the item as "real signal exists, not economically actionable at current
 coverage," distinct from meta_labeler's existing WIN/LOSS model, which
 is "real signal exists, actively HURTS economics when gated."
+
+## Volatility-surface relative-value: exploratory SVI fit built and tested (2026-09-20)
+
+New module `svi_smile_relative_value.py` -- borrows the METHODOLOGY cited
+from public research (Gatheral's raw SVI parametrization, a standard,
+decades-old, publicly-documented approach, not proprietary to any of the
+six repos flagged earlier), built entirely from scratch using scipy +
+this project's own already-tested `option_intraday_pricer.implied_vol()`
+against real `options_nifty.db` EOD chains. No external repo code was
+read or imported, per the queue's own explicit caution that this idea is
+"a fundamentally different risk class" requiring review before any
+third-party code is trusted.
+
+**Fit quality**: sanity-checked on 10 recent days, 87-96 OTM-side quote
+points per smile, RMSE(w) consistently 0.00006-0.00009 (small in
+variance-space) -- the SVI parametrization fits NIFTY's real weekly
+smile cleanly. 0-DTE expiry days correctly fail to fit (T~=0, expected,
+not a bug).
+
+**The actual diagnostic the queue asked for, run before any trade
+construction**: flagged the top-decile |residual_iv| strikes on each of
+52 successfully-fit days (410 same-contract day-over-day pairs, expiry
+rolls excluded), and checked whether each strike's |residual| shrinks
+the next day (convergence) or not.
+
+**Result: 80.7% GREW, only 19.3% shrank -- the OPPOSITE of the
+convergence hypothesis, and a strong, non-random split (not a
+50/50-ish "no effect" result).**
+
+**Important confound, flagged rather than over-claimed**: within a
+short NIFTY weekly expiry, time-to-expiry shrinks day by day, and
+IV-extraction noise mechanically AMPLIFIES as T->0 (a fixed rupee
+bid-ask spread translates into a larger IV-space error as vega shrinks
+near expiry). This plausibly explains some or all of the "residuals
+grow" pattern as a mechanical noise-amplification artifact of short
+weekly expiries specifically, rather than genuine, exploitable relative
+mispricing that shrinks over time. The honest statement is therefore:
+**no evidence of repeatable convergence was found, and there's a
+plausible, un-ruled-out mechanical explanation for the negative result
+itself** (as distinct from a clean "definitely no relative value exists
+anywhere in the vol surface" claim, which this test doesn't have the
+power to make).
+
+**Verdict: does NOT pass its own first diagnostic gate.** Per the
+queue's own framing ("test whether that residual shows repeatable
+convergence -- BEFORE ever constructing a trade"), this idea does not
+proceed to trade construction. If revisited, the noise-amplification
+confound should be addressed first (e.g. restrict to longer-dated
+monthly expiries where vega stays larger for longer, or filter out the
+most illiquid far-OTM strikes before flagging residuals) rather than
+concluding the underlying idea is dead outright -- this is a "the test
+as designed didn't support it, with a known weakness in the test
+itself" result, not a maximally rigorous rejection like the 20+
+strategy backtests earlier today.
+
+## Status: all four remaining queue items from 2026-09-13 now addressed (2026-09-20)
+
+Item 2 (hour-of-day): both required checks run, reframed via net-R as a
+giveback-concentration lead for item 3, not a "trade the open" signal.
+Item 3 (winner-giveback ceiling): computed, hard quantified bound found
+(at most ~62% of the deficit closeable even under an idealized,
+unachievable trailing stop) -- recommend NOT prioritizing new trailing
+logic. Item 4 (ML MFE-threshold): built and run with a stricter
+locked-holdout discipline than the existing WIN/LOSS model; genuine
+signal exists (CPCV 0.62-0.68) but not economically actionable at
+current coverage (<1% of signals gated, still net-negative). Item 5 in
+this file was actually "Option-level P&L translation" (still open, no
+next step defined yet, not attempted this pass) -- what the user meant
+by the fourth item was the volatility-surface idea, now covered above.
+Nothing here is promoted or wired into the live system; every result is
+report-only, matching this project's standing rule.
