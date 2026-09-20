@@ -545,3 +545,11 @@ already applied to cross-sectional/pairs-trading candidates
 extended to single-leg option-buying backtests: an aggregate positive
 number must survive decomposition against the simplest possible
 directional-exposure explanation before being trusted at all.
+
+**Stopped here (2026-09-20), by user decision.** Remaining untested
+indicators (Keltner Channel, Force Index, Hull MA, TEMA) are the same
+directional-momentum shape that just produced 4 drift-artifact false
+positives above; StochRSI and OBV exist in `signals.py` only as buried
+confluence-scoring features, never as standalone entry triggers, and were
+also left untested as such. Flagged here rather than silently dropped, in
+case a specific one of these is ever worth revisiting on request.
