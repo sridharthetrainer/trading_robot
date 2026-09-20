@@ -553,3 +553,65 @@ positives above; StochRSI and OBV exist in `signals.py` only as buried
 confluence-scoring features, never as standalone entry triggers, and were
 also left untested as such. Flagged here rather than silently dropped, in
 case a specific one of these is ever worth revisiting on request.
+
+## Chartink public screener strategies (2026-09-20)
+
+User instruction: test well-known, publicly-shared Chartink screener
+strategies. Chartink itself only screens (flags matching stocks daily);
+it has no built-in exit, so this backtest picks ONE holding period
+(10 trading days, a common retail swing horizon) as the primary test --
+this project's own modeling choice, stated plainly, not scraped from an
+authoritative source.
+
+Implemented in `chartink_screen_backtest.py`, testing four of Chartink's
+most widely shared public scans against the ~192-stock NIFTY200 universe
+in `candle_cache.db` (1d interval): SMA(200) breakout, 52-week-high +
+1.5x-volume breakout, Supertrend(10,3) bullish flip, RSI(14) oversold
+(<30) bounce. Reuses `indicators.py`'s existing, unmodified
+`calculate_supertrend`/`calculate_rsi` -- no new indicator math. Applies
+the SAME lookahead discipline already established this session (the
+52-week high is computed from PRIOR bars only, never the triggering
+bar's own close -- the Donchian self-reference lesson from the
+TradingView-strategies effort, applied here from the start).
+
+**Drift-confound discipline applied UP FRONT this time** (learned from
+the intraday-options false positives the same day): every hit's return is
+measured as EXCESS return over the equal-weight universe's return across
+the exact same window, never raw return -- so a screen correlated with
+market-wide direction over this sample can't masquerade as edge. Real
+delivery-equity cost (0.22% round-trip, same estimate as
+`cross_sectional_factor_test.py`). Day-split 70/30 train/holdout,
+one-sided LCB95, Bonferroni across the 4 screens.
+
+**Data-depth caveat**: common daily history is only ~1 year per stock
+(313 bars for RELIANCE), so the 252-day 52-week-high screen only had
+~60-70 days of live signal-generation window after its own warmup --
+smaller than ideal, but the resulting hit counts (580-1110 across the
+192-stock universe) still gave a workable sample.
+
+**Result, all four REJECTED:**
+
+| Screen | Hits | Train excess (net) | Train p | Holdout excess (net) | Holdout LCB95 | Verdict |
+|---|---|---|---|---|---|---|
+| sma200_breakout | 822 | -0.095%/trade | 0.62 | -1.43% | -2.16% | NOISE |
+| high52w_volume | 580 | -0.51%/trade | 0.048 | -0.61% | -1.29% | NOISE |
+| supertrend_flip | 1110 | -0.34%/trade | 0.055 | -1.32% | -1.92% | NOISE |
+| rsi_oversold_bounce | 1104 | -0.45%/trade | 0.008 | +0.69% | +0.17% | HURTS |
+
+No screen clears train significance with a positive sign AND a positive
+holdout LCB95 -- the bar for CANDIDATE. rsi_oversold_bounce is the closest
+to "interesting" (holdout LCB95 barely positive) but its training-period
+excess return is significantly NEGATIVE, so per this project's verdict
+rule (train sign must agree with holdout, not just holdout alone looking
+promising) it's correctly labeled HURTS, not a near-miss worth chasing --
+exactly the discipline this project's rules exist to enforce against a
+result that would otherwise tempt a "just look at the good half" read.
+
+Ninth and tenth rejections today (11 total across the two prior efforts,
+all consistent with `validation_harness.py`'s standing finding that no
+rule strategy in this system, options or equity, clears out-of-sample
+costs). No further Chartink screens planned unless a specific one is
+requested -- diminishing returns from testing more instances of the same
+already-falsified pattern (technical crossover/breakout screened across a
+liquid Indian equity/index universe, no fundamental or flow data behind
+any of them).
