@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import eod_setup_edge_analyzer as esea
+import pytest
 from eod_signal_miner import ensure_miner_schema
 from eod_setup_edge_analyzer import run
 
@@ -92,6 +93,38 @@ def test_train_only_positive_flipping_negative_does_not_survive():
         rep = run(db_path=db_path, min_days=6)
         names = {(c["kind"], c["name"]) for c in rep["candidates"]}
         assert ("setup", "volume_breakout") not in names
+
+
+def test_gross_positive_but_after_cost_negative_is_not_candidate():
+    with tempfile.TemporaryDirectory() as tmp, _isolated_report(tmp):
+        db_path = str(Path(tmp) / "eod_signal_miner_test.db")
+        _seed(db_path, setup="mtf_momentum", days=_TRAIN_DAYS + _HOLDOUT_DAYS,
+              return_pct=0.08, per_day=40)
+        rep = run(db_path=db_path, min_days=6, cost_pct=0.12)
+
+        result = next(r for r in rep["all_tested"]
+                      if r["kind"] == "setup" and r["name"] == "mtf_momentum")
+        assert result["train"]["mean_return_pct"] > 0
+        assert result["train"]["net_mean_return_pct"] < 0
+        assert result["verdict"] != "CANDIDATE"
+
+
+def test_positive_holdout_mean_requires_positive_confidence_bound():
+    train = {
+        "n": 100, "net_mean_return_pct": 0.5,
+        "net_return_lcb95_pct": 0.3, "p": 0.0001,
+    }
+    noisy_holdout = {
+        "n": 100, "net_mean_return_pct": 0.1,
+        "net_return_lcb95_pct": -0.05,
+    }
+
+    assert esea._verdict(train, noisy_holdout, bonferroni=1) != "CANDIDATE"
+
+
+def test_negative_cost_assumption_is_rejected(tmp_path):
+    with pytest.raises(ValueError, match="non-negative"):
+        run(db_path=str(tmp_path / "unused.db"), cost_pct=-0.01)
 
 
 def main() -> int:

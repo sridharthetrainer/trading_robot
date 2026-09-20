@@ -142,14 +142,14 @@ def download_bhavcopy(for_date: date = None) -> int:
 # Symbol aliases — nifty200 name → Bhavcopy name
 _BHAV_ALIASES = {
     "UJJIVAN":    "UJJIVANSFB",
-    "MINDTREE":   "LTIM",
+    "MINDTREE":   "LTM",
     "MCDOWELL-N": "MCDOWELLS",
     "HDFC":       "HDFCAMC",
     "AMARAJABAT": "AMARA",
     "MINDAIND":   "MINDACORP",
     "HPCL":       "HINDPETRO",
     "NALCO":      "NATIONALUM",
-    "LTIM":       "LTIMINDTEE",
+    "LTIM":       "LTM",
     # Indices not in bhavcopy — handled separately
 }
 

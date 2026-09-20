@@ -83,6 +83,30 @@ def test_require_today_rejects_stale_bar(monkeypatch):
     assert rec._has_fresh_trading_bar(df, require_today=False) is True
 
 
+def test_require_today_accepts_latest_session_over_weekend(monkeypatch):
+    import intraday_candle_recorder as rec
+    import trading_calendar
+
+    class WeekendTimestamp(pd.Timestamp):
+        @classmethod
+        def now(cls, tz=None):
+            return pd.Timestamp("2026-06-28 12:00", tz=tz)  # Sunday
+
+    monkeypatch.setattr(rec.pd, "Timestamp", WeekendTimestamp)
+    monkeypatch.setattr(
+        trading_calendar, "latest_expected_session",
+        lambda _today=None: pd.Timestamp("2026-06-25").date(),
+    )
+    idx = pd.date_range("2026-06-25 09:15", periods=10, freq="5min")
+    df = pd.DataFrame({
+        "open": range(10), "high": [v + 1 for v in range(10)],
+        "low": [v - 1 for v in range(10)], "close": range(10),
+        "volume": [10] * 10,
+    }, index=idx)
+
+    assert rec._has_fresh_trading_bar(df, require_today=True) is True
+
+
 def test_data_fetcher_rejects_daily_bars_for_intraday_interval():
     from data_fetcher import DataFetcher
 
@@ -154,3 +178,33 @@ def test_data_quality_watchdog_flags_stale_intraday_cache(tmp_path):
     assert report["bad_groups"] == 1
     assert report["ok"] is False
     assert report["checks"][0]["freshness_ok"] is False
+
+
+def test_data_quality_watchdog_can_scope_out_retired_symbols(tmp_path):
+    from data_quality_watchdog import audit_candle_cache
+
+    db = tmp_path / "candles.db"
+    with sqlite3.connect(db) as conn:
+        conn.execute("""
+            CREATE TABLE candles (
+                symbol TEXT, interval TEXT, timestamp TEXT, open REAL,
+                high REAL, low REAL, close REAL, volume INTEGER
+            )
+        """)
+        fresh = pd.Timestamp.now().floor("min")
+        for symbol, start in (("ACTIVE", fresh), ("RETIRED", pd.Timestamp("2020-01-01 09:15"))):
+            for offset in range(8):
+                ts = start + pd.Timedelta(minutes=5 * offset)
+                conn.execute(
+                    "INSERT INTO candles VALUES (?,?,?,?,?,?,?,?)",
+                    (symbol, "5m", str(ts), 100, 101, 99, 100, 10),
+                )
+
+    report = audit_candle_cache(
+        str(db), max_intraday_age_days=1.5, symbols=["ACTIVE"], write=False
+    )
+    assert report["ok"] is True
+    assert report["total_groups"] == 1
+    assert report["all_cache_groups"] == 2
+    assert report["ignored_out_of_scope_groups"] == 1
+    assert report["scope"] == "selected_symbols"

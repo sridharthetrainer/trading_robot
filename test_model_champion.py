@@ -46,3 +46,21 @@ def test_champion_tournament_prefers_after_cost_utility_when_available():
     assert utility["available"] is True
     assert utility["best_selected"] >= 10
     assert utility["best_avg_net_r"] > utility["baseline_avg_net_r"]
+
+
+def test_champion_tournament_rejects_all_loss_making_candidates():
+    from model_champion import compare_candidates
+
+    rng = np.random.default_rng(19)
+    X = rng.normal(size=(420, 6))
+    y = (X[:, 0] + rng.normal(scale=0.7, size=420) > 0).astype(int)
+    # Every possible selected slice loses after costs.  A discriminative model
+    # may still be useful for research, but it must not be named champion.
+    net_r = np.full(len(y), -0.25)
+    result = compare_candidates(
+        X, y, n_splits=4, horizon=2, embargo=1, net_returns=net_r,
+        min_utility_samples=10,
+    )
+    assert result["champion"] == ""
+    assert result["estimator"] is None
+    assert len(result["leaderboard"]) == result["candidate_count"]

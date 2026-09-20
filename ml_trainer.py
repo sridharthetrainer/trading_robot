@@ -39,11 +39,14 @@ CV_FOLDS           = int(os.getenv("ML_CV_FOLDS", "5"))
 # leaks. Horizon ≈ triple-barrier max_bars; embargo adds a serial-correlation gap.
 PURGE_HORIZON      = int(os.getenv("ML_PURGE_HORIZON", "12"))
 PURGE_EMBARGO      = int(os.getenv("ML_PURGE_EMBARGO", "3"))
-TRAINING_CONTRACT  = "all_generated_signals_v4_causal_representations"
+TRAINING_CONTRACT  = "all_generated_signals_v5_locked_forward_holdout"
 MIN_PROMOTION_SAMPLES = int(os.getenv("ML_MIN_PROMOTION_SAMPLES", "5000"))
 MIN_PROMOTION_DAYS = int(os.getenv("ML_MIN_PROMOTION_DAYS", "15"))
 MIN_PROMOTION_AUC = float(os.getenv("ML_MIN_PROMOTION_AUC", "0.55"))
 MAX_SYMBOL_WORKERS = max(1, int(os.getenv("ML_MAX_SYMBOL_WORKERS", "4")))
+HOLDOUT_RATIO = float(os.getenv("ML_LOCKED_HOLDOUT_RATIO", "0.20"))
+HOLDOUT_MIN_DAYS = int(os.getenv("ML_LOCKED_HOLDOUT_MIN_DAYS", "3"))
+HOLDOUT_MIN_SELECTED = int(os.getenv("ML_LOCKED_HOLDOUT_MIN_SELECTED", "20"))
 
 # Metadata columns — excluded from training features
 _OUTCOME_ONLY_COLS = {
@@ -113,7 +116,38 @@ def _train_model(
     )
     pipe = tournament.get("estimator")
     if pipe is None:
-        raise ValueError("No candidate produced at least two valid purged folds")
+        evaluated = [
+            row for row in tournament.get("leaderboard", [])
+            if row.get("eligible")
+        ]
+        if evaluated:
+            # This is a valid experimental result, not a pipeline crash. Keep
+            # the rejected leaderboard so reports explain why no model exists.
+            return {
+                "label": label,
+                "model": None,
+                "champion_algorithm": "",
+                "candidate_count": tournament.get("candidate_count", 0),
+                "candidate_leaderboard": tournament.get("leaderboard", []),
+                "profit_utility": {},
+                "purged_brier": None,
+                "purged_baseline_brier": None,
+                "purged_brier_skill": None,
+                "probability_calibration": "none",
+                "cv_auc_mean": None,
+                "cv_auc_std": None,
+                "cv_method": "purged_kfold",
+                "n_samples": len(y),
+                "n_positive": int(y.sum()),
+                "n_negative": int(len(y) - y.sum()),
+                "feature_importances": [],
+                "mda_importances": [],
+                "noise_features": [],
+                "training_contract": TRAINING_CONTRACT,
+                "trained_at": datetime.now().isoformat(),
+                "rejected_reason": "no_candidate_with_positive_calibrated_after_cost_utility",
+            }
+        raise ValueError("no_candidate_produced_two_valid_purged_folds")
 
     # TimeSeriesSplit (legacy, kept for comparison) — respects order but does NOT
     # purge overlapping triple-barrier label windows → leaks.
@@ -281,6 +315,85 @@ def _training_fingerprint(df: "pd.DataFrame", feature_names: List[str]) -> str:
     return digest.hexdigest()
 
 
+def _split_locked_forward_days(df: "pd.DataFrame") -> Tuple["pd.DataFrame", "pd.DataFrame"]:
+    """Reserve the latest complete signal days before any model selection.
+
+    Row-count splits can put the same trading session in both partitions.  A
+    day boundary is the minimum defensible lock for this cross-symbol dataset.
+    """
+    if "__signal_date" not in df.columns:
+        return df.copy(), df.iloc[0:0].copy()
+    days = sorted(str(day) for day in df["__signal_date"].dropna().unique())
+    if len(days) <= HOLDOUT_MIN_DAYS:
+        return df.copy(), df.iloc[0:0].copy()
+    n_holdout = max(HOLDOUT_MIN_DAYS, int(np.ceil(len(days) * HOLDOUT_RATIO)))
+    n_holdout = min(n_holdout, len(days) - 1)
+    holdout_days = set(days[-n_holdout:])
+    is_holdout = df["__signal_date"].astype(str).isin(holdout_days)
+    return df.loc[~is_holdout].copy(), df.loc[is_holdout].copy()
+
+
+def _evaluate_locked_forward_holdout(
+    result: Dict[str, Any], X: np.ndarray, y: np.ndarray,
+    net_returns: Optional[np.ndarray], *, distinct_days: int,
+) -> Dict[str, Any]:
+    """Evaluate once at the development-selected threshold, fail closed.
+
+    Promotion requires the one-sided 95% lower confidence bound of mean
+    after-cost R to be positive, not just a noisy positive point estimate.
+    """
+    out: Dict[str, Any] = {
+        "available": False, "passed": False, "rows": int(len(y)),
+        "days": int(distinct_days), "threshold": None, "selected": 0,
+        "coverage": 0.0, "avg_net_r": None, "net_r_lcb95": None,
+        "auc": None, "brier_skill": None,
+    }
+    utility = result.get("profit_utility") or {}
+    threshold = utility.get("best_threshold")
+    if (
+        len(y) == 0 or distinct_days < HOLDOUT_MIN_DAYS
+        or net_returns is None or threshold is None
+    ):
+        return out
+    try:
+        probability = np.asarray(result["model"].predict_proba(X), dtype=float)[:, 1]
+        actual = np.asarray(y, dtype=int)
+        returns = np.asarray(net_returns, dtype=float)
+        selected = probability >= float(threshold)
+        n_selected = int(selected.sum())
+        coverage = n_selected / max(len(actual), 1)
+        out.update({
+            "available": True,
+            "threshold": float(threshold),
+            "selected": n_selected,
+            "coverage": round(float(coverage), 6),
+        })
+        if len(np.unique(actual)) >= 2:
+            from sklearn.metrics import roc_auc_score
+            out["auc"] = round(float(roc_auc_score(actual, probability)), 6)
+        dev_rate = float(result.get("n_positive", 0)) / max(int(result.get("n_samples", 0)), 1)
+        brier = float(np.mean((probability - actual) ** 2))
+        baseline_brier = float(np.mean((dev_rate - actual) ** 2))
+        out["brier_skill"] = round(1.0 - brier / baseline_brier, 6) if baseline_brier > 0 else -1.0
+        if n_selected < HOLDOUT_MIN_SELECTED:
+            return out
+        selected_returns = returns[selected]
+        avg_r = float(np.mean(selected_returns))
+        if n_selected > 1:
+            standard_error = float(np.std(selected_returns, ddof=1) / np.sqrt(n_selected))
+            lower_bound = avg_r - 1.645 * standard_error
+        else:
+            lower_bound = float("-inf")
+        out["avg_net_r"] = round(avg_r, 6)
+        out["net_r_lcb95"] = round(float(lower_bound), 6)
+        out["passed"] = bool(
+            lower_bound > 0.0 and float(out["brier_skill"] or -1.0) > 0.0
+        )
+    except Exception as exc:
+        out["reason"] = f"evaluation_failed:{type(exc).__name__}"
+    return out
+
+
 def _model_sha256(path: str | Path) -> str:
     digest = hashlib.sha256()
     with Path(path).open("rb") as handle:
@@ -307,6 +420,10 @@ def _train_one_symbol(
     symbol: str, Xs: np.ndarray, ys: np.ndarray, feat_cols: List[str],
     sym_days: int, sym_n: int, fingerprint: str,
     net_returns: Optional[np.ndarray] = None,
+    holdout_x: Optional[np.ndarray] = None,
+    holdout_y: Optional[np.ndarray] = None,
+    holdout_returns: Optional[np.ndarray] = None,
+    holdout_days: int = 0,
 ) -> Tuple[str, Optional[Dict[str, Any]]]:
     """Runs in a worker process. Each symbol's training is fully independent
     (its own data slice, its own model), so this is embarrassingly parallel
@@ -322,6 +439,11 @@ def _train_one_symbol(
     except Exception as exc:
         logger.warning("per-symbol model %s skipped: %s", symbol, exc)
         return symbol, None
+    if holdout_x is not None and holdout_y is not None:
+        sym_result["locked_forward_holdout"] = _evaluate_locked_forward_holdout(
+            sym_result, holdout_x, holdout_y, holdout_returns,
+            distinct_days=holdout_days,
+        )
     sym_result["distinct_days"] = sym_days
     sym_result["promoted"] = bool(
         sym_n >= MIN_PROMOTION_SAMPLES
@@ -335,6 +457,7 @@ def _train_one_symbol(
         # the check entirely when utility data was thin/unavailable.
         and bool((sym_result.get("profit_utility") or {}).get("available"))
         and float((sym_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
+        and bool((sym_result.get("locked_forward_holdout") or {}).get("passed"))
     )
     sym_result["training_data_fingerprint"] = fingerprint
     sym_result["selected_features"] = list(feat_cols)
@@ -378,12 +501,13 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     # CV fold selects using training rows only. Pre-selecting against the full
     # target leaks holdout labels into model design.
 
-    X_all   = df_clean[feat_cols].values.astype(np.float32)
-    y_all   = df_clean["tb_outcome"].values.astype(int)
+    development_df, locked_holdout_df = _split_locked_forward_days(df_clean)
+    X_all   = development_df[feat_cols].values.astype(np.float32)
+    y_all   = development_df["tb_outcome"].values.astype(int)
     net_returns_all = None
     for ret_col in ("tb_r_multiple_net", "tb_r_multiple"):
-        if ret_col in df_clean.columns:
-            net_returns_all = df_clean[ret_col].values.astype(np.float32)
+        if ret_col in development_df.columns:
+            net_returns_all = development_df[ret_col].values.astype(np.float32)
             break
     training_fingerprint = _training_fingerprint(df_clean, feat_cols)
 
@@ -400,7 +524,10 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
     # incident): a data condition that yields <2 valid purged folds (e.g. a
     # thin/one-class window) must not abort the entire nightly pipeline. Was
     # previously unguarded, unlike the per-symbol loop below.
-    logger.info("Training cross-symbol model on %d samples", len(df_clean))
+    logger.info(
+        "Training cross-symbol model on %d development samples; %d locked holdout rows",
+        len(development_df), len(locked_holdout_df),
+    )
     try:
         cross_result = _train_model(
             X_all, y_all, feat_cols, label="cross_symbol", net_returns=net_returns_all
@@ -410,6 +537,19 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
         cross_result = None
     distinct_days = int(df_clean["__signal_date"].astype(str).nunique()) if "__signal_date" in df_clean else 0
     if cross_result is not None:
+        holdout_returns = None
+        for ret_col in ("tb_r_multiple_net", "tb_r_multiple"):
+            if ret_col in locked_holdout_df.columns:
+                holdout_returns = locked_holdout_df[ret_col].values.astype(np.float32)
+                break
+        holdout_days = int(locked_holdout_df["__signal_date"].astype(str).nunique()) if "__signal_date" in locked_holdout_df else 0
+        cross_result["locked_forward_holdout"] = _evaluate_locked_forward_holdout(
+            cross_result,
+            locked_holdout_df[feat_cols].values.astype(np.float32),
+            locked_holdout_df["tb_outcome"].values.astype(int),
+            holdout_returns,
+            distinct_days=holdout_days,
+        )
         cross_result["distinct_days"] = distinct_days
         cross_result["promoted"] = bool(
             len(df_clean) >= MIN_PROMOTION_SAMPLES
@@ -421,6 +561,7 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             # Fail closed: see matching comment in _train_one_symbol.
             and bool((cross_result.get("profit_utility") or {}).get("available"))
             and float((cross_result.get("profit_utility") or {}).get("best_avg_net_r") or 0) > 0
+            and bool((cross_result.get("locked_forward_holdout") or {}).get("passed"))
         )
         cross_result["training_data_fingerprint"] = training_fingerprint
         cross_result["selected_features"] = list(feat_cols)
@@ -442,21 +583,37 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
         sym_counts = df_clean["__symbol"].value_counts()
         eligible: List[tuple] = []
         for symbol, count in sym_counts.items():
-            if count < MIN_SYMBOL_SAMPLES:
+            # Do not spend minutes training research artifacts that are
+            # mathematically ineligible for promotion.  The old 100-row gate
+            # launched dozens of model tournaments even though the promotion
+            # contract requires 5,000 rows; none could ever be saved or used.
+            if count < max(MIN_SYMBOL_SAMPLES, MIN_PROMOTION_SAMPLES):
                 continue
             sym_df = df_clean[df_clean["__symbol"] == symbol]
-            Xs = sym_df[feat_cols].values.astype(np.float32)
-            ys = sym_df["tb_outcome"].values.astype(int)
+            sym_development, sym_holdout = _split_locked_forward_days(sym_df)
+            Xs = sym_development[feat_cols].values.astype(np.float32)
+            ys = sym_development["tb_outcome"].values.astype(int)
             sym_returns = None
             for ret_col in ("tb_r_multiple_net", "tb_r_multiple"):
-                if ret_col in sym_df.columns:
-                    sym_returns = sym_df[ret_col].values.astype(np.float32)
+                if ret_col in sym_development.columns:
+                    sym_returns = sym_development[ret_col].values.astype(np.float32)
+                    break
+            sym_holdout_returns = None
+            for ret_col in ("tb_r_multiple_net", "tb_r_multiple"):
+                if ret_col in sym_holdout.columns:
+                    sym_holdout_returns = sym_holdout[ret_col].values.astype(np.float32)
                     break
             if len(np.unique(ys)) < 2:
                 continue   # only one class — can't train
             sym_days = int(sym_df["__signal_date"].astype(str).nunique()) if "__signal_date" in sym_df else 0
+            sym_holdout_days = int(sym_holdout["__signal_date"].astype(str).nunique()) if "__signal_date" in sym_holdout else 0
             fingerprint = _training_fingerprint(sym_df, feat_cols)
-            eligible.append((symbol, Xs, ys, sym_days, len(sym_df), fingerprint, sym_returns))
+            eligible.append((
+                symbol, Xs, ys, sym_days, len(sym_df), fingerprint, sym_returns,
+                sym_holdout[feat_cols].values.astype(np.float32),
+                sym_holdout["tb_outcome"].values.astype(int),
+                sym_holdout_returns, sym_holdout_days,
+            ))
 
         # Each eligible symbol's training is fully independent (own data
         # slice, own model) -- parallelize across processes rather than
@@ -468,8 +625,11 @@ def train_all(df: "pd.DataFrame") -> Dict[str, Any]:
             with ProcessPoolExecutor(max_workers=max_workers) as pool:
                 futures = {
                     pool.submit(_train_one_symbol, symbol, Xs, ys, feat_cols,
-                                sym_days, sym_n, fingerprint, sym_returns): symbol
-                    for symbol, Xs, ys, sym_days, sym_n, fingerprint, sym_returns in eligible
+                                sym_days, sym_n, fingerprint, sym_returns,
+                                holdout_x, holdout_y, holdout_returns,
+                                holdout_days): symbol
+                    for (symbol, Xs, ys, sym_days, sym_n, fingerprint, sym_returns,
+                         holdout_x, holdout_y, holdout_returns, holdout_days) in eligible
                 }
                 for future in as_completed(futures):
                     symbol = futures[future]
@@ -543,6 +703,11 @@ def predict(
         return {
             "win_prob": 0.5, "model_used": model_used, "available": False,
             "reason": "model_not_promoted",
+        }
+    if not bool((model_result.get("locked_forward_holdout") or {}).get("passed")):
+        return {
+            "win_prob": 0.5, "model_used": model_used, "available": False,
+            "reason": "locked_forward_holdout_not_passed",
         }
     utility = model_result.get("profit_utility") or {}
     if (

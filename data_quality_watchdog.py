@@ -74,6 +74,7 @@ def audit_candle_cache(
     db_path: str = "candle_cache.db",
     *,
     max_intraday_age_days: float | None = None,
+    symbols: Iterable[str] | None = None,
     write: bool = True,
 ) -> Dict[str, Any]:
     if not Path(db_path).exists():
@@ -85,6 +86,13 @@ def audit_candle_cache(
         "SELECT symbol, interval, COUNT(*), MIN(timestamp), MAX(timestamp) "
         "FROM candles GROUP BY symbol, interval"
     ).fetchall()
+    requested_symbols = (
+        {str(symbol).strip().upper() for symbol in symbols if str(symbol).strip()}
+        if symbols is not None else None
+    )
+    all_group_count = len(groups)
+    if requested_symbols is not None:
+        groups = [row for row in groups if str(row[0]).upper() in requested_symbols]
     checks: List[Dict[str, Any]] = []
     for symbol, interval, count, first_ts, last_ts in groups:
         rows = conn.execute(
@@ -147,6 +155,10 @@ def audit_candle_cache(
         # checks actually passed, not merely whether the audit ran.
         "ok": len(checks) > 0 and len(bad) == 0,
         "total_groups": len(checks),
+        "all_cache_groups": all_group_count,
+        "ignored_out_of_scope_groups": all_group_count - len(groups),
+        "scope": "selected_symbols" if requested_symbols is not None else "all_cache_symbols",
+        "requested_symbols": len(requested_symbols) if requested_symbols is not None else None,
         "bad_groups": len(bad),
         "stale_groups": len(stale),
         "max_intraday_age_days": max_intraday_age_days,

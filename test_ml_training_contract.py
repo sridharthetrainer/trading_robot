@@ -1,6 +1,42 @@
 import json
 
+import numpy as np
 import pandas as pd
+
+
+def test_locked_forward_split_keeps_complete_days_disjoint(monkeypatch):
+    import ml_trainer
+
+    monkeypatch.setattr(ml_trainer, "HOLDOUT_MIN_DAYS", 2)
+    monkeypatch.setattr(ml_trainer, "HOLDOUT_RATIO", 0.25)
+    frame = pd.DataFrame({
+        "__signal_date": [f"2026-01-{day:02d}" for day in range(1, 9) for _ in range(3)],
+        "feature": range(24),
+    })
+    development, holdout = ml_trainer._split_locked_forward_days(frame)
+    assert set(development["__signal_date"]).isdisjoint(set(holdout["__signal_date"]))
+    assert sorted(holdout["__signal_date"].unique()) == ["2026-01-07", "2026-01-08"]
+
+
+def test_locked_holdout_requires_positive_after_cost_confidence_bound(monkeypatch):
+    import ml_trainer
+
+    class FixedModel:
+        def predict_proba(self, matrix):
+            p = np.full(len(matrix), 0.8)
+            return np.column_stack([1 - p, p])
+
+    monkeypatch.setattr(ml_trainer, "HOLDOUT_MIN_SELECTED", 5)
+    base = {
+        "model": FixedModel(), "n_positive": 50, "n_samples": 100,
+        "profit_utility": {"best_threshold": 0.55},
+    }
+    losing = ml_trainer._evaluate_locked_forward_holdout(
+        base, np.zeros((30, 2)), np.array([0, 1] * 15),
+        np.full(30, -0.1), distinct_days=3,
+    )
+    assert losing["passed"] is False
+    assert losing["net_r_lcb95"] < 0
 
 
 def test_outcome_fields_can_never_be_model_features():
@@ -59,6 +95,7 @@ def test_prediction_uses_saved_training_column_order(monkeypatch):
         "promoted": True,
         "selected_features": ["first", "second"],
         "profit_utility": {"available": True, "best_avg_net_r": 0.1},
+        "locked_forward_holdout": {"passed": True},
         # Deliberately reverse importance order; it must not control input order.
         "feature_importances": [("second", 0.9), ("first", 0.1)],
         "cv_auc_mean": 0.7,
@@ -77,12 +114,29 @@ def test_prediction_rejects_promoted_artifact_without_profit_utility(monkeypatch
         "training_contract": ml_trainer.TRAINING_CONTRACT,
         "promoted": True,
         "selected_features": ["score"],
+        "locked_forward_holdout": {"passed": True},
         "cv_auc_mean": 0.7,
     }
     monkeypatch.setattr(ml_trainer, "_load_model", lambda _label: artifact)
     result = ml_trainer.predict({"score": 10})
     assert result["available"] is False
     assert result["reason"] == "missing_positive_profit_utility"
+
+
+def test_prediction_rejects_artifact_without_locked_holdout(monkeypatch):
+    import ml_trainer
+
+    artifact = {
+        "model": object(),
+        "training_contract": ml_trainer.TRAINING_CONTRACT,
+        "promoted": True,
+        "selected_features": ["score"],
+        "profit_utility": {"available": True, "best_avg_net_r": 0.1},
+    }
+    monkeypatch.setattr(ml_trainer, "_load_model", lambda _label: artifact)
+    result = ml_trainer.predict({"score": 10})
+    assert result["available"] is False
+    assert result["reason"] == "locked_forward_holdout_not_passed"
 
 
 def test_legacy_or_in_sample_learned_filters_are_neutral(tmp_path, monkeypatch):

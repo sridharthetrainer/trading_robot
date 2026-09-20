@@ -73,8 +73,16 @@ def _has_fresh_trading_bar(df, *, require_today: bool) -> bool:
     _, last_date = _index_ist_dates(df)
     if not last_date:
         return False
-    today = pd.Timestamp.now(tz="Asia/Kolkata").date().isoformat()
-    return last_date >= today
+    # "Fresh" means the latest exchange session, not the wall-clock date.
+    # Requiring Sunday/Saturday/holiday bars made valid Friday data fail after
+    # it had already been fetched and caused successful backfills to report 0.
+    today = pd.Timestamp.now(tz="Asia/Kolkata").date()
+    try:
+        from trading_calendar import latest_expected_session
+        expected = latest_expected_session(today).isoformat()
+    except Exception:
+        expected = today.isoformat()
+    return last_date >= expected
 
 
 def _normalize_ohlcv(df):
@@ -229,7 +237,7 @@ def record_intraday_candles(
                 if df is not None and len(df) >= 5 and not spacing_ok:
                     row["reason"] = "interval_spacing_mismatch"
                 elif df is not None and len(df) >= 5 and not fresh_ok:
-                    row["reason"] = "stale_no_today_bar"
+                    row["reason"] = "stale_no_expected_session_bar"
                 elif not ok:
                     row["reason"] = "no_verified_intraday_data"
                 try:

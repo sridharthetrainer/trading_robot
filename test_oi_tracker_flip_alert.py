@@ -31,8 +31,9 @@ _DIRECTION = {"direction": "BULLISH", "conviction": "STRONG",
 def test_flip_alert_sends_photo_and_marks_dedup_when_image_succeeds(monkeypatch):
     calls = {}
 
-    def _fake_generate(events):
+    def _fake_generate(events, history=None):
         calls["events"] = events
+        calls["history"] = history
         class _R:
             ok = True
             path = "/tmp/fake_flip.png"
@@ -55,7 +56,7 @@ def test_flip_alert_sends_photo_and_marks_dedup_when_image_succeeds(monkeypatch)
 
 
 def test_flip_alert_falls_back_to_text_when_image_generation_raises(monkeypatch):
-    def _raise(events):
+    def _raise(events, history=None):
         raise RuntimeError("matplotlib unavailable")
 
     monkeypatch.setattr("option_oi_chart.generate_oi_flip_alert_image", _raise)
@@ -73,7 +74,7 @@ def test_flip_alert_falls_back_to_text_when_image_generation_raises(monkeypatch)
 
 
 def test_flip_alert_falls_back_to_text_when_photo_send_fails(monkeypatch):
-    def _fake_generate(events):
+    def _fake_generate(events, history=None):
         class _R:
             ok = True
             path = "/tmp/fake_flip.png"
@@ -93,7 +94,7 @@ def test_flip_alert_falls_back_to_text_when_photo_send_fails(monkeypatch):
 def test_flip_alert_skips_entirely_when_dedup_blocked(monkeypatch):
     called = {"n": 0}
 
-    def _fake_generate(events):
+    def _fake_generate(events, history=None):
         called["n"] += 1
         class _R:
             ok = True

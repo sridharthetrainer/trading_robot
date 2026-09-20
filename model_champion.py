@@ -171,23 +171,35 @@ def compare_candidates(
         })
 
     eligible = [row for row in leaderboard if row.get("eligible")]
-    # If cost-adjusted R is available, choose a model whose OOF high-probability
-    # slice has the best after-cost expectancy. AUC/Brier remain tie-breakers.
-    if any((row.get("utility") or {}).get("available") for row in eligible):
-        eligible.sort(key=lambda row: (
+    # When cost-adjusted returns were supplied, "champion" must mean a model
+    # that is economically eligible for promotion, not merely the least-bad
+    # loss-maker.  Keep rejected rows in the leaderboard for diagnostics, but
+    # do not return an estimator that downstream reports could call a champion.
+    if returns is not None:
+        economic_eligible = [
+            row for row in eligible
+            if bool((row.get("utility") or {}).get("available"))
+            and float((row.get("utility") or {}).get("best_avg_net_r") or 0.0) > 0.0
+            and float(row.get("brier_skill") or -1.0) > 0.0
+        ]
+        economic_eligible.sort(key=lambda row: (
             -float((row.get("utility") or {}).get("best_avg_net_r") or -999.0),
             -float((row.get("utility") or {}).get("best_sum_net_r") or -999.0),
             -row["auc"],
             row["brier"],
             row["log_loss"],
         ))
+        rejected_names = {row["name"] for row in economic_eligible}
+        rejected = [row for row in eligible if row["name"] not in rejected_names]
+        eligible = economic_eligible
     else:
         # AUC is primary discrimination; Brier and log loss break close ties.
         eligible.sort(key=lambda row: (-row["auc"], row["brier"], row["log_loss"]))
+        rejected = []
     champion = eligible[0]["name"] if eligible else ""
     return {
         "champion": champion,
         "candidate_count": len(estimators),
-        "leaderboard": eligible + [row for row in leaderboard if not row.get("eligible")],
+        "leaderboard": eligible + rejected + [row for row in leaderboard if not row.get("eligible")],
         "estimator": clone(estimators[champion]) if champion else None,
     }

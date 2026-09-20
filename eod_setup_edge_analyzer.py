@@ -14,10 +14,10 @@ option_cohort_edge_miner.py:
 
   1. Day-split (not row-split — avoids leaking a correlated same-day batch
      across train/holdout).
-  2. Welch t-test per setup (vs the rest) and per factor (has vs lacks).
+  2. After-cost return test per setup and per factor.
   3. Bonferroni correction across every setup+factor tested.
-  4. HELPS/CANDIDATE only when train clears corrected significance AND the
-     holdout split independently confirms the same sign.
+  4. CANDIDATE only when train clears corrected significance AND the unseen
+     holdout has a positive one-sided 95% lower confidence bound after costs.
 
 Read-only report (eod_setup_edge_report.json). Promotion of any surviving
 candidate goes through the same forward-holdout ledger discipline as the
@@ -28,6 +28,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -43,21 +44,29 @@ MIN_TRAIN_N = 30
 MIN_HOLDOUT_N = 15
 MIN_HOLDOUT_DAYS = 2
 ALPHA = 0.05
+COST_PCT = float(os.getenv("EDGE_ANALYZER_COST_PCT", "0.12"))
 
 
-def _stat(rets: List[float]) -> Dict[str, Any]:
+def _stat(rets: List[float], cost_pct: float = COST_PCT) -> Dict[str, Any]:
     n = len(rets)
     if n == 0:
         return {"n": 0}
-    mean = sum(rets) / n
+    gross_mean = sum(rets) / n
+    net_rets = [value - cost_pct for value in rets]
+    net_mean = sum(net_rets) / n
     sd = 0.0
     if n > 1:
-        var = sum((x - mean) ** 2 for x in rets) / (n - 1)
+        var = sum((x - net_mean) ** 2 for x in net_rets) / (n - 1)
         sd = math.sqrt(var)
-    t = mean / (sd / math.sqrt(n)) if sd > 0 else 0.0
+    standard_error = sd / math.sqrt(n) if sd > 0 else 0.0
+    t = net_mean / standard_error if standard_error > 0 else 0.0
     p = 2.0 * (1.0 - 0.5 * (1.0 + math.erf(abs(t) / math.sqrt(2))))
-    win = sum(1 for x in rets if x > 0) / n
-    return {"n": n, "mean_return_pct": round(mean, 4), "win_rate": round(win, 3),
+    gross_win = sum(1 for x in rets if x > 0) / n
+    net_win = sum(1 for x in net_rets if x > 0) / n
+    return {"n": n, "mean_return_pct": round(gross_mean, 4),
+            "net_mean_return_pct": round(net_mean, 4),
+            "net_return_lcb95_pct": round(net_mean - 1.645 * standard_error, 4),
+            "win_rate": round(gross_win, 3), "net_win_rate": round(net_win, 3),
             "t": round(t, 2), "p": round(p, 5)}
 
 
@@ -65,13 +74,16 @@ def _verdict(train: Dict[str, Any], holdout: Dict[str, Any], bonferroni: int) ->
     if train.get("n", 0) < MIN_TRAIN_N:
         return "INSUFFICIENT_DATA"
     sig = train["p"] * bonferroni < ALPHA
+    train_net = train.get("net_mean_return_pct", 0)
+    holdout_net = holdout.get("net_mean_return_pct", 0)
     held = (holdout.get("n", 0) >= MIN_HOLDOUT_N
-            and holdout.get("mean_return_pct", 0) * train["mean_return_pct"] > 0)
-    if sig and train["mean_return_pct"] > 0 and held:
+            and holdout_net * train_net > 0
+            and holdout.get("net_return_lcb95_pct", float("-inf")) > 0)
+    if sig and train_net > 0 and held:
         return "CANDIDATE"
-    if sig and train["mean_return_pct"] > 0:
+    if sig and train_net > 0:
         return "TRAIN_ONLY_OVERFIT"
-    if sig and train["mean_return_pct"] < 0:
+    if sig and train_net < 0:
         return "HURTS"
     return "NOISE"
 
@@ -90,7 +102,10 @@ def _write_gated_report(reason: str, days_available: int) -> Dict[str, Any]:
     return report
 
 
-def run(db_path: str = MINER_DB, min_days: int = 6) -> Dict[str, Any]:
+def run(db_path: str = MINER_DB, min_days: int = 6,
+        cost_pct: float = COST_PCT) -> Dict[str, Any]:
+    if not math.isfinite(cost_pct) or cost_pct < 0:
+        raise ValueError("cost_pct must be a finite, non-negative percentage")
     with sqlite3.connect(db_path) as conn:
         ensure_miner_schema(conn)
         days = [r[0] for r in conn.execute(
@@ -134,10 +149,10 @@ def run(db_path: str = MINER_DB, min_days: int = 6) -> Dict[str, Any]:
     results: List[Dict[str, Any]] = []
     for kind, group in (("setup", setups), ("factor", factors)):
         for name, (tr, ho) in group.items():
-            tr_stat = _stat(tr)
+            tr_stat = _stat(tr, cost_pct)
             if tr_stat.get("n", 0) < MIN_TRAIN_N:
                 continue
-            ho_stat = _stat(ho)
+            ho_stat = _stat(ho, cost_pct)
             verdict = _verdict(tr_stat, ho_stat, bonferroni)
             results.append({"kind": kind, "name": name, "train": tr_stat,
                             "holdout": ho_stat, "verdict": verdict})
@@ -145,6 +160,7 @@ def run(db_path: str = MINER_DB, min_days: int = 6) -> Dict[str, Any]:
     results.sort(key=lambda r: (r["verdict"] != "CANDIDATE", -(r["train"].get("t", 0) or 0)))
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "cost_pct": cost_pct,
         "mined_days": len(days), "train_days": cut_idx + 1, "holdout_days": holdout_days,
         "cutoff_day": cutoff, "bonferroni_tests": bonferroni,
         "candidates": [r for r in results if r["verdict"] == "CANDIDATE"],
@@ -165,18 +181,18 @@ def main() -> int:
         return 1
     print(f"=== EOD SETUP/FACTOR EDGE | {rep['mined_days']} mined days "
           f"(train {rep['train_days']} / holdout {rep['holdout_days']}) | "
-          f"Bonferroni x{rep['bonferroni_tests']} ===")
+              f"Bonferroni x{rep['bonferroni_tests']} | cost {rep['cost_pct']:.3f}% ===")
     cands = rep["candidates"]
     print(f"\nCANDIDATES surviving train-significance + holdout: {len(cands)}")
     for r in cands:
         print(f"  ✅ {r['kind']}:{r['name']} train n={r['train']['n']} "
-              f"ret={r['train']['mean_return_pct']} t={r['train']['t']} p={r['train']['p']} | "
-              f"holdout n={r['holdout'].get('n')} ret={r['holdout'].get('mean_return_pct')}")
+              f"net={r['train']['net_mean_return_pct']}% t={r['train']['t']} p={r['train']['p']} | "
+              f"holdout n={r['holdout'].get('n')} net={r['holdout'].get('net_mean_return_pct')}%")
     print("\nTop by |t| (regardless of verdict):")
     for r in sorted(rep["all_tested"], key=lambda r: -abs(r["train"].get("t", 0) or 0))[:10]:
         print(f"  {r['verdict']:>18} {r['kind']}:{r['name']}: train n={r['train']['n']} "
-              f"ret={r['train']['mean_return_pct']} t={r['train']['t']} p={r['train']['p']} | "
-              f"holdout n={r['holdout'].get('n')} ret={r['holdout'].get('mean_return_pct')}")
+              f"net={r['train']['net_mean_return_pct']}% t={r['train']['t']} p={r['train']['p']} | "
+              f"holdout n={r['holdout'].get('n')} net={r['holdout'].get('net_mean_return_pct')}%")
     return 0
 
 

@@ -30,6 +30,15 @@ def _make_stub(capital=1_000_000.0, open_positions=None):
     )
 
 
+@pytest.fixture(autouse=True)
+def _no_live_correlation_file(monkeypatch):
+    """Wiring tests isolate cluster policy from mutable nightly market data."""
+    import portfolio_heat
+    monkeypatch.setattr(
+        portfolio_heat, "_load_correlation_matrix", lambda: ([], __import__("numpy").array([]))
+    )
+
+
 def test_cached_daily_regime_key_takes_priority_over_heuristic():
     """A stub with daily_regime_key='market_crash' set (as main_autonomous.py's
     8:45AM handler would) must use that real-indicator-derived regime, not

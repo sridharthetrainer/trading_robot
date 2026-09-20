@@ -65,7 +65,13 @@ _UPSTOX_MASTER_LOADED = False
 # Known NSE ticker renames where our symbol lists still use the old name but
 # Upstox's master (and the exchange) use the new one. Same pattern already
 # used for this exact symbol in angel.py's _load_nse_eq_tokens().
-_UPSTOX_SYMBOL_ALIASES = {"HPCL": "HINDPETRO"}
+_UPSTOX_SYMBOL_ALIASES = {
+    "HPCL": "HINDPETRO",
+    # NSE renamed LTIMindtree's trading symbol from LTIM to LTM.  Keep the
+    # retired ticker resolvable for historical callers while the live universe
+    # uses the current exchange symbol.
+    "LTIM": "LTM",
+}
 
 
 def _load_upstox_instrument_master() -> dict:

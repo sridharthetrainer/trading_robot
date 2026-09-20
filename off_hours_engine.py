@@ -299,6 +299,7 @@ class OffHoursEngine:
         ("08:00", "Full backtest + model analysis", self._run_full_backtest),
                 ("10:00", "Feature IC report",              self._run_feature_ic),
                 ("12:00", "Deep ML training (15d window)",  self._run_deep_ml),
+                ("13:00", "LSTM research retraining",       self._run_lstm_retrain),
                 ("14:00", "Download historical data",       self._run_historical_download),
                 ("16:00", "Weekly performance analysis",    self._run_weekly_analysis),
         ("15:20", "Position reconciliation",     self._run_recon),
@@ -317,7 +318,14 @@ class OffHoursEngine:
             ]
 
         current_h_m = now.strftime("%H:%M")
-        pending = [(t, n, fn) for t, n, fn in schedule if t >= current_h_m]
+        # The Saturday list contains daily and weekly tasks assembled by
+        # category, not chronologically.  Selecting pending[0] from that raw
+        # order could skip nearer tasks (including model research) in favour of
+        # an evening task.  Sort by the explicit HH:MM contract first.
+        pending = sorted(
+            ((t, n, fn) for t, n, fn in schedule if t >= current_h_m),
+            key=lambda row: row[0],
+        )
 
         if pending:
             t, name, fn = pending[0]
@@ -781,20 +789,75 @@ class OffHoursEngine:
             logging.getLogger(__name__).debug('macro_event: %s', e)
 
 
-    def _run_lstm_retrain(self) -> None:
-        """Nightly: retrain LSTM model on live trade data."""
+    def _run_lstm_retrain(self) -> dict:
+        """Train research-only sequence models through the real module API.
+
+        This task deliberately does not promote a model or connect it to live
+        scoring.  USE_LSTM is an operator-controlled research switch and is
+        false by default.  Results are persisted so a silent import/fetch/train
+        failure cannot masquerade as a completed retrain.
+        """
+        import json
+        import os
+        from pathlib import Path
+
         try:
-            from lstm_model import LSTMModel
-            lstm = LSTMModel()
-            if hasattr(lstm, 'retrain'):
-                result = lstm.retrain()
-                import logging
-                logging.getLogger(__name__).info('LSTM retrained: %s', result)
-            elif hasattr(lstm, 'train'):
-                lstm.train()
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).debug('lstm_retrain: %s', e)
+            import config as cfg
+            enabled = bool(getattr(cfg, "USE_LSTM", False))
+        except Exception:
+            enabled = False
+
+        report = {
+            "generated_at": datetime.now().isoformat(),
+            "enabled": enabled,
+            "research_only": True,
+            "promoted": False,
+            "results": {},
+        }
+        if not enabled:
+            report["status"] = "SKIPPED"
+            report["reason"] = "USE_LSTM_disabled"
+        else:
+            from lstm_model import _get_angel_data_fetcher, train_lstm
+
+            symbols = [
+                item.strip().upper()
+                for item in os.getenv("LSTM_RESEARCH_SYMBOLS", "NIFTY").split(",")
+                if item.strip()
+            ]
+            days = max(30, int(os.getenv("LSTM_RESEARCH_DAYS", "120") or 120))
+            fetcher = _get_angel_data_fetcher()
+            for symbol in symbols:
+                try:
+                    candles = fetcher.get_market_data(symbol, interval="5m", days=days)
+                    if candles is None or len(candles) < 500:
+                        report["results"][symbol] = {
+                            "trained": False,
+                            "reason": "insufficient_5m_candles",
+                            "bars": 0 if candles is None else int(len(candles)),
+                        }
+                        continue
+                    result = train_lstm(candles, symbol=symbol) or {
+                        "trained": False, "reason": "no_training_result"
+                    }
+                    report["results"][symbol] = result
+                except Exception as exc:
+                    logger.warning("LSTM research training failed for %s: %s", symbol, exc)
+                    report["results"][symbol] = {
+                        "trained": False,
+                        "reason": f"{type(exc).__name__}: {exc}",
+                    }
+            report["status"] = (
+                "TRAINED_RESEARCH_ONLY"
+                if any(bool(row.get("trained")) for row in report["results"].values())
+                else "NO_MODEL_TRAINED"
+            )
+
+        Path("lstm_training_report.json").write_text(
+            json.dumps(report, indent=2, default=str), encoding="utf-8"
+        )
+        logger.info("LSTM research task: %s", report["status"])
+        return report
 
     def _run_weekly_equity_chart(self) -> None:
         """Monday 9AM: Send weekly equity curve chart to subscribers."""

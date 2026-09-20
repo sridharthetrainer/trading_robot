@@ -8,8 +8,8 @@ VALUE FACTOR EXCLUDED: this repo has no fundamental/valuation data source
 (no book value, EPS, or earnings anywhere) — grep hits on "eps" were false
 positives on "steps". Building a value factor would mean fabricating a
 proxy for real financial data, which this project's rules explicitly rule
-out. Only momentum and low-volatility are tested here — both purely
-price-derived, no fabricated inputs.
+out. Momentum, low-volatility, and proximity to the prior 52-week high are
+tested here — all purely price-derived and lagged before simulated execution.
 
 DATA-DEPTH ADAPTATION, stated plainly: classic academic momentum uses a
 12-month lookback skipping the most recent month (Jegadeesh & Titman
@@ -26,8 +26,9 @@ Method:
   - Universe: symbols with >= LOOKBACK_DAYS + MIN_LIVE_MONTHS*21 days of
     common 1d history (excludes very short-history recent listings).
   - Monthly rebalance (roughly every 21 trading days): rank by trailing
-    6-month return (momentum) or trailing 3-month realized volatility
-    (low-vol, ascending — lowest vol ranked best).
+    6-month return (momentum), trailing 3-month realized volatility
+    (low-vol, ascending — lowest vol ranked best), or prior-day proximity to
+    the trailing 52-week high.
   - Quintile long-short AND long-only-top-quintile-vs-equal-weight-
     benchmark, both reported.
   - Real delivery equity costs: EQ_STT_DELIVERY (capital_compounder.py) =
@@ -36,7 +37,7 @@ Method:
     allowance), applied every month a position is held (rebalanced).
   - Period-based (month) train/holdout split — NOT day-based, since the
     unit of independence here is the monthly rebalance, not the day.
-    Bonferroni across the 2 factors x 2 portfolio constructions tested.
+    Bonferroni across all factors x 2 portfolio constructions tested.
 """
 from __future__ import annotations
 
@@ -49,6 +50,8 @@ import pandas as pd
 
 CANDLE_DB = "candle_cache.db"
 LOOKBACK_DAYS = 126       # ~6 trading months
+HIGH_52W_LOOKBACK_DAYS = 252
+MAX_LOOKBACK_DAYS = max(LOOKBACK_DAYS, HIGH_52W_LOOKBACK_DAYS)
 SKIP_DAYS = 21            # ~1 month, avoids short-term reversal contamination
 VOL_LOOKBACK_DAYS = 63    # ~3 trading months
 REBALANCE_STEP_DAYS = 21  # ~1 month
@@ -70,7 +73,11 @@ def _load_universe() -> Dict[str, pd.Series]:
             rows = conn.execute(
                 "SELECT timestamp, close FROM candles WHERE symbol=? AND interval='1d' "
                 "ORDER BY timestamp", (sym,)).fetchall()
-            if len(rows) < LOOKBACK_DAYS + MIN_LIVE_MONTHS * REBALANCE_STEP_DAYS:
+            min_history = max(
+                MAX_LOOKBACK_DAYS,
+                LOOKBACK_DAYS + MIN_LIVE_MONTHS * REBALANCE_STEP_DAYS,
+            )
+            if len(rows) < min_history:
                 continue
             idx = pd.to_datetime([str(r[0])[:10] for r in rows])
             out[sym] = pd.Series([float(r[1]) for r in rows], index=idx)
@@ -86,15 +93,18 @@ def _stat(rets: List[float]) -> Dict[str, Any]:
     if n > 1:
         var = sum((x - mean) ** 2 for x in rets) / (n - 1)
         sd = math.sqrt(var)
-    t = mean / (sd / math.sqrt(n)) if sd > 0 else 0.0
+    standard_error = sd / math.sqrt(n) if sd > 0 else 0.0
+    t = mean / standard_error if standard_error > 0 else 0.0
     p = 2.0 * (1.0 - 0.5 * (1.0 + math.erf(abs(t) / math.sqrt(2))))
     win = sum(1 for x in rets if x > 0) / n
-    return {"n": n, "mean_monthly_pct": round(mean, 4), "win_rate": round(win, 3),
+    return {"n": n, "mean_monthly_pct": round(mean, 4),
+            "return_lcb95_pct": round(mean - 1.645 * standard_error, 4),
+            "win_rate": round(win, 3),
             "t": round(t, 2), "p": round(p, 5)}
 
 
 def _rebalance_dates(all_dates: pd.DatetimeIndex) -> List[pd.Timestamp]:
-    return list(all_dates[LOOKBACK_DAYS::REBALANCE_STEP_DAYS][:-1])
+    return list(all_dates[MAX_LOOKBACK_DAYS::REBALANCE_STEP_DAYS][:-1])
 
 
 def _factor_scores(prices: Dict[str, pd.Series], as_of: pd.Timestamp,
@@ -102,7 +112,7 @@ def _factor_scores(prices: Dict[str, pd.Series], as_of: pd.Timestamp,
     scores = {}
     for sym, s in prices.items():
         window = s[s.index <= as_of]
-        if len(window) < LOOKBACK_DAYS:
+        if len(window) < MAX_LOOKBACK_DAYS:
             continue
         if factor == "momentum":
             p_now = window.iloc[-1 - SKIP_DAYS]
@@ -110,10 +120,16 @@ def _factor_scores(prices: Dict[str, pd.Series], as_of: pd.Timestamp,
             if p_then > 0:
                 scores[sym] = (p_now / p_then) - 1.0
         elif factor == "low_vol":
-            recent = window.tail(VOL_LOOKBACK_DAYS)
+            recent = window.iloc[:-1].tail(VOL_LOOKBACK_DAYS)
             if len(recent) >= VOL_LOOKBACK_DAYS:
                 rets = recent.pct_change().dropna()
                 scores[sym] = -float(rets.std())  # negate: lower vol -> higher score
+        elif factor == "52_week_high":
+            prior = window.iloc[:-1].tail(HIGH_52W_LOOKBACK_DAYS)
+            if len(prior) >= HIGH_52W_LOOKBACK_DAYS:
+                high = float(prior.max())
+                if high > 0:
+                    scores[sym] = float(prior.iloc[-1]) / high
     return scores
 
 
@@ -188,7 +204,9 @@ def _verdict(train: Dict[str, Any], holdout: Dict[str, Any], bonferroni: int) ->
     if train.get("n", 0) < 6:
         return "INSUFFICIENT_DATA"
     sig = train["p"] * bonferroni < ALPHA
-    held = holdout.get("n", 0) >= 3 and holdout.get("mean_monthly_pct", 0) * train["mean_monthly_pct"] > 0
+    held = (holdout.get("n", 0) >= 3
+            and holdout.get("mean_monthly_pct", 0) * train["mean_monthly_pct"] > 0
+            and holdout.get("return_lcb95_pct", float("-inf")) > 0)
     if sig and train["mean_monthly_pct"] > 0 and held:
         return "CANDIDATE"
     if sig and train["mean_monthly_pct"] > 0:
@@ -204,11 +222,12 @@ def main() -> int:
     from pathlib import Path
 
     results = {}
-    for factor in ("momentum", "low_vol"):
+    factors = ("momentum", "low_vol", "52_week_high")
+    for factor in factors:
         results[factor] = run(factor)
 
-    print("=== CROSS-SECTIONAL FACTOR TEST (momentum, low-vol; value excluded, no data) ===\n")
-    bonferroni = 4  # 2 factors x 2 constructions
+    print("=== CROSS-SECTIONAL FACTOR TEST (momentum, low-vol, 52-week-high; value excluded, no data) ===\n")
+    bonferroni = len(factors) * 2
     report = {"generated_at": datetime.now().isoformat(timespec="seconds"),
               "bonferroni_tests": bonferroni, "value_factor": "excluded_no_fundamental_data",
               "factors": {}}

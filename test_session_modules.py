@@ -292,8 +292,13 @@ def test_fii_tradereact_parse(monkeypatch):
 
 
 # ── option scalper signal (new) ───────────────────────────────────────────────
-def test_option_scalper_signal_and_gating():
+def test_option_scalper_signal_and_gating(monkeypatch):
+    import config
     import option_scalper as o
+    # The operator may explicitly enable this signal-only scanner in .env.
+    # This unit test verifies the disabled branch and must not inherit that
+    # mutable machine configuration.
+    monkeypatch.setattr(config, "OPTION_SCALPER_ENABLED", False, raising=False)
     idx = pd.date_range("2026-06-24 09:15", periods=20, freq="5min")
     flat = pd.DataFrame({"open": [100] * 20, "high": [101] * 20, "low": [99] * 20,
                          "close": [100] * 20, "volume": [1000] * 20}, index=idx)

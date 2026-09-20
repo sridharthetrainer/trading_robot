@@ -9,8 +9,8 @@ MEASURING before believing. This does exactly that and claims nothing:
 
   1. Align daily NIFTY + BANKNIFTY closes.
   2. OLS hedge ratio β; spread = log(BANKNIFTY) - β·log(NIFTY).
-  3. Cointegration test: ADF(0) t-stat on the spread (Engle-Granger residual
-     test) + mean-reversion half-life + correlation.
+  3. Cointegration test: ADF(0) t-stat on the spread with a conservative
+     Engle-Granger residual critical value + mean-reversion half-life.
   4. Backtest a z-score mean-reversion rule WITH costs, on an OUT-OF-SAMPLE
      holdout (dev fits β + z-params; holdout is untouched until the end).
   5. Honest verdict: PASS only if cointegrated AND OOS net-Sharpe clears a
@@ -35,7 +35,10 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 REPORT_FILE = "pairs_validation_report.json"
-ADF_CRIT_5PCT = -2.86          # ADF critical value (constant, ~5%)
+# Residual-based Engle-Granger critical values are more negative than the
+# ordinary univariate ADF threshold.  -2.86 previously admitted false
+# cointegration; -3.34 is a conservative ~5% two-series/intercept threshold.
+ENGLE_GRANGER_CRIT_5PCT = -3.34
 COST_BPS_PER_LEG = 3.0         # round-trip ≈ 2 legs × entry+exit; conservative
 Z_IN, Z_OUT = 2.0, 0.5
 LOOKBACK = 20                  # rolling window for the z-score
@@ -153,7 +156,12 @@ def _half_life(s: np.ndarray) -> float:
     X = np.column_stack([np.ones_like(lag), lag])
     beta, *_ = np.linalg.lstsq(X, ds, rcond=None)
     rho = beta[1]
-    return float(-math.log(2) / math.log(1 + rho)) if -1 < rho < 0 else float("inf")
+    if not (-1 < rho < 0):
+        return float("inf")
+    denominator = math.log1p(rho)
+    if abs(denominator) < 1e-12:
+        return float("inf")
+    return float(-math.log(2) / denominator)
 
 
 def _backtest(df: pd.DataFrame, beta: float) -> Dict[str, Any]:
@@ -184,19 +192,28 @@ def _backtest(df: pd.DataFrame, beta: float) -> Dict[str, Any]:
             pos = 0
     rets = np.array(rets, float)
     if len(rets) == 0:
-        return {"trades": 0, "sharpe": 0.0, "win_rate": 0.0, "net": 0.0}
+        return {"trades": 0, "sharpe": 0.0, "win_rate": 0.0, "net": 0.0,
+                "mean_lcb95": None, "positive_mean_p_one_sided": None}
+    mean = float(rets.mean())
+    sd = float(rets.std(ddof=1)) if len(rets) > 1 else 0.0
+    se = sd / math.sqrt(len(rets)) if sd > 0 else 0.0
+    z = mean / se if se > 0 else 0.0
+    positive_p = 0.5 * math.erfc(z / math.sqrt(2)) if se > 0 else 1.0
     ann = math.sqrt(252.0 / max(_avg_hold(df, beta), 1.0))
-    sharpe = float(rets.mean() / rets.std(ddof=0) * ann) if rets.std(ddof=0) > 0 else 0.0
+    sharpe = float(mean / rets.std(ddof=0) * ann) if rets.std(ddof=0) > 0 else 0.0
     return {"trades": int(len(rets)), "sharpe": round(sharpe, 3),
             "win_rate": round(100.0 * float((rets > 0).mean()), 1),
-            "net": round(float(rets.sum()), 4), "avg_ret": round(float(rets.mean()), 5)}
+            "net": round(float(rets.sum()), 4), "avg_ret": round(mean, 5),
+            "mean_lcb95": round(mean - 1.645 * se, 5),
+            "positive_mean_p_one_sided": round(positive_p, 6)}
 
 
 def _avg_hold(df, beta) -> float:
     return 5.0   # rough mean holding (days) for annualisation; conservative
 
 
-def validate(sym_a: str = "NIFTY", sym_b: str = "BANKNIFTY") -> Dict[str, Any]:
+def validate(sym_a: str = "NIFTY", sym_b: str = "BANKNIFTY",
+             alpha: float = 0.05) -> Dict[str, Any]:
     df = _load_aligned(sym_a, sym_b)
     if df is None:
         return {"pair": f"{sym_a.upper()}-{sym_b.upper()}", "verdict": "INSUFFICIENT_DATA",
@@ -211,16 +228,23 @@ def validate(sym_a: str = "NIFTY", sym_b: str = "BANKNIFTY") -> Dict[str, Any]:
     adf = _adf_tstat(dev_spread)
     hl = _half_life(dev_spread)
     corr = float(np.corrcoef(np.log(dev["a"].values), np.log(dev["b"].values))[0, 1])
-    cointegrated = adf < ADF_CRIT_5PCT and 1.0 < hl < 60.0
+    cointegrated = adf < ENGLE_GRANGER_CRIT_5PCT and 1.0 < hl < 60.0
 
     dev_bt = _backtest(dev, beta)
     oos_bt = _backtest(hold, beta)
 
-    deflated_ok = (oos_bt["sharpe"] >= DSR_SHARPE_BAR and oos_bt["trades"] >= MIN_OOS_TRADES
-                   and oos_bt["net"] > 0)
-    if oos_bt["trades"] < MIN_OOS_TRADES:
+    deflated_ok = (
+        oos_bt["sharpe"] >= DSR_SHARPE_BAR
+        and oos_bt["trades"] >= MIN_OOS_TRADES
+        and oos_bt["net"] > 0
+        and oos_bt.get("positive_mean_p_one_sided") is not None
+        and oos_bt["positive_mean_p_one_sided"] < alpha
+    )
+    if not cointegrated:
+        verdict = "NO_EDGE"
+    elif oos_bt["trades"] < MIN_OOS_TRADES:
         verdict = "INSUFFICIENT_DATA"
-    elif cointegrated and deflated_ok:
+    elif deflated_ok:
         verdict = "PASS"
     else:
         verdict = "NO_EDGE"
@@ -230,28 +254,34 @@ def validate(sym_a: str = "NIFTY", sym_b: str = "BANKNIFTY") -> Dict[str, Any]:
         "verdict": verdict,
         "common_days": n, "dev_days": cut, "holdout_days": n - cut,
         "hedge_beta": round(beta, 4),
-        "cointegration": {"adf_tstat": round(adf, 3), "adf_crit_5pct": ADF_CRIT_5PCT,
-                          "stationary": bool(adf < ADF_CRIT_5PCT),
+        "cointegration": {"adf_tstat": round(adf, 3),
+                          "adf_crit_5pct": ENGLE_GRANGER_CRIT_5PCT,
+                          "test": "engle_granger_residual_adf0_conservative",
+                          "stationary": bool(adf < ENGLE_GRANGER_CRIT_5PCT),
                           "half_life_days": round(hl, 1) if math.isfinite(hl) else None,
                           "corr": round(corr, 3), "cointegrated": bool(cointegrated)},
         "dev_backtest": dev_bt, "oos_backtest": oos_bt,
         "gate": {"min_oos_trades": MIN_OOS_TRADES, "oos_sharpe_bar": DSR_SHARPE_BAR,
-                 "cost_bps_per_leg": COST_BPS_PER_LEG, "passed": bool(verdict == "PASS")},
+                 "cost_bps_per_leg": COST_BPS_PER_LEG,
+                 "positive_mean_alpha": alpha,
+                 "passed": bool(verdict == "PASS")},
     }
 
 
 def scan_pairs(pairs=None) -> Dict[str, Any]:
     """Validate candidate pairs; rank by ADF (most stationary spread first)."""
     pairs = pairs or CANDIDATE_PAIRS
+    alpha = 0.05 / max(1, len(pairs))
     results = []
     for a, b in pairs:
         try:
-            results.append(validate(a, b))
+            results.append(validate(a, b, alpha=alpha))
         except Exception as exc:
             results.append({"pair": f"{a}-{b}", "verdict": "ERROR", "reason": str(exc)[:80]})
     results.sort(key=lambda r: (r.get("cointegration") or {}).get("adf_tstat", 0.0) or 0.0)
     return {
         "scanned": len(results),
+        "multiple_test_alpha": alpha,
         "cointegrated": sum(1 for r in results if (r.get("cointegration") or {}).get("cointegrated")),
         "passed": sum(1 for r in results if r.get("verdict") == "PASS"),
         "ranked": results,

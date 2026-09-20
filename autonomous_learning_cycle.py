@@ -264,9 +264,30 @@ def run_autonomous_learning_cycle(
             "candidates": len(rep.get("candidates", [])),
             "hurts": len(rep.get("hurts", [])),
             "bonferroni_tests": rep.get("bonferroni_tests", 0),
+            "cost_pct": rep.get("cost_pct"),
+            "candidate_basis": "positive_after_cost_holdout_lcb95",
         }
 
     report["steps"]["eod_setup_edge"] = _step("eod_setup_edge", _eod_setup_edge)
+
+    def _prospective_execution_ledger() -> Dict[str, Any]:
+        if dry_run:
+            return {"skipped": True, "reason": "dry_run"}
+        from prospective_execution_ledger import build_report, sync_from_signal_log
+        sync = sync_from_signal_log()
+        ledger = build_report()
+        return {
+            "sync": sync,
+            "captured": ledger.get("captured", 0),
+            "outcomes": ledger.get("outcomes", 0),
+            "active_days": ledger.get("active_days", 0),
+            "quote_coverage": ledger.get("executable_quote_coverage", 0),
+            "passed": bool(ledger.get("passed", False)),
+            "gates": ledger.get("gates", {}),
+        }
+
+    report["steps"]["prospective_execution_ledger"] = _step(
+        "prospective_execution_ledger", _prospective_execution_ledger)
 
     def _option_signal_research_ledger() -> Dict[str, Any]:
         if dry_run:
@@ -348,9 +369,10 @@ def run_autonomous_learning_cycle(
     )
 
     def _data_quality_watchdog() -> Dict[str, Any]:
+        from candle_coverage_backfill import _learning_symbols
         from data_quality_watchdog import audit_candle_cache
 
-        audit = audit_candle_cache()
+        audit = audit_candle_cache(symbols=_learning_symbols(None))
         return {
             "ok": bool(audit.get("ok")),
             "groups": audit.get("total_groups", 0),

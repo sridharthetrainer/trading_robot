@@ -84,8 +84,9 @@ def build_system_readiness_report(
     except Exception:
         fill = _read_json("execution_fill_telemetry.json")
     try:
+        from candle_coverage_backfill import _learning_symbols
         from data_quality_watchdog import audit_candle_cache
-        quality = audit_candle_cache()
+        quality = audit_candle_cache(symbols=_learning_symbols(None))
     except Exception:
         quality = _read_json("data_quality_watchdog_report.json")
     derived = _read_json("derived_daily_candles_report.json")
@@ -121,6 +122,11 @@ def build_system_readiness_report(
         execution_chain = verify_audit_chain()
     except Exception as exc:
         execution_chain = {"ok": False, "error": str(exc)}
+    try:
+        from prospective_execution_ledger import build_report as build_prospective_execution_report
+        prospective_execution = build_prospective_execution_report(write=False)
+    except Exception as exc:
+        prospective_execution = {"passed": False, "error": str(exc)}
 
     latest_option_ok = _sqlite_scalar(
         "option_chain_snapshots.db",
@@ -209,6 +215,8 @@ def build_system_readiness_report(
         warnings.append("execution_audit_chain_awaiting_new_events")
     if not training_contract.get("ok"):
         blocks.append("ml_training_contract_audit_failed")
+    if not prospective_execution.get("passed"):
+        blocks.append("prospective_execution_evidence_pending")
 
     raw_data_score = (data_audit.get("score") or {}).get("total")
     raw_inst_score = (data_audit.get("institutional_readiness") or {}).get("total")
@@ -270,6 +278,7 @@ def build_system_readiness_report(
             "sample_source": "all_training_eligible_generated_signals",
             "legacy_labelled_rows": int(labelled_check.get("legacy_labelled", 0) or 0),
             "shadow_portfolio": shadow_portfolio,
+            "prospective_execution": prospective_execution,
         },
         "blocks": list(dict.fromkeys(blocks)),
         "warnings": warnings,
@@ -316,6 +325,7 @@ def render_summary(report: Dict[str, Any]) -> str:
         f"candles 1m={data.get('candle_1m_symbols')} 1d={data.get('candle_1d_symbols')} bad_groups={data.get('bad_candle_groups')}/{data.get('total_candle_groups')} stale_groups={data.get('stale_candle_groups')}",
         f"latest_option_snapshot={data.get('latest_option_snapshot_ok')} age_h={data.get('latest_option_snapshot_age_hours')}",
         f"labels={learning.get('labelled_rows')}/{learning.get('target_labelled')} days={learning.get('labelled_days')}/{learning.get('target_days')} experiments={learning.get('experiments_logged')}",
+        f"prospective_execution captured={learning.get('prospective_execution', {}).get('captured', 0)} outcomes={learning.get('prospective_execution', {}).get('outcomes', 0)} active_days={learning.get('prospective_execution', {}).get('active_days', 0)} passed={learning.get('prospective_execution', {}).get('passed', False)}",
         f"blocks={','.join(report.get('blocks') or []) or 'none'}",
         f"warnings={','.join(report.get('warnings') or []) or 'none'}",
     ])

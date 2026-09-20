@@ -197,7 +197,7 @@ def _load_nse_eq_tokens() -> dict:
                         _NSE_EQ_TOKENS[nm] = tok
             if _NSE_EQ_TOKENS:
                 # Common colloquial aliases → official NSE symbols
-                for _alias, _official in (("HPCL", "HINDPETRO"),):
+                for _alias, _official in (("HPCL", "HINDPETRO"), ("LTIM", "LTM")):
                     if _alias not in _NSE_EQ_TOKENS and _official in _NSE_EQ_TOKENS:
                         _NSE_EQ_TOKENS[_alias] = _NSE_EQ_TOKENS[_official]
                 log.info("NSE tokens loaded: %d from %s", len(_NSE_EQ_TOKENS), mc_file)

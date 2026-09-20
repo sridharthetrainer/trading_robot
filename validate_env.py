@@ -231,7 +231,7 @@ def validate(env: dict, live_check: bool = False) -> dict:
     return results
 
 
-def check_capital_allocation(env: dict) -> None:
+def check_capital_allocation(env: dict) -> str | None:
     """Verify capital allocation percentages sum to 1.0."""
     keys = ["SWING_CAPITAL_PCT", "INTRADAY_CAPITAL_PCT",
             "SCALPING_CAPITAL_PCT", "RESERVE_CAPITAL_PCT"]
@@ -246,9 +246,11 @@ def check_capital_allocation(env: dict) -> None:
         else:
             print(fail(f"Capital allocation sums to {total:.2f} — must equal 1.0"))
             print(f"       SWING={vals[0]} + INTRADAY={vals[1]} + SCALP={vals[2]} + RESERVE={vals[3]} = {total:.2f}")
+            return "fail"
+    return None
 
 
-def check_mode_consistency(env: dict) -> None:
+def check_mode_consistency(env: dict) -> str | None:
     """Check paper/live mode settings are consistent."""
     paper   = env.get("PAPER_TRADING","true").lower()
     real    = env.get("ENABLE_REAL_TRADING","false").lower()
@@ -257,9 +259,11 @@ def check_mode_consistency(env: dict) -> None:
     if paper == "false" and real == "false":
         print(warn("PAPER_TRADING=false but ENABLE_REAL_TRADING=false — no mode active!"))
         print(f"       Set ENABLE_REAL_TRADING=true to trade live")
+        return "warn"
     elif paper == "true" and real == "true":
         print(warn("Both PAPER_TRADING=true and ENABLE_REAL_TRADING=true — paper takes priority"))
         print(f"       To go live: set PAPER_TRADING=false")
+        return "warn"
     elif paper == "false" and real == "true":
         min_cap = env.get("MIN_LIVE_CAPITAL", "25000")
         cap     = env.get("REAL_CAPITAL", env.get("CAPITAL", "0"))
@@ -267,6 +271,7 @@ def check_mode_consistency(env: dict) -> None:
             if float(cap) < float(min_cap):
                 print(warn(f"LIVE MODE but REAL_CAPITAL=₹{cap} < MIN_LIVE_CAPITAL=₹{min_cap}"))
                 print(f"       Auto-mode will downgrade to PAPER until capital >= ₹{min_cap}")
+                return "warn"
             else:
                 print(ok(f"LIVE MODE — REAL_CAPITAL=₹{cap} >= MIN_LIVE_CAPITAL=₹{min_cap}"))
         except: pass
@@ -275,13 +280,14 @@ def check_mode_consistency(env: dict) -> None:
             print(ok("AUTO_MODE_SWITCH=true — system decides paper/live automatically"))
         else:
             print(ok(f"Paper trading mode active"))
+    return None
 
 
-def check_totp(env: dict) -> None:
+def check_totp(env: dict) -> str | None:
     """Validate TOTP secret format (should be base32)."""
     totp = env.get("TOTP_SECRET", "")
     if not totp:
-        return
+        return None
     # Base32 chars only
     valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=")
     clean = totp.upper().replace(" ", "")
@@ -291,25 +297,27 @@ def check_totp(env: dict) -> None:
         print(fail("TOTP_SECRET looks like a 6-digit OTP code — this is WRONG"))
         print("       You need the BASE32 SECRET from Angel One, not the current OTP code")
         print("       Go to: Angel One app → Profile → Security → Authenticator Setup")
+        return "fail"
     else:
         print(warn(f"{'TOTP_SECRET':<30} format unusual — verify it is the base32 secret"))
+        return "warn"
+    return None
 
 
-def check_env_file_issues(env_path: str = ".env") -> None:
+def check_env_file_issues(env_path: str = ".env") -> list[str]:
     """Check for common .env file formatting issues."""
     p = Path(env_path)
     if not p.exists():
-        return
+        return []
     issues = []
     for i, line in enumerate(p.read_text().splitlines(), 1):
         if not line.strip() or line.strip().startswith("#"):
             continue
         if "=" not in line:
             issues.append(f"Line {i}: no '=' found: {line[:50]}")
-        elif line.count("=") > 1 and "http" not in line:
-            val = line.split("=", 1)[1]
-            if not val.startswith('"') and "=" in val:
-                issues.append(f"Line {i}: multiple '=' — wrap value in quotes if intentional")
+        # Additional '=' characters are valid inside dotenv values (for example,
+        # base64 padding, tokens, and query strings).  load_env() deliberately
+        # splits only on the first one, so warning here would be a false positive.
         # Check for spaces around =
         if re.match(r'\w+\s+=\s*', line) or re.match(r'\w+=\s+\S', line):
             issues.append(f"Line {i}: spaces around '=' may cause issues: {line[:50]}")
@@ -318,6 +326,7 @@ def check_env_file_issues(env_path: str = ".env") -> None:
             print(warn(f"Format: {issue}"))
     else:
         print(ok(f"{'File format':<30} no formatting issues found"))
+    return issues
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -349,19 +358,24 @@ if __name__ == "__main__":
 
     # File format check
     print(f"{BOLD}FILE FORMAT{RESET}")
-    check_env_file_issues(env_path)
+    format_issues = check_env_file_issues(env_path)
     print()
 
     # Core validation
     print(f"{BOLD}REQUIRED KEYS{RESET}")
     results = validate(env, live_check=live_check)
+    results["warn"].extend(f"env_format:{i}" for i, _ in enumerate(format_issues, 1))
     print()
 
     # Special checks
     print(f"{BOLD}CONSISTENCY CHECKS{RESET}")
-    check_capital_allocation(env)
-    check_mode_consistency(env)
-    check_totp(env)
+    for check_name, status in (
+        ("capital_allocation", check_capital_allocation(env)),
+        ("mode_consistency", check_mode_consistency(env)),
+        ("totp_format", check_totp(env)),
+    ):
+        if status:
+            results[status].append(check_name)
     print()
 
     # Summary
@@ -372,7 +386,7 @@ if __name__ == "__main__":
     print(f"{'═'*60}")
     print(f"{BOLD}SUMMARY{RESET}")
     print(f"  {GREEN}✅ PASS  {p:3d}{RESET}")
-    print(f"  {YELLOW}⚠️  WARN  {w:3d}{RESET}  (optional settings not configured)")
+    print(f"  {YELLOW}⚠️  WARN  {w:3d}{RESET}  (configuration warnings)")
     print(f"  {RED}❌ FAIL  {f:3d}{RESET}  (required — must fix before bot works)")
     print()
 

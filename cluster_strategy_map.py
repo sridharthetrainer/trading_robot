@@ -57,6 +57,15 @@ OPTION_CATEGORY_TO_CLUSTER = {
 # Explicit per-strategy overrides that beat the factor-based default --
 # each one documented with why the generic factor mapping doesn't fit.
 STRATEGY_NAME_OVERRIDES = {
+    # These five strategies intentionally share CORE_SIGNAL_SCORE for vote
+    # de-correlation, but that factor is not a risk taxonomy.  Falling through
+    # to DEFAULT_CLUSTER incorrectly classified every one as breakout cluster A
+    # and could bypass the regime policy for trend/mean-reversion exposure.
+    "trend": "E",
+    "ma_cross": "E",
+    "mean_reversion": "D",
+    "breakout": "A",
+    "scalping": "A",
     # "expiry_scalp" classifies as MOMENTUM via factor_of() (keyword "scalp"),
     # but it's specifically an expiry-day strategy -- matches spec Cluster J.
     "expiry_scalp": "J",

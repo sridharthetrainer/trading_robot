@@ -12,8 +12,24 @@ from cluster_risk_gate import ClusterRiskGate, underlying_of
 
 
 @pytest.fixture
-def gate():
+def gate(monkeypatch):
+    # Unit tests must not depend on the mutable production correlation file.
+    # Correlation-specific cases below replace this stub explicitly.
+    import portfolio_heat
+    monkeypatch.setattr(
+        portfolio_heat, "_load_correlation_matrix", lambda: ([], np.array([]))
+    )
     return ClusterRiskGate()  # loads the real cluster_matrix.json
+
+
+def test_core_signal_score_strategies_keep_distinct_risk_clusters():
+    from cluster_strategy_map import cluster_of
+
+    assert cluster_of("trend") == "E"
+    assert cluster_of("ma_cross") == "E"
+    assert cluster_of("mean_reversion") == "D"
+    assert cluster_of("breakout") == "A"
+    assert cluster_of("scalping") == "A"
 
 
 # ── resolve_regime_key ───────────────────────────────────────────────────

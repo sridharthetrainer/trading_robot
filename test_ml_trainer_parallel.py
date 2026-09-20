@@ -25,6 +25,7 @@ def test_train_one_symbol_sets_promotion_fields_on_success(monkeypatch):
         # Promotion is fail-closed on after-cost utility: it must be proven
         # available AND positive, not merely "not proven negative".
         "profit_utility": {"available": True, "best_avg_net_r": 0.10},
+        "locked_forward_holdout": {"passed": True},
     }
     monkeypatch.setattr(ml_trainer, "_train_model", lambda *a, **kw: dict(fake_model_result))
     monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_SAMPLES", 50)
@@ -92,6 +93,7 @@ def _fast_fake_train_model(X, y, feature_names, label="cross_symbol", net_return
         "profit_utility": {
             "available": net_returns is not None,
             "best_avg_net_r": 0.10 if net_returns is not None else None,
+            "best_threshold": 0.55 if net_returns is not None else None,
         },
         "n_samples": len(y), "feature_importances": [],
     }
@@ -129,6 +131,7 @@ def test_train_all_parallel_matches_serial_semantics_end_to_end(monkeypatch):
     with 'model' stripped and promotion fields set, same observable contract
     as the old serial loop."""
     monkeypatch.setattr(ml_trainer, "MIN_SYMBOL_SAMPLES", 50)
+    monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_SAMPLES", 50)
     monkeypatch.setattr(ml_trainer, "_train_model", _fast_fake_train_model)
 
     df = _make_synthetic_df({"NIFTY": 12, "BANKNIFTY": 10}, rows_per_day=6)
@@ -142,6 +145,7 @@ def test_train_all_parallel_matches_serial_semantics_end_to_end(monkeypatch):
         assert "promoted" in sym_result
         assert sym_result["distinct_days"] > 0
         assert sym_result["training_data_fingerprint"]
+        assert "locked_forward_holdout" in sym_result
 
 
 def test_train_all_one_bad_symbol_does_not_lose_the_others(monkeypatch):
@@ -150,6 +154,7 @@ def test_train_all_one_bad_symbol_does_not_lose_the_others(monkeypatch):
     OWN worker process must not prevent the other symbols' models (running
     in sibling worker processes) from completing and being collected."""
     monkeypatch.setattr(ml_trainer, "MIN_SYMBOL_SAMPLES", 50)
+    monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_SAMPLES", 50)
 
     def _flaky(X, y, feature_names, label="cross_symbol", net_returns=None):
         if label == "BANKNIFTY":
@@ -173,6 +178,7 @@ def test_train_all_cross_symbol_failure_does_not_abort_pipeline(monkeypatch):
     had, now applied to the cross-symbol call too. Per-symbol models (run
     with the same _train_model) must still complete."""
     monkeypatch.setattr(ml_trainer, "MIN_SYMBOL_SAMPLES", 50)
+    monkeypatch.setattr(ml_trainer, "MIN_PROMOTION_SAMPLES", 50)
 
     def _cross_symbol_fails(X, y, feature_names, label="cross_symbol", net_returns=None):
         if label == "cross_symbol":
@@ -187,3 +193,24 @@ def test_train_all_cross_symbol_failure_does_not_abort_pipeline(monkeypatch):
     assert "error" not in result
     assert result["cross_symbol"] == {"error": "cross_symbol_training_failed"}
     assert set(result["per_symbol"].keys()) == {"NIFTY", "BANKNIFTY"}
+
+
+def test_economically_rejected_tournament_is_reported_not_crashed(monkeypatch):
+    tournament = {
+        "estimator": None,
+        "champion": "",
+        "candidate_count": 1,
+        "leaderboard": [{
+            "name": "loser", "eligible": True, "auc": 0.7,
+            "brier_skill": 0.1,
+            "utility": {"available": True, "best_avg_net_r": -0.05},
+        }],
+    }
+    monkeypatch.setattr("model_champion.compare_candidates", lambda *a, **k: tournament)
+    result = ml_trainer._train_model(
+        np.zeros((20, 2)), np.array([0, 1] * 10), ["f1", "f2"],
+        net_returns=np.full(20, -0.05),
+    )
+    assert result["model"] is None
+    assert result["rejected_reason"] == "no_candidate_with_positive_calibrated_after_cost_utility"
+    assert result["candidate_leaderboard"] == tournament["leaderboard"]

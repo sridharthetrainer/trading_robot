@@ -62,6 +62,18 @@ def test_hpcl_alias_resolves_via_hindpetro(tmp_path, monkeypatch):
     assert ud._get_instrument_key("HPCL") == "NSE_EQ|INE094A01015"
 
 
+def test_retired_ltim_alias_resolves_to_current_ltm(tmp_path, monkeypatch):
+    _reset_module_state(monkeypatch, tmp_path)
+    items = [{
+        "segment": "NSE_EQ", "trading_symbol": "LTM",
+        "instrument_key": "NSE_EQ|INE214T01019",
+    }]
+    monkeypatch.setattr(ud.requests, "get", lambda *a, **k: _fake_response(items))
+
+    assert ud._get_instrument_key("LTIM") == "NSE_EQ|INE214T01019"
+    assert ud._get_instrument_key("LTM") == "NSE_EQ|INE214T01019"
+
+
 def test_nse_eq_preferred_over_bse_eq_regardless_of_file_order(tmp_path, monkeypatch):
     """The exact bug found this session: BSE_EQ listed BEFORE NSE_EQ in the
     raw file must still resolve to NSE_EQ."""

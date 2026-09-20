@@ -36,7 +36,7 @@ STATIC = {
 # Aliases for renamed/merged symbols
 ALIASES = {
     "MCDOWELLS":["MCDOWELLS-EQ","MCDOWELL-N-EQ"],
-    "LTIM":     ["LTIM-EQ","LTIMINDTEE-EQ"],
+    "LTM":      ["LTM-EQ","LTIM-EQ","LTIMINDTEE-EQ"],
     "HDFCAMC":  ["HDFCAMC-EQ"],
     "AMARA":    ["AMARAJABAT-EQ","AMARA-EQ"],
     "MINDACORP":["MINDAIND-EQ","MINDACORP-EQ"],
