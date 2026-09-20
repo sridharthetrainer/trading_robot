@@ -764,3 +764,28 @@ that already informed a decision. sip_boost (the one HELPS verdict) and
 the 10 DEAD + 9 NOISE modifiers were not re-checked this pass (lower
 priority than the two live HURTS candidates that would have caused an
 active edit to the live confluence scoring).
+
+### sip_boost holdout check (2026-09-20, same pass)
+
+The one HELPS-verdict modifier from the pooled report (endorsed_mean
++0.0796 vs silent -0.0253, lift=+0.1049, t=3.761, p=0.000175 in
+discovery). Same day-boundary holdout (2026-08-21 onward, n=2,229):
+**zero endorsed signals in the entire holdout window** -- sip_boost
+simply didn't fire once in the last 10 trading days. Inconclusive, not
+rejected: there's no data to confirm or deny against, unlike the two
+HURTS candidates above which had plenty of holdout occurrences that
+actively failed to replicate the effect.
+
+**Modifier-pruning effort, final status for this pass**: every modifier
+with an actionable (HELPS or HURTS) verdict in the pooled 28,123-signal
+report has now been checked against a genuinely separate, day-boundary
+locked holdout. Result: mtf_pivot_mod and sr_level_mod's HURTS effects
+both collapsed to statistical noise; sip_boost's HELPS effect couldn't
+even be tested (no holdout occurrences). **Net result: zero actionable
+changes to signal_engine.py's confluence scoring from this pass.** The
+DEAD (10) and NOISE (9) verdicts were not holdout-checked -- a smaller
+holdout sample can't produce evidence of an effect the larger pooled
+sample already failed to find, so there's nothing to gain by testing
+them. Re-run this same check again once meaningfully more days accrue
+past 2026-08-21, particularly for sip_boost (needs a window that
+actually contains some of its trigger condition to be testable at all).
