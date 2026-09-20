@@ -473,3 +473,75 @@ cloned but not yet read in detail -- deprioritized once the pattern above
 already tested and rejected) reduced the expected value of continuing
 through the remaining repos versus moving to TradingView's well-known
 built-in strategies (user's next-stated priority, 2026-09-20).
+
+## TradingView built-in strategies (2026-09-20)
+
+User instruction: after the external-repo effort above, check what "well-
+known TradingView built-in indicators/strategies" this system's 79-strategy
+registry (`signal_engine.py:2326`) doesn't already cover, and backtest the
+gaps. Registry inventory found the large majority already present under
+this project's own names (Supertrend, RSI+divergence, Bollinger %B, VWAP
+variants, Ichimoku, Parabolic SAR, Chaikin MF, Williams %R, Awesome
+Oscillator, Elliott Wave, Volume Profile, pivot/CPR variants, etc.) --
+genuinely missing: MACD (standalone), Stochastic Oscillator, ADX/DMI,
+Donchian Channel breakout, Aroon. All five indicator calculations already
+existed as tested functions in `indicators.py`; only the entry/exit rule
+and wiring needed writing. Implemented as
+`backtest_{macd_crossover,stochastic_crossover,adx_dmi_crossover,
+donchian_breakout,aroon_crossover}.py`, each a standard textbook rule
+(crossover for MACD/Stochastic/ADX-DMI/Aroon, N-period breakout for
+Donchian) reusing `single_leg_intraday_option_backtest.py`'s existing
+single-leg option-buy harness -- same one `backtest_sma20_atm_option.py`
+uses. ATM strike, generic +Rs30,000/-Rs20,000 unrealized exit / 3:10pm
+square-off (this project's established default for adapting an
+underlying-chart signal into option-buying, not a TradingView-native rule).
+
+**Initial screen, full `candle_cache.db` history (2025-05-19 to
+2026-09-18, 334 candidate days, qty=65):**
+
+| Strategy | Trades | Net P&L | Sharpe |
+|---|---|---|---|
+| macd_crossover | 325 | -Rs41,431 | -0.808 |
+| stochastic_crossover | 330 | +Rs140,694 | 1.700 |
+| adx_dmi_crossover | 246 | +Rs46,751 | 1.073 |
+| donchian_breakout | 330 | +Rs111,872 | 1.551 |
+| aroon_crossover | 306 | +Rs104,997 | 1.635 |
+
+Four of five looked positive -- which, given this project's entire track
+record (every one of 79 formally-validated strategies, every seminar
+strategy, every confluence modifier, and the HTF-alignment candidate has
+failed OOS after costs), was immediately treated as suspicious rather than
+reported as a finding. Two things stood out before trusting it: (1) every
+single trade across all five backtests exited via TIME_EXIT -- the
++Rs30,000/-Rs20,000 unrealized thresholds NEVER fired once, so each
+"strategy" reduces to "buy ATM CE or PE at some signal bar, hold to
+3:10pm square-off," nothing more; (2) per-side P&L decomposition showed
+PE trades dominating profit in all four positive strategies (e.g. Donchian:
+CE=-Rs1,589 across 159 trades vs PE=+Rs113,461 across 171 trades) while
+NIFTY fell -6.71% over the exact same window (25,026.5 -> 23,346.4).
+
+**Decisive confound check**: backtested two trivial baselines with NO
+indicator at all -- "always buy ATM PE at the day's open, hold to
+square-off" and the CE mirror. Naive always-PE: net +Rs234,294, Sharpe
+2.428 -- BETTER than every one of the four "positive" indicator strategies.
+Naive always-CE: net +Rs28,892, Sharpe 0.316 -- consistent with the
+downward drift. This proves the four positive results are not adding any
+signal value at all: they are diluted, worse-timed versions of just
+capturing the sample period's realized index drift. An indicator that
+only sometimes fires PE and sometimes CE, with no real timing skill, will
+show a positive Sharpe purely by being correlated with the direction the
+market happened to move over this specific 16-month sample -- which is
+look-ahead information a live strategy would never have, not a real edge.
+
+**Verdict: REJECTED, all five.** MACD failed outright even including the
+drift. The other four's apparent edge is 100% explained by directional
+drift capture over this specific backtest sample, not genuine
+signal -- confirmed by underperforming a same-side, zero-indicator naive
+baseline in every case. No walk-forward/locked-holdout validation
+warranted; the baseline decomposition already falsifies the "this
+indicator has edge" claim before that stage. This is the same discipline
+already applied to cross-sectional/pairs-trading candidates
+(`cross_sectional_factor_test.py`, `pairs_stat_arb_validation.py`) now
+extended to single-leg option-buying backtests: an aggregate positive
+number must survive decomposition against the simplest possible
+directional-exposure explanation before being trusted at all.
