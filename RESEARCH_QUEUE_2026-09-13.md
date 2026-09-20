@@ -403,3 +403,73 @@ easily a handful of large trades can dominate a small subgroup's average
 (seen directly in both the TREND-regime HTF-alignment cell and the earlier
 iron condor forward test). Don't loosen these standards to make a
 promising-looking finding clear the bar faster.
+
+## External-repo strategy extraction (2026-09-20)
+
+User instruction: check public GitHub NIFTY-options trading repos, extract
+their concrete strategy LOGIC (never their claimed results), and backtest
+each within this project's own framework (candle_cache.db, real cost model,
+option_intraday_pricer.py's EOD-settle-anchored Black-Scholes pricer).
+
+### 1. "Target Premium Breakout" (udhay8005/nifty_bot) -- REJECTED
+
+Rule (from `core/strategy.py` + `config.py`, read in full): 9:25 scan the
+option chain for the CE strike and PE strike (independently) whose premium
+is closest to Rs180; 9:30-9:35 one-shot entry window, buy whichever leg's
+premium first breaks above Rs180 (CE has priority if both fire); SL
+entry-20pts, target entry+40pts; breakeven once +20pts favorable; SL trails
+to the prior 5-min candle's low from 9:45; hard time exit 10:00 AM
+regardless. At most 1 trade/day. Implemented in
+`backtest_premium_breakout.py`, with two deliberate strategy-favoring
+approximations documented in its header (assumes every breakout sustains;
+checks each bar's favorable extreme, not just its close).
+
+**Result, full `candle_cache.db` history (2025-05-19 to 2026-09-17, 334
+candidate days, qty=65 = 1 lot):**
+- 308 trades taken (23 no-breakout days, 1 no-pricing, 1 no-expiry skip)
+- Exit breakdown: 233 SL_INITIAL (75.6%), 34 SL_TRAILING, 12 SL_BREAKEVEN,
+  18 TIME_EXIT, only 11 TARGET (3.6%)
+- Win rate net of cost: 11.69%
+- NET P&L: -Rs294,589 (gross -Rs270,172, cost Rs24,417)
+- Sharpe (net, annualized): -16.46, max drawdown Rs294,811
+
+**Verdict: REJECTED, decisively.** Three out of four trades never even
+survive to breakeven -- this isn't a marginal miss, it's a structural
+mismatch between a 20pt stop and a 40pt target on a long-premium momentum
+scalp with a ~30-minute lifecycle. The likely mechanism (consistent with
+every other tested strategy in this system): theta decay works against a
+long-premium position over even a short holding window, while a tight
+initial stop gets clipped by ordinary 5-min intraday noise before any
+directional edge has a chance to pay off. Sample checked by hand (8 random
+trades) before trusting the aggregate -- confirmed the mechanics are
+correct, not an artifact (the apparent "SL exit above entry price" cases
+are real trailing-stop locks, not a bug). No further validation
+(walk-forward/deflated Sharpe) warranted -- the initial screen result is
+unambiguous and this doesn't need the full harness to know it fails.
+
+### 2. Short-straddle repos (buzzsubash/algo_trading_strategies_india,
+0920_short_straddle family) -- same strategy CLASS as an
+already-rejected candidate, not separately backtested
+
+Partial read of `nifty50_0920_short_straddle.py` (sell ATM CE+PE at 9:20,
+25% per-leg premium SL, single scheduled re-entry at 12:30, square-off
+15:06) shows this is mechanically the same strategy class as
+`rolling_short_straddle` (already tested this session: -Rs2,897,571 over
+498 cycles, 58% whipsawed by leg-level % stop-loss -- see the seminar-
+strategy results referenced earlier in this file). Different specific
+parameters (25% vs 20% leg SL, 9:20 vs 10:00 entry, single vs continuous
+re-entry), but the SAME fundamental failure mode this system has already
+measured: leg-level percentage stops on short-premium positions get
+whipsawed by ordinary intraday chop before theta decay can pay off. Given
+that established result, a full separate backtest of this variant was
+judged not worth building -- the prior is already strong and the marginal
+information from re-testing a parameter variant of an already-rejected
+strategy class is low relative to the effort. Flagged here rather than
+silently dropped; can be built on request.
+
+`snowjug/Trading-Bot` and `Aditya0049/NIFTY-OPTIONS-TRADING-AI` were
+cloned but not yet read in detail -- deprioritized once the pattern above
+(two independent repos separately reinventing recipes this project has
+already tested and rejected) reduced the expected value of continuing
+through the remaining repos versus moving to TradingView's well-known
+built-in strategies (user's next-stated priority, 2026-09-20).
