@@ -720,3 +720,47 @@ Strangle), E2/E3/E5/E6 -- flagged here rather than silently dropped, but
 the honest prior after this comprehensive a rejection pattern is that
 they would very likely reproduce either the naked-whipsaw or the
 paired-noise result already established, not something structurally new.
+
+## Modifier pruning locked-holdout check (2026-09-20) -- DO NOT ACT YET
+
+CLAUDE.md's own "Real next step #1" (prune confluence modifiers that
+measure NOISE/HURTS) turned out to already be data-ready:
+`modifier_edge_report.json` (generated 2026-09-20 17:36, 28,123 live
+signals, Bonferroni-corrected across 27 modifiers) flags `mtf_pivot_mod`
+(70.5% coverage, endorsed -0.058R vs silent +0.066R, t=-9.08, p~=0) and
+`sr_level_mod` (80.1% coverage, endorsed -0.029R vs silent +0.022R,
+t=-3.34, p=0.0008) as HURTS -- both already passed the analyzer's own
+built-in "two time halves" stability guardrail, so this wasn't a
+first-glance number.
+
+Per the module's own stated discipline ("dropping a modifier is a human
+decision after a locked-holdout pass"), ran a genuinely separate,
+day-boundary holdout check (not reusing the halves already baked into the
+report): reserved the most recent 25% of days (2026-08-21 onward, 10
+days, n=2,229) as an untouched slice, re-ran the identical endorsed-vs-
+silent Welch t-test on ONLY that reserved slice.
+
+**Result: neither HURTS effect replicates in the holdout.**
+- mtf_pivot_mod: discovery lift=-0.134 (t=-9.42) -> holdout lift=+0.0048
+  (t=0.089, p=0.929) -- collapses to zero, doesn't even keep its sign
+  reliably.
+- sr_level_mod: discovery lift=-0.055 (t=-3.48) -> holdout lift=-0.0047
+  (t=-0.075, p=0.940) -- also collapses to noise.
+
+**Verdict: DO NOT prune or flip either modifier in signal_engine.py right
+now.** The strong, highly-significant pattern in the pooled/discovery
+data does not hold up on the genuinely out-of-sample slice -- exactly the
+scenario the locked-holdout requirement exists to catch. This is NOT "the
+original finding was definitively wrong" (the holdout is only 10 days /
+2,229 signals, underpowered relative to the 25,894-signal discovery set)
+-- it's "not robust enough to act on with real capital," which under this
+project's capital-preservation-first rule is treated the same as no.
+
+**Next step (DATA-GATED, genuinely, not a formality this time)**: re-run
+this exact holdout check again once more trading days accrue past
+2026-08-21, with a larger holdout sample. Do not re-litigate this with
+the SAME data -- that would be the identical mistake as reusing a result
+that already informed a decision. sip_boost (the one HELPS verdict) and
+the 10 DEAD + 9 NOISE modifiers were not re-checked this pass (lower
+priority than the two live HURTS candidates that would have caused an
+active edit to the live confluence scoring).
