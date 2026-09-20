@@ -840,3 +840,53 @@ most extreme outlier) carries high multiple-testing risk on its own, and
 there is nothing to act on regardless while the strategy produces zero
 signals. Re-run the forward monitor periodically; nothing else to do on
 this thread until either new signals appear or the regime shifts back.
+
+## ORB parameter family: built and tested, 15/15 REJECTED (2026-09-20)
+
+Closed out the "ORB as its own parameter family" item flagged earlier
+(the existing `validation_harness.py` "orb" grid only varied adx_min x
+volume_min x target_mult, with the range-window itself, max-OR-width,
+breakout buffer, time-cutoff, and previous-day confirmation all
+hardcoded/absent).
+
+**Code change** (`backtest_orb.py`, existing research/backtest file --
+NOT the live `orb_strategy.py` signal-generation path, which was not
+touched): added 5 new parameters, ALL defaulting to exactly the prior
+hardcoded behavior so the existing grid entry in validation_harness.py
+is completely unaffected -- verified by re-running the unmodified default
+call and confirming it still reproduces the original fixed-window
+behavior bar for bar (`window_end_t` computes to 09:30:00 for the
+default `orb_window_minutes=15`, matching the old `ORB_WINDOW_END`
+constant exactly):
+  - `orb_window_minutes` (default 15) -- variable opening-range window.
+  - `max_or_width_pct` (default None = no cap) -- skip days where the
+    range is implausibly wide relative to price.
+  - `breakout_buffer_pct` (default 0.0) -- require the close to clear
+    the range by more than a bare touch.
+  - `valid_until` (default 10:30, matching the old constant) --
+    parametrized stale-signal cutoff.
+  - `require_prev_range_confirm` (default False) -- require the
+    breakout to also clear the PREVIOUS day's high/low, not just
+    today's narrow opening range.
+  Also added a `trades` key to `_compute_metrics`'s return dict (purely
+  additive, needed for a genuine day-split significance test -- same
+  pattern as the `backtest_supertrend_mtf.py` fix earlier this session).
+
+**Test method**: one dimension at a time (not a full combinatorial
+cross -- 5x3x3x3x2=270 combos would have been an undisciplined fishing
+expedition), 15 configs total against `candle_cache.db`'s full NIFTY 5m
+history (2025-05-19 to 2026-09-18, 334 days), day-split 70/30, Welch
+t-test, Bonferroni across the 15 configs actually run
+(alpha_corrected=0.00333), one-sided LCB95.
+
+**Result: all 15 configs negative, in-sample AND out-of-sample, most
+clearing Bonferroni-corrected significance.** Baseline (current
+defaults): 254 trades, total -Rs664,808, IN p=3e-05, OOS p=1e-05. Every
+window size (5/30/45/60 min), every width cap, every buffer, every time
+cutoff, and the previous-day confirmation all remain negative -- nothing
+flips it positive, and the least-bad configs (buffer=0.20%,
+prev_range_confirm=True) are only "less negative," never break even.
+**REJECTED across the entire newly-built parameter family**, closing
+this out comprehensively rather than leaving it as an open question --
+ORB's failure (already known from the adx/volume/target grid) isn't
+fixable by any of the structural variants this item proposed.

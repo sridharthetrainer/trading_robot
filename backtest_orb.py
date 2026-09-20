@@ -104,13 +104,16 @@ def fetch_data(
     return None
 
 
-def _get_orb(day_df: pd.DataFrame) -> Optional[Tuple[float, float]]:
-    """Return (high, low) of opening range bars, or None."""
+def _get_orb(day_df: pd.DataFrame, window_minutes: int = 15) -> Optional[Tuple[float, float]]:
+    """Return (high, low) of opening range bars, or None.
+
+    window_minutes default (15) reproduces the original fixed 9:15-9:30
+    window exactly -- backward compatible with every existing caller."""
     if not isinstance(day_df.index, pd.DatetimeIndex):
         return None
     day = day_df.index[0].date()
     start = pd.Timestamp(day).replace(hour=9, minute=15)
-    end   = pd.Timestamp(day).replace(hour=9, minute=30)
+    end   = start + pd.Timedelta(minutes=window_minutes)
     if day_df.index.tz is not None:
         start = start.tz_localize(day_df.index.tz)
         end   = end.tz_localize(day_df.index.tz)
@@ -130,6 +133,11 @@ def backtest_orb(
     volume_min:     float = DEFAULT_VOLUME_MIN,
     stop_mult:      float = DEFAULT_STOP_RANGE_MULT,
     target_mult:    float = DEFAULT_TARGET_MULT,
+    orb_window_minutes: int = 15,                    # 2026-09-20: parameter family
+    max_or_width_pct: Optional[float] = None,         # None = no cap (current behavior)
+    breakout_buffer_pct: float = 0.0,                 # 0.0 = no buffer (current behavior)
+    valid_until:    dtime = ORB_VALID_UNTIL,          # parametrized stale-signal cutoff
+    require_prev_range_confirm: bool = False,         # off by default (current behavior)
     initial_capital:float = DEFAULT_CAPITAL,
     lot_size:       int   = DEFAULT_LOT_SIZE,
     lots:           int   = DEFAULT_LOTS,
@@ -171,12 +179,35 @@ def backtest_orb(
 
     # Group by date
     work["_date"] = work.index.date
+    prev_day_high: Optional[float] = None
+    prev_day_low: Optional[float] = None
     for day, day_df in work.groupby("_date"):
-        orb = _get_orb(day_df)
+        # capture this day's own high/low BEFORE any skip/continue, so the
+        # NEXT day's require_prev_range_confirm check always has a real
+        # previous session to compare against, not a stale/skipped one
+        this_day_high = float(day_df["High"].max()) if "High" in day_df.columns else None
+        this_day_low = float(day_df["Low"].min()) if "Low" in day_df.columns else None
+
+        orb = _get_orb(day_df, window_minutes=orb_window_minutes)
         if orb is None:
+            prev_day_high, prev_day_low = this_day_high, this_day_low
             continue
         orb_high, orb_low = orb
         range_w = orb_high - orb_low
+        # dynamic window end (9:15 + orb_window_minutes) -- entries must wait
+        # until the range-formation window itself has actually closed, or a
+        # shorter/longer window would look ahead into its own still-forming
+        # range (same class of self-referential bug already fixed elsewhere
+        # this session, e.g. the Donchian screen's prior-bars-only high).
+        _window_end_dt = (pd.Timestamp("2000-01-01 09:15")
+                           + pd.Timedelta(minutes=orb_window_minutes))
+        window_end_t = dtime(_window_end_dt.hour, _window_end_dt.minute)
+
+        if max_or_width_pct is not None:
+            mid = (orb_high + orb_low) / 2.0
+            if mid > 0 and (range_w / mid) > max_or_width_pct:
+                prev_day_high, prev_day_low = this_day_high, this_day_low
+                continue
 
         for i, (ts, row) in enumerate(day_df.iterrows()):
             bar_t = ts.time()
@@ -212,14 +243,21 @@ def backtest_orb(
                 continue
 
             # ── Entry check ───────────────────────────────────────────────
-            if not (ORB_WINDOW_END <= bar_t <= ORB_VALID_UNTIL):
+            if not (window_end_t <= bar_t <= valid_until):
                 equity.append(capital)
                 continue
             if adx_v < adx_min or (not is_index and vol_r < volume_min):
                 equity.append(capital)
                 continue
 
-            if close > orb_high:
+            buy_trigger = orb_high * (1 + breakout_buffer_pct)
+            sell_trigger = orb_low * (1 - breakout_buffer_pct)
+            buy_prev_ok = (not require_prev_range_confirm or prev_day_high is None
+                           or close > prev_day_high)
+            sell_prev_ok = (not require_prev_range_confirm or prev_day_low is None
+                            or close < prev_day_low)
+
+            if close > buy_trigger and buy_prev_ok:
                 entry  = close * (1 + slippage_pct / 100)
                 stop   = orb_low
                 target = entry + range_w * target_mult
@@ -228,7 +266,7 @@ def backtest_orb(
                     "target": target, "entry_ts": ts, "day": day,
                 }
                 capital -= brokerage  # entry brokerage
-            elif close < orb_low:
+            elif close < sell_trigger and sell_prev_ok:
                 entry  = close * (1 - slippage_pct / 100)
                 stop   = orb_high
                 target = entry - range_w * target_mult
@@ -239,6 +277,8 @@ def backtest_orb(
                 capital -= brokerage
 
             equity.append(capital)
+
+        prev_day_high, prev_day_low = this_day_high, this_day_low
 
     if close_at_end and position and len(work):
         last_ts = work.index[-1]
@@ -290,6 +330,7 @@ def _compute_metrics(
         "num_trades": n, "win_rate": round(win_rate, 4),
         "sharpe": round(sharpe, 4), "max_drawdown": round(float(dd), 2),
         "final_capital": round(initial_capital + total_pnl, 2),
+        "trades": trades,
     }
 
 
