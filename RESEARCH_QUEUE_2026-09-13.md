@@ -1140,3 +1140,61 @@ that day -- looked interesting on a raw number, evaporated under the
 same paired/matched-control discipline applied everywhere else. Twelfth
 rejection of that day's external-strategy-sourcing effort (external
 repos + TradingView + Chartink + this Zerodha Streak example).
+
+## "If we're negative, can we invert everything?" -- checked properly, answer is no (2026-09-21)
+
+User question, tested empirically rather than reasoned about abstractly
+(same discipline as the MACD-inversion check two days earlier).
+
+**Critical methodology correction found along the way**: a naive sign-flip
+of `tb_r_multiple_net` is WRONG and systematically overstates the
+inverted case, because it implicitly gives the inverted trade a cost
+REBATE rather than making it pay costs too. Transaction costs are a drag
+regardless of direction (you cross the spread going in and out either
+way). The correct inverted value, using the real per-trade cost
+C = `tb_r_multiple` (gross) - `tb_r_multiple_net` (both columns exist in
+signal_log): `inverted_net_R = -gross_R - C`, NOT `-net_R`. The naive
+calculation on the full 28,123-trade aggregate showed a tempting
++Rs5,615 total (mean +0.1997/trade) -- properly corrected, the true
+inverted mean is **-0.1655**, still solidly negative (barely better than
+the actual -0.1997). **Inverting everything does not flip the system
+profitable -- both directions pay the same cost drag, and the
+underlying signal carries no reliable directional information either
+way.** Confirmed via day-split: properly-corrected inverted mean is
+negative in BOTH halves (-0.1598 older, -0.1905 newer).
+
+**Per-strategy breakdown** (51 strategies with n>=100, Bonferroni
+alpha=0.00098, day-split-consistency required): **zero strategies**
+show a statistically significant, day-split-consistent, properly
+cost-corrected POSITIVE result when inverted. Every single one is either
+not significant (p far above the corrected threshold, LCB95 crossing
+zero) or significantly negative even inverted.
+
+**Correction to the earlier pivot_scalping inversion finding
+(2026-09-12/2026-09-20 entries above)**: with this proper cost-corrected
+calculation, on the FULL dataset, pivot_scalping's inverted mean is
+**-0.1517 (p=0.0, highly significant NEGATIVE)** -- not the 92.9%
+win-rate-if-flipped pattern originally reported. That earlier finding was
+very likely computed via win-rate on `tb_label` directly (a different,
+uncorrected metric) rather than this project's house-standard
+cost-adjusted R-multiple, or captured a narrower/different date window.
+Recorded here as the more rigorous, full-dataset, properly-corrected
+answer -- supersedes the earlier finding rather than sitting alongside
+it unresolved.
+
+**Scalping, specifically checked per request**: the core `scalping`
+strategy itself is currently OOS-disabled (`_SCALPING_OOS_DISABLED` flag
+in signal_engine.py's registry) and has zero signal_log data to check at
+all. Of the two scalp-named strategies with real data: `pivot_scalping`
+(n=266) is covered above -- significantly negative even inverted.
+`expiry_scalp` (n=33, only 6 distinct trading days) shows a marginal,
+NOT statistically significant result even before Bonferroni correction
+(p=0.070, LCB95=+0.037, barely above zero) and is wildly inconsistent
+across its own two halves (28-trade older slice +0.457 vs 5-trade newer
+slice +0.047) -- a small-sample artifact, not a finding.
+
+**Verdict: nothing here qualifies to be "fixed"/flipped in the live
+system.** No code change made. This closes the "can we just invert it"
+question comprehensively rather than leaving it open to be re-asked --
+the answer, checked properly across the whole system and every
+individual strategy, is no.
