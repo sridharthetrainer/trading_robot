@@ -22,7 +22,7 @@ result to the broker GTT.
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
 
@@ -46,13 +46,24 @@ def compute_dynamic_levels(
     be_trigger: float = 0.20,
 ) -> Dict:
     """
-    Return {"sl", "target", "reason"} for the instrument.
+    Return {"sl", "target", "reason", "candidates", "winner_method", "sl_changed"}
+    for the instrument.
 
     `df` is the OHLC series of the *traded* instrument (e.g. the option premium).
     SL only tightens; target only extends. On any failure the inputs pass through
     unchanged, so this can never loosen protection.
+
+    "candidates" is every individual method's proposed SL this cycle (a method
+    that didn't fire this cycle is simply absent, not zero). "winner_method" is
+    whichever candidate was the tightest/most-protective this cycle -- this
+    system takes the single most-protective candidate each cycle, it does not
+    average or vote across methods. "sl_changed" is False when that winning
+    candidate was actually looser than the pre-existing floor (current_sl), in
+    which case the floor didn't move and "winner_method" describes the race,
+    not a change that happened.
     """
-    out = {"sl": current_sl, "target": current_target, "reason": ""}
+    out = {"sl": current_sl, "target": current_target, "reason": "",
+           "candidates": {}, "winner_method": None, "sl_changed": False}
     try:
         if df is None or len(df) < 20:
             return out
@@ -79,17 +90,16 @@ def compute_dynamic_levels(
             adx = 20.0
         k = 3.0 if adx >= 25 else 2.2 if adx >= 18 else 1.6
 
-        reasons = []
-        cands = []
+        cands: List[Tuple[float, str]] = []
 
         # 1. Chandelier Exit
         n = 22
         if is_long:
             hh = float(pd.to_numeric(df[hc], errors="coerce").tail(n).max())
-            cands.append(hh - k * atr); reasons.append(f"chandelier(k={k})")
+            cands.append((hh - k * atr, f"chandelier(k={k})"))
         else:
             ll = float(pd.to_numeric(df[lc], errors="coerce").tail(n).min())
-            cands.append(ll + k * atr); reasons.append(f"chandelier(k={k})")
+            cands.append((ll + k * atr, f"chandelier(k={k})"))
 
         # 2. Supertrend (only if it agrees with the position direction)
         try:
@@ -97,7 +107,7 @@ def compute_dynamic_levels(
             st = float(st_line.dropna().iloc[-1])
             d = float(st_dir.dropna().iloc[-1])
             if (is_long and d > 0) or ((not is_long) and d < 0):
-                cands.append(st); reasons.append("supertrend")
+                cands.append((st, "supertrend"))
         except Exception:
             pass
 
@@ -107,42 +117,50 @@ def compute_dynamic_levels(
             ser = sl_ if is_long else sh
             sv = ser.dropna()
             if not sv.empty:
-                cands.append(float(sv.iloc[-1])); reasons.append("swing")
+                cands.append((float(sv.iloc[-1]), "swing"))
         except Exception:
             pass
 
         # 4. Profit ratchet — lock a fraction of peak profit once ahead
         peak = hwm or current_price
         if is_long and peak > entry:
-            cands.append(entry + ratchet_frac * (peak - entry)); reasons.append("ratchet")
+            cands.append((entry + ratchet_frac * (peak - entry), "ratchet"))
         elif (not is_long) and peak < entry and peak > 0:
-            cands.append(entry - ratchet_frac * (entry - peak)); reasons.append("ratchet")
+            cands.append((entry - ratchet_frac * (entry - peak), "ratchet"))
 
         # 5. Break-even floor — once the trade has run >= be_trigger in profit,
         # never let the stop fall back below entry. This is the give-back guard:
         # a winner that reverses exits at ~breakeven instead of a full loss.
         if is_long and peak >= entry * (1 + be_trigger):
-            cands.append(entry); reasons.append("breakeven")
+            cands.append((entry, "breakeven"))
         elif (not is_long) and 0 < peak <= entry * (1 - be_trigger):
-            cands.append(entry); reasons.append("breakeven")
+            cands.append((entry, "breakeven"))
 
         if not cands:
             return out
 
+        out["candidates"] = {name: round(v, 2) for v, name in cands}
+
         # Keep a real buffer from price so normal noise can't trigger the stop.
         buf = max(0.5 * atr, current_price * 0.01)
+        vals = [v for v, _ in cands]
         if is_long:
-            dyn = max(cands)
+            dyn = max(vals)
+            winner = next(name for v, name in cands if v == dyn)
             if dyn > current_price - buf:   # too close to price → don't tighten
                 return out
+            out["sl_changed"] = dyn > current_sl
             dyn = max(dyn, current_sl)      # only ever tighten
         else:
-            dyn = min(cands)
+            dyn = min(vals)
+            winner = next(name for v, name in cands if v == dyn)
             if dyn < current_price + buf:
                 return out
+            out["sl_changed"] = current_sl <= 0 or dyn < current_sl
             dyn = min(dyn, current_sl) if current_sl > 0 else dyn
 
         out["sl"] = round(dyn, 2)
+        out["winner_method"] = winner
 
         # Dynamic target — let profit run in strong trends (extend only).
         if adx >= 25 and atr > 0:
@@ -151,7 +169,7 @@ def compute_dynamic_levels(
             else:
                 out["target"] = round(min(current_target or 1e9, current_price - 2 * k * atr), 2)
 
-        out["reason"] = "+".join(reasons) + f" adx={adx:.0f}"
+        out["reason"] = "+".join(name for _, name in cands) + f" adx={adx:.0f}"
         return out
     except Exception:
         return out

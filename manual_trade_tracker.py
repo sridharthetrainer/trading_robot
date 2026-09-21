@@ -2206,6 +2206,17 @@ class ManualTradeTracker:
                     if lv.get("reason"):
                         logger.debug("dyn-exit %s: sl=%.2f tgt=%.2f (%s)",
                                      trade.symbol, new_sl, new_tgt, lv["reason"])
+                    if lv.get("candidates"):
+                        # Per-method attribution (2026-09-21, ChatGPT audit finding:
+                        # "most-protective-wins" is a max-of-candidates OR-gate, not
+                        # a blend -- log every candidate + the winner separately so
+                        # method contribution can actually be measured later).
+                        self._save_update(
+                            trade,
+                            "dyn_candidates:" + json.dumps(lv["candidates"]) +
+                            f"|winner={lv.get('winner_method')}"
+                            f"|sl_changed={lv.get('sl_changed')}"
+                            f"|sl={lv.get('sl')}")
                 except Exception as e:
                     logger.debug("dynamic exit: %s", e)
 
