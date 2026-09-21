@@ -1198,3 +1198,58 @@ system.** No code change made. This closes the "can we just invert it"
 question comprehensively rather than leaving it open to be re-asked --
 the answer, checked properly across the whole system and every
 individual strategy, is no.
+
+## Contrarian-sell (sell opposite option to our own signal) -- REJECTED (2026-09-21)
+
+User idea, distinct from the aggregate/per-strategy inversion check
+earlier the same day (that flipped BUY<->SELL and still BOUGHT the
+flipped side -- long premium, pays theta): this SELLS the opposite
+option type to our own real historical confluence signal (sell PE when
+our system said BUY/bullish, sell CE when it said SELL/bearish) --
+collecting premium against our own directional call, a genuinely
+different risk/reward shape.
+
+New file `backtest_contrarian_sell.py`. Uses REAL historical signal_log
+(NIFTY only, 301 training-eligible signals -- signal_log doesn't store
+the exact strike/expiry used per signal, both re-derived at signal time:
+ATM strike, nearest weekly expiry, same convention as every other
+backtest here), real EOD-settle-anchored Black-Scholes pricer, real
+costs, 30% leg-SL / 3:10pm square-off (same convention as
+`naked_straddle_strangle_backtest.py`).
+
+**Initial screen looked positive**: 275 trades, net +Rs75,967, Sharpe
+2.399. Side-split immediately showed the same drift signature as every
+other result this session: sold-CE trades (orig signal SELL, n=191)
+carried the entire gain (+Rs89,599); sold-PE trades (orig signal BUY,
+n=84) were negative (-Rs13,632) -- NIFTY fell -6.71% over this window.
+
+**Matched-timing decomposition** (does the DIRECTION call add value
+beyond just our system's signal TIMING?): built a naive "sell CE at a
+fixed 9:30 every day" baseline -- NEGATIVE (-Rs42,816/329 trades,
+Sharpe -0.686), unlike every prior naive-baseline check this session
+(which always beat the "sophisticated" version). This made the
+contrarian-sell result look genuinely different from prior false
+positives at first: it appeared to beat its own naive baseline. Built
+the correct matched control instead -- sell CE at ALL 275 real signal
+TIMES regardless of original direction: also positive (+Rs84,802, n=275,
+t=2.78), nearly as strong as the sell-side-only subset (+Rs89,599,
+n=191, t=3.27) -- suggesting the apparent edge was coming from WHEN our
+system fires signals at all, not from which direction it calls.
+
+**Day-split holdout (the check that actually resolves this)**: the
+matched-timing pool's ENTIRE positive result is concentrated in the
+OLDER half (n=199, +Rs84,881, t=3.11) -- the NEWER half is exactly zero
+(n=76, total=-Rs78, mean=-Rs1.0/trade, t=-0.006). The sell-side-only cut
+holds up marginally better (older t=3.11, newer t=1.03, still positive
+sign but nowhere near significant with n=45). **The pooled result does
+not replicate out-of-sample at all** -- same pattern as the mtf_pivot_mod/
+sr_level_mod modifier-pruning holdout collapse and the bull-put-spread
+Bonferroni failure earlier this session: strong in discovery data,
+gone in the genuinely held-out slice.
+
+**Verdict: REJECTED.** Neither "sell against our own signal's direction"
+nor "sell at our own signal's timing regardless of direction" shows a
+validated, holdout-surviving edge. Small sample throughout (275 total,
+76-146 per half) is a real limitation worth remembering if re-tested
+once more signal_log data accrues, but the CURRENT evidence does not
+support this idea being used live.
