@@ -1440,3 +1440,71 @@ the features and MFE-threshold label, not classifier capacity or
 family.** No further classifier-swapping is expected to change this
 without new, different features -- closes off "try more ML models" as a
 next step on the current feature set.
+
+## Data-integrity sweep (2026-09-21) -- 2 real bugs found and fixed, rest triaged as non-issues
+
+Following the FII "5d cumulative: Rs+0Cr" bug report, ran a systematic
+sweep of every cache/history/state file (169 JSON, 25 CSV, 5 JSONL --
+full coverage, not a sample) for the same symptom pattern: a numeric
+field silently stuck at exactly 0 or byte-identical across many
+consecutive recent entries, the same shape that revealed the FII column
+mismatch.
+
+**Real bugs found and fixed (both committed same day):**
+1. `fii_tracker.py` read nonexistent columns (`fii_cash_net`/
+   `dii_cash_net`) instead of the real file's actual schema
+   (`fii_net`/`dii_net`, written by `fii_data_fetcher.py`) -- silently
+   defaulted to 0.0 every day. Fixed the read side only.
+2. `signal_engine.py`'s live confluence scoring had an inline "FII
+   oversold bounce" bonus (+0.8 BUY / +0.5 SELL past +/-Rs10,000Cr 5d
+   flow) that called the same broken data path
+   (`participant_oi.get_cumulative_fii()`, stuck at 0.0 for 20+ days per
+   that module's own documented cash-flow-fetch limitation) -- had never
+   fired once. Repointed to the now-fixed `fii_tracker.fii_5d`. This one
+   is more consequential than the report-line fix: it's the live scoring
+   path, not just a Telegram message.
+
+**Flagged, investigated, and correctly ruled out as non-issues (not
+patched, to avoid fixing something that isn't broken)**:
+- `strategy_results.json` ("all validation_blocked=True"): confirmed
+  CORRECT, not stuck -- every strategy has genuinely distinct, real
+  metrics (e.g. scalping Sharpe=-66.3, net_profit=-Rs410,069) and
+  legitimately fails validation, consistent with this project's entire
+  accumulated evidence. "All blocked" is the true state of the world,
+  not a frozen field.
+- `sector_history.csv` (`chg_5d`/`rs`/`score` zero across the ENTIRE
+  file's history, not just recently): confirmed these specific columns
+  are dead placeholders, written as a hardcoded 0.0 at capture time in
+  `sector_rotation_engine.py`, with real rs/score only ever computed
+  in-memory by that module's own `rank_sectors()` and never persisted
+  back to the CSV. BUT the actual live consumer, `signal_refinements.
+  get_sector_rotation_score()` (which feeds `sector_mod`), was already
+  rewired in a prior session (2026-07-10, per its own comment) to
+  compute relative strength directly from `chg_1d` (which DOES have
+  real, varying data), completely bypassing the broken columns. The
+  earlier "NOISE" verdict for `sector_mod` in the modifier-pruning
+  analysis stands as a correctly-measured real result, not a data
+  artifact. The dead CSV columns are real but low-priority cleanup
+  (nothing live depends on them), not touched this pass.
+- MasterContract/OpenAPIScripMaster/NSE_EQUITY_LIST CSVs, backtest
+  trade-log CSVs, grid-search CSVs: all "identical" flags are expected
+  constants (contract lot size, tick size, a fixed backtest quantity
+  parameter, or a specific grid-search combo's own fixed inputs) --
+  correctly not bugs.
+- `option_execution_audit.jsonl` (suspiciously round qty=50/price=100.0
+  values): confirmed these are explicit test fixtures
+  (`"broker_name":"FakeBroker"`), not real execution data -- correctly
+  not a bug.
+- `telegram_spool_option.jsonl` (`cooldown` identical): a fixed config
+  constant (3600s = 1hr), correctly expected to be constant.
+- `option_decision_journal.jsonl` (scanner reported "unreadable"):
+  file has 15,316 valid-looking lines; the scanner's strict per-line
+  json.loads likely choked on a single malformed line somewhere, not
+  evidence of systemic corruption. Not investigated further this pass
+  (low priority given the file is clearly not dead/empty).
+
+**Sweep verdict: complete for this pass.** 2 real, consequential bugs
+fixed (both live-code paths, both committed and the bot restarted to
+pick them up); everything else flagged by the generic scanner was
+individually checked and correctly triaged as either already-fine
+constants or already-fixed-elsewhere logic, not silently assumed clean.
