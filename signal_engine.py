@@ -3399,8 +3399,19 @@ def generate_signal(
                     adjusted_score += _pm_applied
                     _cand_meta["participant_oi"] = round(float(_pm or 0), 4)
                     _cand_meta["participant_oi_applied"] = round(float(_pm_applied), 4)
-                    from participant_oi import get_cumulative_fii
-                    _cum5 = get_cumulative_fii(5)
+                    # 2026-09-21: was participant_oi.get_cumulative_fii(), which
+                    # sums participant_oi_history.json's net_cash field -- that
+                    # module's own docstring documents this as unreliable/
+                    # defaulting to 0 when the live NSE cash-flow endpoint isn't
+                    # threaded through, and it has in fact been stuck at exactly
+                    # 0.0 for 20+ consecutive recorded days. Since 0 can never
+                    # satisfy < -10000 or > 10000, this bonus has been silently
+                    # dead the whole time. Repointed to fii_tracker's fii_5d
+                    # (backed by fii_data_fetcher's actually-populated
+                    # fii_history.csv, column-mismatch fixed the same day) --
+                    # same thresholds/adjustments, just a working data source.
+                    from fii_tracker import analyse_fii_patterns
+                    _cum5 = analyse_fii_patterns().get("fii_5d", 0.0)
                     # Oversold bounce: 5d outflow > ₹10,000Cr
                     if _cum5 < -10000 and direction == "BUY":
                         adjusted_score += 0.8
