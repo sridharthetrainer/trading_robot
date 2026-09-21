@@ -1571,3 +1571,96 @@ against the original rejection, but given costs already dominate at
 daily frequency, a longer hold accumulating MORE rebalancing costs over
 more days is not expected to reverse this without a much larger
 underlying premium than this sample shows.
+
+## "Use all" -- two remaining threads from the 6-AI cross-check, both built (2026-09-21)
+
+Following independent responses from Meta, Gemini, Perplexity, Grok,
+ChatGPT and DeepSeek (all converging on "no realistic retail edge",
+with two concrete claims verified directly: the current 0.15% STT rate
+via live web search -- confirming this project's own nse_cost_model.py
+was already correct and current, while Gemini's cited 0.0625% was
+stale -- and the SEBI Aug-2026 FY25-26 profitability study's genuine
+existence via direct URL fetch; one claim, Perplexity's specific
+"lambdafin.com nine research phases" citation, could NOT be verified
+and was discarded), two genuinely new research threads were identified
+by multiple independent AIs and built out fully per user instruction.
+
+### Thread 1: trading-time-weighted option pricer re-test
+
+**Premise, verified against real NIFTY data first**: intraday variance
+accrues at 2.45x the rate per hour vs overnight variance (46.4% of
+total realized variance in just 26.1% of total elapsed calendar time,
+full 334-day candle_cache.db history). Weekend (3-day) gaps show ~45%
+lower variance-per-calendar-hour than a normal 1-day overnight gap
+(0.77e-6 vs 1.41e-6), though the 2-day category was noisy (n=12) and
+not perfectly monotonic.
+
+**Important scoping correction made along the way**: the already-tested
+weekly structures (bull put spread, iron condor) use REAL market EOD
+settle prices directly, with NO Black-Scholes model and no
+`year_fraction` involved at all -- they are structurally immune to this
+particular convention issue. The correction only applies to backtests
+using `option_intraday_pricer.DayPricer`'s modeled intraday path. New
+file `trading_time_pricer.py` implements a `TradingTimeDayPricer`
+(trading-time-weighted decay, calibrated to the measured 0.408 overnight/
+intraday variance ratio, consistent annualization) and was applied to
+the one still-open finding from earlier the same day: the PE-buying-
+when-our-system-calls-SELL result from `backtest_real_option_
+translation.py`.
+
+**Result**: point estimates are similar in shape (n=197, mean Rs835 vs
+the original calendar-time mean of Rs955.9). The permutation test
+(same methodology as before -- does the SELL-labeled subset beat random
+subsets of the same signal-firing population) shows a genuinely
+different, more nuanced picture: full-pooled z rises from 2.203 to
+2.946; OLDER half rises from z=1.592 to z=2.538 (now independently
+clearing the conventional z>1.96 bar); NEWER half stays similar
+(z=1.472 -> z=1.313, still not independently significant). **This does
+NOT flip the overall verdict to validated** -- the day-split discipline
+requires BOTH halves to independently clear the bar, not just one, and
+using the pooled figure alone would repeat the exact mistake this
+project's whole methodology exists to prevent. But it is a genuine,
+honest refinement: the corrected time convention makes the older half's
+signal measurably stronger, not weaker, while the newer half remains
+the limiting factor. Still flagged for the same pre-registered future
+test (new data, not more digging into this same dataset) as before.
+
+### Thread 2: selective volatility-risk-premium capture (IV/RV-ratio timing)
+
+Tests a genuinely different hypothesis from every already-rejected
+option-selling result: not a new structure, but SELECTIVE TIMING --
+sell the already-tested bull put spread (otm=2%, wing=500) only on
+weeks where the short leg's own backed-out implied vol is high relative
+to trailing 20-day REALIZED volatility (a causal, no-lookahead ratio,
+using only prior weeks' data to set each week's threshold). New file
+`backtest_selective_vrp_credit_spread.py`.
+
+**Result: INCONCLUSIVE, not rejected, due to a real, structural data
+limitation discovered along the way** -- this project has NO NIFTY
+INDEX daily close history longer than what candle_cache.db already
+provides (2025-05-19 onward, ~334 days). `nse_cache.db` (bhavcopy_
+cache.py's own database, 4.37 million rows) covers individual STOCK
+symbols only, never the index itself. Since options_nifty.db spans
+2020-2026 but the realized-vol baseline can only be computed from
+mid-2025 onward, only 64 of 350 weeks have a valid causal IV/RV ratio,
+and the "selected" (high-IV/RV) subset day-splits down to just 6
+observations per half -- far too small to trust (one half showed
+p=0.005, which at n=6 is noise, not a finding, and is explicitly
+discarded here rather than reported as evidence). **To properly test
+this hypothesis, a genuinely longer NIFTY index daily history would be
+needed than exists anywhere in this project** -- flagged as the actual
+blocker, not a rejection of the underlying idea.
+
+### Where this leaves the six-AI cross-check thread
+
+Both remaining novel avenues have now been built and tested as far as
+this project's real data allows. Neither produces a validated result:
+one is a genuine refinement of an already-flagged borderline finding
+(still not validated, still needs new out-of-sample data); the other
+is honestly inconclusive due to a real data-depth gap, not a failure of
+the underlying idea. Nothing here changes the overall, now
+extensively-triangulated conclusion (this project's own ~30 empirical
+tests plus six independent AI analyses): no demonstrated retail edge
+currently exists for this system. If a longer NIFTY index daily history
+becomes available, thread 2 is the one specific, well-defined,
+worth-revisiting item.
