@@ -168,8 +168,15 @@ def backtest_fibonacci(
     wr = wins / n if n else 0.0
     eq = pd.Series(equity)
     dd = float((eq.cummax() - eq).max())
-    ret_s = eq.pct_change().dropna()
-    sharpe = float(ret_s.mean() / ret_s.std() * (252 * 75) ** 0.5) if len(ret_s) > 1 and ret_s.std() > 0 else 0.0
+    # 2026-09-21: was eq.pct_change() -- with DEFAULT_CAPITAL=100,000 and this
+    # strategy's real net loss regularly exceeding that (equity goes deeply
+    # negative during the backtest), percentage returns on an equity curve
+    # that crosses/goes below zero are meaningless (can even flip sign),
+    # which is how a strategy losing ~Rs9.6L reported a nonsensical positive
+    # Sharpe. Fixed to use raw per-trade P&L, same convention as every other
+    # backtest in this project (e.g. backtest_orb.py).
+    pnls = pd.Series([t["pnl"] for t in trades])
+    sharpe = float(pnls.mean() / pnls.std() * (252 ** 0.5)) if len(pnls) > 1 and pnls.std() > 0 else 0.0
 
     if verbose:
         print(f"\n{'='*55}\nFibonacci Retracement Backtest — {symbol}\n{'='*55}")
@@ -181,7 +188,8 @@ def backtest_fibonacci(
 
     return {"symbol": symbol, "total_pnl": round(total_pnl, 2), "num_trades": n,
             "win_rate": round(wr, 4), "sharpe": round(sharpe, 4),
-            "max_drawdown": round(dd, 2), "final_capital": round(capital, 2)}
+            "max_drawdown": round(dd, 2), "final_capital": round(capital, 2),
+            "trades": trades}
 
 
 def _empty(symbol, reason):
