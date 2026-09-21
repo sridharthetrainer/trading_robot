@@ -1097,3 +1097,46 @@ next step defined yet, not attempted this pass) -- what the user meant
 by the fourth item was the volatility-surface idea, now covered above.
 Nothing here is promoted or wired into the live system; every result is
 report-only, matching this project's standing rule.
+
+## Zerodha Streak "EMA+Supertrend confirmation" -- REJECTED (2026-09-20, retroactively documented)
+
+Found via web search of Zerodha Streak's publicly documented
+strategy-builder examples: "Alert when 5 period EMA crosses 20 period
+EMA and Supertrend is on uptrend and vice versa for sell order" -- a
+combined-CONFIRMATION rule (both signals must agree), distinct from
+testing either indicator alone (both already tested and rejected
+elsewhere in this file: EMA-crossover is already in the 79-strategy
+registry, Supertrend alone was tested as `supertrend_flip` in the
+Chartink batch). Implemented in `backtest_ema_supertrend_confirm.py`
+(single-leg intraday option-buying harness, same convention as every
+other strategy in this batch).
+
+**Initial screen looked genuinely positive**: 239 trades, net +Rs112,862,
+Sharpe 2.871 -- one of the better-looking raw numbers all day.
+
+**Drift-decomposition check** (same discipline applied to every prior
+result): side split showed PE dominating (176 trades/+Rs85,983) over CE
+(63 trades/+Rs26,879), the same captured-NIFTY-drift signature as every
+other apparent positive that day. Built a matched control -- same
+signal timing, but every entry forced to PE regardless of the rule's
+actual direction call -- to isolate whether the CE/PE CHOICE itself adds
+value beyond just being selective about which days to trade: net
++Rs92,634, Sharpe 2.484 (238 matched trades). The actual rule beat this
+matched control by +Rs20,228 in raw terms.
+
+**Paired significance test on that Rs20,228 gap** (238 paired days,
+combo rule vs forced-PE on identical timing): mean paired difference
+=Rs85.80/trade, t=0.520, one-sided LCB95=-Rs185.69. **Not statistically
+distinguishable from zero** -- the confidence bound crosses well below
+zero, so the apparent directional-selection value is noise, not a real
+effect. Also note the rule's absolute performance (Rs112,862) is
+strictly worse than a full-period naive always-PE baseline
+(Rs234,294/Sharpe 2.428, established earlier the same day) -- so even
+setting the significance test aside, this never actually beat the
+"do nothing sophisticated" baseline in raw terms.
+
+**Verdict: REJECTED.** Same conclusion as every other tested strategy
+that day -- looked interesting on a raw number, evaporated under the
+same paired/matched-control discipline applied everywhere else. Twelfth
+rejection of that day's external-strategy-sourcing effort (external
+repos + TradingView + Chartink + this Zerodha Streak example).
