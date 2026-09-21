@@ -2010,3 +2010,80 @@ race) -- doesn't require waiting on new trade data. The ΔR/counterfactual
 analyzer itself is deferred until the prospective dataset has enough
 trades to be worth analyzing; building it against an empty dataset now
 would have no value.
+
+## Production correctness defect: GTT-replacement ambiguous-outcome handling (2026-09-21)
+
+**Distinct from all exit-strategy research above -- this is a broker-state-
+integrity defect, not evidence about whether the dynamic exit strategy
+improves expectancy.** Found while scoping the safety/failure-injection
+test work (ChatGPT audit, source confirmed with user), before any test was
+written, by tracing the actual placement/reconciliation call path for the
+user's nominated highest-priority scenario (timeout-after-broker-
+acceptance -> retry).
+
+**Trace result 1 (`_place_protection`, initial placement): already
+guarded, confirmed by reading the code, not assumed.** `place_gtt_order()`
+(`angel.py:527`) collapses a client-side timeout and a genuine broker
+rejection into the same `None` return (broad `except Exception`). But
+`_place_protection` queries live broker GTTs (`_active_gtts_for`) before
+ever placing a new one, and a periodic sweep retries it every main-loop
+cycle for any unprotected trade -- so a timeout-after-broker-success here
+gets adopted on the next retry rather than duplicated. This path was
+correct.
+
+**Trace result 2 (`_replace_sl` / `_replace_target`, the trailing/
+modification path that fires on every stop-tightening, not just error
+recovery): NOT guarded -- confirmed, actual defect.** These had no
+reconciliation check at all: place new GTT -> if no id returned, just
+return, leaving the OLD GTT as the tracked one. If the broker actually
+created the new GTT and only the response was lost, that new GTT was
+never recorded locally, never cancelled, and never checked for again
+(the orphan-cleanup logic only runs while `protected` is still False,
+which it never is again after the first successful placement). Consequence:
+two live SL/target GTTs on one position with zero local awareness of the
+second -- which, depending on Angel's GTT execution semantics, could
+plausibly produce a naked/reverse position if the untracked GTT fires
+after the position is already closed by the tracked one.
+
+**Fix applied** (`manual_trade_tracker.py`, `_replace_sl`/`_replace_target`
++ new `_reconcile_replacement` helper): on an ambiguous (`None`) outcome,
+the code no longer assumes rejection or success -- it queries live broker
+GTTs and tries to uniquely identify the intended new trigger:
+- Exactly one match -> adopt it, cancel the old GTT, done (this is the
+  actual timeout-but-created-fine case).
+- Zero matches -> confirmed no-op, old GTT untouched, one alert.
+- 2+ matches -> genuinely ambiguous; alert once, **never place another
+  GTT**, stay pending and re-check (not re-place) every subsequent call.
+- The reconciliation query itself failing (not the same as "queried and
+  found nothing" -- `_active_gtts_for`'s own exception-swallowing made
+  these indistinguishable, a second real bug caught by the tests below
+  before commit) leaves the pending state untouched, retried next cycle.
+
+New pending-state fields (`sl_reconcile_target`/`tgt_reconcile_target`,
+0.0 = none) are persisted to `manual_trades` (idempotent ALTER, matching
+this file's existing pattern) so the unresolved state survives a restart
+too -- verified directly against the real `_init_db`/`_save_trade`/
+`_load_open_trades` path, not just asserted.
+
+Deliberately NOT touched in this change (kept narrowly scoped, per
+direction): the broader `protected: bool` model -- the missing third
+("unknown, reconciling") state there is a related, real gap, but a
+separate piece of work.
+
+**Verification, not just written:** `test_manual_trade_gtt_reconciliation.py`,
+6 tests -- confirmed success, genuine rejection (old GTT provably
+untouched), timeout-but-created (adopted via reconciliation), reconciliation-
+query-itself-failing (must not fall through to a second placement -- this
+is the test that caught the `_active_gtts_for` exception-swallowing bug
+above, before it shipped), ambiguous multiple matches (stays pending,
+alert rate-limited not repeated), and a simulated-restart case (a pending
+state loaded fresh from DB still blocks a new placement). All 21 manual-
+trade tests (existing 15 + these 6) pass; no regressions.
+
+Failure-injection/safety-test scoping for the other 4 classes (restart/
+reconnect mid-position, partial fills, SL/target race + gap, feed/API
+failures) resumes next, per the invariant framing already agreed: for
+every confirmed open position, either valid broker-side protection exists
+for the correct remaining quantity, or the system is in a detectable/
+alertable UNPROTECTED state -- never silently believing protection exists
+when the broker disagrees.

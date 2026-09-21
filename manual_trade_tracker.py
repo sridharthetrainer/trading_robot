@@ -227,6 +227,14 @@ class ManualTrade:
     target_gtt_id: str = ""     # GTT order id for the target
     hwm: float = 0.0            # high-water-mark of LTP (for trailing)
     protected: bool = False     # protection orders placed
+    # 2026-09-21: non-zero means a _replace_sl/_replace_target call got an
+    # ambiguous outcome (place_gtt_order returned None -- could be a real
+    # rejection or a lost response to a broker-side success) and is pending
+    # reconciliation against live broker state. While set, no new GTT is
+    # placed for that side -- only reconciliation re-checks. See
+    # _reconcile_replacement().
+    sl_reconcile_target: float = 0.0
+    tgt_reconcile_target: float = 0.0
 
 
 class ManualTradeTracker:
@@ -442,7 +450,9 @@ class ManualTradeTracker:
                          # impossible; only ~15-min update-snapshot rows
                          # existed, too sparse for a real distribution.
                          ("highest_since_entry", "REAL"),
-                         ("lowest_since_entry", "REAL")):
+                         ("lowest_since_entry", "REAL"),
+                         ("sl_reconcile_target", "REAL"),
+                         ("tgt_reconcile_target", "REAL")):
             try:
                 conn.execute(f"ALTER TABLE manual_trades ADD COLUMN {col} {typ}")
             except Exception:
@@ -497,6 +507,8 @@ class ManualTradeTracker:
                 trade.t1_hit        = bool(d.get("t1_hit"))
                 trade.highest_since_entry = float(d.get("highest_since_entry") or 0)
                 trade.lowest_since_entry  = float(d.get("lowest_since_entry") or 999999.0)
+                trade.sl_reconcile_target  = float(d.get("sl_reconcile_target") or 0)
+                trade.tgt_reconcile_target = float(d.get("tgt_reconcile_target") or 0)
                 self._active_trades[trade.order_id] = trade
             if rows:
                 logger.info("Resumed %d open manual trade(s) from DB", len(rows))
@@ -1883,7 +1895,28 @@ class ManualTradeTracker:
         return True
 
     def _replace_sl(self, trade: ManualTrade, new_sl: float) -> None:
-        """Move the SL GTT to a tighter level (place new, then cancel old)."""
+        """Move the SL GTT to a tighter level (place new, then cancel old).
+
+        2026-09-21 (production correctness defect found during a safety
+        audit -- see RESEARCH_QUEUE_2026-09-13.md; this is NOT evidence
+        about whether the dynamic exit strategy improves expectancy, purely
+        a broker-state-integrity fix): place_gtt_order() collapses a
+        client-side timeout and a genuine broker rejection into the same
+        `None` return (angel.py's broad except around gttCreateRule). The
+        old code treated `None` as "nothing happened at the broker" and
+        returned -- but if the broker actually created the new GTT and only
+        the response was lost in transit, that GTT was never recorded
+        locally and never cancelled, leaving TWO live SL GTTs on one
+        position with zero local awareness of the second. This function no
+        longer assumes either outcome on new_id=None; it reconciles against
+        live broker state, and never places a second GTT while that
+        reconciliation is unresolved.
+        """
+        if trade.sl_reconcile_target:
+            # A prior replacement attempt is still unresolved. Re-check
+            # broker state -- do NOT place another GTT while ambiguous.
+            self._reconcile_replacement(trade, is_sl=True)
+            return
         is_long   = trade.side == "BUY"
         exit_side = "SELL" if is_long else "BUY"
         lim = round(new_sl * (0.99 if is_long else 1.01), 2)
@@ -1892,23 +1925,33 @@ class ManualTradeTracker:
             trade.symbol, trade.qty, new_sl, lim,
             transaction_type=exit_side, exchange=str(trade.exchange).upper(),
             producttype=_prod)
-        if not new_id:
+        if new_id:
+            old = trade.sl_gtt_id
+            trade.sl_gtt_id   = str(new_id)
+            trade.stop_loss   = new_sl
+            trade.trailing_sl = new_sl
+            if old:
+                try:
+                    self._angel.cancel_gtt_order(old, trade.symbol)
+                except Exception as e:
+                    logger.debug("cancel old SL %s: %s", trade.symbol, e)
+            logger.info("SL trailed %s → %.2f", trade.symbol, new_sl)
+            self.send_channel(f"🔼 <b>SL trailed</b> {trade.symbol} → ₹{new_sl:.2f}")
+            self._save_trade(trade)
             return
-        old = trade.sl_gtt_id
-        trade.sl_gtt_id   = str(new_id)
-        trade.stop_loss   = new_sl
-        trade.trailing_sl = new_sl
-        if old:
-            try:
-                self._angel.cancel_gtt_order(old, trade.symbol)
-            except Exception:
-                pass
-        logger.info("SL trailed %s → %.2f", trade.symbol, new_sl)
-        self.send_channel(f"🔼 <b>SL trailed</b> {trade.symbol} → ₹{new_sl:.2f}")
-        self._save_trade(trade)
+
+        # new_id is falsy: the true outcome is unknown (timeout vs. genuine
+        # rejection). Reconcile against live broker state rather than
+        # assuming either.
+        trade.sl_reconcile_target = new_sl
+        self._reconcile_replacement(trade, is_sl=True)
 
     def _replace_target(self, trade: ManualTrade, new_tgt: float) -> None:
-        """Extend the target GTT (place new, then cancel old)."""
+        """Extend the target GTT (place new, then cancel old). Same
+        ambiguous-outcome handling as _replace_sl -- see its docstring."""
+        if trade.tgt_reconcile_target:
+            self._reconcile_replacement(trade, is_sl=False)
+            return
         is_long   = trade.side == "BUY"
         exit_side = "SELL" if is_long else "BUY"
         lim = round(new_tgt * (0.99 if is_long else 1.01), 2)
@@ -1917,18 +1960,114 @@ class ManualTradeTracker:
             trade.symbol, trade.qty, new_tgt, lim,
             transaction_type=exit_side, exchange=str(trade.exchange).upper(),
             producttype=_prod)
-        if not new_id:
+        if new_id:
+            old = trade.target_gtt_id
+            trade.target_gtt_id = str(new_id)
+            trade.target_1 = new_tgt
+            if old:
+                try:
+                    self._angel.cancel_gtt_order(old, trade.symbol)
+                except Exception as e:
+                    logger.debug("cancel old target %s: %s", trade.symbol, e)
+            logger.info("Target extended %s → %.2f", trade.symbol, new_tgt)
+            self.send_channel(f"🎯 <b>Target extended</b> {trade.symbol} → ₹{new_tgt:.2f}")
+            self._save_trade(trade)
             return
-        old = trade.target_gtt_id
-        trade.target_gtt_id = str(new_id)
-        trade.target_1 = new_tgt
-        if old:
-            try:
-                self._angel.cancel_gtt_order(old, trade.symbol)
-            except Exception:
-                pass
-        logger.info("Target extended %s → %.2f", trade.symbol, new_tgt)
-        self.send_channel(f"🎯 <b>Target extended</b> {trade.symbol} → ₹{new_tgt:.2f}")
+
+        trade.tgt_reconcile_target = new_tgt
+        self._reconcile_replacement(trade, is_sl=False)
+
+    def _reconcile_replacement(self, trade: ManualTrade, is_sl: bool) -> None:
+        """Resolve the unknown outcome of a GTT replacement whose
+        place_gtt_order() call returned no id. Queries live broker GTTs and
+        tries to uniquely identify whether the intended new trigger was
+        actually created there. Never places a new GTT here -- only adopts
+        an unambiguous match, clears the pending state on a confirmed
+        no-op, or stays pending (and alerts once) when genuinely ambiguous.
+        Safe to call repeatedly: if the broker query itself fails, the
+        pending state is left untouched and simply retried next cycle --
+        it never falls through to placing another GTT.
+        """
+        target = trade.sl_reconcile_target if is_sl else trade.tgt_reconcile_target
+        old_id = trade.sl_gtt_id if is_sl else trade.target_gtt_id
+        label  = "SL" if is_sl else "target"
+        # NOTE: deliberately NOT calling _active_gtts_for() here -- it
+        # swallows any query exception internally and returns [], which
+        # would be indistinguishable from "queried successfully, genuinely
+        # nothing there". That distinction is exactly what this function
+        # must not blur: a failed query must leave the pending state alone,
+        # not get treated as a confirmed empty result.
+        try:
+            with self._angel._lock:
+                resp = self._angel.obj.gttLists(status=["NEW", "ACTIVE"], page=1, count=50)
+            data = resp.get("data") if isinstance(resp, dict) else None
+            existing = [x for x in (data or [])
+                        if str(x.get("tradingsymbol")) == trade.symbol
+                        and str(x.get("status")).upper() in ("NEW", "ACTIVE")]
+        except Exception as e:
+            logger.debug("reconcile %s %s: %s", label, trade.symbol, e)
+            return  # stays pending; retried next cycle, never re-placed
+
+        candidates = [x for x in existing if str(x.get("id")) != str(old_id)]
+        tol = max(0.5, abs(target) * 0.002)
+        matched = [x for x in candidates
+                   if abs(float(x.get("triggerprice") or 0) - target) <= tol]
+
+        if len(matched) == 1:
+            gid = str(matched[0].get("id"))
+            if is_sl:
+                trade.sl_gtt_id, trade.stop_loss, trade.trailing_sl = gid, target, target
+                trade.sl_reconcile_target = 0.0
+            else:
+                trade.target_gtt_id, trade.target_1 = gid, target
+                trade.tgt_reconcile_target = 0.0
+            if old_id:
+                try:
+                    self._angel.cancel_gtt_order(old_id, trade.symbol)
+                except Exception as e:
+                    logger.debug("cancel old %s after reconcile %s: %s",
+                                 label, trade.symbol, e)
+            logger.info(
+                "%s trail reconciled %s -> %.2f (adopted %s after a "
+                "delayed/lost broker response)", label, trade.symbol, target, gid)
+            self.send_channel(
+                f"🔼 <b>{label} trailed</b> {trade.symbol} → ₹{target:.2f}\n"
+                f"  (confirmed via reconciliation after a delayed broker response)")
+            self._save_trade(trade)
+            return
+
+        if not matched:
+            # No new GTT found at the broker beyond the one already tracked
+            # -- the replacement genuinely never landed (real rejection, or
+            # the request never reached the broker at all). Old GTT is
+            # untouched and still correctly tracked: fully safe, nothing
+            # left pending.
+            if is_sl:
+                trade.sl_reconcile_target = 0.0
+            else:
+                trade.tgt_reconcile_target = 0.0
+            key = f"{trade.order_id}:{label}_replace_fail"
+            if key not in self._protect_warned:
+                self._protect_warned.add(key)
+                self.send_channel(
+                    f"⚠️ <b>{trade.symbol}</b>: {label} trail to ₹{target:.2f} did "
+                    f"not reach the broker (no matching GTT found) — existing "
+                    f"{label} remains active, untouched.")
+            self._save_trade(trade)
+            return
+
+        # 2+ matches: genuinely ambiguous. Do not guess, do not place
+        # another GTT. *_reconcile_target stays set so the next cycle
+        # re-checks instead of attempting a fresh replacement.
+        key = f"{trade.order_id}:{label}_ambiguous"
+        if key not in self._protect_warned:
+            self._protect_warned.add(key)
+            self.send_channel(
+                f"🚨 <b>{trade.symbol}</b>: AMBIGUOUS broker state after {label} "
+                f"trail attempt to ₹{target:.2f} — {len(matched)} matching GTTs "
+                f"found, cannot safely auto-resolve. Manual review required. No "
+                f"further automatic {label} replacement will be attempted until "
+                f"resolved.")
         self._save_trade(trade)
 
     def _tighten_option_sl(self, trade: ManualTrade, new_sl: float) -> bool:
@@ -2418,8 +2557,9 @@ class ManualTradeTracker:
                 "stop_loss,target_1,target_2,strategies_bullish,strategies_bearish,"
                 "regime,vix,wow_factors,status,exit_price,exit_time,exit_reason,pnl,"
                 "sl_gtt_id,target_gtt_id,hwm,protected,current_price,pnl_pct,"
-                "realized_pnl,t1_hit,highest_since_entry,lowest_since_entry) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "realized_pnl,t1_hit,highest_since_entry,lowest_since_entry,"
+                "sl_reconcile_target,tgt_reconcile_target) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (trade.order_id, trade.symbol, trade.exchange, trade.side,
                  trade.qty, trade.entry_price, trade.product, trade.order_time,
                  trade.stop_loss, trade.target_1, trade.target_2,
@@ -2432,7 +2572,8 @@ class ManualTradeTracker:
                  1 if trade.protected else 0,
                  trade.current_price, trade.pnl_pct,
                  trade.realized_pnl, 1 if trade.t1_hit else 0,
-                 trade.highest_since_entry, trade.lowest_since_entry)
+                 trade.highest_since_entry, trade.lowest_since_entry,
+                 trade.sl_reconcile_target, trade.tgt_reconcile_target)
             )
             conn.commit()
             conn.close()
