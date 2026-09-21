@@ -1721,3 +1721,53 @@ direction for participant-OI positioning specifically -- FII cash-flow
 accumulated history at all) were checked and found to have no usable
 history at all, a different and more basic blocker than a failed
 predictive test.
+
+## Cost-model lineage audit (2026-09-21) -- heterogeneity confirmed, no bias found favoring false positives
+
+Following the ChatGPT audit's step 1 (cost-model lineage matrix, done
+before any further statistical work per its recommended sequencing).
+Traced every backtest run this session for its actual dataset range,
+cost implementation, and price source:
+
+| Experiment | Date range | Cost model | Price source |
+|---|---|---|---|
+| Iron Condor / Bull Put / Bear Call Spread | options_nifty.db, FULL 2020-2026 | Own simplified: flat 2% slippage + flat brokerage/leg, NO separate nse_cost_model.py call | Real EOD settle/intrinsic value |
+| Delta-Hedged Iron Butterfly, Naked Straddle/Strangle, Contrarian-Sell, Real-Option-Translation, Premium Breakout | candle_cache.db (2025-05-19 onward) + options_nifty.db (EOD anchor only) | nse_cost_model.py (full-stack: STT/brokerage/exchange/GST/stamp/slippage) | Black-Scholes reconstructed (DayPricer), anchored to real T-1 settle |
+| Carver EWMAC | candle_cache.db (2025-05-19 onward) | nse_cost_model.py (FUT instrument) | N/A (underlying only) |
+| ORB parameter family | candle_cache.db | Own in-file constants (STT_RATE=0.05%, matching real FUT STT) | N/A (underlying only) |
+| Fibonacci | candle_cache.db | Own in-file constants, brokerage only, no explicit STT | N/A (underlying only) |
+| Participant-OI primary signal | participant_oi.db, FULL 2020-2026 | None -- pure statistical correlation test, no simulated trading/P&L at all | N/A |
+
+**Confirms ChatGPT's core point: no single unified cost model exists
+across this research suite** -- at least 4 distinct implementations.
+"Real transaction costs modeled explicitly," as stated earlier, needs
+exactly the qualification suggested: true for the nse_cost_model.py-based
+tests, differently-approximated for the options_nifty.db spread/condor
+tests, N/A for the underlying-only tests, and not applicable at all to
+the pure-correlation participant-OI test.
+
+**Investigated further rather than just flagged, per the same
+"dependency tracing" discipline already applied to the STT date issue**:
+does the condor/credit-spread tests' missing explicit STT line item
+actually understate their costs (the dangerous direction -- would make
+rejections less trustworthy)? Computed directly: nse_cost_model.py's
+FULL real cost stack for a typical leg (premium=180, qty=75) is Rs50.88
+(0.377% of turnover, including STT/brokerage/exchange/GST/slippage) --
+the flat 2% slippage assumption those tests actually use comes to
+Rs315 for the same trade, over 4x higher. **The missing STT line item is
+not a real gap in practice -- it is already absorbed several times over
+by a deliberately conservative flat assumption.** If anything, the
+condor/credit-spread tests are OVER-charging costs relative to reality,
+which if it biases anything, biases toward MORE rejections, not fewer --
+the safe direction, not the dangerous one.
+
+**Verdict on this audit item: heterogeneity is real and now documented,
+but traced to have NO bias favoring false positives in any test
+reviewed.** Matches the STT-date finding's pattern exactly: a genuine
+methodological inconsistency that, once actually traced through to its
+effect on real numbers rather than assumed to matter, does not change
+any reported verdict. Next per ChatGPT's suggested sequencing: the
+look-ahead/data-lineage audit (higher risk than either cost-model issue
+found so far) before any research-program-level overfitting statistics
+(CPCV/PBO/DSR). PE/SELL candidate specification remains frozen and
+untouched throughout.
