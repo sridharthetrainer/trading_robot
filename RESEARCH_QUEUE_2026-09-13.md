@@ -1837,8 +1837,8 @@ backtest_real.py). Entry and exit both use real, actually-quoted EOD
 settle/intrinsic values from options_nifty.db. No Black-Scholes
 reconstruction anywhere in these results.
 
-**Tier 2 -- strong negative evidence (Black-Scholes reconstructed,
-anchored to real T-1 settlement, poisoned-input verified this session
+**Tier 2 -- rejection conditional on the BS-reconstruction assumptions
+(anchored to real T-1 settlement, poisoned-input verified this session
 for lookahead safety)**: Naked Straddle/Strangle (C1/C2), Contrarian-
 Sell, Real-Option-Translation (PE/SELL candidate), Premium Breakout.
 Per the epistemic-asymmetry principle already established earlier this
@@ -1846,7 +1846,11 @@ session: a NEGATIVE result from this pricer is meaningful precisely
 because the model is generous (accurate underlying, no stale quotes,
 smooth pricing, real anchor) -- a loss under favorable modeled
 conditions is real evidence, even though it is not real intraday tick
-data.
+data. Correction (2026-09-21): this does NOT license the stronger claim
+that every realistic implementation would perform worse than what was
+modeled here -- "the model was generous" bounds the rejection's
+validity, it is not proof of a lower bound on real-world performance.
+Treat as "rejected under these modeling assumptions," full stop.
 
 **Tier 3 -- model-based rejection evidence, not empirical replication
 of executable hedging**: Delta-Hedged Iron Butterfly. Already
@@ -1863,7 +1867,9 @@ implementation could work."
 (underlying notional only), participant-OI primary signal (pure
 statistical correlation, no P&L simulated). Execution realism doesn't
 apply to these in the same way; their rejections stand on their own
-terms (statistical significance / real notional P&L).
+terms (statistical significance / real notional P&L) -- but each still
+inherits its own data/timing/cost assumptions, and is not thereby
+exempt from scrutiny.
 
 **Practical implication**: the REJECTED verdicts most robust to
 execution-realism concerns are Tier 1 (iron condor, credit spreads) --
@@ -1873,37 +1879,92 @@ different methods this session) but carry the explicitly-scoped caveat
 already used throughout: a negative result bounds "under this pricing
 approximation," not "under any conceivable real execution."
 
-## Step 4 (CPCV/PBO/DSR, research-program-level overfitting) -- scoped, not yet committed
+## Step 4 (CPCV/PBO/DSR, research-program-level overfitting) -- NOT PERFORMED, deferred (2026-09-21)
 
-Honest effort assessment before diving in: a full, formal CPCV/PBO
-analysis across all ~30 tested candidates, with DSR-adjusted effective-
-trials correction, is a genuinely large undertaking -- comparable in
-scope to several of today's individual backtests combined, not a quick
-add-on. Worth being explicit about that before committing further time
-to it, especially since (per ChatGPT's own point) "sophisticated
-statistics can't rescue contaminated inputs" -- and steps 1-3 already
-found the inputs are reasonably clean.
+Correction to this section's original framing (user pushback, 2026-09-21):
+day-split holdout + permutation testing is NOT an informal substitute
+for PBO/CPCV, and this record should not imply it is. They answer
+different questions. The existing procedure (day-split, permutation,
+Bonferroni) tests whether an INDIVIDUAL candidate's effect replicates
+out-of-sample. PBO/CPCV addresses a different question entirely: how
+badly the SELECTION PROCESS itself -- searching across many candidate
+configurations -- can produce an apparent best-performer that is an
+artifact of the search, not of any one candidate's replication
+failure. Passing the existing checks does not answer the CPCV question,
+and failing to run CPCV does not mean it was implicitly covered.
 
-**A cheaper, partial substitute already exists in this session's own
-prior work**: every "best-looking" result found this session was
-independently checked via a DIFFERENT method (day-split holdout,
-permutation test, Bonferroni correction) and EVERY ONE failed to
-replicate under that check -- the FII_NET_OPT_RATIO training result
-(p=3.4e-05) collapsed on holdout; the bull put spread's marginal
-pooled significance (p=0.039) failed Bonferroni (p=0.71); the PE/SELL
-candidate's pooled significance doesn't hold when both halves are
-required independently. A formal CSCV/PBO pass would very likely
-CONFIRM this same pattern via a different statistical lens, rather than
-overturn it -- the informal version of "does the apparent best result
-survive a check it hasn't already been tested against" has already been
-run, repeatedly, throughout this whole session, just not badged with
-the CSCV/PBO name.
+Also corrected: an earlier draft of this section proposed running PBO
+on just the 3 candidates that showed pooled significance before
+correction (FII_NET_OPT_RATIO, bull put spread, PE/SELL) and treating
+that as a "research-program-level" PBO pass. That would not be a valid
+substitute -- selecting those specific 3 candidates BECAUSE they looked
+interesting historically is itself conditioned on the research outcome,
+which is exactly the kind of selection effect PBO/CPCV exists to guard
+against. A 3-candidate analysis could still be a useful bounded
+diagnostic if ever run, but it must be labelled as that, not as
+research-program-level PBO.
 
-**Recorded as open, not completed.** If pursued, the highest-value,
-most bounded version would be: PBO applied specifically across the
-handful of candidates that showed ANY pooled significance before
-correction (FII_NET_OPT_RATIO, bull put spread, PE/SELL) rather than
-all ~30 (most of which were unambiguously, uniformly negative and don't
-need a sophisticated overfitting check to interpret). Not run this
-pass -- flagged for explicit user decision given the effort involved,
-rather than silently committed to or silently dropped.
+**Status: not performed, deferred as not decision-critical.** No
+candidate is currently being promoted to live trading on the strength
+of an attractive backtest -- every apparent positive already failed a
+subsequent validation barrier (holdout collapse, Bonferroni, or the
+both-halves-independent requirement) before this question was even
+asked. A sophisticated overfitting statistic layered on top of
+already-negative evidence would not change the operational decision
+right now. This is a real, acknowledged methodological limitation of
+the research program, not a completed step and not a covered one.
+
+## Research status -- CLOSED / NO VALIDATED EDGE (2026-09-21)
+
+Across the strategy families tested, no candidate has demonstrated a
+statistically validated, reproducible edge after the applicable modeled
+transaction costs and out-of-sample/independent-sample checks.
+
+Positive intermediate findings were not promoted when they failed
+correction or independent replication. PE/SELL remains a preregistered
+candidate (`PREREG_PE_ON_SELL_SIGNAL.md`) awaiting genuinely new data
+and is not considered validated.
+
+Execution realism varies by experiment and is explicitly classified by
+pricing tier (above). Historical transaction-cost handling was audited;
+a date-insensitive STT defect was corrected, but dependency tracing
+found no evidence that it contaminated the conclusions reached in this
+research cycle.
+
+Research-program-level CPCV/PBO/DSR analysis was not performed and
+remains a methodological limitation. It was deferred because no
+candidate currently survives the existing validation gates sufficiently
+to make the additional analysis decision-critical.
+
+Therefore the supported conclusion is not that profitable retail
+options edges do not exist. It is that this research program has not
+demonstrated one with the strategies, datasets, cost assumptions and
+execution models tested.
+
+**Reopening criteria** (explicit, so "stop researching" means stop, not
+"candidate #31 tomorrow under a different name"): materially new data,
+the preregistered PE/SELL sample becoming available, discovery of a bug
+that actually contaminates previous results, or a materially different
+research question -- not another variation extracted from the same
+exhausted history.
+
+## Option scalping -- classified INSUFFICIENT DATA, not attempted (2026-09-21)
+
+Raised as a candidate and immediately declined rather than built as
+"candidate #31." Reasoning independent of source: this project's only
+options data is EOD settlement (`options_nifty.db`) plus the DayPricer/
+TradingTimeDayPricer reconstruction built from it -- there is no real
+intraday tick/quote/bid-ask history anywhere in this project (already
+established this session while investigating other alternative-data
+gaps). A short-horizon (1-15 min) scalp's P&L depends on real bid-ask
+spread, fill location, and slippage, none of which a BS reconstruction
+from EOD settlement can supply -- simulating it would test the
+reconstruction's own assumptions, not the strategy. Per the taxonomy
+already in use this session (REJECTED / CANDIDATE / INSUFFICIENT DATA /
+VALIDATED): OPTION SCALPING -> INSUFFICIENT DATA. Not REJECTED (never
+actually tested) and not evidence that no scalping edge exists --
+simply outside what this project's data resolution can test.
+Prospective real tick/1-minute (ideally with bid/ask) collection via
+Angel One would be the only way to make this a testable domain; not
+started, not scheduled -- would need its own explicit decision given
+the "no candidate #31 from exhausted history" closing stance above.
