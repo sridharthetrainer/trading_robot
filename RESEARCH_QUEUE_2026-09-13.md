@@ -1508,3 +1508,66 @@ fixed (both live-code paths, both committed and the bot restarted to
 pick them up); everything else flagged by the generic scanner was
 individually checked and correctly triaged as either already-fine
 constants or already-fixed-elsewhere logic, not silently assumed clean.
+
+## Continuous delta-hedged iron butterfly (2026-09-21) -- REJECTED, but a genuinely different and more informative failure
+
+Following the "what would a real market-maker-style system do differently"
+discussion: every option-selling structure tested this session
+(standalone and paired) was a STATIC position -- enter, hold, exit.
+Real vol desks continuously rebalance delta as the underlying moves,
+aiming to isolate the volatility-risk-premium capture (implied vs
+subsequently-realized vol) from directional exposure. This tests that
+specific, previously-untested ingredient.
+
+New file `backtest_delta_hedged_iron_butterfly.py`: same iron-butterfly
+structure as the already-rejected one (short ATM CE+PE, long OTM wings
+at 300pts for defined risk, kept from the start per the explicit lesson
+that hedging alone doesn't protect against a fast gap -- see 2018's
+"Volmageddon", which wiped out funds that WERE dynamically hedging).
+Delta computed via `greeks_live.compute_greeks` using each leg's own
+DayPricer-solved IV; net position delta offset with a NIFTY-futures-
+equivalent hedge, rebalanced when drift exceeds a 15-unit band (one
+reasonable starting value, not tuned/optimized, to avoid a fishing
+expedition). Hard gap-stop: exit everything if a single 5-min bar's move
+exceeds 3x the day's own entry-implied expected 5-min move -- discrete
+rebalancing cannot react faster than one bar's delay. Real costs
+(nse_cost_model.py) on every option leg AND every hedge rebalance.
+
+**Important methodology caveat, stated plainly**: this uses a DAILY
+intraday holding period (enter 9:20, exit 3:10pm same day), NOT the
+weekly hold the original iron butterfly rejection used
+(`condor_backtest_real.py`, entered ~weekly, held toward expiry). This is
+therefore NOT a strict "same structure plus hedging" controlled
+comparison -- it's a related but distinct daily-intraday variant. A
+same-day hold gives theta very little time to work, which likely
+understates any real edge a WEEKLY-held, continuously-hedged version
+might show -- flagged as a real limitation of this specific test, not
+hidden.
+
+**Result**: 318 trades, win rate 5.66%, NET P&L -Rs387,294, Sharpe
+-11.283. Day-split: OLDER (n=159) Sharpe=-12.196, NEWER (n=159)
+Sharpe=-10.360 -- both decisively negative, consistent, no ambiguity.
+Sample trades checked by hand show mechanistically SENSIBLE behavior,
+not a bug: e.g. one day showed option_pnl=+4,983 (theta worked) but
+hedge_pnl=-6,499 (the hedge cost more) -- the textbook signature of a
+short-gamma position where realized volatility exceeded what was priced
+in (the classic "buy high, sell low" cost of hedging short gamma).
+Total cost across all trades: Rs258,436 (4 option legs plus repeated
+hedge rebalancing is genuinely expensive; only ~1.7 rebalances/day on
+average, not excessive).
+
+**Verdict: REJECTED, but this is a more informative rejection than the
+static structures.** The mechanism works as designed (delta-hedging
+correctly isolates and reveals the gamma/theta tradeoff), and it still
+loses -- meaning realized volatility genuinely exceeded implied volatility
+by enough, on this NIFTY sample, to overcome real transaction costs even
+with directional risk properly removed. This directly answers the
+"maybe continuous hedging is the missing ingredient" hypothesis: it
+isn't, at least not on a daily hold, not because the code failed to
+implement real risk management, but because there wasn't enough
+IV-over-RV premium here to harvest once costs are paid. A weekly-held
+version would need to be built separately for a truly clean comparison
+against the original rejection, but given costs already dominate at
+daily frequency, a longer hold accumulating MORE rebalancing costs over
+more days is not expected to reverse this without a much larger
+underlying premium than this sample shows.
