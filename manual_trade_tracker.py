@@ -416,6 +416,19 @@ class ManualTradeTracker:
                 trailing_sl REAL,
                 event TEXT
             );
+            CREATE TABLE IF NOT EXISTS manual_trade_candles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id TEXT,
+                symbol TEXT,
+                bar_time TEXT,
+                open REAL,
+                high REAL,
+                low REAL,
+                close REAL,
+                volume REAL,
+                fetched_at TEXT,
+                UNIQUE(order_id, bar_time)
+            );
         """)
         # Broker-protection columns (added idempotently for existing DBs)
         for col, typ in (("sl_gtt_id", "TEXT"), ("target_gtt_id", "TEXT"),
@@ -2191,6 +2204,7 @@ class ManualTradeTracker:
             self._dyn_ts[trade.order_id] = now
             df = self._get_candles(trade)
             if df is not None:
+                self._persist_candles(trade, df)
                 try:
                     from dynamic_exit import compute_dynamic_levels
                     lv = compute_dynamic_levels(
@@ -2441,6 +2455,71 @@ class ManualTradeTracker:
             conn.close()
         except Exception:
             pass
+
+    def _persist_candles(self, trade: ManualTrade, df):
+        """Persist the real OHLC bars the dynamic-exit engine already fetched
+        this cycle (2026-09-21: prospective data capture, Piece 2 of the
+        ChatGPT manual-trade audit -- a retroactive paired counterfactual
+        exit-policy comparison was requested, but verified impossible on this
+        project's existing data: no historical intraday option-premium candles
+        were ever persisted anywhere, live fetch only covers the last 5 days,
+        and expired weekly contracts can't be re-fetched from Angel after the
+        fact. This makes the SAME real bars available going forward so that
+        comparison becomes buildable once enough new trades accrue -- no
+        reconstruction, no synthetic OHLC, just what was already fetched live
+        for the dynamic-exit engine, kept instead of discarded).
+
+        Cheap by construction: INSERT OR IGNORE + UNIQUE(order_id, bar_time)
+        means re-fetching the same historical window every cycle only ever
+        adds genuinely new bars.
+        """
+        try:
+            if df is None or df.empty:
+                return
+            from dynamic_exit import _col
+            hc = _col(df, "high"); lc = _col(df, "low")
+            oc = _col(df, "open"); cc = _col(df, "close")
+            vc = _col(df, "volume")
+            if not (hc and lc and oc and cc):
+                return
+
+            # Drop the still-forming last candle (same check as
+            # advisory_engine/data_core._clean): if this bar's open + 5min is
+            # still in the future, it isn't closed yet and its OHLC will keep
+            # changing. UNIQUE(order_id, bar_time) + INSERT OR IGNORE means a
+            # partial bar persisted now would permanently shadow the real,
+            # completed bar fetched next cycle -- so never persist it at all.
+            try:
+                last_open = df.index[-1].to_pydatetime().replace(tzinfo=None)
+                if last_open + timedelta(minutes=5) > datetime.now():
+                    df = df.iloc[:-1]
+            except Exception:
+                pass
+            if df.empty:
+                return
+
+            fetched_at = datetime.now().isoformat()
+            rows = []
+            for bar_time, r in df.iterrows():
+                try:
+                    rows.append((
+                        trade.order_id, trade.symbol, str(bar_time),
+                        float(r[oc]), float(r[hc]), float(r[lc]), float(r[cc]),
+                        float(r[vc]) if vc else 0.0, fetched_at,
+                    ))
+                except Exception:
+                    continue
+            if not rows:
+                return
+            conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+            conn.executemany(
+                "INSERT OR IGNORE INTO manual_trade_candles "
+                "(order_id,symbol,bar_time,open,high,low,close,volume,fetched_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?)", rows)
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.debug("persist candles %s: %s", trade.symbol, e)
     
     def _duration(self, entry_time: str) -> str:
         """Calculate duration since entry."""

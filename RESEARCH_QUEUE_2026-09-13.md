@@ -1968,3 +1968,45 @@ Prospective real tick/1-minute (ideally with bid/ask) collection via
 Angel One would be the only way to make this a testable domain; not
 started, not scheduled -- would need its own explicit decision given
 the "no candidate #31 from exhausted history" closing stance above.
+
+## Manual trade-management audit (ChatGPT, source confirmed with user) -- status (2026-09-21)
+
+Two pieces landed against the live manual-trade exit-management system
+(`dynamic_exit.py` / `manual_trade_tracker.py`), both instrumentation-only,
+no change to production selection/exit logic:
+
+1. `compute_dynamic_levels()` now returns each candidate stop's individual
+   value, the winning method, and whether that win actually moved the
+   floor (`sl_changed`) -- persisted per cycle. Corrected the source
+   material's "7 blended methods" framing to the actual 5 (ATR and ADX
+   are inputs to Chandelier, not independent candidates).
+2. Real 5-min OHLC bars are now persisted per open manual trade
+   (`manual_trade_candles`), guarding against a caught bug: the still-
+   forming last candle (same failure class as `advisory_engine/
+   data_core._clean` already guards against elsewhere in this codebase)
+   would otherwise get permanently frozen mid-formation by the dedup
+   constraint. Verified with a synthetic forming/closed-bar sequence
+   before commit -- the partial bar is dropped, then correctly persisted
+   with its final values once actually closed.
+
+**Exit-management validation: NOT YET VALIDATED.** Prospective dataset
+collection started 2026-09-21. Historical replay across the existing 68
+closed manual trades is unavailable -- verified, not assumed: no
+historical option-premium OHLC was ever retained anywhere in this
+project (candle_cache.db has zero rows for any of the actually-traded
+symbols checked), live fetch only covers a 5-day trailing window, and
+expired weekly contracts cannot be re-fetched from Angel after the fact.
+The existing sparse point-in-time LTP snapshots (`manual_trade_updates`,
+1-12 rows for most trades) are real but not an adequate substitute --
+Chandelier/Supertrend/Swing need genuine bar highs/lows over history, not
+scattered points. No synthetic OHLC reconstruction will be used as
+empirical evidence for this system, for the same reason it wasn't used
+for option scalping or the closed automated-strategy research.
+
+Next reviewable work on this thread: production failure-injection/safety
+tests for the crash-safe protection layer (restart mid-position, network
+loss, timeout-then-retry duplicate order, gap-through-stop, SL/target
+race) -- doesn't require waiting on new trade data. The ΔR/counterfactual
+analyzer itself is deferred until the prospective dataset has enough
+trades to be worth analyzing; building it against an empty dataset now
+would have no value.
