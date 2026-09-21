@@ -1822,3 +1822,88 @@ require new code, just an explicit accounting already partially done in
 the cost-model lineage matrix above) before any research-program-level
 overfitting statistics (CPCV/PBO/DSR). PE/SELL candidate specification
 remains frozen and untouched.
+
+## Execution-model audit, step 3 of the ChatGPT sequencing (2026-09-21)
+
+Per ChatGPT's point that real-settlement, BS-reconstructed, and delta-
+hedged-approximation tests "should not receive identical evidentiary
+weight" -- explicit tiering of every experiment run this session,
+consolidating what the cost-model lineage matrix already surfaced:
+
+**Tier 1 -- highest confidence (real market-quoted settlement, no
+pricing model at all)**: Iron Condor, Bull Put Spread, Bear Call Spread,
+Selective VRP (all via condor_backtest_real.py / credit_spread_
+backtest_real.py). Entry and exit both use real, actually-quoted EOD
+settle/intrinsic values from options_nifty.db. No Black-Scholes
+reconstruction anywhere in these results.
+
+**Tier 2 -- strong negative evidence (Black-Scholes reconstructed,
+anchored to real T-1 settlement, poisoned-input verified this session
+for lookahead safety)**: Naked Straddle/Strangle (C1/C2), Contrarian-
+Sell, Real-Option-Translation (PE/SELL candidate), Premium Breakout.
+Per the epistemic-asymmetry principle already established earlier this
+session: a NEGATIVE result from this pricer is meaningful precisely
+because the model is generous (accurate underlying, no stale quotes,
+smooth pricing, real anchor) -- a loss under favorable modeled
+conditions is real evidence, even though it is not real intraday tick
+data.
+
+**Tier 3 -- model-based rejection evidence, not empirical replication
+of executable hedging**: Delta-Hedged Iron Butterfly. Already
+self-flagged in its own writeup this exact way before this audit
+started -- continuous rebalancing assumes fills at modeled BS prices
+with real transaction costs, but no real bid-ask/depth/queue data. The
+mechanism was shown to work as designed (correct short-gamma P&L
+signature) and still failed -- meaningful, but scoped as "no edge under
+this pricing/execution approximation," not "no possible real-world
+implementation could work."
+
+**Tier 4 -- not an options-pricing question at all**: Carver EWMAC
+(futures/underlying only), ORB and Fibonacci parameter families
+(underlying notional only), participant-OI primary signal (pure
+statistical correlation, no P&L simulated). Execution realism doesn't
+apply to these in the same way; their rejections stand on their own
+terms (statistical significance / real notional P&L).
+
+**Practical implication**: the REJECTED verdicts most robust to
+execution-realism concerns are Tier 1 (iron condor, credit spreads) --
+real prices, nothing modeled. Tier 2/3 rejections remain real, useful
+evidence (consistent with 6+ other rejections found via completely
+different methods this session) but carry the explicitly-scoped caveat
+already used throughout: a negative result bounds "under this pricing
+approximation," not "under any conceivable real execution."
+
+## Step 4 (CPCV/PBO/DSR, research-program-level overfitting) -- scoped, not yet committed
+
+Honest effort assessment before diving in: a full, formal CPCV/PBO
+analysis across all ~30 tested candidates, with DSR-adjusted effective-
+trials correction, is a genuinely large undertaking -- comparable in
+scope to several of today's individual backtests combined, not a quick
+add-on. Worth being explicit about that before committing further time
+to it, especially since (per ChatGPT's own point) "sophisticated
+statistics can't rescue contaminated inputs" -- and steps 1-3 already
+found the inputs are reasonably clean.
+
+**A cheaper, partial substitute already exists in this session's own
+prior work**: every "best-looking" result found this session was
+independently checked via a DIFFERENT method (day-split holdout,
+permutation test, Bonferroni correction) and EVERY ONE failed to
+replicate under that check -- the FII_NET_OPT_RATIO training result
+(p=3.4e-05) collapsed on holdout; the bull put spread's marginal
+pooled significance (p=0.039) failed Bonferroni (p=0.71); the PE/SELL
+candidate's pooled significance doesn't hold when both halves are
+required independently. A formal CSCV/PBO pass would very likely
+CONFIRM this same pattern via a different statistical lens, rather than
+overturn it -- the informal version of "does the apparent best result
+survive a check it hasn't already been tested against" has already been
+run, repeatedly, throughout this whole session, just not badged with
+the CSCV/PBO name.
+
+**Recorded as open, not completed.** If pursued, the highest-value,
+most bounded version would be: PBO applied specifically across the
+handful of candidates that showed ANY pooled significance before
+correction (FII_NET_OPT_RATIO, bull put spread, PE/SELL) rather than
+all ~30 (most of which were unambiguously, uniformly negative and don't
+need a sophisticated overfitting check to interpret). Not run this
+pass -- flagged for explicit user decision given the effort involved,
+rather than silently committed to or silently dropped.
