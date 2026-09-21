@@ -1771,3 +1771,54 @@ look-ahead/data-lineage audit (higher risk than either cost-model issue
 found so far) before any research-program-level overfitting statistics
 (CPCV/PBO/DSR). PE/SELL candidate specification remains frozen and
 untouched throughout.
+
+## Look-ahead/data-lineage audit, step 2 of the ChatGPT sequencing (2026-09-21)
+
+Two highest-priority checks completed (the most-used, least-verified
+pricing primitive, and today's newest, least-scrutinized test):
+
+**1. `option_intraday_pricer.DayPricer`'s core anchoring logic** -- the
+single most-used pricing primitive this session (delta-hedged iron
+butterfly, naked straddle/strangle, contrarian-sell, real-option-
+translation, premium-breakout, trading_time_pricer.py all build on it
+directly) had only ever been trusted via its own docstring's claim of
+"zero lookahead", never empirically verified the way derivative logic
+(causal_htf.py, backtest_supertrend_mtf.py) already was. Built
+`test_option_intraday_pricer_poisoned_input.py`: poisons every
+options_eod row on or after the actual trading day being simulated
+(never the legitimate T-1 anchor), tested against a TEMPORARY COPY of
+options_nifty.db (never mutating the real multi-year production
+database in place -- a crash mid-test would otherwise risk corrupting
+it). **Result: PASS.** Anchor correctly resolves to T-1, full intraday
+priced path byte-identical regardless of poisoning. A real, previously-
+unverified gap now closed with genuine empirical evidence, not just a
+code-review checklist item.
+
+**2. `backtest_participant_oi_primary_signal.py`'s cross-database
+timing** (today's newest, least-scrutinized test, and the one with the
+most striking train-vs-holdout collapse -- worth checking whether that
+collapse could itself be a timing artifact rather than a real
+non-replication). Traced `participant_oi_backfill.py`'s `fetch_day()`:
+it pulls NSE's own official end-of-day participant-wise OI report FOR
+that trading day, which NSE itself publishes the same evening
+(~8pm IST) -- confirming `date=T` in this table genuinely means "T's
+positions, known by 8pm T," well before T+1's 9:15am market open.
+**No lookahead**: using day T's metric to predict T+1/T+5 forward
+returns (as that test did) is causally valid. The earlier finding
+(FII_NET_OPT_RATIO looked highly significant in training, p=3.4e-05,
+then collapsed to near-zero/wrong-signed in holdout) stands as a
+genuine non-replication, not a timing-driven artifact.
+
+**Status**: both checks come back clean -- no lookahead bugs found in
+either the highest-risk shared primitive or the newest, least-checked
+test. This is real, positive evidence for the integrity of this
+session's option-pricing and participant-OI results specifically (not
+a blanket clearance of the whole 228-file system, which would need a
+much larger effort than this bounded, risk-prioritized pass). Next per
+the agreed sequencing: step 3 (execution-model audit -- explicitly
+separating real-EOD-settlement-based tests from Black-Scholes-
+reconstructed and delta-hedging-approximated tests, which does not
+require new code, just an explicit accounting already partially done in
+the cost-model lineage matrix above) before any research-program-level
+overfitting statistics (CPCV/PBO/DSR). PE/SELL candidate specification
+remains frozen and untouched.
