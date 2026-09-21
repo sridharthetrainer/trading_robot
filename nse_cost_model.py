@@ -42,6 +42,7 @@ Usage:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from typing import Dict, Literal, Optional
 
 
@@ -89,9 +90,41 @@ class NseCostModel:
     # ── Statutory rates ───────────────────────────────────────────────────────
     # STT (Securities Transaction Tax)
     STT_FUT_SELL      = 0.0005     # 0.05% on sell-side notional
-    STT_OPT_SELL      = 0.0015     # 0.15% on sell-side premium
+    STT_OPT_SELL      = 0.0015     # 0.15% on sell-side premium -- CURRENT rate
+                                    # (from 2026-04-01). This was a single flat
+                                    # constant with no date-awareness until
+                                    # 2026-09-21, when an external audit (ChatGPT,
+                                    # via the user) correctly flagged that every
+                                    # backtest spanning 2020-2026 in this project
+                                    # applied TODAY's rate retroactively to trades
+                                    # from years when the real rate was lower.
+                                    # See _historical_stt_opt_sell_rate() below --
+                                    # this constant remains the DEFAULT (used when
+                                    # no trade_date is given, preserving identical
+                                    # behavior for every existing caller).
     STT_EQ_INTRADAY   = 0.00025    # 0.025% on sell-side
     STT_EQ_DELIVERY   = 0.001      # 0.10% on both sides
+
+    # Real historical STT-on-options-premium rate timeline (verified via web
+    # search 2026-09-21): pre-2024-10-01 = 0.0625%, 2024-10-01 to 2026-03-31 =
+    # 0.10%, 2026-04-01 onward = 0.15% (the current STT_OPT_SELL constant
+    # above). Only affects OPT_BUY/OPT_SELL sell-side STT when a trade_date is
+    # explicitly supplied to single_leg_cost()/round_trip_cost() -- optional,
+    # defaults to None (today's rate), so no existing caller's behavior
+    # changes unless it opts in.
+    _STT_OPT_SELL_HISTORY = [
+        (date(2024, 10, 1), 0.000625),
+        (date(2026, 4, 1), 0.0010),
+    ]
+
+    @classmethod
+    def _historical_stt_opt_sell_rate(cls, trade_date) -> float:
+        if trade_date is None:
+            return cls.STT_OPT_SELL
+        for cutoff, rate in cls._STT_OPT_SELL_HISTORY:
+            if trade_date < cutoff:
+                return rate
+        return cls.STT_OPT_SELL
 
     # Exchange levy (NSE)
     NSE_LEVY_FUT      = 0.000018299  # 0.0018299%
@@ -151,6 +184,7 @@ class NseCostModel:
         side: str,
         symbol: str = "NIFTY",
         include_slippage: bool = True,
+        trade_date: Optional[date] = None,
     ) -> CostBreakdown:
         """
         Compute all costs for a single order leg (buy or sell).
@@ -162,6 +196,11 @@ class NseCostModel:
             side:      "BUY" or "SELL"
             symbol:    Used for slippage rate lookup
             include_slippage: Whether to add slippage estimate
+            trade_date: if given, uses the REAL historical STT-on-options rate
+                        for that date instead of today's rate (see
+                        _historical_stt_opt_sell_rate). Optional, defaults to
+                        None (today's rate) -- existing callers are unaffected
+                        unless they opt in.
 
         Returns:
             CostBreakdown with all cost components
@@ -180,7 +219,7 @@ class NseCostModel:
         if instrument == "FUT":
             cb.stt = turnover * self.STT_FUT_SELL if is_sell else 0.0
         elif instrument in {"OPT_BUY", "OPT_SELL"}:
-            cb.stt = turnover * self.STT_OPT_SELL if is_sell else 0.0
+            cb.stt = turnover * self._historical_stt_opt_sell_rate(trade_date) if is_sell else 0.0
         elif instrument == "EQ_INTRADAY":
             cb.stt = turnover * self.STT_EQ_INTRADAY if is_sell else 0.0
         elif instrument == "EQ_DELIVERY":
@@ -234,6 +273,7 @@ class NseCostModel:
         symbol:         str = "NIFTY",
         include_slippage: bool = True,
         entry_side: Optional[str] = None,
+        trade_date: Optional[date] = None,
     ) -> float:
         """
         Total cost for a complete round trip (entry + exit) in INR.
@@ -244,6 +284,11 @@ class NseCostModel:
             instrument:     "FUT", "OPT_BUY", "OPT_SELL", "EQ_INTRADAY", "EQ_DELIVERY"
             symbol:         For slippage lookup
             include_slippage: Whether to add slippage
+            trade_date: if given, uses the REAL historical STT-on-options rate
+                        for that date (applied to both entry and exit legs --
+                        a reasonable simplification for same-day/same-week
+                        holds, since STT rate changes are infrequent) instead
+                        of today's rate. Optional, defaults to None.
 
         Returns:
             float: Total cost in INR (always positive — to be subtracted from gross P&L)
@@ -259,10 +304,10 @@ class NseCostModel:
         exit_side = "SELL" if entry_side == "BUY" else "BUY"
 
         entry_cost = self.single_leg_cost(
-            entry_turnover, instrument, entry_side, symbol, include_slippage
+            entry_turnover, instrument, entry_side, symbol, include_slippage, trade_date
         )
         exit_cost = self.single_leg_cost(
-            exit_turnover, instrument, exit_side, symbol, include_slippage
+            exit_turnover, instrument, exit_side, symbol, include_slippage, trade_date
         )
         return round(entry_cost.total + exit_cost.total, 2)
 
