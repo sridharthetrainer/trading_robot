@@ -1402,3 +1402,41 @@ systematic trend + vol-sizing framework -- genuinely different in kind
 from every rule-based single-signal strategy tested this session --
 still fails on real NIFTY data after real costs. Consistent with this
 project's entire accumulated evidence base.
+
+## Classifier comparison on the MFE-threshold model (2026-09-21) -- confirms the limit is information, not model choice
+
+Follow-up to item 4 (built 2026-09-20): tested whether switching
+classifiers changes the "real signal, not economically actionable"
+conclusion. xgboost/lightgbm are not installed in this environment;
+used the 4 classifier families actually available: RandomForest
+(original), ExtraTrees, sklearn's HistGradientBoostingClassifier
+(histogram-based, closest available equivalent to LightGBM), and
+LogisticRegression (linear, a completely different model family from
+the three tree-based ones). Same exact features, same 3-way date-split
+(train/validation-for-cutoff-selection/locked-holdout), same purged CPCV
+on train+validation only, cutoff chosen on validation and applied once
+to holdout -- identical discipline across all 4, only the classifier
+swapped.
+
+**Result: all 12 combinations (4 classifiers x 3 MFE targets) show
+negative net_R on the locked holdout.** Best case across the whole grid:
+RandomForest at the 0.75R target, -0.066 (still negative). Worst:
+ExtraTrees at 0.75R, -0.735. CPCV mean clusters 0.58-0.69 across every
+classifier and target -- even LogisticRegression (the simplest, linear
+model) shows CPCV clearly above the 0.5 noise floor (0.588-0.633),
+confirming the underlying signal is real and not an artifact of one
+model's tendency to overfit noise. Tree-based models capture somewhat
+more of that signal (0.61-0.69 vs LogisticRegression's 0.58-0.63) --
+consistent with genuine nonlinear structure in the features -- but the
+gap is modest, and NONE of the four model families translates the
+signal into a coverage/economics combination that clears zero.
+LogisticRegression notably gets MORE coverage (4-6% of holdout vs <1%
+for the tree models) at its chosen cutoff, and is STILL net negative --
+ruling out "the tree models are just too conservative/thin-coverage" as
+an alternative explanation.
+
+**Conclusion: the ceiling here is genuinely about information content in
+the features and MFE-threshold label, not classifier capacity or
+family.** No further classifier-swapping is expected to change this
+without new, different features -- closes off "try more ML models" as a
+next step on the current feature set.
