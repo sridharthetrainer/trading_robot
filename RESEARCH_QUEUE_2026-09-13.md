@@ -1352,3 +1352,53 @@ both halves of a NEW out-of-sample window independently clearing z>1.96,
 Bonferroni-corrected for however many hypotheses are pre-registered) --
 rather than continuing to explore this same dataset further, which would
 only compound the look-elsewhere effect already spent on it today.
+
+## Robert Carver's EWMAC + vol-targeted sizing (Systematic Trading) -- REJECTED (2026-09-21)
+
+User-provided algorithmic-trading book list (source AI not identified --
+asked once, not re-asked per standing rule) flagged Robert Carver's
+*Systematic Trading* as containing a genuinely new, concretely testable
+system distinct from everything else tried: multiple EWMAC (exponentially-
+weighted moving-average crossover) trend forecasts across different time
+scales, combined into one signal, with VOLATILITY-TARGETED position
+sizing -- a continuously-varying, forecast-strength-scaled position, not
+a binary enter/exit signal like every other strategy tested this session.
+
+New file `backtest_carver_ewmac.py`. Borrows Carver's published
+METHODOLOGY only (forecast scalars, FDM, vol-targeting formula -- all
+publicly documented in his book/blog), not code. Tested on NIFTY as a
+futures-style underlying-directional system (Carver's own book scope --
+futures, not options; disclosed simplification: reduced to 3 EWMAC
+variants -- (4,16), (8,32), (16,64) -- since the full published 6-variant
+set needs far more daily history than this project's available 334 bars
+would leave a usable window for). Real FUT-instrument transaction costs
+(`nse_cost_model.py`'s `single_leg_cost`, applied per day's incremental
+rebalance turnover, no no-trade buffer -- likely OVERSTATES real costs,
+a conservative simplification).
+
+**Self-caught false alarm, worth recording as a reminder to verify a
+"bug" before fixing it**: initial run showed avg |position| = Rs56,
+which looked suspiciously tiny relative to Rs10L capital and was
+initially flagged as a missing-lot-size bug. The "fix" (multiplying by
+LOT_SIZE after already dividing by it in the sizing formula) was
+algebraically a no-op -- confirmed by rechecking n_lots directly:
+mean=0.87, median=0.70, max=3.33 lots, a perfectly sensible size for
+this capital/risk-target combination. The original code was correct;
+Rs56 is a rupee-per-index-point SENSITIVITY factor, not a notional
+value, and multiplying it by NIFTY's price gives a reasonable ~1.3x
+leveraged notional exposure. No real bug existed -- corrected the
+misleading comment rather than let an incorrect "bug fix" narrative
+stand in committed code.
+
+**Result, full 334-day NIFTY daily history (309 valid days after
+warmup)**: NET P&L -Rs153,042, Sharpe -0.620, win rate 43.69%, max
+drawdown Rs251,797, total costs Rs42,405. Day-split: OLDER (n=154)
+Sharpe -1.181, NEWER (n=155) Sharpe -0.116 -- both negative, no sign
+flip, no collapse-then-reversal pattern (consistent, unambiguous
+rejection, unlike several borderline cases found earlier this session).
+
+**Verdict: REJECTED.** A faithful, well-documented, publicly-known
+systematic trend + vol-sizing framework -- genuinely different in kind
+from every rule-based single-signal strategy tested this session --
+still fails on real NIFTY data after real costs. Consistent with this
+project's entire accumulated evidence base.
