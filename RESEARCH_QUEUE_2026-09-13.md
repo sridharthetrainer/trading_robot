@@ -1253,3 +1253,33 @@ validated, holdout-surviving edge. Small sample throughout (275 total,
 76-146 per half) is a real limitation worth remembering if re-tested
 once more signal_log data accrues, but the CURRENT evidence does not
 support this idea being used live.
+
+## Strategy-hunting search formally closed (2026-09-21, by user decision)
+
+After ~25 independently-sourced, rigorously-tested candidates across
+external GitHub repos, TradingView built-ins, Chartink screens, Zerodha
+Streak/AngelOne examples, the full option-selling taxonomy
+(standalone+paired), signal inversion (two distinct constructions), an
+ML MFE-threshold model, and a volatility-surface relative-value idea --
+ALL rejected, several only after catching a holdout/significance failure
+that a first look missed -- user agreed to stop open-ended external
+strategy-sourcing here rather than continue an unbounded "check
+everything" search. This is a decision, not a gap: the evidence is
+strong and convergent that simple technical/rule-based retail strategies
+do not have exploitable edge on NIFTY options after real transaction
+costs, regardless of source.
+
+**Not closed, if revisited later on request**: a SPECIFIC named
+book/author/product (not "all of them"), or one bounded, explicitly-
+scoped search -- both remain available if the user names something
+concrete. What is closed is the open-ended "keep searching more sources"
+mode this session had been in.
+
+**Suggested alternative directions going forward** (not started,
+awaiting direction): execution quality / slippage reduction, position
+sizing refinement, cost reduction, or finishing remaining internal-data
+items already flagged in this file (sip_boost modifier re-check once
+more days accrue past 2026-08-21, the still-untested DEAD/NOISE
+modifiers, C5/C6/C9/D2/E2/E3/E5/E6 from the option-selling catalog if
+ever wanted, the "Option-level P&L translation" item which was never
+started this whole session).
