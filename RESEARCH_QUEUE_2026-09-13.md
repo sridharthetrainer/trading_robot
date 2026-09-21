@@ -1950,7 +1950,7 @@ exhausted history.
 
 ## Option scalping -- classified INSUFFICIENT DATA, not attempted (2026-09-21)
 
-Raised as a candidate and immediately declined rather than built as
+Raised via a pasted ChatGPT response (source confirmed with user). Declined rather than built as
 "candidate #31." Reasoning independent of source: this project's only
 options data is EOD settlement (`options_nifty.db`) plus the DayPricer/
 TradingTimeDayPricer reconstruction built from it -- there is no real
