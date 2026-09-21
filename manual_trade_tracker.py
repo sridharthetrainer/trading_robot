@@ -2493,8 +2493,8 @@ class ManualTradeTracker:
                 last_open = df.index[-1].to_pydatetime().replace(tzinfo=None)
                 if last_open + timedelta(minutes=5) > datetime.now():
                     df = df.iloc[:-1]
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("forming-candle check %s: %s", trade.symbol, e)
             if df.empty:
                 return
 
