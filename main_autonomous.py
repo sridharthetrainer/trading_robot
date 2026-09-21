@@ -1678,8 +1678,15 @@ class AutonomousTradingSystem:
                         _pd = get_participant_data(force=True)
                         _pm, _pn = compute_participant_signal(_pd, "BUY")
                         _lines.append(f"🏦 Participant OI: {_pn} (mod={_pm:+.1f})")
-                        from participant_oi import get_cumulative_fii
-                        _cum5 = get_cumulative_fii(5)
+                        # 2026-09-21: get_cumulative_fii() summed participant_oi's
+                        # own net_cash field, documented as unreliable/defaulting to
+                        # 0 (its live NSE cash-flow fetch isn't wired through) -- it
+                        # had been reporting exactly Rs+0Cr for 10+ consecutive days.
+                        # fii_tracker's fii_5d (backed by fii_data_fetcher's actually-
+                        # populated fii_history.csv, column-mismatch fixed the same
+                        # day) is real data.
+                        from fii_tracker import analyse_fii_patterns
+                        _cum5 = analyse_fii_patterns().get("fii_5d", 0.0)
                         _lines.append(f"📈 FII 5d cumulative: ₹{_cum5:+,.0f}Cr")
                     except Exception: pass
                     # Bulk deals

@@ -115,8 +115,18 @@ def analyse_fii_patterns(lookback: int = 20) -> Dict:
 
     def _f(row, key): return float(row.get(key, 0) or 0)
 
-    fii_cash   = [_f(r,"fii_cash_net") for r in recent]
-    dii_cash   = [_f(r,"dii_cash_net") for r in recent]
+    # 2026-09-21: real fii_history.csv is written by fii_data_fetcher.py's
+    # save_fii_data() with columns date/source/dii_net/dii_buy/dii_sell/
+    # fii_net/fii_buy/fii_sell -- NOT the fii_cash_net/dii_cash_net this
+    # function originally expected, so these were silently defaulting to
+    # 0.0 every single day (missing-key -> _f's `or 0` fallback). Fixed to
+    # match the columns that actually exist. fii_net_futures/fii_net_oi/
+    # nifty_close below are NOT fixed here -- those columns don't exist
+    # anywhere in the file at all (the active writer never captures
+    # futures/OI/nifty context), a separate missing-data-capture gap, not
+    # a naming mismatch a rename can fix.
+    fii_cash   = [_f(r,"fii_net") for r in recent]
+    dii_cash   = [_f(r,"dii_net") for r in recent]
     fii_fut    = [_f(r,"fii_net_futures") for r in recent]
     fii_oi     = [_f(r,"fii_net_oi") for r in recent]
     nifty      = [_f(r,"nifty_close") for r in recent]
