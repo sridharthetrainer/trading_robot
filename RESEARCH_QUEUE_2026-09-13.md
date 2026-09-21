@@ -1664,3 +1664,60 @@ tests plus six independent AI analyses): no demonstrated retail edge
 currently exists for this system. If a longer NIFTY index daily history
 becomes available, thread 2 is the one specific, well-defined,
 worth-revisiting item.
+
+## Alternative data as a PRIMARY signal: participant OI positioning -- REJECTED (2026-09-21)
+
+Following the "genuinely different information source" direction (not
+another price indicator): tested whether FII/Pro participant-OI
+positioning predicts NIFTY forward returns as a STANDALONE, primary
+signal -- not as a minor confluence-score modifier, which is the only
+way this kind of data has ever been used in this project (the closest
+existing thing, `participant_mod`, was never isolated and tested this
+way on its own terms).
+
+**Real, well-powered data discovered**: `participant_oi.db` has 8,285
+rows spanning the FULL 2020-01-01 to 2026-09-18 range (matching
+options_nifty.db's depth) -- FII/DII/Pro/Client/TOTAL positioning across
+index+stock futures and options, paired with a real `nifty_daily` close
+series (1,661 rows, same range) in the same database. This is a
+genuinely different, much better-powered dataset than the FII cash-flow
+series checked first (only 49 days, many stale-repeated -- structurally
+too thin to test, a real but separate blocker, flagged but not pursued
+further given this much better alternative existed).
+
+New file `backtest_participant_oi_primary_signal.py`. Three metrics
+PRE-SPECIFIED before running anything (per this project's standing
+discipline against combinatorial fishing, reinforced explicitly this
+same day): FII_NET_FUT_RATIO (normalized FII index-futures directional
+bias), FII_NET_OPT_RATIO (normalized net call-vs-put options exposure),
+Pro_NET_FUT_RATIO (same futures formula for proprietary/Pro traders,
+motivated by SEBI/literature findings that Pro/algo participants capture
+most of retail's losses). Two forward horizons (T+1, T+5 trading days),
+6 total tests, Bonferroni-corrected alpha=0.00833, day-split 70/30
+train/holdout.
+
+**Result**:
+- FII_NET_FUT_RATIO: not significant either horizon (train p=0.156 and
+  0.020 -- the latter doesn't clear Bonferroni anyway), holdout
+  correlation wrong-signed for T+5.
+- **FII_NET_OPT_RATIO: highly significant in TRAIN** (T+1 p=3.4e-05,
+  T+5 p<0.0001, n=1,159, correlations +0.121 and +0.211) -- by
+  conventional standards, an extremely compelling-looking result, the
+  strongest raw train-sample statistic found all session. **Completely
+  collapses in the HOLDOUT**: correlations fall to -0.0076 and -0.005
+  (essentially zero, wrong sign) on n=496-497 out-of-sample
+  observations. A clean, unambiguous in-sample artifact.
+- Pro_NET_FUT_RATIO: noise in both halves, both horizons.
+
+**Verdict: REJECTED.** This is the best-powered test conducted this
+entire session (real 6.7-year history, ~1,650 total observations vs the
+hundreds used elsewhere) and it produced the cleanest possible
+demonstration of why the holdout requirement exists: a result that
+would have been reported as a major discovery on training data alone
+(p<0.0001) is unambiguously fake once checked against data the analysis
+never touched. Closes out the "alternative data as primary signal"
+direction for participant-OI positioning specifically -- FII cash-flow
+(too thin, 49 days) and bulk deals (single-snapshot cache, no
+accumulated history at all) were checked and found to have no usable
+history at all, a different and more basic blocker than a failed
+predictive test.
