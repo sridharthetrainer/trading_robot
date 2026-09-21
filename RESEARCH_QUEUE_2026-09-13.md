@@ -1283,3 +1283,72 @@ more days accrue past 2026-08-21, the still-untested DEAD/NOISE
 modifiers, C5/C6/C9/D2/E2/E3/E5/E6 from the option-selling catalog if
 ever wanted, the "Option-level P&L translation" item which was never
 started this whole session).
+
+## Item 5 (Option-level P&L translation): built, and a genuinely borderline finding (2026-09-21)
+
+Built the translation layer flagged since the file's earliest version:
+for our own REAL historical NIFTY confluence signals (301 training-
+eligible, non-inverted, non-contrarian -- buy CE on BUY, buy PE on SELL,
+the ACTUAL direction our system would take), price with the real
+EOD-settle-anchored Black-Scholes intraday pricer instead of the
+underlying-proxy R-multiple everything else in this project uses. New
+file `backtest_real_option_translation.py`, same 30% unrealized-loss
+stop / 3:10pm square-off convention as every other single-leg backtest.
+
+**Headline number, immediately treated with the same suspicion as every
+other positive result this session**: real-option P&L for the 281
+priceable signals is +Rs165,720 (Sharpe 2.888, win rate 38.79%) while
+the underlying-proxy `tb_r_multiple_net` for the SAME 281 signals is
+negative (mean -0.1419, win rate 23.84%) -- directional agreement only
+54.45%, barely above coin-flip. Side split immediately showed the
+familiar drift signature: PE trades (our system's own SELL/bearish
+calls, n=197) carry the entire gain (+Rs188,320); CE trades (BUY calls,
+n=84) are negative (-Rs22,601). NIFTY fell -6.71% over this window --
+same mechanism as every prior "positive buying result" this whole
+multi-day session.
+
+**Decisive test, done properly this time**: a naive "buy PE at ALL 281
+signal times regardless of original direction" matched-timing control is
+ALSO strongly positive (+Rs192,104, mean +Rs683.6/trade) -- confirming
+much of the effect is just PE-buying-during-a-falling-market, not
+something specific to our SELL calls. To isolate whether the SELL-label
+itself adds real selection value beyond timing, ran a permutation test:
+shuffle which of the 281 signal-firing times get the "SELL" label 5,000
+times, and see where the ACTUAL SELL-labeled subset's mean (+Rs955.9/
+trade) falls versus that null distribution of same-sized random subsets
+of the SAME population. Result: **99.1st percentile, z=2.203** -- notably
+above pure chance in the full pooled sample.
+
+**Where it stops short of a validated finding, applying the exact
+discipline this project uses everywhere else**: repeating the SAME
+permutation test SEPARATELY on the two independent day-halves (not
+reusing the pooled figure) gives OLDER z=1.592 (95.2th percentile) and
+NEWER z=1.472 (93.1th percentile) -- consistent in DIRECTION and
+similar in MAGNITUDE across both halves (genuinely more robust than
+every other result this session, none of which survived an honest
+two-halves check without collapsing or reversing) but **neither half
+independently clears the conventional z>1.96 significance bar on its
+own terms**. Only the pooled full-sample figure (z=2.203) does, and
+using the pooled number instead of requiring each half to clear the bar
+independently is exactly the "combine train+test to manufacture
+significance" pattern this project's day-split discipline exists to
+prevent (the same principle already applied in mfe_threshold_labeler.py's
+stricter-than-meta_labeler split). Also carries a severe, un-corrected
+multiple-testing burden from today's ad-hoc exploratory search (direction
+split, matched-timing control, full permutation, per-half permutation --
+at least 4 looks at this one idea alone, on top of everything else
+tested this session).
+
+**Verdict: NOT promoted, NOT acted on -- but also not dismissed as
+cleanly rejected like everything else this session.** This is the
+single most robust-looking candidate found in the entire multi-day
+search: consistent sign and magnitude across independent time halves is
+a real, meaningful difference from every prior "looked good, then
+collapsed" result. If revisited, the right next step (matching this
+project's own established discipline, e.g. the HTF-alignment gate's
+process) is a fresh, PRE-REGISTERED test written BEFORE any more data
+accrues -- specify in advance what would count as confirmation (e.g.
+both halves of a NEW out-of-sample window independently clearing z>1.96,
+Bonferroni-corrected for however many hypotheses are pre-registered) --
+rather than continuing to explore this same dataset further, which would
+only compound the look-elsewhere effect already spent on it today.
