@@ -909,47 +909,31 @@ class GIFTNiftyFeed:
 
     def _fetch_gift_nifty(self) -> float:
         """
-        Try multiple sources for GIFT Nifty.
-        Primary: yfinance ticker GN=F (NIFTY futures on NSE IFSC/GIFT)
-        Fallback: NSE futures data via option chain endpoint
-        """
-        # Source 1: yfinance GIFT Nifty futures
-        for ticker in ["GN=F", "NIFTY_FUT.NS", "^NSEI"]:
-            try:
-                import yf_compat as yf  # yfinance replaced: Yahoo API broken
-                d = yf.download(ticker, period="1d", interval="5m",
-                                progress=False, auto_adjust=True, threads=False)
-                if d is not None and not d.empty:
-                    val = float(d["Close"].iloc[-1])
-                    if val > 10000:   # sanity check for NIFTY range
-                        logger.debug("GIFT Nifty %s: %.2f", ticker, val)
-                        return val
-            except Exception:
-                pass
+        GIFT Nifty futures price, or 0.0 when no genuine GIFT quote is available.
 
-        # Source 2: NSE futures LTP (nearest NIFTY future)
+        2026-10-14: the old fallbacks (NIFTY_FUT.NS, ^NSEI, NSE's NIFTY 50 index
+        API) are NIFTY itself, not GIFT -- before 09:15 they return yesterday's
+        close, so callers computed "GIFT gap" = gift(=NIFTY last close) vs the
+        close before it, i.e. YESTERDAY's whole-day NIFTY move presented as the
+        expected opening gap (fed into swing gap protection). Verified that day:
+        GN=F and NIFTY_FUT.NS returned no rows, ^NSEI returned 22,622.7 (NIFTY).
+        Angel's instrument master has no NSE IX segment, so there is no other
+        GIFT source in this system (Kite Connect 'NSEIX:GIFT NIFTY' would be one).
+        Returning 0.0 makes every caller treat the gap as unknown (they already
+        handle <= 0), instead of trading on a fake one.
+        """
         try:
-            import requests
-            session = requests.Session()
-            session.headers.update({
-                "User-Agent": "Mozilla/5.0",
-                "Referer":    "https://www.nseindia.com/",
-            })
-            session.get("https://www.nseindia.com/", timeout=5)
-            r = session.get(
-                "https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050",
-                timeout=10,
-            )
-            if r.status_code == 200:
-                data = r.json()
-                items = data.get("data", [])
-                for item in items:
-                    if str(item.get("symbol", "")).upper() in ("NIFTY 50", "NIFTY50", "NIFTY"):
-                        val = float(item.get("last", item.get("lastPrice", 0)) or 0)
-                        if val > 0:
-                            return val
+            import yf_compat as yf  # yfinance replaced: Yahoo API broken
+            d = yf.download("GN=F", period="1d", interval="5m",
+                            progress=False, auto_adjust=True, threads=False)
+            if d is not None and not d.empty:
+                val = float(d["Close"].iloc[-1])
+                if val > 10000:   # sanity check for NIFTY range
+                    logger.debug("GIFT Nifty GN=F: %.2f", val)
+                    return val
         except Exception:
-            pass
+            logger.debug("GIFT Nifty GN=F fetch failed", exc_info=True)
+        logger.info("GIFT Nifty unavailable (no genuine GIFT source); expected gap treated as unknown")
         return 0.0
 
 
