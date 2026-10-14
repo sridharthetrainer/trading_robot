@@ -530,3 +530,28 @@ FAIL for all 10 sectors. The US sector move IS reflected in the Indian opening g
 open -> close move (-0.035 to +0.067). Best out-of-sample: Metals follow +0.134%/trade
 (t 1.84, needed 2.8); several significantly negative (CapGoods -0.353%, t -4.22).
 The overnight US information is priced at the Indian open.
+
+## Test 23 — BANKNIFTY / NIFTY OI bias confluence -> NIFTY next 30 minutes (before running)
+Suggested by the user ("if OI in BankNifty and GIFT increase, NIFTY increase").
+GIFT Nifty history is not stored, so only the OI part is testable. Data:
+option_chain_snapshots.db ok=1 rows (2026-06-19 -> 2026-10-14, ~54 days); the
+summary field net_bias (BULLISH +1 / BEARISH -1 / NEUTRAL 0). Note recorded in
+advance: oi_buildup_signal was BEARISH_BUILDUP in all 3,000 sampled BANKNIFTY rows
+(constant -> unusable, likely a bug); it is not used.
+- Outcome: NIFTY 5-minute candles (candle_cache.db): log return from the close of the
+  bar containing the snapshot time to the close 6 bars (30 min) later, same day only.
+- Signals at each BANKNIFTY snapshot: (a) BANKNIFTY bias; (b) the nearest NIFTY
+  snapshot's bias within 5 minutes; (c) confluence = both non-neutral and equal.
+- Measure: signed forward return (bias x return), averaged per day, then a t-stat
+  across days (day-clustered). Holdout: the last 30% of days.
+- PASS for a signal only if: day-clustered t > 2.4 (Bonferroni for 3) AND holdout
+  mean > 0 AND mean > 0.03% per signal (roughly a futures round-trip cost).
+
+### Test 23 result (recorded after running)
+FAIL. BANKNIFTY bias: 2,722 signals, +0.0076% per 30 min (day-clustered t 2.55,
+holdout +0.0205%) -- passes the t bar but is ~4x below the 0.03% cost floor.
+NIFTY bias +0.006% (t 0.89); both-agree +0.0069% (t 1.45). The biases are almost
+always BEARISH (BANKNIFTY 88%, NIFTY 99.6%; both-agree never bullish) during a
+falling 2026 market, so the small edge is mostly market direction, not OI
+information. Data issue: net_bias and oi_buildup_signal appear skewed/stuck
+bearish in option-chain summaries -- needs a separate code review.
