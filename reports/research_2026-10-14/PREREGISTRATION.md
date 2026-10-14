@@ -427,7 +427,7 @@ FAIL. 16 cycles (2018-2026), 491 pair trades: mean -2.24% per 6-month cycle afte
 consistent with GGR-type profits having faded. Also impractical on ₹5L (shorting).
 
 ## Test 19 — Structure sweep over the 62-strategy options catalog (before running)
-Source: a pasted catalog (McMillan / Natenberg / Passarelli / Hull structures). These
+Source: catalog pasted from ChatGPT (confirmed by the user; McMillan / Natenberg / Passarelli / Hull structures). These
 are payoff shapes, not strategies; to avoid per-structure tuning, every structure
 buildable from EOD data gets ONE identical mechanical rule, with a multiple-testing bar.
 - Data: options_nifty.db real EOD CE/PE closes 2020-01 -> 2026-10; spot = NIFTY close.
