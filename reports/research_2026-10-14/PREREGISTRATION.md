@@ -201,3 +201,36 @@ The VRP filter made it worse than the same condor unfiltered (357 trades, PF 1.1
 +₹75,765) -- which is itself below DeepSeek's 1.15 bar and not the registered test.
 First run was killed (out of memory loading all option rows); re-run loads only
 entry-day rows, logic unchanged.
+
+## Test 11 — Perplexity: hedged put spread (sell 3% OTM, buy 6% OTM), post-Nov-2024 only (before running)
+Perplexity's frozen rule, with only the changes the data forces:
+ (a) "10:15 AM entry" -> that day's close (only EOD prices exist);
+ (b) sizing "risk <= ₹5,000 per trade" is impossible with the 65-unit lot (one lot
+     of a ~3%-wide spread risks ~₹40-50k) -> tested per unit in R; the sizing
+     infeasibility is reported as a finding, not ignored.
+- Period: expiries from 2024-11-20 (SEBI changes effective) to 2026-10-13.
+- Entry: for each expiry date, the first trading day of that expiry's ISO week
+  (skip if that is the expiry day itself). Short put = largest strike <= spot x 0.97,
+  long put = largest strike <= spot x 0.94, same expiry; credit > 0.
+- Hold to expiry; settle at intrinsic from NIFTY's expiry close. No management.
+- Costs: 4% slippage on each leg's premium (7% stress) + nse_cost_model fees per leg
+  (STT on the sold leg), qty 65. Skip a trade if its entry costs exceed 25% of the
+  net credit (Perplexity's exclusion rule).
+- Holdout: last 30% of trades.
+- PASS (Perplexity's bar) only if ALL hold:
+  1. >= 100 trades (Perplexity's minimum)
+  2. holdout expectancy > +0.05R
+  3. holdout profit factor > 1.15
+  4. total net positive at 7% slippage
+  5. max drawdown (1 lot, cumulative ₹) < ₹1,00,000 (20% of ₹5L)
+  6. total net R still positive after removing the 3 best trades
+  7. beta control: intercept of trade R regressed on NIFTY's entry->expiry return
+     must be > 0 (else it is long beta / tail selling, not an edge)
+
+### Test 11 result (recorded after running)
+FAIL (checks 1 and 2). Only 32 trades: Perplexity's own 25%-cost exclusion removed
+61 of 93 expiry weeks (median credit 8.4 points). 32/32 winners, +₹21,952 on one
+lot, but expectancy +0.016R (needs > 0.05R) -- ~₹690 earned per ~₹46,000 risked.
+Since Sep-2025 the entry (first day of expiry week) is usually Monday for a Tuesday
+expiry, a 1-day hold; one >3% drop would cost ~65 trades of profit. Sizing: median
+one-lot max loss ₹46,214 vs Perplexity's ₹5,000 cap -- not executable at ₹5L.

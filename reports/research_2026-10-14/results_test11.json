@@ -1,0 +1,46 @@
+{
+  "primary_slip4": {
+    "trades": 32,
+    "total_net_rs": 21952,
+    "expectancy_R": 0.0156,
+    "profit_factor": Infinity,
+    "win_rate": 1.0,
+    "holdout_start": "2025-06-16",
+    "holdout_expectancy_R": 0.0157,
+    "holdout_profit_factor": Infinity,
+    "max_dd_rs": 0,
+    "total_R_excl_best3": 0.319,
+    "beta_intercept_R": 0.0148,
+    "beta_slope": 0.334,
+    "median_max_loss_per_lot_rs": 46214,
+    "median_credit_pts": 8.43
+  },
+  "skipped_by_25pct_cost_rule": 61,
+  "stress_slip7": {
+    "trades": 23,
+    "total_net_rs": 18017,
+    "expectancy_R": 0.018,
+    "profit_factor": Infinity,
+    "win_rate": 1.0,
+    "holdout_start": "2025-06-16",
+    "holdout_expectancy_R": 0.0195,
+    "holdout_profit_factor": Infinity,
+    "max_dd_rs": 0,
+    "total_R_excl_best3": 0.246,
+    "beta_intercept_R": 0.0167,
+    "beta_slope": 0.278,
+    "median_max_loss_per_lot_rs": 45146,
+    "median_credit_pts": 9.65
+  },
+  "sizing_note": "Perplexity caps risk at \u20b95,000/trade; median one-lot max loss shown above.",
+  "checks": {
+    "trades_ge_100": false,
+    "holdout_expectancy_gt_0_05R": false,
+    "holdout_pf_gt_1_15": true,
+    "positive_at_7pct_slippage": true,
+    "max_dd_lt_100k": true,
+    "positive_without_best3": true,
+    "beta_controlled_intercept_positive": true
+  },
+  "verdict": "FAIL"
+}
