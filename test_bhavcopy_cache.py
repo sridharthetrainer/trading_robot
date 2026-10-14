@@ -131,3 +131,7 @@ def test_download_bhavcopy_reads_volume_from_sec_bhavdata_full(tmp_path, monkeyp
     row = bc.get_ohlcv("RELIANCE", days=3650).iloc[0]
     assert row["close"] == 2111.50
     assert row["volume"] == 6226400
+    import sqlite3
+    conn = sqlite3.connect("nse_cache.db")
+    assert conn.execute("SELECT prev_close FROM prev_close WHERE symbol='RELIANCE'").fetchone()[0] == 2100.0
+    conn.close()

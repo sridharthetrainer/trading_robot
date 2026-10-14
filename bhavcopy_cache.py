@@ -32,6 +32,14 @@ def _init_db():
             PRIMARY KEY (symbol, date)
         )""")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_sym_date ON ohlcv(symbol, date)")
+    # NSE's own previous close, which NSE adjusts on a split/bonus ex-date:
+    # prev_close(t) / close(t-1) is the corporate-action factor. Separate
+    # table so ohlcv's 7-column shape (and every reader of it) is unchanged.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS prev_close (
+            symbol TEXT, date TEXT, prev_close REAL,
+            PRIMARY KEY (symbol, date)
+        )""")
     conn.commit()
     return conn
 
@@ -102,6 +110,7 @@ def download_bhavcopy(for_date: date = None) -> int:
         # sec_bhavdata_full (the first URL tried, used from ~2019) names it
         # TTL_TRD_QNTY; without it every row was stored with volume 0.
         "VOLUME":     ["TOTTRDQTY","VOLUME","TRADEDQTY","TTL_TRDQTY","TTL_TRD_QNTY"],
+        "PREV_CLOSE": ["PREV_CLOSE","PREVCLOSE"],
     }
     rename = {}
     for target, candidates in col_map.items():
@@ -132,6 +141,10 @@ def download_bhavcopy(for_date: date = None) -> int:
                  float(row["LOW"]),  float(row["CLOSE"]),
                  float(row.get("VOLUME", 0) or 0))
             )
+            if "PREV_CLOSE" in df.columns:
+                conn.execute(
+                    "INSERT OR REPLACE INTO prev_close VALUES (?,?,?)",
+                    (str(row["SYMBOL"]).strip().upper(), date_iso, float(row["PREV_CLOSE"])))
             rows += 1
         except Exception:
             pass
