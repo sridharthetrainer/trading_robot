@@ -1,0 +1,82 @@
+{
+  "months": 109,
+  "start": "2017-09-01",
+  "end": "2026-10-01",
+  "holdout_start": "2024-01-01",
+  "avg_monthly_turnover": 0.264,
+  "full": {
+    "momentum": {
+      "ann_return_pct": 14.7,
+      "sharpe": 0.696,
+      "max_dd_pct": -38.7
+    },
+    "equal_weight": {
+      "ann_return_pct": 9.89,
+      "sharpe": 0.558,
+      "max_dd_pct": -49.3
+    },
+    "nifty": {
+      "ann_return_pct": 9.33,
+      "sharpe": 0.613,
+      "max_dd_pct": -32.2
+    }
+  },
+  "holdout": {
+    "momentum": 9.69,
+    "equal_weight": 7.66,
+    "nifty": 1.13
+  },
+  "bootstrap_lower90_excess_vs_ew_pct": 0.42,
+  "excess_vs_ew_costs_doubled_pct": 3.0,
+  "stability": {
+    "6-1": {
+      "momentum_pct": 12.08,
+      "equal_weight_pct": 9.89
+    },
+    "9-1": {
+      "momentum_pct": 14.28,
+      "equal_weight_pct": 9.89
+    }
+  },
+  "latest_portfolio": [
+    "CUPID",
+    "ATHERENERG",
+    "HFCL",
+    "ACUTAAS",
+    "TDPOWERSYS",
+    "LAURUSLABS",
+    "ADANIENSOL",
+    "HINDCOPPER",
+    "NETWEB",
+    "APOLLO",
+    "SYRMA",
+    "TATSILV",
+    "CHENNPETRO",
+    "WELCORP",
+    "BHEL",
+    "BHARATFORG",
+    "NATIONALUM",
+    "PARAS",
+    "FEDERALBNK",
+    "DATAPATTNS",
+    "ADANIPOWER",
+    "VEDL",
+    "SONACOMS",
+    "SHRIRAMFIN",
+    "APARINDS",
+    "MCX",
+    "POWERINDIA",
+    "HSCL",
+    "RADICO",
+    "GVT&D"
+  ],
+  "checks": {
+    "holdout_beats_ew_and_nifty_by_2pp": true,
+    "sharpe_above_nifty": true,
+    "bootstrap_lower90_positive": true,
+    "costs_doubled_excess_nonnegative": true,
+    "max_dd_within_1_5x_nifty": true,
+    "stable_6_1_and_9_1": true
+  },
+  "verdict": "PASS"
+}
