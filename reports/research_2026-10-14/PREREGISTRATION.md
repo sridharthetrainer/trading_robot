@@ -400,3 +400,28 @@ PASS on all five checks vs unscaled momentum: Sharpe 0.767 vs 0.708; max DD -27.
 doubled Sharpe 0.680 vs 0.631. Trade-off: absolute return 10.36% vs 15.02% unscaled
 (partly in cash). A risk overlay -- qualifies for forward paper tracking alongside
 the unscaled version, not for capital.
+
+## Test 18 — Pairs trading, distance method (Gatev, Goetzmann & Rouwenhorst 2006) (before running)
+Published: GGR (2006), Review of Financial Studies; profits documented to decline
+over time. Feasibility note recorded in advance: multi-day shorts need stock futures
+(F&O names, ₹5-10L lots) or SLB -- largely impractical on ₹5L; tested for edge only.
+- Data: adjusted_returns.db (survivorship-free). Non-overlapping cycles: 252-day
+  formation then 126-day trading, starting at the first day with 252 days of data,
+  stepping 126 days.
+- Universe per cycle: point-in-time top-200 liquid at formation end (Test 7 rules,
+  broader ETF filter), complete returns over formation.
+- Pairs: normalised prices (cumprod of returns) over formation; the 20 pairs with
+  the smallest sum of squared differences; sigma = std of their formation spread.
+- Trading: renormalise at trading start; open when |spread| > 2 sigma (long the
+  lower, short the higher, ₹1 each side); close when the spread crosses zero or at
+  period end; may reopen. A leg whose data stops closes the pair at its last price.
+- Return per cycle = sum of trade returns / 20 (₹1 committed per pair), minus 1.2%
+  per round trip (4 legs x 0.30%); short-side financing/SLB fees not modelled.
+- PASS only if ALL hold: >= 10 cycles; mean cycle return > 0 with t > 2; holdout
+  (last 30% of cycles) mean > 0; mean still > 0 with costs doubled.
+
+### Test 18 result (recorded after running)
+FAIL. 16 cycles (2018-2026), 491 pair trades: mean -2.24% per 6-month cycle after
+1.2% round-trip costs (t -2.21); holdout -1.64%; costs doubled -4.08%. Costs are
+~1.8% per cycle, so the gross result is about -0.4% -- no edge before costs either,
+consistent with GGR-type profits having faded. Also impractical on ₹5L (shorting).
