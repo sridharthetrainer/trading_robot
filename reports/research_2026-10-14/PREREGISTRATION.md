@@ -234,3 +234,41 @@ lot, but expectancy +0.016R (needs > 0.05R) -- ~₹690 earned per ~₹46,000 ris
 Since Sep-2025 the entry (first day of expiry week) is usually Monday for a Tuesday
 expiry, a 1-day hold; one >3% drop would cost ~65 trades of profit. Sizing: median
 one-lot max loss ₹46,214 vs Perplexity's ₹5,000 cap -- not executable at ₹5L.
+
+## Test 12 — ChatGPT #1: VRP-conditioned monthly NIFTY iron fly (before running)
+ChatGPT's frozen spec; interpretations and forced changes stated here:
+- Signal (known at the PREVIOUS close): VRP = (VIX/100)^2 - 252*v, v = EWMA of
+  squared daily NIFTY log returns, v_t = 0.94 v_{t-1} + 0.06 r_t^2 (not tuned).
+  Eligible if VRP > 0 AND VRP >= 75th percentile of the preceding 252 daily VRP
+  values (excluding the current one).
+- Cycle: after each monthly expiry, scan sessions in order; enter at the FIRST
+  session (EOD close, modelled entry) where the signal is eligible, the target
+  expiry = nearest monthly expiry with 21-35 calendar days left exists, and all
+  four strikes are priced. At most one position per monthly cycle; if no session
+  qualifies before the target drops below 21 days, no trade that cycle.
+- Iron fly, 65 qty: sell ATM call + ATM put (strike nearest spot), buy call
+  K+150 and put K-150 (must be listed; else that session is ineligible).
+- Exit: close all legs at the close of the 5th trading session after entry.
+- Costs: baseline 2% slippage of each leg's premium per execution + nse_cost_model
+  fees (STT on sold legs, historical rate); stress = 4% slippage + 2x fees.
+- Comparison: the same fly, unconditional (first session of each cycle with a
+  21-35-day expiry and all strikes priced).
+- Periods: development 2020-2022; out-of-sample (OOS) = trades from 2023-01;
+  post-reform (from 2024-11-20) reported separately.
+- Gates (ChatGPT's checklist):
+  G1 OOS mean net P&L > 0; G2 OOS mean net > 0 under stress costs;
+  G3 OOS mean net beats the unconditional fly; G4 block-bootstrap (block 3) 95%
+  lower bound of OOS mean net > 0; G5 max contractual loss (₹9,750 - credit) <=
+  ₹10,000 (broker margin cannot be reconstructed -- reported, not tested);
+  G6 post-reform results reported; G7 >= 100 OOS trades; G8 >= 50 forward
+  executable paper observations (not evaluable from history).
+- Verdict: any of G1-G4 fails -> FAIL. G1-G4 pass but G7/G8 unmet ->
+  INCONCLUSIVE (forward paper candidate only). PASS is impossible from history.
+
+### Test 12 result (recorded after running)
+FAIL (G1-G4 all fail). Conditioned: 47 trades (28 OOS, 14 post-reform), mean -₹3,498,
+win rate 0%; stress mean -₹7,009; unconditional mean -₹3,309; OOS bootstrap 95% lower
+bound -₹4,089. G5 passed (max contractual loss ₹1,563; median credit 139 of 150 pts).
+Diagnostics (not the verdict): before ANY costs mean +₹12/trade (unconditional +₹64),
+so there is no gross edge and the VRP filter adds nothing; at 0.5% slippage it still
+loses ~₹1,107/trade. The 0% win rate is cost-driven: 4 near-ATM legs x 2 executions.

@@ -1,0 +1,49 @@
+{
+  "conditioned": {
+    "trades": 47,
+    "total_net_rs": -164425,
+    "mean_net_rs": -3498.4,
+    "win_rate": 0.0,
+    "oos_trades": 28,
+    "oos_mean_net_rs": -3550.0,
+    "post_reform_trades": 14,
+    "post_reform_mean_net_rs": -3921.8,
+    "worst_rs": -7689,
+    "max_contract_loss_rs": 1563
+  },
+  "conditioned_stress": {
+    "trades": 47,
+    "total_net_rs": -329415,
+    "mean_net_rs": -7008.8,
+    "win_rate": 0.0,
+    "oos_trades": 28,
+    "oos_mean_net_rs": -7150.7,
+    "post_reform_trades": 14,
+    "post_reform_mean_net_rs": -7840.6,
+    "worst_rs": -13821,
+    "max_contract_loss_rs": 1563
+  },
+  "unconditional": {
+    "trades": 78,
+    "total_net_rs": -258128,
+    "mean_net_rs": -3309.3,
+    "win_rate": 0.013,
+    "oos_trades": 42,
+    "oos_mean_net_rs": -3199.0,
+    "post_reform_trades": 22,
+    "post_reform_mean_net_rs": -3237.3,
+    "worst_rs": -6720,
+    "max_contract_loss_rs": 1563
+  },
+  "oos_bootstrap_lower95_mean_rs": -4088.8,
+  "gates": {
+    "G1_oos_mean_positive": false,
+    "G2_stress_oos_mean_positive": false,
+    "G3_beats_unconditional": false,
+    "G4_bootstrap_lower95_positive": false,
+    "G5_max_contract_loss_le_10k": true,
+    "G7_oos_trades_ge_100": false,
+    "G8_forward_50": false
+  },
+  "verdict": "FAIL"
+}
