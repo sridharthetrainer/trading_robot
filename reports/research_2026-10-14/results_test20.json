@@ -1,0 +1,28 @@
+{
+  "blocks": 476,
+  "start": "2017-02-15",
+  "end": "2026-09-29",
+  "hit_rate": 0.5042,
+  "always_up_rate": 0.5777,
+  "hit_z": -3.25,
+  "pct_time_long": 0.603,
+  "sharpe": {
+    "strategy": 0.166,
+    "buy_hold": 0.695,
+    "strategy_costs_doubled": -0.029,
+    "holdout_strategy": -0.079,
+    "holdout_buy_hold": 0.403,
+    "DIAGNOSTIC_long_short": -0.74
+  },
+  "ann_return_pct": {
+    "strategy": 1.28,
+    "buy_hold": 10.34
+  },
+  "checks": {
+    "hit_rate_z_gt_2": false,
+    "sharpe_above_buy_hold": false,
+    "holdout_sharpe_above_buy_hold": false,
+    "costs_doubled_above_buy_hold": false
+  },
+  "verdict": "FAIL"
+}

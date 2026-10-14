@@ -457,3 +457,26 @@ indistinguishable from zero. Long-premium shapes (straddles, strangles, strips,
 straps, backspreads) consistently negative; calendars/diagonals most negative
 (long call calendar -₹1,098, t -4.5; double calendar -₹2,403) and their REVERSES are
 negative too (costs on both directions). results_test19.json has every structure.
+
+## Test 20 — Nearest-neighbour pattern matching ("analogs") on NIFTY daily (before running)
+Suggested by the user ("correlation or pattern matching"). Related literature: Lo,
+Mamaysky & Wang (2000). Not present in the system (no kNN/analog code).
+- Data: Test 1 stitched NIFTY daily closes 2015-01 -> 2026-10.
+- Pattern at day t: the last 20 daily log returns, standardised by their own std
+  (shape, not size). Library: all days s <= t-6 (their next-5-day outcome is known at
+  t), from at least 500 days of history. K = 20 nearest by Euclidean distance.
+- Forecast: mean of the 20 analogs' next-5-day log returns.
+- Trade every 5 trading days (non-overlapping), entering at t's close: long NIFTY for
+  5 days if forecast > 0, else cash at 6.5%/yr. Cost 0.10% per switch.
+- Benchmark: buy-and-hold NIFTY over the same 5-day blocks.
+- PASS only if ALL hold: (1) direction hit-rate of the forecast's sign vs the actual
+  5-day sign beats always-up with a binomial z > 2; (2) full-period Sharpe of the
+  strategy > buy-and-hold; (3) holdout (last 30% of blocks) Sharpe > buy-and-hold's;
+  (4) Sharpe still > buy-and-hold with costs doubled.
+- Diagnostic only: long/short version (short NIFTY when forecast < 0).
+
+### Test 20 result (recorded after running)
+FAIL (all four checks). 476 five-day blocks 2017-02 -> 2026-09: hit rate 50.4% vs
+always-up 57.8% (z -3.25); strategy 1.28%/yr vs buy-and-hold 10.34%; Sharpe 0.166 vs
+0.695; holdout -0.079 vs 0.403; costs doubled -0.029. Long/short diagnostic -0.74.
+Past 20-day return shapes carry no usable information about NIFTY's next 5 days.
