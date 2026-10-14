@@ -502,3 +502,31 @@ FAIL. Gap days (|gap| >= 0.5%): 415 in 2015-2021, 140 in 2022-2024, 61 in 2025-2
 In-sample chose "fade" but only +0.028% gross per day (t 0.43) -- no direction to trade;
 2022-2024 out-of-sample -0.025% net (t -0.39); 2025-2026 +0.055% net (t 0.64).
 NIFTY's 09:20 -> 15:25 move after a GIFT-signalled gap is statistically random.
+
+## Test 22 — US sector overnight move -> Indian sector next day (all sectors) (before running)
+Suggested by the user ("if US IT is down is our IT down ... look into all").
+- US data: daily adjusted closes of SPY and sector ETFs XLK, XLF, XLE, XLV, XLP, XLB,
+  XLY, XLRE, XLI (Yahoo Finance via yfinance, 2016-2026; saved as
+  us_sector_closes_2016_2026.csv). US move for Indian day D = the latest US session
+  that closed before D.
+- Indian baskets (fixed in advance, equal weight, bhavcopy open/close):
+  IT<-XLK: TCS INFY WIPRO HCLTECH TECHM; Banks<-XLF: HDFCBANK ICICIBANK KOTAKBANK
+  AXISBANK SBIN; Energy<-XLE: RELIANCE ONGC BPCL IOC GAIL; Pharma<-XLV: SUNPHARMA
+  DRREDDY CIPLA DIVISLAB LUPIN; FMCG<-XLP: HINDUNILVR ITC NESTLEIND BRITANNIA DABUR;
+  Metals<-XLB: TATASTEEL HINDALCO JSWSTEEL VEDL SAIL; Auto<-XLY: MARUTI M&M BAJAJ-AUTO
+  HEROMOTOCO EICHERMOT; Realty<-XLRE: DLF GODREJPROP OBEROIRLTY PRESTIGE PHOENIXLTD;
+  Capital goods<-XLI: LT SIEMENS ABB BHEL CUMMINSIND; Market<-SPY: NIFTYBEES.
+  Stock-days with a corporate-action adjustment or gap flag are excluded.
+- Reported for every sector: correlation of the US move with (a) the Indian opening
+  gap (already priced, not tradeable) and (b) the open -> close move (tradeable).
+- Strategy: when |US move| >= 1%, trade the basket intraday from open to close in a
+  direction (follow or fade) CHOSEN ONLY from 2016-2021; cost 0.10% round trip.
+- PASS for a sector only if ALL hold: 2016-2021 chosen-direction t > 2; 2022-2026
+  mean net > 0 with t > 2.8 (Bonferroni for 10 sectors) and >= 40 trades.
+
+### Test 22 result (recorded after running)
+FAIL for all 10 sectors. The US sector move IS reflected in the Indian opening gap
+(correlation +0.21 to +0.42 for sector baskets; +0.13 SPY vs NIFTYBEES) but NOT in the
+open -> close move (-0.035 to +0.067). Best out-of-sample: Metals follow +0.134%/trade
+(t 1.84, needed 2.8); several significantly negative (CapGoods -0.353%, t -4.22).
+The overnight US information is priced at the Indian open.
