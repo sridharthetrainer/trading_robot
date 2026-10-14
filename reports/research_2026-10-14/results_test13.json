@@ -1,0 +1,60 @@
+{
+  "long_fly_1pct": {
+    "trades": 3,
+    "total_net_rs": 5170,
+    "expectancy_rs": 1723.2,
+    "profit_factor": Infinity,
+    "win_rate": 1.0,
+    "annual_sharpe": 3.222,
+    "deflated_sharpe": 0.0,
+    "by_kind_expectancy_rs": {
+      "FOMC": 1723.2
+    }
+  },
+  "long_fly_0_75pct": {
+    "trades": 10,
+    "total_net_rs": -455,
+    "expectancy_rs": -45.5,
+    "profit_factor": 0.953,
+    "win_rate": 0.5,
+    "annual_sharpe": -0.034,
+    "deflated_sharpe": 0.0,
+    "by_kind_expectancy_rs": {
+      "FOMC": 780.0,
+      "NFP": -1971.7
+    }
+  },
+  "long_fly_1_25pct": {
+    "trades": 2,
+    "total_net_rs": 3405,
+    "expectancy_rs": 1702.7,
+    "profit_factor": Infinity,
+    "win_rate": 1.0,
+    "annual_sharpe": 1.985,
+    "deflated_sharpe": 0.0,
+    "by_kind_expectancy_rs": {
+      "FOMC": 1702.7
+    }
+  },
+  "DIAGNOSTIC_short_fly_1pct": {
+    "trades": 3,
+    "total_net_rs": -6630,
+    "expectancy_rs": -2209.8,
+    "profit_factor": 0.0,
+    "win_rate": 0.0,
+    "annual_sharpe": -4.218,
+    "deflated_sharpe": 0.0,
+    "by_kind_expectancy_rs": {
+      "FOMC": -2209.8
+    }
+  },
+  "events_planned": 152,
+  "checks": {
+    "trades_ge_30": false,
+    "expectancy_positive": true,
+    "profit_factor_gt_1_15": true,
+    "deflated_sharpe_ge_0_95": false,
+    "stable_wings_same_sign": false
+  },
+  "verdict": "FAIL"
+}

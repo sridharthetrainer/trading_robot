@@ -287,3 +287,32 @@ like "Pillai (2026)" from Grok's review.
 
 ### Gemini — no options test proposed
 Recommendation adopted: harden momentum (after-tax note above; forward tracker running).
+
+## Test 13 — Kimi: long iron butterfly around scheduled events (before running)
+Kimi's rule. Note recorded in advance: Kimi motivates it as harvesting the post-event
+IV crush, but a LONG fly bought before the event loses from IV crush; the specified
+(long) trade is the test, the mirror SHORT fly is reported as a labelled diagnostic.
+- Events (dates from official/news sources; deviations from Kimi's list stated):
+  FOMC scheduled decisions 2020-2026 (federalreserve.gov; 2020 emergency cuts excluded);
+  US Employment Situation 2020-2026 (bls.gov yearly schedules); Union Budget (Feb 1
+  each year, plus 2024-07-23 full budget); RBI MPC decisions ONLY where confirmed by
+  RBI releases or news (19 dates); India CPI EXCLUDED (no official release dates found).
+- Timing: events announced after NSE close (FOMC, NFP) -> entry at that day's close;
+  daytime events (RBI 10:00, Budget 11:00) -> entry at the previous trading day's close.
+  Exit at the close of the first trading day after the event day (Kimi's T+1); if the
+  exit day is the expiry day, settle at intrinsic.
+- Fly: buy ATM call + ATM put (strike nearest spot), sell call = smallest strike >=
+  spot x 1.01 and put = largest strike <= spot x 0.99, on the nearest expiry on/after
+  the exit day. Skip if the net debit > 76.9 points (Kimi: ₹5,000 / 65 cap -> 1 lot).
+- Costs: 2% slippage on each leg's premium per execution + nse_cost_model fees.
+- PASS (Kimi's bar) only if ALL hold: >= 30 trades; expectancy after costs > 0;
+  profit factor > 1.15; deflated Sharpe (harness function, per-trade Sharpe x
+  sqrt(trades per year), n_trials = 11 option tests so far) >= 0.95; stability:
+  wings at 0.75% and 1.25% give expectancy of the same sign.
+
+### Test 13 result (recorded after running)
+FAIL (trades, deflated Sharpe, stability). 152 events planned, but Kimi's own debit
+cap (<= 76.9 pts, from its ₹5,000/65-lot sizing) left only 3 trades at 1% wings
+(+₹5,170, all FOMC). 0.75% wings: 10 trades, expectancy -₹45.5 (NFP -₹1,972);
+1.25%: 2 trades. Deflated Sharpe 0.00. Diagnostic short fly on the same 3 events
+lost (-₹6,630). As sized by Kimi the strategy is mostly not tradeable on ₹5L.
