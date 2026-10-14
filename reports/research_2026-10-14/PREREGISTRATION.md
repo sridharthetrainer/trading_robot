@@ -172,3 +172,32 @@ lot (~₹220/month). 50%-take-profit variant PF 0.91. Unfiltered with full
 costs PF 1.01, holdout -₹45,779. Note for later review: validation_harness.
 deflated_sharpe_ratio compares an annualised SR with a unit-variance SR*;
 units should be checked, but 53 trades / ₹220 a month is not usable either way.
+
+## Test 10 — DeepSeek: VRP-conditioned NIFTY weekly iron condor (before running)
+DeepSeek's frozen rule, with only the changes the data forces:
+ (a) "Thursday close / Friday open" -> the close of the first trading day after
+     each weekly expiry (expiry moved to Tuesday in Sep-2025; only EOD prices exist);
+ (b) limit-at-mid fills cannot be modelled -> EOD close + slippage, as DeepSeek's
+     own cost line specifies.
+- Signal at that close: RV5 = std of the last 5 daily NIFTY log returns x sqrt(252)
+  (vol points); VRP = India VIX close - RV5. Enter only if VRP > 3.
+- Iron condor on the nearest expiry: short call = smallest strike >= spot x 1.015,
+  long call = smallest strike >= short + 300; short put = largest strike <=
+  spot x 0.985, long put = largest strike <= short - 300; credit > 0.
+- Hold to expiry, settle at intrinsic from NIFTY's expiry close. No adjustments.
+- Costs: 2% slippage on every leg's premium + nse_cost_model fees per leg
+  (historical STT on sold legs), qty 65.
+- PASS (DeepSeek's stated bar) only if ALL hold:
+  1. full-sample profit factor > 1.15
+  2. >= 200 trades
+  3. positive expectancy in the locked holdout (last 20% of trades by date)
+  4. profit factor still > 1.0 at 4% slippage per leg
+- Also reported, not part of the verdict: same condor without the VRP filter.
+
+### Test 10 result (recorded after running)
+FAIL (checks 1 and 4). 205 trades: PF 0.933, net -₹31,411 (1 lot), win rate 76%,
+max DD ₹1,09,393; holdout (from 2025-04-25) +₹624/trade; 4% slippage PF 0.882.
+The VRP filter made it worse than the same condor unfiltered (357 trades, PF 1.106,
++₹75,765) -- which is itself below DeepSeek's 1.15 bar and not the registered test.
+First run was killed (out of memory loading all option rows); re-run loads only
+entry-day rows, logic unchanged.

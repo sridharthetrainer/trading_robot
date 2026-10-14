@@ -1,0 +1,81 @@
+{
+  "primary_vrp_filter": {
+    "trades": 205,
+    "total_net_rs": -31411,
+    "profit_factor": 0.933,
+    "win_rate": 0.761,
+    "avg_net_rs": -153.2,
+    "max_dd_rs": 109393,
+    "holdout_start": "2025-04-25",
+    "holdout_avg_net_rs": 623.5,
+    "worst_trades": [
+      {
+        "entry": "2026-09-23",
+        "net_rs": -18448.15
+      },
+      {
+        "entry": "2023-10-20",
+        "net_rs": -18426.08
+      },
+      {
+        "entry": "2024-09-27",
+        "net_rs": -18110.47
+      }
+    ]
+  },
+  "slippage_4pct": {
+    "trades": 205,
+    "total_net_rs": -56248,
+    "profit_factor": 0.882,
+    "win_rate": 0.761,
+    "avg_net_rs": -274.4,
+    "max_dd_rs": 125613,
+    "holdout_start": "2025-04-25",
+    "holdout_avg_net_rs": 481.6,
+    "worst_trades": [
+      {
+        "entry": "2026-09-23",
+        "net_rs": -18497.36
+      },
+      {
+        "entry": "2023-10-20",
+        "net_rs": -18464.95
+      },
+      {
+        "entry": "2024-09-27",
+        "net_rs": -18180.21
+      }
+    ]
+  },
+  "no_filter_same_costs": {
+    "trades": 357,
+    "total_net_rs": 75765,
+    "profit_factor": 1.106,
+    "win_rate": 0.768,
+    "avg_net_rs": 212.2,
+    "max_dd_rs": 62740,
+    "holdout_start": "2025-06-20",
+    "holdout_avg_net_rs": 746.3,
+    "worst_trades": [
+      {
+        "entry": "2026-09-23",
+        "net_rs": -18448.15
+      },
+      {
+        "entry": "2023-10-20",
+        "net_rs": -18426.08
+      },
+      {
+        "entry": "2024-09-27",
+        "net_rs": -18110.47
+      }
+    ]
+  },
+  "checks": {
+    "profit_factor_gt_1_15": false,
+    "trades_ge_200": true,
+    "holdout_expectancy_positive": true,
+    "pf_gt_1_at_4pct_slippage": false
+  },
+  "verdict": "FAIL"
+}
