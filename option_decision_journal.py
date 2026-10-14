@@ -502,6 +502,17 @@ def format_scalp_performance(d: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _scalp_alerts_enabled(strategy: Any) -> bool:
+    """OPTION_SCALP has no measured edge (2026-10-14: 37 alerts replayed on the
+    index itself, before any option costs: 46% hit target first, mean -0.08R),
+    and unlike engine candidates it never passes the paper edge gate. Its
+    selections are still journaled so the record keeps building; Telegram
+    alerts need OPTION_SCALP_ALERTS=true. Other strategies are unaffected."""
+    if str(strategy or "").upper() != "OPTION_SCALP":
+        return True
+    return os.getenv("OPTION_SCALP_ALERTS", "false").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _alert_option_selection(payload: Dict[str, Any]) -> bool:
     try:
         if not str(payload.get("decision") or "").startswith("selected"):
@@ -509,6 +520,8 @@ def _alert_option_selection(payload: Dict[str, Any]) -> bool:
         # Live trades only — exclude historical_replay/snapshot research strategies
         # (320 of 324 'selected' in the journal are replay labelling, not trades).
         if _is_research_strategy(payload.get("strategy")):
+            return False
+        if not _scalp_alerts_enabled(payload.get("strategy")):
             return False
         am = _option_alerts()
         if am is None:
@@ -555,6 +568,8 @@ def alert_option_scalp_report(payload: Dict[str, Any], df) -> bool:
     """Send the evidence image after the OPTION_SCALP text selection card."""
     try:
         if str(payload.get("strategy") or "").upper() != "OPTION_SCALP":
+            return False
+        if not _scalp_alerts_enabled("OPTION_SCALP"):
             return False
         am = _option_alerts()
         if am is None:
