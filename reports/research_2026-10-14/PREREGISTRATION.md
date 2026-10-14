@@ -272,3 +272,18 @@ bound -₹4,089. G5 passed (max contractual loss ₹1,563; median credit 139 of 
 Diagnostics (not the verdict): before ANY costs mean +₹12/trade (unconditional +₹64),
 so there is no gross edge and the VRP filter adds nothing; at 0.5% slippage it still
 loses ~₹1,107/trade. The 0% win rate is cost-driven: 4 near-ATM legs x 2 executions.
+
+### Test 7 after-tax robustness (post-hoc, prompted by Gemini's review; not a new test)
+On ₹5L, Sep-2017 -> Oct-2026, assumed dividend yields 0.8% (momentum) / 1.3% (NIFTY):
+momentum pre-tax 15.62%/yr (₹18.68L); momentum with 20% STCG on each calendar year's
+net gain (losses carried forward) 12.67%/yr (₹14.77L); NIFTY fund with 12.5% LTCG on
+gains above ₹1.25L at the end 9.96%/yr (₹11.84L). After-tax edge ≈ 2.7 pp/yr (vs ~5.6
+pp pre-tax). Simplified: yearly tax settlement, no cess, dividend tax ignored for both.
+
+### ChatGPT #2 — replicate John (2026) delta-hedged VRP preprint: NOT TESTABLE
+ResearchGate returned 403 and a web search found no copy or citation; its rules
+(strikes, hedging, threshold) cannot be obtained, so it is recorded as unverified,
+like "Pillai (2026)" from Grok's review.
+
+### Gemini — no options test proposed
+Recommendation adopted: harden momentum (after-tax note above; forward tracker running).
