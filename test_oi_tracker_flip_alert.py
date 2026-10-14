@@ -116,3 +116,48 @@ def test_flip_alert_noop_when_no_alerts_configured():
     tracker = OITracker(alerts=None)
     # must not raise
     tracker._alert_direction_flip("BANKNIFTY", "BEARISH", _DIRECTION, 56684.0, "15:01")
+
+
+def test_new_day_does_not_diff_against_yesterdays_snapshot(monkeypatch, tmp_path):
+    # Process left running overnight: yesterday's last snapshot is still in
+    # memory. Today's first bar must start fresh (delta 0, NEUTRAL, no flip
+    # alert), not report the whole overnight OI change as one 5-min delta.
+    import oi_tracker
+    monkeypatch.setattr(oi_tracker, "_STATE_FILE", tmp_path / "state.json")
+    yesterday = {"22000CE": {"oi": 1_000_000.0, "ltp": 100.0},
+                 "22000PE": {"oi": 1_000_000.0, "ltp": 100.0}}
+    today = {"22000CE": {"oi": 3_000_000.0, "ltp": 120.0},
+             "22000PE": {"oi": 1_000_000.0, "ltp": 80.0}}
+    monkeypatch.setattr(oi_tracker, "_fetch_chain", lambda sym: {"raw": True})
+    monkeypatch.setattr(oi_tracker, "_parse_chain", lambda raw: (22000.0, today))
+
+    alerts = _FakeAlerts()
+    tracker = OITracker(alerts=alerts)
+    tracker._session_date = "2000-01-01"
+    tracker._snaps["NIFTY"] = [("15:25", yesterday, 22000.0)]
+    tracker._directions["NIFTY"] = [("15:25", {"direction": "NEUTRAL"}, 22000.0)]
+    tracker._last_direction["NIFTY"] = "NEUTRAL"
+
+    assert tracker._refresh("NIFTY")
+    [(_, d, _)] = tracker._directions["NIFTY"]
+    assert d["ce_delta"] == 0 and d["pe_delta"] == 0
+    assert d["direction"] == "NEUTRAL"
+    assert len(tracker._snaps["NIFTY"]) == 1
+    assert not alerts.photo_calls and not alerts.text_calls
+
+
+def test_same_day_still_diffs_against_previous_snapshot(monkeypatch, tmp_path):
+    import oi_tracker
+    monkeypatch.setattr(oi_tracker, "_STATE_FILE", tmp_path / "state.json")
+    prev = {"22000CE": {"oi": 1_000_000.0, "ltp": 100.0},
+            "22000PE": {"oi": 1_000_000.0, "ltp": 100.0}}
+    now = {"22000CE": {"oi": 1_500_000.0, "ltp": 100.0},
+           "22000PE": {"oi": 1_000_000.0, "ltp": 100.0}}
+    monkeypatch.setattr(oi_tracker, "_fetch_chain", lambda sym: {"raw": True})
+    monkeypatch.setattr(oi_tracker, "_parse_chain", lambda raw: (22000.0, now))
+
+    tracker = OITracker(alerts=None)
+    tracker._snaps["NIFTY"] = [("10:00", prev, 22000.0)]
+    assert tracker._refresh("NIFTY")
+    d = tracker._directions["NIFTY"][-1][1]
+    assert d["ce_delta"] == 500_000.0 and d["direction"] == "BEARISH"

@@ -303,6 +303,10 @@ class OITracker:
         # start()'s own comment) left them silently voting on a frozen
         # morning direction all day with no staleness signal at all.
         self._last_refresh_ts: Dict[str, float] = {}
+        # Trading day the in-memory history belongs to. _load() only discards
+        # a previous day's state at process start; _roll_day() does the same
+        # for a process left running overnight (see its docstring).
+        self._session_date: str = date.today().isoformat()
         self._load()
 
     # ── Persistence ───────────────────────────────────────────────────────
@@ -330,6 +334,27 @@ class OITracker:
         except Exception:
             pass
 
+    def _roll_day(self) -> None:
+        """Clear history when the calendar date changes.
+
+        2026-10-14: a bot left running overnight kept yesterday's bars, so
+        the first bar of the new session diffed against the previous day's
+        15:30 snapshot -- the whole overnight OI change landed as one 5-min
+        delta (false STRONG flip risk at 09:15), and the session chart and
+        cumulative line mixed two days. A new day now starts empty, exactly
+        like a fresh restart: the first bar has no previous snapshot, so its
+        deltas are 0 and direction is NEUTRAL."""
+        today = date.today().isoformat()
+        with self._lock:
+            if today == self._session_date:
+                return
+            self._session_date = today
+            self._snaps.clear()
+            self._directions.clear()
+            self._last_direction.clear()
+            self._last_refresh_ts.clear()
+        logger.info("OITracker: new trading day %s, history reset", today)
+
     # ── Background loop ───────────────────────────────────────────────────
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
@@ -343,6 +368,9 @@ class OITracker:
     def _loop(self) -> None:
         last_bar       = -1
         alert_schedule = {"10:30": False, "12:30": False, "14:30": False, "15:15": False}
+        # 2026-10-14: the "sent" flags were never reset, so a process left
+        # running past its first day never sent another scheduled summary.
+        schedule_day   = date.today().isoformat()
         # Escalation: on 2026-07-13 this loop failed EVERY bar for a whole
         # session with only DEBUG traces — invisible at the bot's INFO
         # level. Consecutive failures now warn every ~30 min and alert
@@ -352,7 +380,11 @@ class OITracker:
 
         while True:
             try:
+                self._roll_day()
                 now = datetime.now()
+                if now.date().isoformat() != schedule_day:
+                    schedule_day = now.date().isoformat()
+                    alert_schedule = dict.fromkeys(alert_schedule, False)
                 if not (dtime(9, 14) <= now.time() <= dtime(15, 32)):
                     time.sleep(60)
                     continue
@@ -401,6 +433,7 @@ class OITracker:
     def _refresh(self, symbol: str) -> bool:
         """Fetch, compute direction, detect changes."""
         try:
+            self._roll_day()
             raw = _fetch_chain(symbol)
             if not raw:
                 return False
