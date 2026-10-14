@@ -428,6 +428,15 @@ class NSEOptionChainFetcher:
                                    "underlyingValue": spot},
                        "filtered": {"data": data},
                        "source": "angel_fallback"}
+            # Exchange time of the ATM quotes (the ones option_quality judges),
+            # the OLDER of call and put so a stale leg still reads as stale.
+            # No exchange time -> no timestamp: option_quality keeps rejecting
+            # rather than accepting fetch time as quote time.
+            atm_row = min(chain, key=lambda r: abs(float(r.get("strike") or 0) - spot))
+            times = [t for t in (atm_row.get("CE_exch_time"), atm_row.get("PE_exch_time")) if t]
+            if len(times) == 2:
+                oldest = min(datetime.fromisoformat(t) for t in times)
+                payload["records"]["timestamp"] = oldest.strftime("%d-%b-%Y %H:%M:%S")
             from option_chain_providers import mark_provider
             return mark_provider(payload, "angel", is_live=True)
         except Exception as e:

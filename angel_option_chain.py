@@ -378,6 +378,36 @@ class AngelOptionChainEngine:
             "ask_qty": ask_qty,
         }
 
+    @staticmethod
+    def _exchange_time(quote: dict) -> Optional[str]:
+        """Exchange feed/trade time of a SmartAPI FULL quote as ISO (IST), or None.
+
+        2026-10-14: option_quality now requires a quote timestamp and refuses to
+        treat fetch time as quote time; Angel's chain carried none, so every
+        Angel-sourced chain (the only live source in practice) would be rejected.
+        FULL mode documents an exchange feed time and trade time; key names are
+        matched defensively and a missing/unparseable time stays None (never a
+        made-up clock)."""
+        if not isinstance(quote, dict):
+            return None
+        for key in ("exchFeedTime", "exchTradeTime", "exchangeFeedTime", "exchangeTradeTime"):
+            raw = quote.get(key)
+            if raw in (None, "", 0):
+                continue
+            text = str(raw).strip()
+            try:
+                value = float(text)
+                stamp = datetime.fromtimestamp(value / 1000.0 if value > 1e11 else value)
+                return stamp.isoformat(timespec="seconds")
+            except ValueError:
+                pass
+            for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%m-%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
+                try:
+                    return datetime.strptime(text, fmt).isoformat(timespec="seconds")
+                except ValueError:
+                    continue
+        return None
+
     def _get_quote_data(self, symbol: str) -> dict:
         try:
             if hasattr(self.broker, "get_quote"):
@@ -421,6 +451,7 @@ class AngelOptionChainEngine:
             pe_symbol = pe_row.iloc[0]["symbol_exact"] if not pe_row.empty else None
 
             ce_ltp = pe_ltp = ce_oi = pe_oi = ce_chg_oi = pe_chg_oi = 0.0
+            ce_time = pe_time = None
             ce_liq = self._extract_liquidity_fields_from_quote({})
             pe_liq = self._extract_liquidity_fields_from_quote({})
 
@@ -433,6 +464,7 @@ class AngelOptionChainEngine:
                     ce_quote = self._get_quote_data(ce_symbol)
                     ce_oi, ce_chg_oi = self._extract_oi_fields_from_quote(ce_quote)
                     ce_liq = self._extract_liquidity_fields_from_quote(ce_quote)
+                    ce_time = self._exchange_time(ce_quote)
                 except Exception:
                     logger.debug("CE OI extraction failed for %s", ce_symbol, exc_info=True)
 
@@ -445,6 +477,7 @@ class AngelOptionChainEngine:
                     pe_quote = self._get_quote_data(pe_symbol)
                     pe_oi, pe_chg_oi = self._extract_oi_fields_from_quote(pe_quote)
                     pe_liq = self._extract_liquidity_fields_from_quote(pe_quote)
+                    pe_time = self._exchange_time(pe_quote)
                 except Exception:
                     logger.debug("PE OI extraction failed for %s", pe_symbol, exc_info=True)
 
@@ -475,6 +508,8 @@ class AngelOptionChainEngine:
                 "PE_askPrice": pe_liq["ask"],
                 "CE_askQty": ce_liq["ask_qty"],
                 "PE_askQty": pe_liq["ask_qty"],
+                "CE_exch_time": ce_time,
+                "PE_exch_time": pe_time,
             })
 
         return spot, atm, expiry, chain
