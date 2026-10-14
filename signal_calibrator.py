@@ -55,7 +55,10 @@ _DB_PATH     = Path("signal_log.db")
 _TABLE       = "signal_log"
 _MIN_SAMPLES = int(os.getenv("CALIBRATOR_MIN_CLEAN_SAMPLES", "5000"))
 _MIN_DAYS = int(os.getenv("CALIBRATOR_MIN_CLEAN_DAYS", "15"))
-_TRAINING_CONTRACT = "all_generated_signals_v4_causal_representations"
+# Keep every promoted probability model on the same evidence contract.  A
+# contract bump must quarantine older artifacts instead of letting a secondary
+# model continue scoring signals under weaker validation rules.
+from ml_trainer import TRAINING_CONTRACT as _TRAINING_CONTRACT
 
 # Probability thresholds
 _PASS_THRESHOLD = 0.60

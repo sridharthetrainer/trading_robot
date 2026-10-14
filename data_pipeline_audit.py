@@ -239,17 +239,28 @@ def _read_json(path: str) -> Dict[str, Any]:
         return {}
 
 
-def _sqlite_table_count(db_path: str, table: str) -> Dict[str, Any]:
+def _sqlite_table_count(db_path: str, table: str, *, timeout_sec: float = 2.0) -> Dict[str, Any]:
     p = Path(db_path)
     if not p.exists():
         return {"exists": False, "count": 0}
+    conn = None
     try:
-        conn = sqlite3.connect(str(p))
-        count = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-        conn.close()
+        if not table.isidentifier():
+            raise ValueError("invalid table identifier")
+        deadline = time.monotonic() + max(0.0, timeout_sec)
+        conn = sqlite3.connect(p.resolve().as_uri() + "?mode=ro", uri=True, timeout=max(0.01, timeout_sec))
+        conn.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
+        if time.monotonic() >= deadline:
+            raise TimeoutError("count time budget exceeded")
+        # COUNT(*) can use one long OP_Count with no progress callbacks.
+        # COUNT(1) iterates VM steps, allowing the deadline to interrupt it.
+        count = conn.execute(f'SELECT COUNT(1) FROM "{table}"').fetchone()[0]
         return {"exists": True, "count": int(count or 0)}
     except Exception as exc:
-        return {"exists": True, "count": 0, "error": str(exc)}
+        return {"exists": True, "count": None, "count_is_complete": False, "error": str(exc)}
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def _historical_option_store_count() -> Dict[str, Any]:
@@ -258,11 +269,16 @@ def _historical_option_store_count() -> Dict[str, Any]:
         ("historical_options.db", "options_eod"),
         ("historical_options.db", "options"),
     ]
+    errors = []
     for db_path, table in candidates:
         result = _sqlite_table_count(db_path, table)
         if result.get("exists") and not result.get("error"):
             result.update({"db_path": db_path, "table": table})
             return result
+        if result.get("exists") and result.get("error"):
+            errors.append({**result, "db_path": db_path, "table": table})
+    if errors:
+        return errors[0]
     return {"exists": False, "count": 0}
 
 
@@ -875,6 +891,8 @@ def _audit_storage() -> Dict[str, Any]:
     if Path("candle_cache.db").exists():
         try:
             with sqlite3.connect("candle_cache.db") as conn:
+                deadline = time.monotonic() + 2.0
+                conn.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
                 rows = conn.execute(
                     """
                     SELECT interval, COUNT(*) rows, COUNT(DISTINCT symbol) symbols,
@@ -894,11 +912,6 @@ def _audit_storage() -> Dict[str, Any]:
             }
         except Exception:
             candle_intervals = {}
-    try:
-        from option_decision_journal import ensure_option_journal
-        ensure_option_journal()
-    except Exception:
-        pass
     journal = Path("option_decision_journal.jsonl")
     return _ok(
         "storage",
@@ -936,6 +949,8 @@ def _audit_labelled_dataset() -> Dict[str, Any]:
         return _fail("labelled_dataset", "signal_log_missing", labelled=0, distinct_days=0)
     try:
         conn = sqlite3.connect("signal_log.db")
+        deadline = time.monotonic() + 2.0
+        conn.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
         conn.row_factory = sqlite3.Row
         row = conn.execute(
             """

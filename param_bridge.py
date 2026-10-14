@@ -56,6 +56,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -252,9 +253,16 @@ class ParamBridge:
         """
         if not params:
             return False
-        num_trades = int(metrics.get("total_trades", metrics.get("num_trades", 0)))
-        sharpe     = float(metrics.get("sharpe", 0.0) or 0.0)
-        win_rate   = float(metrics.get("win_rate", 0.0) or 0.0)
+        if metrics.get("paper_training_only") or str(metrics.get("validation_verdict", "")).upper() not in {"", "PASS"}:
+            return False
+        try:
+            num_trades = int(metrics.get("total_trades", metrics.get("num_trades", 0)))
+            sharpe = float(metrics.get("sharpe", 0.0))
+            win_rate = float(metrics.get("win_rate", 0.0))
+        except (ValueError, TypeError, OverflowError):
+            return False
+        if not math.isfinite(sharpe) or not math.isfinite(win_rate) or not 0 <= win_rate <= 100:
+            return False
         # Normalise win_rate if stored as 0-100
         if win_rate > 1.0:
             win_rate /= 100.0

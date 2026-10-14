@@ -4,7 +4,7 @@
 # appears on Drive. Delegates to do_deploy.sh which has the safe
 # pre-validate + rollback logic.
 # ════════════════════════════════════════════════════════════════
-BOT_DIR="/home/sridhar/Desktop/trading_robot"
+BOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$BOT_DIR" || exit 1
 
 if [ -f .env ]; then

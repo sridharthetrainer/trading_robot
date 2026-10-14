@@ -119,7 +119,7 @@ def _validate_input(data: pd.DataFrame) -> pd.DataFrame:
     for col in ["Open", "High", "Low", "Close"]:
         clean[col] = pd.to_numeric(clean[col], errors="coerce")
 
-    clean = clean.dropna(subset=["Open", "High", "Low", "Close"]).reset_index(drop=True)
+    clean = clean.dropna(subset=["Open", "High", "Low", "Close"])
     if clean.empty:
         raise ValueError("No valid OHLC data after cleaning.")
 
@@ -305,6 +305,7 @@ def backtest_symbol(
     close_at_end: bool          = True,
     interval_minutes: int       = 5,         # bar width for Sharpe annualization
     verbose: bool               = True,
+    precompute_signals: bool    = False,
 ) -> Dict:
     """
     Run a full live-style backtest for one symbol.
@@ -344,6 +345,10 @@ def backtest_symbol(
 
     lot_qty      = int(lot_size or config.get("LOT_SIZE") or LOT_SIZES.get(symbol.upper(), DEFAULT_LOT))
     atr_series   = calculate_atr(data, period=14)
+    prepared_signals = None
+    if precompute_signals:
+        from signals import precompute_default_signals
+        prepared_signals = precompute_default_signals(data, config)
     warmup       = max(50, int(config.get("WARMUP_BARS", 50)))
     last_bar_idx = len(data) - 1
 
@@ -412,7 +417,7 @@ def backtest_symbol(
         if np.isnan(current_atr) or current_atr <= 0:
             continue
 
-        raw_signal = get_signal(slice_data, config, symbol=symbol)
+        raw_signal = prepared_signals[i] if prepared_signals is not None else get_signal(slice_data, config, symbol=symbol)
         action     = _normalize_signal_action(
             raw_signal.get("action") if isinstance(raw_signal, dict) else None
         )

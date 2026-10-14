@@ -1,0 +1,11 @@
+# Autonomous knowledge and tuning
+
+The existing daily pipeline invokes the parameter trainer; the nightly learning cycle now includes memory status in its report and Telegram summary. These changes take effect when those processes next load the updated code. No running service was restarted or external message sent.
+
+`autonomous_knowledge.py` persists experiments in `autonomous_knowledge.db`, including strategy, symbol, interval, source-data fingerprint, last observed session, and validation results. Queue ordering uses experiment history and daily rotation so waiting jobs do not permanently monopolize the budget. Market data must have a sorted unique timestamp index, finite OHLCV, positive prices and valid candle geometry. Repeated data is blocked, and subsequent tests require five newly observed sessions, even when old data has been revised. Missing data remains a waiting condition rather than an invitation to fabricate evidence.
+
+The trainer continues to use the existing bounded run budget and walk-forward/deflated-Sharpe/stability/benchmark validation harness. Every fitted parameter candidate is staged under `parameter_candidates/<fingerprint>/symbol_params/`; candidate JSON writes are atomic. Neither a failed result nor a historical PASS overwrites active global or per-symbol parameters. A single-symbol result no longer silently changes every symbol's settings. `write=False` does not save validation results, candidates or experiment memory; planning does not create the database.
+
+Historical rolling holdouts overlap, so these results are explicitly exploratory. This implements autonomous research and durable memory, not automatic forward-validation adjudication or unattended live deployment. Existing independent prospective evidence and live-eligibility gates remain necessary for adoption. Frozen cohorts, capital limits, live mode and risk sizing are unchanged. The memory currently governs this parameter trainer, not every separate ML or option-weight pipeline in the repository.
+
+Verification: seven focused tests cover repeated data, old-data revisions, five-session eligibility, bad candles, read-only planning, staged PASS behavior, unchanged runtime parameters, and no-write training. Compile checks pass. This does not establish profitable strategies or guarantee ₹30,000 per month from ₹500,000.

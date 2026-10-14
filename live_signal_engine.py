@@ -70,6 +70,7 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Any, Dict, List, Optional, Set
 
 import config as cfg
@@ -3148,12 +3149,24 @@ class LiveSignalEngine:
                 catalog_chain_data = dict(raw_json)
                 catalog_chain_data.setdefault(
                     "spot", float(getattr(option_result, "spot", 0.0) or 0.0))
-                catalog_chain_data.setdefault("ts", time.time())
+                # Keep the provider's clock. A fetch without quote-time
+                # evidence must not manufacture freshness for cached data.
+                catalog_chain_data["expiry"] = str(getattr(option_result, "expiry", "") or "")
             vix = float(_INTEL_CACHE.get("vix", 15.0))
             # No genuine daily frame is threaded through this call path yet;
             # detect_regime()'s gap check safely no-ops (returns 0.0/False)
             # when df_daily is None, rather than needing one.
             regime = detect_regime(df, df_daily=None, vix=vix, symbol=symbol)
+            # Use the fetched contract, rather than a calendar approximation,
+            # so every leg is selected from the same expiry (including holidays).
+            if catalog_chain_data.get("expiry"):
+                from option_quality import normalize_expiry
+                contract_expiry = normalize_expiry(catalog_chain_data["expiry"])
+                if contract_expiry:
+                    from datetime import date
+                    regime = dict(regime, next_expiry=contract_expiry)
+                    regime["days_to_expiry"] = (date.fromisoformat(contract_expiry) - datetime.now(ZoneInfo("Asia/Kolkata")).date()).days
+                    regime["expiry_day"] = regime["days_to_expiry"] == 0
             results = evaluate_catalog(symbol=symbol, df=df, df_htf=df_htf,
                                         option_data=catalog_chain_data, regime=regime,
                                         gap_risk_manager=self._gap_risk_manager)
@@ -3613,11 +3626,8 @@ class LiveSignalEngine:
             )
             return False
 
-        # Probabilistic after-cost gate (trade_economics): on top of the cost
-        # hurdle above, reject setups whose win-probability (= signal confidence,
-        # 0-1 ML/AI prob) sits below the after-cost breakeven probability. Only
-        # acts on that specific reason; invalid levels / cost-hurdle are handled
-        # elsewhere, so a bad input fails safe (no block).
+        # Reject invalid inputs and setups below after-fee, after-slippage
+        # breakeven. Signal confidence must be on a 0-1 probability scale.
         try:
             from trade_economics import evaluate_trade_economics
             _ec_entry  = float(execution_plan.get("entry_price", 0) or 0)
@@ -3642,6 +3652,11 @@ class LiveSignalEngine:
                     is_options=(str(execution_plan.get("asset_type", "CASH")).upper() == "OPTION"),
                     cost_hurdle_multiplier=float(getattr(cfg, "COST_HURDLE_MULTIPLIER", 2.5) or 2.5),
                     min_expected_net=float(getattr(cfg, "MIN_EXPECTED_NET_PROFIT", 0.0) or 0.0),
+                    slippage_pct_per_leg=(
+                        float(os.getenv("SHADOW_OPTION_SLIPPAGE_PCT", "0.005"))
+                        if str(execution_plan.get("asset_type", "CASH")).upper() == "OPTION"
+                        else float(getattr(cfg, "SLIPPAGE_PCT", 0.05)) / 100.0
+                    ),
                 )
             execution_plan["trade_economics"] = _econ.to_dict()
             if not _econ.allowed:
@@ -4333,6 +4348,7 @@ class LiveSignalEngine:
                     from option_quality import evaluate_option_buy_quality
                     quality_result = evaluate_option_buy_quality(
                         chain_raw,
+                        expiry=str(getattr(option_result, "expiry", "") or ""),
                         spot=chain_spot,
                         df=df,
                         max_chain_age_sec=int(getattr(cfg, "OPTION_CHAIN_MAX_AGE_SEC", 180)),
@@ -4549,6 +4565,13 @@ class LiveSignalEngine:
                 "dte": dte,
                 "lot_size": lot_size_opt,
                 "quantity": requested_quantity,
+                # Presentation distinguishes buying a put from selling it,
+                # and prints premium levels instead of underlying levels.
+                "trade_side": "BUY",
+                "underlying_direction": signal_side,
+                "stop_loss": stop_loss,
+                "target_price": target_price,
+                "expiry": option_expiry_str,
                 "autotune": contract.autotune if contract else {},
                 "oi": getattr(contract, "oi", 0) if contract else 0,
                 "volume": getattr(contract, "volume", 0) if contract else 0,

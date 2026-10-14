@@ -16,13 +16,12 @@ the codebase's own authors already declared multi-leg execution not ready
 (signal_engine.py's RESEARCH_ONLY_MULTILEG_STRATEGIES quarantine + its guard
 test), and no atomic multi-leg executor exists yet to place these safely.
 
-Only 2 of the 12 CORE ids have real logic this pass: C1 (09:20 Short
-Straddle) and C3 (Iron Condor), both in option_core_strategies.py. The
-other 40 entries (10 CORE-not-yet-implemented + 30 ADVANCED/DANGEROUS/
-DISABLED/SKIPPED) are registered -- every ID is present and callable -- but
-route through _placeholder_result() and do nothing else. logic_status
-distinguishes "has real code" from activation_status, which is the user's
-own CORE/ADVANCED/DANGEROUS/DISABLED/SKIPPED taxonomy, preserved verbatim.
+C1, C3 and D1 retain their existing entry evaluators in option_core_strategies.
+The other 39 IDs have causal entry hypotheses and quote-based proposal calculators
+in option_catalog_research, labelled RESEARCH_IMPLEMENTED. This describes research
+logic, not a complete original-spec execution/adjustment engine. The original
+CORE/ADVANCED/DANGEROUS/DISABLED/SKIPPED activation restrictions remain in force.
+No research proposal is treated as a filled position or promoted to live trading.
 
 Every numeric parameter (deltas, SL%, targets, ...) lives in
 option_strategy_params.json, carried over from the user's spec as given and
@@ -36,6 +35,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, time as dtime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -69,7 +69,7 @@ class OptionStrategyDef:
     risk_profile: str         # defined_risk | undefined_risk | not_implemented
     activation_status: str    # CORE | ADVANCED | DANGEROUS | DISABLED | SKIPPED (verbatim from user spec)
     entry_window: str = ""    # raw spec text, e.g. "09:20_sharp" or "09:30-11:00"
-    logic_status: str = "PLACEHOLDER"   # IMPLEMENTED | PLACEHOLDER (new field, orthogonal to activation_status)
+    logic_status: str = "PLACEHOLDER"   # IMPLEMENTED | RESEARCH_IMPLEMENTED | PLACEHOLDER
     evaluate_fn: Optional[Callable[..., Dict[str, Any]]] = None
     param_key: str = field(default="")
 
@@ -179,6 +179,14 @@ if _CORE_STRATEGIES_AVAIL:
         **{**_BY_ID["D1"].__dict__, "logic_status": "IMPLEMENTED", "evaluate_fn": evaluate_d1_pre_event_strangle})
     OPTION_STRATEGY_CATALOG = [_BY_ID[d.id] for d in OPTION_STRATEGY_CATALOG]
 
+# Additional catalog hypotheses remain research-only. Activation restrictions
+# are preserved; callable research logic is not a validated execution system.
+from option_catalog_research import evaluators as _research_evaluators, DYNAMIC_IDS
+for _id, _fn in _research_evaluators().items():
+    _BY_ID[_id] = OptionStrategyDef(**{**_BY_ID[_id].__dict__,
+        "logic_status": "RESEARCH_IMPLEMENTED", "evaluate_fn": _fn})
+OPTION_STRATEGY_CATALOG = [_BY_ID[d.id] for d in OPTION_STRATEGY_CATALOG]
+
 
 # ── Params loading (env-override-first, same spirit as config.py's _fenv/_ienv) ──
 
@@ -241,24 +249,40 @@ def entry_window_ok(entry_window: str, now: Optional[datetime] = None) -> bool:
     used by strategies that have no real logic yet this pass) are reported
     as not-open rather than raising, since there is nothing to evaluate them
     against yet. Callers of a one-shot ("_sharp") window are responsible for
-    their own once-per-day dedup (see evaluate_catalog's _ONE_SHOT_FIRED) --
+    their own once-per-day dedup (see evaluate_catalog's _SELECTED_TODAY) --
     this function only answers "is now within the firing opportunity"."""
     if not entry_window:
         return False
-    now = now or datetime.now()
-    t = now.time()
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    if now.tzinfo is not None:
+        now = now.astimezone(ZoneInfo("Asia/Kolkata"))
+    t = now.time().replace(tzinfo=None)
     for chunk in entry_window.split(","):
         chunk = chunk.strip()
+        # Explicit weekday alternatives used by calendar/diagonal research.
+        if "_or_" in chunk:
+            if any(entry_window_ok(part, now) for part in chunk.split("_or_")):
+                return True
+            continue
+        weekday = re.match(r"^(mon|tue|wed|thu|fri)_(.+)$", chunk)
+        if weekday:
+            if now.weekday() != {"mon":0,"tue":1,"wed":2,"thu":3,"fri":4}[weekday.group(1)]:
+                continue
+            chunk = weekday.group(2)
         m = _ENTRY_WINDOW_RANGE_RE.match(chunk)
         if m:
-            start = dtime(int(m.group(1)), int(m.group(2)))
-            end = dtime(int(m.group(3)), int(m.group(4)))
+            start = _parse_hhmm(f"{m.group(1)}:{m.group(2)}")
+            end = _parse_hhmm(f"{m.group(3)}:{m.group(4)}")
+            if start is None or end is None or start > end:
+                continue
             if start <= t <= end:
                 return True
             continue
         m = _ENTRY_WINDOW_SHARP_RE.match(chunk)
         if m:
-            target = dtime(int(m.group(1)), int(m.group(2)))
+            target = _parse_hhmm(f"{m.group(1)}:{m.group(2)}")
+            if target is None:
+                continue
             target_min = target.hour * 60 + target.minute
             now_min = t.hour * 60 + t.minute
             if -_SHARP_EARLY_TOLERANCE_MIN <= (now_min - target_min) <= _SHARP_CATCHUP_MIN:
@@ -315,36 +339,75 @@ _SELECTED_TODAY: set = set()
 
 
 def evaluate_catalog(symbol: str, df, df_htf, option_data, regime: Dict[str, Any],
+                      now: Optional[datetime] = None,
                       **kw) -> List[Dict[str, Any]]:
     """Evaluate every strategy in the catalog once. IMPLEMENTED entries call
     their real evaluate_fn (shadow/journal-only, never places an order);
     every other entry returns a cheap, inert not_active result. Never raises
     -- a single strategy's exception is caught and reported, not allowed to
     stop the rest of the catalog or bubble into the live loop."""
-    today = datetime.now().strftime("%Y-%m-%d")
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    if now.tzinfo is not None:
+        now = now.astimezone(ZoneInfo("Asia/Kolkata"))
+    today = now.strftime("%Y-%m-%d")
+    _SELECTED_TODAY.intersection_update(key for key in list(_SELECTED_TODAY) if key[2] == today)
     results: List[Dict[str, Any]] = []
+    research_cache: Dict[Any, Any] = {}
     for strategy_def in OPTION_STRATEGY_CATALOG:
-        if strategy_def.logic_status != "IMPLEMENTED" or strategy_def.evaluate_fn is None:
+        if strategy_def.logic_status not in {"IMPLEMENTED", "RESEARCH_IMPLEMENTED"} or strategy_def.evaluate_fn is None:
             results.append(_placeholder_result(strategy_def, symbol))
             continue
         fire_key = (strategy_def.id, symbol, today)
-        if fire_key in _SELECTED_TODAY:
+        has_open_state = strategy_def.id in DYNAMIC_IDS and isinstance(kw.get("shadow_state"), dict) and kw["shadow_state"].get("strategy") == strategy_def.id and kw["shadow_state"].get("status") == "OPEN"
+        rolling_closed_state = strategy_def.id == "E4" and isinstance(kw.get("shadow_state"), dict) and kw["shadow_state"].get("strategy") == "E4" and kw["shadow_state"].get("status") == "CLOSED"
+        if fire_key in _SELECTED_TODAY and not has_open_state and not rolling_closed_state:
             results.append({"id": strategy_def.id, "status": "already_fired_today"})
             continue
         try:
-            if not entry_window_ok(strategy_def.entry_window):
+            if strategy_def.activation_status in {"DISABLED", "SKIPPED", "DANGEROUS"}:
+                results.append({"id": strategy_def.id, "status": "blocked_activation_status"})
+                continue
+            if now.weekday() >= 5 or (not has_open_state and not entry_window_ok(strategy_def.entry_window, now)):
                 results.append({"id": strategy_def.id, "status": "blocked_entry_window"})
                 continue
+            from option_strategy_risk_checks import can_enter_trade
+            risk_ok, reason = can_enter_trade(
+                regime=regime, vix=regime.get("vix", 15.0),
+                adx=regime.get("adx") if regime.get("adx") is not None else 20.0,
+                api_latency_sec=kw.get("api_latency_sec", 0.0),
+                open_undefined_risk_count=kw.get("open_undefined_risk_count", 0),
+                risk_profile=strategy_def.risk_profile,
+            )
+            if not risk_ok and not has_open_state:
+                results.append({"id": strategy_def.id, "status": "blocked_global_risk", "reason": reason})
+                continue
+            extra = {**kw, "research_cache": research_cache} if strategy_def.logic_status == "RESEARCH_IMPLEMENTED" else kw
             result = strategy_def.evaluate_fn(
                 symbol=symbol, df=df, df_htf=df_htf, option_data=option_data,
-                regime=regime, **kw)
+                regime=regime, now=now, **extra)
             if result.get("status") == "selected":
                 _SELECTED_TODAY.add(fire_key)
             results.append(result)
         except Exception as exc:
             logger.debug("evaluate_catalog(%s): %s", strategy_def.id, exc)
             results.append({"id": strategy_def.id, "status": "error", "reason": str(exc)[:200]})
+    for result in results:
+        result.update(evaluation_mode="shadow", live_ready=False)
     return results
+
+
+def catalog_readiness() -> List[Dict[str, Any]]:
+    """Describe every ID honestly; registered names are not working strategies."""
+    return [{
+        "id": item.id, "name": item.name, "category": item.category,
+        "activation_status": item.activation_status,
+        "logic_status": item.logic_status, "risk_profile": item.risk_profile,
+        "entry_window": item.entry_window, "evaluation_mode": "shadow",
+        "live_ready": False,
+        "blockers": (["entry_logic_not_implemented"] if item.evaluate_fn is None else [])
+                    + (["research_hypothesis_not_validated"] if item.logic_status == "RESEARCH_IMPLEMENTED" else [])
+                    + ["after_cost_forward_validation_required", "execution_not_enabled"],
+    } for item in OPTION_STRATEGY_CATALOG]
 
 
 # ── Accessors (used by tests and by anything wanting a slice of the catalog) ──
@@ -358,7 +421,7 @@ def core_ids() -> List[str]:
 
 
 def implemented_ids() -> List[str]:
-    return sorted(d.id for d in OPTION_STRATEGY_CATALOG if d.logic_status == "IMPLEMENTED")
+    return sorted(d.id for d in OPTION_STRATEGY_CATALOG if d.evaluate_fn is not None)
 
 
 def by_activation_status(status: str) -> List[OptionStrategyDef]:

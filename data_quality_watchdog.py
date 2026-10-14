@@ -70,33 +70,34 @@ def _age_days(ts: str) -> float:
         return 9999.0
 
 
-def audit_candle_cache(
+def _audit_candle_cache(
     db_path: str = "candle_cache.db",
     *,
     max_intraday_age_days: float | None = None,
     symbols: Iterable[str] | None = None,
     write: bool = True,
+    _connection=None,
 ) -> Dict[str, Any]:
     if not Path(db_path).exists():
         return {"ok": False, "reason": "candle_cache_missing", "checks": []}
     if max_intraday_age_days is None:
         max_intraday_age_days = float(os.getenv("DATA_WATCHDOG_MAX_INTRADAY_AGE_DAYS", "1.5"))
-    conn = sqlite3.connect(db_path)
-    groups = conn.execute(
-        "SELECT symbol, interval, COUNT(*), MIN(timestamp), MAX(timestamp) "
-        "FROM candles GROUP BY symbol, interval"
-    ).fetchall()
+    conn = _connection
     requested_symbols = (
         {str(symbol).strip().upper() for symbol in symbols if str(symbol).strip()}
         if symbols is not None else None
     )
+    parameters = sorted(requested_symbols) if requested_symbols is not None else []
+    where = ("WHERE symbol IN (" + ",".join("?" for _ in parameters) + ")") if parameters else ("WHERE 0" if requested_symbols is not None else "")
+    groups = conn.execute(
+        f"SELECT symbol, interval, COUNT(*), MIN(timestamp), MAX(timestamp) FROM candles {where} GROUP BY symbol, interval",
+        parameters,
+    ).fetchall()
     all_group_count = len(groups)
-    if requested_symbols is not None:
-        groups = [row for row in groups if str(row[0]).upper() in requested_symbols]
     checks: List[Dict[str, Any]] = []
     for symbol, interval, count, first_ts, last_ts in groups:
         rows = conn.execute(
-            "SELECT timestamp FROM candles WHERE symbol=? AND interval=? ORDER BY timestamp",
+            "SELECT timestamp FROM candles WHERE symbol=? AND interval=? ORDER BY timestamp DESC LIMIT 2000",
             (symbol, interval),
         ).fetchall()
         idx = pd.to_datetime([r[0] for r in rows], errors="coerce")
@@ -127,25 +128,24 @@ def audit_candle_cache(
             "session_lag": int(lag_sessions),
             "allowed_session_lag": allowed_session_lag,
             "median_spacing_min": round(median, 3),
+            "spacing_sample_bars": len(idx),
+            "spacing_scope": "latest_2000_bars",
             "spacing_ok": spacing_ok,
             "freshness_ok": freshness_ok,
             "min_bars": _min_bars(interval),
             "ok": bool(int(count or 0) >= _min_bars(interval) and spacing_ok and freshness_ok),
         })
-    conn.close()
     bad = [c for c in checks if not c.get("ok")]
     stale = [c for c in checks if not c.get("freshness_ok")]
     zero_volume_by_interval = {}
-    with sqlite3.connect(db_path) as volume_conn:
-        for interval, zero_rows, total_rows in volume_conn.execute(
-            """SELECT interval, SUM(CASE WHEN volume=0 THEN 1 ELSE 0 END), COUNT(*)
-                 FROM candles GROUP BY interval"""
-        ):
-            zero_volume_by_interval[str(interval)] = {
-                "rows": int(zero_rows or 0),
-                "total": int(total_rows or 0),
-                "pct": round(100.0 * int(zero_rows or 0) / max(int(total_rows or 0), 1), 2),
-            }
+    for interval, zero_rows, total_rows in conn.execute(
+        f"SELECT interval, SUM(CASE WHEN volume=0 THEN 1 ELSE 0 END), COUNT(*) FROM candles {where} GROUP BY interval", parameters
+    ):
+        zero_volume_by_interval[str(interval)] = {
+            "rows": int(zero_rows or 0),
+            "total": int(total_rows or 0),
+            "pct": round(100.0 * int(zero_rows or 0) / max(int(total_rows or 0), 1), 2),
+        }
     report = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         # Was `len(checks) > 0` -- true as soon as ANY group existed, regardless
@@ -155,8 +155,8 @@ def audit_candle_cache(
         # checks actually passed, not merely whether the audit ran.
         "ok": len(checks) > 0 and len(bad) == 0,
         "total_groups": len(checks),
-        "all_cache_groups": all_group_count,
-        "ignored_out_of_scope_groups": all_group_count - len(groups),
+        "all_cache_groups": all_group_count if requested_symbols is None else None,
+        "ignored_out_of_scope_groups": 0 if requested_symbols is None else None,
         "scope": "selected_symbols" if requested_symbols is not None else "all_cache_symbols",
         "requested_symbols": len(requested_symbols) if requested_symbols is not None else None,
         "bad_groups": len(bad),
@@ -180,6 +180,24 @@ def audit_candle_cache(
         except Exception as exc:
             logger.debug("data_quality_watchdog report write: %s", exc)
     return report
+
+
+def audit_candle_cache(db_path: str = "candle_cache.db", *, max_intraday_age_days=None,
+                       symbols=None, write: bool = True, query_budget: float = 15.0) -> Dict[str, Any]:
+    """Bounded read-only audit; incomplete scans cannot report ready data."""
+    if not Path(db_path).exists():
+        return {"ok": False, "reason": "candle_cache_missing", "checks": []}
+    from db_util import db_conn
+    try:
+        with db_conn(db_path, read_only=True, timeout=2, query_budget=query_budget) as conn:
+            return _audit_candle_cache(db_path, max_intraday_age_days=max_intraday_age_days,
+                                      symbols=symbols, write=write, _connection=conn)
+    except sqlite3.DatabaseError as exc:
+        report = {"ok": False, "reason": "incomplete_database_audit", "error": str(exc),
+                  "checks": [], "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+        if write:
+            Path(REPORT_JSON).write_text(json.dumps(report, indent=2), encoding="utf-8")
+        return report
 
 
 def main(argv: Iterable[str] | None = None) -> int:

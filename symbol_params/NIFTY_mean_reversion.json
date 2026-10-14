@@ -2,20 +2,20 @@
   "strategy": "mean_reversion",
   "symbol": "NIFTY",
   "params": {
-    "bb_period": 20,
+    "bb_period": 15,
     "bb_std": 1.5,
-    "overbought": 65,
-    "oversold": 35,
+    "overbought": 75,
+    "oversold": 40,
     "rsi_period": 7
   },
   "metrics": {
     "validation_verdict": "INSUFFICIENT_DATA",
     "paper_training_only": true,
-    "total_trades": 55,
+    "total_trades": 52,
     "num_trades": 0,
-    "sharpe": 1.3853,
-    "win_rate": 0.36363636363636365,
-    "deflated_sharpe": 0.0,
+    "sharpe": 5.3674,
+    "win_rate": 0.4230769230769231,
+    "deflated_sharpe": 1.0,
     "parameter_stability_cv": 1.0,
     "holdout_pnl": null,
     "beats_benchmark": false
@@ -23,14 +23,14 @@
   "validation_result": {
     "strategy": "mean_reversion",
     "symbol": "NIFTY",
-    "run_date": "2026-08-21",
-    "n_trials": 108,
+    "run_date": "2026-10-13",
+    "n_trials": 500,
     "dev_windows": 1,
-    "dev_avg_sharpe": 1.3853,
-    "dev_avg_pnl": 11885.06,
-    "dev_avg_trades": 55.0,
+    "dev_avg_sharpe": 5.3674,
+    "dev_avg_pnl": 57462.73,
+    "dev_avg_trades": 52.0,
     "dev_pct_profitable": 1.0,
-    "deflated_sharpe": 0.0,
+    "deflated_sharpe": 1.0,
     "min_trade_ok": true,
     "parameter_stability_cv": 1.0,
     "stability_ok": false,
@@ -42,32 +42,32 @@
     "dev_windows_detail": [
       {
         "window_idx": 0,
-        "test_start": "2026-04-24",
-        "test_end": "2026-06-08",
-        "pnl": 11885.059117978035,
-        "num_trades": 55,
-        "win_rate": 0.36363636363636365,
-        "sharpe": 1.3852791575516226,
-        "max_drawdown": 18114.582422954016,
+        "test_start": "2026-06-17",
+        "test_end": "2026-07-29",
+        "pnl": 57462.726283421565,
+        "num_trades": 52,
+        "win_rate": 0.4230769230769231,
+        "sharpe": 5.367419974361304,
+        "max_drawdown": 10267.076431394351,
         "best_params": {
           "rsi_period": 7,
-          "oversold": 35,
-          "overbought": 65,
-          "bb_period": 20,
+          "oversold": 40,
+          "overbought": 75,
+          "bb_period": 15,
           "bb_std": 1.5
         }
       }
     ],
     "best_params": {
-      "bb_period": 20,
+      "bb_period": 15,
       "bb_std": 1.5,
-      "overbought": 65,
-      "oversold": 35,
+      "overbought": 75,
+      "oversold": 40,
       "rsi_period": 7
     },
     "benchmark_buyhold_sharpe": null,
     "beats_benchmark": false
   },
-  "generated_at": "2026-08-21T08:30:28+0530",
+  "generated_at": "2026-10-13T15:52:54+0530",
   "source": "autonomous_param_trainer"
 }

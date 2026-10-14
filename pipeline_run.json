@@ -1,74 +1,75 @@
 {
-  "started_at": "2026-08-21T08:26:30.771119",
-  "finished_at": "2026-08-21T08:31:52.527959",
-  "total_elapsed": 321.8,
-  "steps_ok": 10,
-  "steps_error": 1,
-  "errors": [
-    {
-      "step": "option_telegram_report",
-      "error": "not_post_market"
-    }
-  ],
+  "started_at": "2026-10-13T21:15:13.016498",
+  "finished_at": "2026-10-13T21:26:03.881862",
+  "total_elapsed": 650.9,
+  "steps_ok": 12,
+  "steps_error": 0,
+  "errors": [],
   "steps": [
     {
       "step": "strategy_validator",
       "status": "ok",
-      "elapsed": 4.45,
+      "elapsed": 4.78,
       "error": null
     },
     {
       "step": "alpha_decay_tracker",
       "status": "ok",
-      "elapsed": 0.03,
+      "elapsed": 0.02,
       "error": null
     },
     {
       "step": "daily_performance_report",
       "status": "ok",
-      "elapsed": 0.08,
+      "elapsed": 0.07,
       "error": null
     },
     {
       "step": "executive_eod_report",
       "status": "ok",
-      "elapsed": 0.96,
+      "elapsed": 1.06,
       "error": null
     },
     {
       "step": "option_telegram_report",
-      "status": "error",
+      "status": "ok",
       "elapsed": 0.01,
-      "error": "not_post_market"
+      "error": null
     },
     {
       "step": "candle_coverage_plan",
       "status": "ok",
-      "elapsed": 13.9,
+      "elapsed": 23.97,
+      "error": null
+    },
+    {
+      "step": "candle_session_gap_audit",
+      "status": "ok",
+      "elapsed": 2.09,
       "error": null
     },
     {
       "step": "correlation_matrix_update",
       "status": "ok",
-      "elapsed": 0.37,
+      "elapsed": 0.26,
       "error": null
     },
     {
       "step": "derive_daily_candles",
       "status": "ok",
-      "elapsed": 57.06,
+      "elapsed": 95.18,
       "error": null
     },
     {
       "step": "autonomous_param_training",
       "status": "ok",
-      "elapsed": 160.55,
+      "elapsed": 0.0,
       "error": null
     },
     {
       "step": "system_readiness_report",
       "status": "ok",
-      "elapsed": 84.34,
+      "elapsed": 523.41,
       "error": null
     },
     {

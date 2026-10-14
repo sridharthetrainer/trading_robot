@@ -60,22 +60,15 @@ def _clamp(value: float, lo: float, hi: float) -> float:
 
 def _outcome(row: Dict[str, Any]) -> Tuple[bool, float] | None:
     outcome = row.get("outcome")
-    label = None
-    pnl = _safe_float(row.get("pnl"), 0.0)
-    if isinstance(outcome, dict):
-        label = outcome.get("label", outcome.get("tb_label"))
-        pnl = _safe_float(outcome.get("pnl"), pnl)
-    if label is None:
-        label = row.get("outcome_label", row.get("tb_label"))
+    value = outcome.get("pnl", row.get("pnl")) if isinstance(outcome, dict) else row.get("pnl")
     try:
-        label_i = int(label)
-    except Exception:
-        if pnl != 0:
-            return pnl > 0, pnl
+        pnl = float(value)
+    except (TypeError, ValueError):
         return None
-    if label_i == 0:
-        return pnl > 0, pnl
-    return label_i > 0, pnl
+    if not math.isfinite(pnl):
+        return None
+    # Target-hit labels are not after-cost wins when fees erase the profit.
+    return pnl > 0, pnl
 
 
 def _load_live_strike_outcomes(
@@ -123,7 +116,15 @@ def _load_live_strike_outcomes(
                         dte = float((d_exp - d_snap).days)
                 except Exception:
                     dte = -1.0
-                pnl = _safe_float(r["net_pnl"]) or _safe_float(r["gross_pnl"])
+                # A zero net outcome must not become a profitable gross result.
+                # Missing after-cost evidence is insufficient for net tuning.
+                import math
+                try:
+                    pnl = float(r["net_pnl"])
+                except (TypeError, ValueError):
+                    continue
+                if not math.isfinite(pnl):
+                    continue
                 rows.append({
                     "decision": "live_strike",
                     "side": "BUY",

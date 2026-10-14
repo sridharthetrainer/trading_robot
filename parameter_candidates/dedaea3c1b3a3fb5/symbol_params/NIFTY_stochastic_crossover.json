@@ -1,0 +1,134 @@
+{
+  "strategy": "stochastic_crossover",
+  "symbol": "NIFTY",
+  "params": {
+    "d_period": 3,
+    "k_period": 14,
+    "overbought": 70.0,
+    "oversold": 30.0
+  },
+  "metrics": {
+    "validation_verdict": "FAIL",
+    "paper_training_only": true,
+    "total_trades": 146,
+    "num_trades": 0,
+    "sharpe": 1.8147,
+    "win_rate": 0.47816000000000003,
+    "deflated_sharpe": 0.2621,
+    "parameter_stability_cv": 0.0584,
+    "holdout_pnl": null,
+    "beats_benchmark": false
+  },
+  "validation_result": {
+    "strategy": "stochastic_crossover",
+    "symbol": "NIFTY",
+    "run_date": "2026-10-14",
+    "n_trials": 20,
+    "dev_windows": 5,
+    "dev_avg_sharpe": 1.8147,
+    "dev_avg_pnl": 10310.8,
+    "dev_avg_trades": 29.2,
+    "dev_pct_profitable": 0.8,
+    "deflated_sharpe": 0.2621,
+    "min_trade_ok": false,
+    "parameter_stability_cv": 0.0584,
+    "stability_ok": true,
+    "holdout_sharpe": null,
+    "holdout_pnl": null,
+    "holdout_trades": null,
+    "holdout_win_rate": null,
+    "verdict": "FAIL",
+    "dev_windows_detail": [
+      {
+        "window_idx": 0,
+        "test_start": "2025-12-04",
+        "test_end": "2026-01-19",
+        "pnl": -15203.96,
+        "num_trades": 29,
+        "win_rate": 0.3103,
+        "sharpe": -3.5615,
+        "max_drawdown": 25120.590000000026,
+        "best_params": {
+          "k_period": 14,
+          "d_period": 3,
+          "oversold": 30.0,
+          "overbought": 70.0
+        }
+      },
+      {
+        "window_idx": 1,
+        "test_start": "2026-01-19",
+        "test_end": "2026-03-02",
+        "pnl": 11422.03,
+        "num_trades": 29,
+        "win_rate": 0.4483,
+        "sharpe": 2.1911,
+        "max_drawdown": 13697.660000000033,
+        "best_params": {
+          "k_period": 14,
+          "d_period": 3,
+          "oversold": 20.0,
+          "overbought": 70.0
+        }
+      },
+      {
+        "window_idx": 2,
+        "test_start": "2026-03-02",
+        "test_end": "2026-04-17",
+        "pnl": 1368.38,
+        "num_trades": 29,
+        "win_rate": 0.4138,
+        "sharpe": 0.2241,
+        "max_drawdown": 22490.909999999974,
+        "best_params": {
+          "k_period": 14,
+          "d_period": 3,
+          "oversold": 30.0,
+          "overbought": 80.0
+        }
+      },
+      {
+        "window_idx": 3,
+        "test_start": "2026-04-17",
+        "test_end": "2026-06-02",
+        "pnl": 16359.13,
+        "num_trades": 29,
+        "win_rate": 0.5517,
+        "sharpe": 2.7983,
+        "max_drawdown": 10096.059999999998,
+        "best_params": {
+          "k_period": 14,
+          "d_period": 3,
+          "oversold": 30.0,
+          "overbought": 80.0
+        }
+      },
+      {
+        "window_idx": 4,
+        "test_start": "2026-06-02",
+        "test_end": "2026-07-14",
+        "pnl": 37608.44,
+        "num_trades": 30,
+        "win_rate": 0.6667,
+        "sharpe": 7.4214,
+        "max_drawdown": 5548.72000000003,
+        "best_params": {
+          "k_period": 14,
+          "d_period": 3,
+          "oversold": 30.0,
+          "overbought": 70.0
+        }
+      }
+    ],
+    "best_params": {
+      "d_period": 3,
+      "k_period": 14,
+      "overbought": 70.0,
+      "oversold": 30.0
+    },
+    "benchmark_buyhold_sharpe": null,
+    "beats_benchmark": false
+  },
+  "generated_at": "2026-10-14T07:04:55+0530",
+  "source": "autonomous_param_trainer"
+}

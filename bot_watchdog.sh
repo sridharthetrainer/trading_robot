@@ -6,7 +6,7 @@
 # Uninstall:      crontab -e   (delete the bot_watchdog line)
 # Logs:           ~/Desktop/trading_robot/watchdog.log
 # ════════════════════════════════════════════════════════════════
-BOT_DIR="/home/sridhar/Desktop/trading_robot"
+BOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 BOT_CTL="$BOT_DIR/bot.sh"
 MANUAL_TRACKER="$BOT_DIR/manual_trade_tracker.py"
 # Match the ACTUAL running cmdline (launched with a relative path via bot.sh),

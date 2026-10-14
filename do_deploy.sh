@@ -8,7 +8,7 @@
 # ════════════════════════════════════════════════════════════════
 set -uo pipefail
 
-BOT_DIR="/home/sridhar/Desktop/trading_robot"
+BOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 exec >> "$BOT_DIR/deploy.log" 2>&1
 echo ""
 echo "═══════════════════════════════════════════════"

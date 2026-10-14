@@ -30,9 +30,11 @@ import logging
 import threading
 import time
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+PROJECT_DIR = Path(__file__).resolve().parent
 
 # NSE 2026 trading holidays (approximate — auto-updated from NSE)
 NSE_HOLIDAYS_2026 = {
@@ -1021,7 +1023,7 @@ class OffHoursEngine:
             r = subprocess.run(
                 ["python3", "test_core.py"],
                 capture_output=True, text=True, timeout=60,
-                cwd="/home/sridhar/Desktop/trading_robot"
+                cwd=str(PROJECT_DIR)
             )
             result = r.stdout[-300:] if r.stdout else "no output"
             passed = "ALL TESTS PASSED" in result

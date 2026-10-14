@@ -1,4 +1,5 @@
 import sqlite3
+import time
 
 import option_core_strategies as ocs
 from greeks_live import compute_greeks
@@ -21,7 +22,12 @@ def _synthetic_chain(spot=22000.0, gap=50, steps=10, iv=14.0):
         ce = max(5.0, 150 - max(0, i) * 15 - abs(min(0, i)) * 2)
         pe = max(5.0, 150 - max(0, -i) * 15 - abs(max(0, i)) * 2)
         rows.append(_mk_row(strike, ce, pe, iv=iv))
-    return {"chain": rows, "spot": spot, "ts": 1_800_000_000.0}
+    return {"chain": rows, "spot": spot, "ts": time.time()}
+
+
+def _evaluate_c3(**kw):
+    kw.setdefault("gap_risk_manager", _FakeGapRiskManager(60.0))
+    return ocs.evaluate_c3_iron_condor(**kw)
 
 
 _CALM_REGIME = {"primary": "MEAN_REVERT", "vix": 11.0, "gap": False,
@@ -101,7 +107,7 @@ def test_c3_iron_condor_is_defined_risk_and_four_legs(monkeypatch):
     option_data = _synthetic_chain()
     conn = sqlite3.connect(":memory:")
 
-    result = ocs.evaluate_c3_iron_condor(
+    result = _evaluate_c3(
         symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
 
     assert result["status"] == "selected"
@@ -126,7 +132,7 @@ def test_c3_short_leg_delta_is_near_target(monkeypatch):
     monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
     option_data = _synthetic_chain()
     conn = sqlite3.connect(":memory:")
-    ocs.evaluate_c3_iron_condor(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
+    _evaluate_c3(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
     rows_db = conn.execute(
         "SELECT strike, option_type, side FROM option_strike_signals WHERE strategy='C3'").fetchall()
     assert len(rows_db) == 4
@@ -140,7 +146,7 @@ def test_c3_blocked_on_strong_trend_regime(monkeypatch):
     monkeypatch.setattr(ocs.odj, "record_option_decision", lambda **kw: kw)
     option_data = _synthetic_chain()
     trending = dict(_CALM_REGIME, primary="STRONG_TREND")
-    result = ocs.evaluate_c3_iron_condor(symbol="NIFTY", option_data=option_data, regime=trending)
+    result = _evaluate_c3(symbol="NIFTY", option_data=option_data, regime=trending)
     assert result["status"] == "blocked_regime_strong_trend"
 
 
@@ -149,7 +155,7 @@ def test_c1_and_c3_combos_persist_with_shared_combo_id(monkeypatch):
     option_data = _synthetic_chain()
     conn = sqlite3.connect(":memory:")
     ocs.evaluate_c1_short_straddle(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
-    ocs.evaluate_c3_iron_condor(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
+    _evaluate_c3(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
 
     c1_combo_ids = {r[0] for r in conn.execute(
         "SELECT combo_id FROM option_strike_signals WHERE strategy='C1'")}
@@ -175,7 +181,7 @@ def test_c1_and_c3_persist_real_volume_and_spread_not_zero_default(monkeypatch):
     option_data = _synthetic_chain()  # _mk_row's default vol=10000, bid/ask 1% apart
     conn = sqlite3.connect(":memory:")
     ocs.evaluate_c1_short_straddle(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
-    ocs.evaluate_c3_iron_condor(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
+    _evaluate_c3(symbol="NIFTY", option_data=option_data, regime=_CALM_REGIME, conn=conn)
 
     for strategy in ("C1", "C3"):
         rows_db = conn.execute(

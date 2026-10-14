@@ -12,6 +12,7 @@ import re
 import sqlite3
 from collections import Counter, defaultdict
 from datetime import date, datetime, time
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -38,7 +39,8 @@ def _parse_time(value: Any) -> Optional[datetime]:
     if not raw:
         return None
     try:
-        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        return parsed.replace(tzinfo=ZoneInfo("Asia/Kolkata")) if parsed.tzinfo is None else parsed.astimezone(ZoneInfo("Asia/Kolkata"))
     except ValueError:
         return None
 
@@ -81,7 +83,7 @@ def _option_trades(day: str) -> List[dict]:
                 continue
             ts = exit_ts or entry_ts
             try:
-                dt = datetime.fromtimestamp(float(ts))
+                dt = datetime.fromtimestamp(float(ts), ZoneInfo("Asia/Kolkata"))
             except (TypeError, ValueError, OSError):
                 continue
             if dt.date().isoformat() == day:
@@ -141,7 +143,7 @@ def _dedupe_selections(rows: Iterable[dict]) -> List[dict]:
 
 
 def collect_report_data(day: Optional[str] = None) -> Dict[str, Any]:
-    report_day = day or date.today().isoformat()
+    report_day = day or datetime.now(ZoneInfo("Asia/Kolkata")).date().isoformat()
     rows = _journal_rows(report_day)
     selections = _dedupe_selections(rows)
     trades = _option_trades(report_day)
@@ -229,12 +231,13 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     matplotlib.use("Agg")
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter
 
     panel, fg = ct.PANEL, ct.TEXT_PRIMARY
-    fig, axes = plt.subplots(2, 2, figsize=(13, 9), dpi=145)
+    fig, axes = plt.subplots(2, 2, figsize=(10, 12), dpi=145)
     ct.apply_theme(fig, axes.flat)
     for ax in axes.flat:
-        ax.tick_params(labelsize=8)
+        ax.tick_params(labelsize=9)
 
     ax = axes[0, 0]
     palette = list(ct.CATEGORICAL)
@@ -244,16 +247,16 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
         xs, raw = zip(*series)
         base = raw[0]
         pct = [(v / base - 1) * 100 for v in raw]
-        ax.plot(xs, pct, color=color, linewidth=2, label=f"{symbol} {raw[-1]:,.0f}")
+        ax.plot(xs, pct, color=color, linewidth=2, marker="o", markersize=3, label=f"{symbol} {raw[-1]:,.0f}")
         ax.annotate(f"{pct[-1]:+.2f}%", (xs[-1], pct[-1]), color=color, fontsize=8,
                     xytext=(5, 0), textcoords="offset points")
     ax.axhline(0, color=ct.TEXT_MUTED, linewidth=.8)
-    ax.set_title("INDEX MOVE (09:15–15:35 captures)", color=fg, fontweight="bold")
+    ax.set_title("INDEX MOVE / STORED CAPTURES", color=fg, fontweight="bold", fontsize=11)
     ax.set_ylabel("Change %", color=ct.TEXT_MUTED)
     has_spot_lines = any(len(series) >= 2 for series in data["spots"].values())
     if has_spot_lines:
         ax.legend(facecolor=panel, labelcolor=fg, fontsize=7, loc="best")
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M", tz=ZoneInfo("Asia/Kolkata")))
     else:
         latest = data.get("latest_spots") or {}
         detail = "\n".join(f"{symbol}: {value:,.0f}"
@@ -277,21 +280,29 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     ax.set_ylabel("Count", color=ct.TEXT_MUTED)
     if sx or bx:
         ax.legend(facecolor=panel, labelcolor=fg, fontsize=8)
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M", tz=ZoneInfo("Asia/Kolkata")))
     else:
         ax.text(.5, .5, "No selected/blocked decisions", transform=ax.transAxes,
                 color=ct.TEXT_MUTED, ha="center", va="center")
 
     ax = axes[1, 0]
-    types = ["CE", "PE"]
-    vals = [data["option_types"].get(t, 0) for t in types]
-    bars = ax.bar(types, vals, color=[ct.BEARISH, ct.BULLISH], width=.55)
-    ax.set_title("SELECTED LEGS", color=fg, fontweight="bold")
-    ax.set_ylabel("Distinct selections", color=ct.TEXT_MUTED)
-    ax.set_ylim(0, max(vals + [1]) * 1.25)
-    for bar, value in zip(bars, vals):
-        ax.text(bar.get_x() + bar.get_width()/2, value + .03, str(value),
-                ha="center", va="bottom", color=fg, fontweight="bold")
+    actual = sorted(data["closed"], key=lambda row: row["time"])
+    if actual:
+        amounts = [row["pnl"] for row in actual]
+        ax.bar(range(1, len(actual) + 1), amounts,
+               color=[ct.BULLISH if value >= 0 else ct.BEARISH for value in amounts], width=.65)
+        ax.axhline(0, color=ct.TEXT_MUTED, linewidth=.8)
+        ax.set_xlabel("Closed recorded trades", color=ct.TEXT_MUTED)
+        ax.set_ylabel("Net P&L ₹", color=ct.TEXT_MUTED)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _pos: f"{value:,.0f}"))
+    else:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.text(.5, .60, "No closed recorded trades", transform=ax.transAxes,
+                color=fg, fontsize=13, ha="center", va="center")
+        ax.text(.5, .41, "Generated signals are not booked profit.", transform=ax.transAxes,
+                color=ct.TEXT_MUTED, fontsize=9, ha="center", va="center")
+    ax.set_title("RECORDED TRADE RESULTS", color=fg, fontweight="bold")
 
     ax = axes[1, 1]
     closed = sorted(data["closed"], key=lambda x: x["time"])
@@ -308,26 +319,14 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
                 label=f"Ideal signal net ₹{total:+,.0f}")
         ax.axhline(0, color=ct.TEXT_MUTED, linewidth=.8)
         ax.legend(facecolor=panel, labelcolor=fg, fontsize=8)
-        ax.set_xlabel("Labelled generated signals", color=ct.TEXT_MUTED)
-    elif closed:
-        cumulative, total = [], 0.0
-        for trade in closed:
-            total += trade["pnl"]
-            cumulative.append(total)
-        color = ct.BULLISH if total >= 0 else ct.BEARISH
-        ax.plot([t["time"] for t in closed], cumulative, marker="o", color=color,
-                linewidth=2.4, label=f"Net ₹{total:+,.0f}")
-        ax.axhline(0, color=ct.TEXT_MUTED, linewidth=.8)
-        for trade, value in zip(closed, cumulative):
-            ax.annotate(f"₹{value:+,.0f}", (trade["time"], value), color=fg,
-                        fontsize=8, xytext=(0, 7), textcoords="offset points", ha="center")
-        ax.legend(facecolor=panel, labelcolor=fg, fontsize=8)
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        ax.set_xlabel("Labelled generated signals · simulated", color=ct.TEXT_MUTED)
     else:
-        ax.text(.5, .5, "No closed option trades", transform=ax.transAxes,
+        ax.text(.5, .5, "No labelled signal outcomes", transform=ax.transAxes,
                 color=ct.TEXT_MUTED, ha="center", va="center")
-    ax.set_title("IDEAL SIGNAL AFTER-COST P&L", color=fg, fontweight="bold")
+    ax.set_title("SIMULATED SIGNAL P&L", color=fg, fontweight="bold")
     ax.set_ylabel("₹ cumulative", color=ct.TEXT_MUTED)
+    ax.yaxis.set_major_formatter(FuncFormatter(
+        lambda value, _pos: f"{value/100000:.1f}L" if abs(value) >= 100000 else f"{value:,.0f}"))
 
     closed_n = len(closed)
     win_rate = (100 * data["wins"] / closed_n) if closed_n else 0
@@ -335,14 +334,30 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     labelled_n = len(data["labelled_signals"])
     signal_wr = 100 * data["all_signal_wins"] / labelled_n if labelled_n else 0
     traded_wr = 100 * data["wins"] / closed_n if closed_n else 0
-    fig.suptitle(f"OPTION BOT • POST-MARKET REPORT • {data['day']}", color=ct.TEXT_PRIMARY,
-                 fontsize=17, fontweight="bold", y=.985)
-    fig.text(.5, .946,
-             f"All signals {signal_n}   |   Labelled {labelled_n}   |   Unfilled {len(data['unfilled_signals'])}   |   Pending {len(data['pending_signals'])}   |   "
-             f"Signal WR {signal_wr:.0f}%   |   Net ₹{data['all_signal_net_pnl']:+,.0f}",
-             color=ct.TEXT_SECONDARY, fontsize=10, ha="center")
-    fig.autofmt_xdate(rotation=25)
-    plt.tight_layout(rect=(0, .01, 1, .92))
+    fig.suptitle(f"OPTION DESK / SESSION REVIEW\n{data['day']}", color=ct.TEXT_PRIMARY,
+                 fontsize=20, fontweight="bold", y=.975)
+    metrics = [
+        ("RECORDED TRADE NET", f"₹{data['traded_net_pnl']:+,.0f}", ct.BULLISH if data['traded_net_pnl'] > 0 else ct.BEARISH if data['traded_net_pnl'] < 0 else ct.TEXT_PRIMARY),
+        ("CLOSED / OPEN TRADES", f"{closed_n} / {len(data['open_trades'])}", ct.TEXT_PRIMARY),
+        ("CHARGES / ALL TRADES", f"₹{data['charges']:,.0f}", ct.TEXT_PRIMARY),
+        ("GENERATED / LABELLED", f"{signal_n} / {labelled_n}", ct.INFO),
+        ("SIMULATED SIGNAL NET", f"₹{data['all_signal_net_pnl']:+,.0f}", ct.WARNING),
+        ("PENDING / UNFILLED", f"{len(data['pending_signals'])} / {len(data['unfilled_signals'])}", ct.TEXT_PRIMARY),
+    ]
+    for index, (label, value, color) in enumerate(metrics):
+        col, row = index % 3, index // 3
+        stat = fig.add_axes([.065 + col * .30, .805 - row * .085, .27, .07])
+        stat.set_facecolor(ct.PANEL)
+        stat.set_xticks([]); stat.set_yticks([])
+        for spine in stat.spines.values():
+            spine.set_color(ct.GRID)
+        stat.text(.07, .82, label, transform=stat.transAxes, color=ct.TEXT_MUTED, fontsize=8, va="top")
+        stat.text(.07, .45, value, transform=stat.transAxes, color=color, fontsize=20, fontweight="bold", va="top")
+    fig.subplots_adjust(left=.095, right=.965, top=.66, bottom=.09, hspace=.38, wspace=.30)
+    fig.text(.065, .03, "Recorded trades may be paper or live. Simulated signal P&L is research, not realized income.",
+             color=ct.TEXT_MUTED, fontsize=9)
+    for ax in axes.flat:
+        ax.tick_params(axis="x", labelrotation=20)
 
     out = Path(output_dir) if output_dir else REPORT_DIR
     out.mkdir(parents=True, exist_ok=True)
@@ -350,26 +365,25 @@ def generate_option_report(day: Optional[str] = None, output_dir: Optional[str] 
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
     plt.close(fig)
     caption = (
-        f"📊 Option post-market • {data['day']}\n"
-        f"ALL signals {signal_n} | Labelled {labelled_n} | Unfilled {len(data['unfilled_signals'])} | Pending {len(data['pending_signals'])}\n"
-        f"IDEAL SIGNAL P&L: Gross ₹{data['all_signal_gross_pnl']:+,.0f} | Costs ₹{data['all_signal_costs']:,.0f} | "
-        f"Net ₹{data['all_signal_net_pnl']:+,.0f} | WR {signal_wr:.0f}%\n"
-        f"Avg/signal ₹{data['ideal_avg_net_pnl']:+,.0f} | Avg R {data['ideal_avg_net_r']:+.2f} | "
-        f"Actionable-only net ₹{data['actionable_ideal_net_pnl']:+,.0f}\n"
-        f"TRADES TAKEN {len(data['trades'])} | Closed {closed_n} | Open {len(data['open_trades'])} | WR {traded_wr:.0f}%\n"
-        f"Traded gross ₹{data['traded_gross_pnl']:+,.0f} | Charges ₹{data['charges']:,.0f} | "
-        f"Net realized ₹{data['traded_net_pnl']:+,.0f}"
+        f"📊 Option session review · {data['day']}\n"
+        f"RECORDED TRADES: Closed {closed_n} · Open {len(data['open_trades'])}\n"
+        f"Recorded gross ₹{data['traded_gross_pnl']:+,.0f} · Charges ₹{data['charges']:,.0f} · Net ₹{data['traded_net_pnl']:+,.0f}\n"
+        f"RESEARCH: Generated {signal_n} · Labelled {labelled_n} · Pending {len(data['pending_signals'])} · Unfilled {len(data['unfilled_signals'])}\n"
+        f"Simulated signal net ₹{data['all_signal_net_pnl']:+,.0f} · Avg R {data['ideal_avg_net_r']:+.2f}\n"
+        "Recorded trades may be paper or live. Research P&L is not realized income."
     )
     if closed:
         caption += "\n" + "\n".join(
             f"• {trade['symbol']} ₹{trade['pnl']:+,.0f} ({trade['status']})"
-            for trade in closed[:8]
+            for trade in closed[:3]
         )
     return {"ok": True, "path": str(path), "caption": caption, **data}
 
 
 def is_post_market(now: Optional[datetime] = None) -> bool:
-    current = now or datetime.now()
+    current = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    if current.tzinfo is not None:
+        current = current.astimezone(ZoneInfo("Asia/Kolkata"))
     return current.weekday() < 5 and current.time() >= time(15, 35)
 
 

@@ -1,343 +1,363 @@
 {
-  "failed_bear_breakout": {
-    "strategy": "failed_bear_breakout",
-    "status": "DEGRADED",
-    "trend_tau": 0.0222,
-    "mk_pvalue": 0.5,
-    "recent_wr": 0.32,
-    "baseline_wr": 0.4035,
-    "decay_pct": 0.207,
-    "n": 196,
-    "n_buckets": 10,
-    "buckets": [
-      {
-        "label": "09:38\u201309:46",
-        "wr": 0.4737,
-        "n": 19
-      },
-      {
-        "label": "09:46\u201309:48",
-        "wr": 0.3158,
-        "n": 19
-      },
-      {
-        "label": "09:48\u201309:52",
-        "wr": 0.4211,
-        "n": 19
-      },
-      {
-        "label": "09:52\u201310:10",
-        "wr": 0.2632,
-        "n": 19
-      },
-      {
-        "label": "10:10\u201310:19",
-        "wr": 0.5263,
-        "n": 19
-      },
-      {
-        "label": "10:21\u201310:55",
-        "wr": 0.4737,
-        "n": 19
-      },
-      {
-        "label": "10:57\u201312:05",
-        "wr": 0.3158,
-        "n": 19
-      },
-      {
-        "label": "12:12\u201314:31",
-        "wr": 0.6316,
-        "n": 19
-      },
-      {
-        "label": "14:34\u201315:00",
-        "wr": 0.3158,
-        "n": 19
-      },
-      {
-        "label": "15:01\u201315:39",
-        "wr": 0.32,
-        "n": 25
-      }
-    ],
-    "generated_at": "2026-09-05T11:39:17.945323"
-  },
-  "smc": {
-    "strategy": "smc",
-    "status": "INSUFFICIENT_DATA",
-    "n": 6
-  },
-  "breakout": {
-    "strategy": "breakout",
+  "chart_pattern_diamond_bottom": {
+    "strategy": "chart_pattern_diamond_bottom",
     "status": "STABLE",
-    "trend_tau": 0.2444,
-    "mk_pvalue": 0.8145,
-    "recent_wr": 0.4167,
-    "baseline_wr": 0.3541,
-    "decay_pct": -0.1767,
-    "n": 324,
+    "trend_tau": 0.2889,
+    "mk_pvalue": 0.8584,
+    "recent_wr": 0.6667,
+    "baseline_wr": 0.3333,
+    "decay_pct": -1.0001,
+    "n": 45,
     "n_buckets": 10,
     "buckets": [
       {
         "label": "09:38\u201309:45",
-        "wr": 0.4062,
-        "n": 32
+        "wr": 0.25,
+        "n": 4
       },
       {
         "label": "09:46\u201309:48",
-        "wr": 0.25,
-        "n": 32
-      },
-      {
-        "label": "09:48\u201309:48",
-        "wr": 0.4062,
-        "n": 32
+        "wr": 0.5,
+        "n": 4
       },
       {
         "label": "09:48\u201310:09",
-        "wr": 0.4062,
-        "n": 32
-      },
-      {
-        "label": "10:09\u201311:52",
-        "wr": 0.5625,
-        "n": 32
-      },
-      {
-        "label": "11:53\u201314:20",
-        "wr": 0.5312,
-        "n": 32
-      },
-      {
-        "label": "14:20\u201314:37",
-        "wr": 0.4375,
-        "n": 32
-      },
-      {
-        "label": "14:37\u201314:49",
-        "wr": 0.4688,
-        "n": 32
-      },
-      {
-        "label": "14:49\u201314:58",
-        "wr": 0.4062,
-        "n": 32
-      },
-      {
-        "label": "14:58\u201315:31",
-        "wr": 0.4167,
-        "n": 36
-      }
-    ],
-    "generated_at": "2026-09-05T11:39:17.945369"
-  },
-  "elder_triple_screen": {
-    "strategy": "elder_triple_screen",
-    "status": "DECAYING",
-    "trend_tau": -0.4444,
-    "mk_pvalue": 0.0446,
-    "recent_wr": 0.4091,
-    "baseline_wr": 0.55,
-    "decay_pct": 0.2562,
-    "n": 202,
-    "n_buckets": 10,
-    "buckets": [
-      {
-        "label": "09:39\u201309:47",
-        "wr": 0.5,
-        "n": 20
-      },
-      {
-        "label": "09:48\u201309:50",
-        "wr": 0.45,
-        "n": 20
-      },
-      {
-        "label": "09:50\u201310:14",
-        "wr": 0.7,
-        "n": 20
-      },
-      {
-        "label": "10:14\u201310:45",
-        "wr": 0.7,
-        "n": 20
-      },
-      {
-        "label": "10:45\u201312:04",
-        "wr": 0.35,
-        "n": 20
-      },
-      {
-        "label": "12:11\u201313:27",
-        "wr": 0.35,
-        "n": 20
-      },
-      {
-        "label": "13:28\u201314:20",
-        "wr": 0.2,
-        "n": 20
-      },
-      {
-        "label": "14:20\u201314:49",
-        "wr": 0.3,
-        "n": 20
-      },
-      {
-        "label": "14:49\u201315:05",
-        "wr": 0.3,
-        "n": 20
-      },
-      {
-        "label": "15:05\u201315:45",
-        "wr": 0.4091,
-        "n": 22
-      }
-    ],
-    "generated_at": "2026-09-05T11:39:17.945402"
-  },
-  "ma_cross": {
-    "strategy": "ma_cross",
-    "status": "STABLE",
-    "trend_tau": 0.2,
-    "mk_pvalue": 0.7629,
-    "recent_wr": 0.381,
-    "baseline_wr": 0.2807,
-    "decay_pct": -0.3572,
-    "n": 192,
-    "n_buckets": 10,
-    "buckets": [
-      {
-        "label": "09:39\u201310:15",
-        "wr": 0.3158,
-        "n": 19
-      },
-      {
-        "label": "10:17\u201311:21",
-        "wr": 0.2632,
-        "n": 19
-      },
-      {
-        "label": "11:21\u201313:13",
-        "wr": 0.2632,
-        "n": 19
-      },
-      {
-        "label": "13:15\u201314:17",
-        "wr": 0.3684,
-        "n": 19
-      },
-      {
-        "label": "14:17\u201314:37",
-        "wr": 0.3158,
-        "n": 19
-      },
-      {
-        "label": "14:39\u201314:49",
-        "wr": 0.3158,
-        "n": 19
-      },
-      {
-        "label": "14:49\u201315:04",
-        "wr": 0.2105,
-        "n": 19
-      },
-      {
-        "label": "15:04\u201315:07",
-        "wr": 0.2632,
-        "n": 19
-      },
-      {
-        "label": "15:07\u201315:17",
-        "wr": 0.4211,
-        "n": 19
-      },
-      {
-        "label": "15:17\u201315:45",
-        "wr": 0.381,
-        "n": 21
-      }
-    ],
-    "generated_at": "2026-09-05T11:39:17.945432"
-  },
-  "candlestick_bearish_harami": {
-    "strategy": "candlestick_bearish_harami",
-    "status": "INSUFFICIENT_DATA",
-    "n": 10
-  },
-  "failed_auction": {
-    "strategy": "failed_auction",
-    "status": "INSUFFICIENT_DATA",
-    "n": 3
-  },
-  "chart_pattern_diamond_bottom": {
-    "strategy": "chart_pattern_diamond_bottom",
-    "status": "STABLE",
-    "trend_tau": 0.3556,
-    "mk_pvalue": 0.9101,
-    "recent_wr": 1.0,
-    "baseline_wr": 0.3333,
-    "decay_pct": -2.0,
-    "n": 41,
-    "n_buckets": 10,
-    "buckets": [
-      {
-        "label": "09:45\u201309:46",
         "wr": 0.25,
         "n": 4
       },
       {
-        "label": "09:46\u201309:48",
-        "wr": 0.75,
-        "n": 4
-      },
-      {
-        "label": "09:48\u201310:10",
+        "label": "10:10\u201310:15",
         "wr": 0.0,
         "n": 4
       },
       {
-        "label": "10:14\u201310:16",
-        "wr": 0.25,
-        "n": 4
-      },
-      {
-        "label": "10:19\u201310:44",
-        "wr": 0.25,
-        "n": 4
-      },
-      {
-        "label": "11:12\u201314:10",
+        "label": "10:16\u201310:35",
         "wr": 0.5,
         "n": 4
       },
       {
-        "label": "14:12\u201314:35",
-        "wr": 0.5,
-        "n": 4
-      },
-      {
-        "label": "14:37\u201314:49",
+        "label": "10:44\u201313:07",
         "wr": 0.25,
         "n": 4
       },
       {
-        "label": "14:54\u201315:21",
+        "label": "13:21\u201314:15",
         "wr": 0.5,
         "n": 4
       },
       {
-        "label": "15:26\u201315:42",
-        "wr": 1.0,
-        "n": 5
+        "label": "14:34\u201314:40",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "14:47\u201314:54",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "14:58\u201315:42",
+        "wr": 0.6667,
+        "n": 9
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945459"
+    "generated_at": "2026-10-13T21:15:17.815874"
+  },
+  "orb_2min": {
+    "strategy": "orb_2min",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
+  },
+  "elder_triple_screen": {
+    "strategy": "elder_triple_screen",
+    "status": "DEGRADED",
+    "trend_tau": -0.4889,
+    "mk_pvalue": 0.0302,
+    "recent_wr": 0.3,
+    "baseline_wr": 0.5517,
+    "decay_pct": 0.4562,
+    "n": 291,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "09:38\u201309:46",
+        "wr": 0.3448,
+        "n": 29
+      },
+      {
+        "label": "09:46\u201309:48",
+        "wr": 0.7586,
+        "n": 29
+      },
+      {
+        "label": "09:48\u201310:12",
+        "wr": 0.5517,
+        "n": 29
+      },
+      {
+        "label": "10:13\u201310:43",
+        "wr": 0.5172,
+        "n": 29
+      },
+      {
+        "label": "10:44\u201312:11",
+        "wr": 0.4138,
+        "n": 29
+      },
+      {
+        "label": "12:14\u201313:32",
+        "wr": 0.4138,
+        "n": 29
+      },
+      {
+        "label": "13:41\u201314:35",
+        "wr": 0.2414,
+        "n": 29
+      },
+      {
+        "label": "14:35\u201314:51",
+        "wr": 0.3103,
+        "n": 29
+      },
+      {
+        "label": "14:57\u201315:06",
+        "wr": 0.4138,
+        "n": 29
+      },
+      {
+        "label": "15:06\u201315:45",
+        "wr": 0.3,
+        "n": 30
+      }
+    ],
+    "generated_at": "2026-10-13T21:15:17.815915"
+  },
+  "candlestick_bullish_marubozu": {
+    "strategy": "candlestick_bullish_marubozu",
+    "status": "INSUFFICIENT_DATA",
+    "n": 22
+  },
+  "vwap_bands": {
+    "strategy": "vwap_bands",
+    "status": "INSUFFICIENT_DATA",
+    "n": 10
+  },
+  "failed_bear_breakout": {
+    "strategy": "failed_bear_breakout",
+    "status": "DEGRADED",
+    "trend_tau": -0.0667,
+    "mk_pvalue": 0.429,
+    "recent_wr": 0.32,
+    "baseline_wr": 0.4243,
+    "decay_pct": 0.2458,
+    "n": 223,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "09:38\u201309:46",
+        "wr": 0.5455,
+        "n": 22
+      },
+      {
+        "label": "09:46\u201309:48",
+        "wr": 0.3182,
+        "n": 22
+      },
+      {
+        "label": "09:48\u201309:52",
+        "wr": 0.4091,
+        "n": 22
+      },
+      {
+        "label": "09:52\u201310:10",
+        "wr": 0.1364,
+        "n": 22
+      },
+      {
+        "label": "10:10\u201310:34",
+        "wr": 0.5,
+        "n": 22
+      },
+      {
+        "label": "10:34\u201311:15",
+        "wr": 0.5,
+        "n": 22
+      },
+      {
+        "label": "11:21\u201312:49",
+        "wr": 0.3636,
+        "n": 22
+      },
+      {
+        "label": "12:49\u201314:34",
+        "wr": 0.5909,
+        "n": 22
+      },
+      {
+        "label": "14:37\u201315:04",
+        "wr": 0.3636,
+        "n": 22
+      },
+      {
+        "label": "15:06\u201315:39",
+        "wr": 0.32,
+        "n": 25
+      }
+    ],
+    "generated_at": "2026-10-13T21:15:17.815946"
+  },
+  "smc": {
+    "strategy": "smc",
+    "status": "INSUFFICIENT_DATA",
+    "n": 10
+  },
+  "breakout": {
+    "strategy": "breakout",
+    "status": "STABLE",
+    "trend_tau": 0.3111,
+    "mk_pvalue": 0.8775,
+    "recent_wr": 0.4865,
+    "baseline_wr": 0.3333,
+    "decay_pct": -0.4595,
+    "n": 361,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "09:38\u201309:45",
+        "wr": 0.3333,
+        "n": 36
+      },
+      {
+        "label": "09:45\u201309:46",
+        "wr": 0.3056,
+        "n": 36
+      },
+      {
+        "label": "09:47\u201309:48",
+        "wr": 0.3611,
+        "n": 36
+      },
+      {
+        "label": "09:48\u201310:10",
+        "wr": 0.4167,
+        "n": 36
+      },
+      {
+        "label": "10:10\u201313:00",
+        "wr": 0.5556,
+        "n": 36
+      },
+      {
+        "label": "13:00\u201314:25",
+        "wr": 0.5,
+        "n": 36
+      },
+      {
+        "label": "14:25\u201314:44",
+        "wr": 0.4722,
+        "n": 36
+      },
+      {
+        "label": "14:44\u201314:51",
+        "wr": 0.5556,
+        "n": 36
+      },
+      {
+        "label": "14:53\u201314:58",
+        "wr": 0.2778,
+        "n": 36
+      },
+      {
+        "label": "14:58\u201315:31",
+        "wr": 0.4865,
+        "n": 37
+      }
+    ],
+    "generated_at": "2026-10-13T21:15:17.815978"
+  },
+  "ma_cross": {
+    "strategy": "ma_cross",
+    "status": "STABLE",
+    "trend_tau": 0.3111,
+    "mk_pvalue": 0.8775,
+    "recent_wr": 0.4348,
+    "baseline_wr": 0.2727,
+    "decay_pct": -0.5942,
+    "n": 221,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "09:39\u201310:13",
+        "wr": 0.3182,
+        "n": 22
+      },
+      {
+        "label": "10:13\u201311:01",
+        "wr": 0.2273,
+        "n": 22
+      },
+      {
+        "label": "11:06\u201312:37",
+        "wr": 0.2727,
+        "n": 22
+      },
+      {
+        "label": "12:51\u201313:57",
+        "wr": 0.4091,
+        "n": 22
+      },
+      {
+        "label": "14:10\u201314:37",
+        "wr": 0.3182,
+        "n": 22
+      },
+      {
+        "label": "14:37\u201314:47",
+        "wr": 0.2727,
+        "n": 22
+      },
+      {
+        "label": "14:49\u201315:01",
+        "wr": 0.1818,
+        "n": 22
+      },
+      {
+        "label": "15:01\u201315:07",
+        "wr": 0.3182,
+        "n": 22
+      },
+      {
+        "label": "15:07\u201315:19",
+        "wr": 0.4091,
+        "n": 22
+      },
+      {
+        "label": "15:19\u201315:45",
+        "wr": 0.4348,
+        "n": 23
+      }
+    ],
+    "generated_at": "2026-10-13T21:15:17.816006"
+  },
+  "candlestick_bearish_harami": {
+    "strategy": "candlestick_bearish_harami",
+    "status": "INSUFFICIENT_DATA",
+    "n": 13
+  },
+  "volume_profile_full": {
+    "strategy": "volume_profile_full",
+    "status": "INSUFFICIENT_DATA",
+    "n": 7
+  },
+  "failed_auction": {
+    "strategy": "failed_auction",
+    "status": "INSUFFICIENT_DATA",
+    "n": 4
   },
   "vwap_reversion": {
     "strategy": "vwap_reversion",
     "status": "INSUFFICIENT_DATA",
-    "n": 21
+    "n": 26
   },
   "alligator_ao": {
     "strategy": "alligator_ao",
@@ -401,7 +421,7 @@
         "n": 19
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945489"
+    "generated_at": "2026-10-13T21:15:17.816033"
   },
   "vrvp_zone": {
     "strategy": "vrvp_zone",
@@ -465,7 +485,7 @@
         "n": 27
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945519"
+    "generated_at": "2026-10-13T21:15:17.816063"
   },
   "trend": {
     "strategy": "trend",
@@ -529,7 +549,7 @@
         "n": 29
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945550"
+    "generated_at": "2026-10-13T21:15:17.816091"
   },
   "price_structure": {
     "strategy": "price_structure",
@@ -593,7 +613,7 @@
         "n": 86
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945597"
+    "generated_at": "2026-10-13T21:15:17.816135"
   },
   "chart_pattern_double_top": {
     "strategy": "chart_pattern_double_top",
@@ -657,7 +677,7 @@
         "n": 15
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945623"
+    "generated_at": "2026-10-13T21:15:17.816160"
   },
   "holy_grail": {
     "strategy": "holy_grail",
@@ -721,7 +741,7 @@
         "n": 17
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945649"
+    "generated_at": "2026-10-13T21:15:17.816184"
   },
   "ttm_squeeze": {
     "strategy": "ttm_squeeze",
@@ -785,7 +805,7 @@
         "n": 6
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945674"
+    "generated_at": "2026-10-13T21:15:17.816206"
   },
   "ichimoku": {
     "strategy": "ichimoku",
@@ -849,7 +869,7 @@
         "n": 13
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945701"
+    "generated_at": "2026-10-13T21:15:17.816232"
   },
   "mean_reversion": {
     "strategy": "mean_reversion",
@@ -913,7 +933,7 @@
         "n": 12
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945725"
+    "generated_at": "2026-10-13T21:15:17.816254"
   },
   "chart_pattern_descending_triangle": {
     "strategy": "chart_pattern_descending_triangle",
@@ -977,7 +997,7 @@
         "n": 24
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945754"
+    "generated_at": "2026-10-13T21:15:17.816281"
   },
   "failed_bull_breakout": {
     "strategy": "failed_bull_breakout",
@@ -1041,7 +1061,7 @@
         "n": 14
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945780"
+    "generated_at": "2026-10-13T21:15:17.816305"
   },
   "chart_pattern_range_expansion": {
     "strategy": "chart_pattern_range_expansion",
@@ -1105,7 +1125,7 @@
         "n": 9
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945805"
+    "generated_at": "2026-10-13T21:15:17.816327"
   },
   "gap_fill": {
     "strategy": "gap_fill",
@@ -1174,7 +1194,7 @@
         "n": 13
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945836"
+    "generated_at": "2026-10-13T21:15:17.816350"
   },
   "chart_pattern_head_and_shoulders": {
     "strategy": "chart_pattern_head_and_shoulders",
@@ -1238,7 +1258,7 @@
         "n": 17
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945862"
+    "generated_at": "2026-10-13T21:15:17.816374"
   },
   "chart_pattern_ascending_triangle": {
     "strategy": "chart_pattern_ascending_triangle",
@@ -1302,7 +1322,7 @@
         "n": 35
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945893"
+    "generated_at": "2026-10-13T21:15:17.816402"
   },
   "rsi_divergence": {
     "strategy": "rsi_divergence",
@@ -1366,7 +1386,7 @@
         "n": 29
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945922"
+    "generated_at": "2026-10-13T21:15:17.816429"
   },
   "chart_pattern_double_bottom": {
     "strategy": "chart_pattern_double_bottom",
@@ -1430,7 +1450,17 @@
         "n": 16
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945948"
+    "generated_at": "2026-10-13T21:15:17.816459"
+  },
+  "candlestick_homing_pigeon_bearish": {
+    "strategy": "candlestick_homing_pigeon_bearish",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
+  },
+  "volatility_breakout": {
+    "strategy": "volatility_breakout",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
   },
   "uo_overbought": {
     "strategy": "uo_overbought",
@@ -1504,7 +1534,7 @@
         "n": 15
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945973"
+    "generated_at": "2026-10-13T21:15:17.816483"
   },
   "waddah_attar": {
     "strategy": "waddah_attar",
@@ -1573,7 +1603,7 @@
         "n": 7
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.945998"
+    "generated_at": "2026-10-13T21:15:17.816505"
   },
   "donchian_breakout": {
     "strategy": "donchian_breakout",
@@ -1637,7 +1667,7 @@
         "n": 15
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946023"
+    "generated_at": "2026-10-13T21:15:17.816527"
   },
   "weinstein_stage": {
     "strategy": "weinstein_stage",
@@ -1701,7 +1731,7 @@
         "n": 10
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946049"
+    "generated_at": "2026-10-13T21:15:17.816551"
   },
   "aroon_trend": {
     "strategy": "aroon_trend",
@@ -1765,7 +1795,7 @@
         "n": 6
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946073"
+    "generated_at": "2026-10-13T21:15:17.816573"
   },
   "chart_pattern_rising_wedge": {
     "strategy": "chart_pattern_rising_wedge",
@@ -1834,7 +1864,7 @@
         "n": 12
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946099"
+    "generated_at": "2026-10-13T21:15:17.816596"
   },
   "elder_ray": {
     "strategy": "elder_ray",
@@ -1898,17 +1928,17 @@
         "n": 13
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946123"
+    "generated_at": "2026-10-13T21:15:17.816618"
   },
   "chart_pattern_breakout_retest": {
     "strategy": "chart_pattern_breakout_retest",
     "status": "INSUFFICIENT_DATA",
-    "n": 4
+    "n": 5
   },
   "candlestick_doji": {
     "strategy": "candlestick_doji",
     "status": "INSUFFICIENT_DATA",
-    "n": 21
+    "n": 28
   },
   "chart_pattern_rectangle": {
     "strategy": "chart_pattern_rectangle",
@@ -1918,7 +1948,7 @@
   "chart_pattern_cup_handle": {
     "strategy": "chart_pattern_cup_handle",
     "status": "INSUFFICIENT_DATA",
-    "n": 10
+    "n": 11
   },
   "chart_pattern_diamond_top": {
     "strategy": "chart_pattern_diamond_top",
@@ -1933,12 +1963,12 @@
   "heikin_ashi": {
     "strategy": "heikin_ashi",
     "status": "DEGRADED",
-    "trend_tau": -0.2667,
-    "mk_pvalue": 0.1626,
-    "recent_wr": 0.2,
+    "trend_tau": -0.1556,
+    "mk_pvalue": 0.2958,
+    "recent_wr": 0.3333,
     "baseline_wr": 0.4167,
-    "decay_pct": 0.52,
-    "n": 41,
+    "decay_pct": 0.2001,
+    "n": 42,
     "n_buckets": 10,
     "buckets": [
       {
@@ -1957,111 +1987,111 @@
         "n": 4
       },
       {
-        "label": "12:51\u201313:47",
-        "wr": 0.75,
-        "n": 4
-      },
-      {
-        "label": "14:12\u201314:24",
-        "wr": 0.75,
-        "n": 4
-      },
-      {
-        "label": "14:25\u201314:35",
-        "wr": 0.0,
-        "n": 4
-      },
-      {
-        "label": "14:35\u201314:44",
-        "wr": 0.25,
-        "n": 4
-      },
-      {
-        "label": "14:57\u201315:05",
-        "wr": 0.25,
-        "n": 4
-      },
-      {
-        "label": "15:08\u201315:21",
+        "label": "12:51\u201313:22",
         "wr": 0.5,
         "n": 4
       },
       {
-        "label": "15:22\u201315:32",
-        "wr": 0.2,
-        "n": 5
+        "label": "13:47\u201314:20",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "14:24\u201314:34",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "14:35\u201314:43",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "14:44\u201314:58",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "15:05\u201315:21",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "15:21\u201315:32",
+        "wr": 0.3333,
+        "n": 6
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946150"
+    "generated_at": "2026-10-13T21:15:17.816641"
   },
   "candlestick_hammer": {
     "strategy": "candlestick_hammer",
     "status": "STABLE",
-    "trend_tau": 0.1333,
-    "mk_pvalue": 0.6726,
-    "recent_wr": 0.7,
-    "baseline_wr": 0.2222,
-    "decay_pct": -2.1503,
-    "n": 37,
+    "trend_tau": 0.1111,
+    "mk_pvalue": 0.6397,
+    "recent_wr": 0.6667,
+    "baseline_wr": 0.3333,
+    "decay_pct": -1.0001,
+    "n": 45,
     "n_buckets": 10,
     "buckets": [
       {
         "label": "09:46\u201310:53",
-        "wr": 0.3333,
-        "n": 3
+        "wr": 0.5,
+        "n": 4
       },
       {
-        "label": "11:05\u201312:51",
+        "label": "11:05\u201311:47",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "12:51\u201313:25",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "13:36\u201314:43",
         "wr": 0.0,
-        "n": 3
+        "n": 4
       },
       {
-        "label": "13:19\u201313:25",
-        "wr": 0.3333,
-        "n": 3
+        "label": "15:01\u201315:07",
+        "wr": 0.25,
+        "n": 4
       },
       {
-        "label": "13:36\u201314:17",
+        "label": "15:13\u201315:18",
+        "wr": 0.75,
+        "n": 4
+      },
+      {
+        "label": "15:19\u201315:22",
         "wr": 0.0,
-        "n": 3
+        "n": 4
       },
       {
-        "label": "14:43\u201315:07",
-        "wr": 0.0,
-        "n": 3
+        "label": "15:22\u201315:23",
+        "wr": 0.5,
+        "n": 4
       },
       {
-        "label": "15:07\u201315:16",
-        "wr": 1.0,
-        "n": 3
-      },
-      {
-        "label": "15:17\u201315:22",
-        "wr": 0.0,
-        "n": 3
-      },
-      {
-        "label": "15:22\u201315:22",
-        "wr": 0.6667,
-        "n": 3
-      },
-      {
-        "label": "15:23\u201315:29",
-        "wr": 0.0,
-        "n": 3
+        "label": "15:24\u201315:31",
+        "wr": 0.25,
+        "n": 4
       },
       {
         "label": "15:31\u201315:45",
-        "wr": 0.7,
-        "n": 10
+        "wr": 0.6667,
+        "n": 9
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946175"
+    "generated_at": "2026-10-13T21:15:17.816663"
   },
   "ehlers_fisher": {
     "strategy": "ehlers_fisher",
     "status": "INSUFFICIENT_DATA",
-    "n": 9
+    "n": 10
   },
   "candlestick_on_neck_pattern": {
     "strategy": "candlestick_on_neck_pattern",
@@ -2081,73 +2111,68 @@
   "candlestick_three_river_evening_star": {
     "strategy": "candlestick_three_river_evening_star",
     "status": "INSUFFICIENT_DATA",
-    "n": 13
+    "n": 16
   },
   "chart_pattern_cup_and_handle": {
     "strategy": "chart_pattern_cup_and_handle",
     "status": "INSUFFICIENT_DATA",
-    "n": 12
+    "n": 13
   },
-  "volume_profile_full": {
-    "strategy": "volume_profile_full",
-    "status": "INSUFFICIENT_DATA",
-    "n": 4
-  },
-  "candlestick_bullish_engulfing": {
-    "strategy": "candlestick_bullish_engulfing",
+  "candlestick_three_white_soldiers": {
+    "strategy": "candlestick_three_white_soldiers",
     "status": "STABLE",
-    "trend_tau": 0.3556,
-    "mk_pvalue": 0.9101,
+    "trend_tau": 0.2222,
+    "mk_pvalue": 0.7896,
     "recent_wr": 0.4444,
-    "baseline_wr": 0.3333,
-    "decay_pct": -0.3332,
-    "n": 81,
+    "baseline_wr": 0.2857,
+    "decay_pct": -0.5553,
+    "n": 72,
     "n_buckets": 10,
     "buckets": [
       {
-        "label": "09:48\u201310:40",
-        "wr": 0.125,
-        "n": 8
+        "label": "09:48\u201310:45",
+        "wr": 0.2857,
+        "n": 7
       },
       {
-        "label": "10:41\u201310:45",
-        "wr": 0.625,
-        "n": 8
+        "label": "10:55\u201311:13",
+        "wr": 0.1429,
+        "n": 7
       },
       {
-        "label": "10:48\u201311:00",
-        "wr": 0.25,
-        "n": 8
+        "label": "11:17\u201311:30",
+        "wr": 0.4286,
+        "n": 7
       },
       {
-        "label": "11:05\u201311:31",
-        "wr": 0.25,
-        "n": 8
+        "label": "11:43\u201312:09",
+        "wr": 0.4286,
+        "n": 7
       },
       {
-        "label": "11:33\u201312:05",
-        "wr": 0.125,
-        "n": 8
+        "label": "12:22\u201313:32",
+        "wr": 0.4286,
+        "n": 7
       },
       {
-        "label": "12:12\u201315:05",
-        "wr": 0.375,
-        "n": 8
+        "label": "13:41\u201314:53",
+        "wr": 0.2857,
+        "n": 7
       },
       {
-        "label": "15:06\u201315:17",
-        "wr": 0.625,
-        "n": 8
+        "label": "15:01\u201315:12",
+        "wr": 0.1429,
+        "n": 7
       },
       {
-        "label": "15:17\u201315:24",
-        "wr": 0.25,
-        "n": 8
+        "label": "15:12\u201315:19",
+        "wr": 0.5714,
+        "n": 7
       },
       {
-        "label": "15:27\u201315:31",
-        "wr": 0.75,
-        "n": 8
+        "label": "15:20\u201315:29",
+        "wr": 0.2857,
+        "n": 7
       },
       {
         "label": "15:32\u201315:45",
@@ -2155,7 +2180,71 @@
         "n": 9
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946201"
+    "generated_at": "2026-10-13T21:15:17.816687"
+  },
+  "candlestick_bullish_engulfing": {
+    "strategy": "candlestick_bullish_engulfing",
+    "status": "STABLE",
+    "trend_tau": 0.3333,
+    "mk_pvalue": 0.8948,
+    "recent_wr": 0.5,
+    "baseline_wr": 0.2963,
+    "decay_pct": -0.6875,
+    "n": 97,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "09:48\u201310:40",
+        "wr": 0.1111,
+        "n": 9
+      },
+      {
+        "label": "10:41\u201310:48",
+        "wr": 0.5556,
+        "n": 9
+      },
+      {
+        "label": "10:55\u201311:06",
+        "wr": 0.2222,
+        "n": 9
+      },
+      {
+        "label": "11:06\u201311:33",
+        "wr": 0.2222,
+        "n": 9
+      },
+      {
+        "label": "11:43\u201312:12",
+        "wr": 0.1111,
+        "n": 9
+      },
+      {
+        "label": "12:27\u201315:06",
+        "wr": 0.5556,
+        "n": 9
+      },
+      {
+        "label": "15:07\u201315:17",
+        "wr": 0.4444,
+        "n": 9
+      },
+      {
+        "label": "15:18\u201315:21",
+        "wr": 0.4444,
+        "n": 9
+      },
+      {
+        "label": "15:22\u201315:27",
+        "wr": 0.5556,
+        "n": 9
+      },
+      {
+        "label": "15:29\u201315:45",
+        "wr": 0.5,
+        "n": 16
+      }
+    ],
+    "generated_at": "2026-10-13T21:15:17.816709"
   },
   "candlestick_bearish_engulfing": {
     "strategy": "candlestick_bearish_engulfing",
@@ -2219,7 +2308,7 @@
         "n": 15
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946226"
+    "generated_at": "2026-10-13T21:15:17.816732"
   },
   "rsi2_mr": {
     "strategy": "rsi2_mr",
@@ -2283,7 +2372,7 @@
         "n": 10
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946250"
+    "generated_at": "2026-10-13T21:15:17.816753"
   },
   "vp_breakout": {
     "strategy": "vp_breakout",
@@ -2347,7 +2436,7 @@
         "n": 13
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946276"
+    "generated_at": "2026-10-13T21:15:17.816776"
   },
   "candlestick_low_price_gapping_play_bearish": {
     "strategy": "candlestick_low_price_gapping_play_bearish",
@@ -2361,13 +2450,72 @@
   },
   "candlestick_shooting_star": {
     "strategy": "candlestick_shooting_star",
-    "status": "INSUFFICIENT_DATA",
-    "n": 28
+    "status": "DEGRADED",
+    "trend_tau": -0.2889,
+    "mk_pvalue": 0.1416,
+    "recent_wr": 0.25,
+    "baseline_wr": 0.4167,
+    "decay_pct": 0.4,
+    "n": 40,
+    "n_buckets": 10,
+    "buckets": [
+      {
+        "label": "09:48\u201310:48",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "10:52\u201310:55",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "11:06\u201311:17",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "11:19\u201311:28",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "11:31\u201312:12",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "13:00\u201314:01",
+        "wr": 0.0,
+        "n": 4
+      },
+      {
+        "label": "14:34\u201315:11",
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "15:20\u201315:27",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "15:27\u201315:32",
+        "wr": 0.25,
+        "n": 4
+      },
+      {
+        "label": "15:34\u201315:45",
+        "wr": 0.25,
+        "n": 4
+      }
+    ],
+    "generated_at": "2026-10-13T21:15:17.816798"
   },
   "chart_pattern_falling_wedge": {
     "strategy": "chart_pattern_falling_wedge",
     "status": "INSUFFICIENT_DATA",
-    "n": 15
+    "n": 19
   },
   "cci_zero_cross": {
     "strategy": "cci_zero_cross",
@@ -2389,6 +2537,11 @@
     "status": "INSUFFICIENT_DATA",
     "n": 5
   },
+  "uo_oversold": {
+    "strategy": "uo_oversold",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
   "orb": {
     "strategy": "orb",
     "status": "INSUFFICIENT_DATA",
@@ -2397,22 +2550,17 @@
   "kst": {
     "strategy": "kst",
     "status": "INSUFFICIENT_DATA",
-    "n": 7
+    "n": 8
   },
   "parabolic_sar": {
     "strategy": "parabolic_sar",
     "status": "INSUFFICIENT_DATA",
-    "n": 2
+    "n": 4
   },
   "anchored_vwap": {
     "strategy": "anchored_vwap",
     "status": "INSUFFICIENT_DATA",
-    "n": 3
-  },
-  "vwap_bands": {
-    "strategy": "vwap_bands",
-    "status": "INSUFFICIENT_DATA",
-    "n": 4
+    "n": 6
   },
   "uo_divergence": {
     "strategy": "uo_divergence",
@@ -2424,138 +2572,84 @@
     "status": "INSUFFICIENT_DATA",
     "n": 14
   },
+  "oops": {
+    "strategy": "oops",
+    "status": "INSUFFICIENT_DATA",
+    "n": 4
+  },
+  "chart_pattern_bull_flag": {
+    "strategy": "chart_pattern_bull_flag",
+    "status": "INSUFFICIENT_DATA",
+    "n": 9
+  },
   "candlestick_tweezer_bottom": {
     "strategy": "candlestick_tweezer_bottom",
-    "status": "STABLE",
-    "trend_tau": 0.6667,
-    "mk_pvalue": 0.9953,
-    "recent_wr": 0.4545,
+    "status": "DEGRADED",
+    "trend_tau": 0.6444,
+    "mk_pvalue": 0.9939,
+    "recent_wr": 0.3333,
     "baseline_wr": 0.0,
-    "decay_pct": -454500000.0,
-    "n": 38,
+    "decay_pct": -333300000.0,
+    "n": 45,
     "n_buckets": 10,
     "buckets": [
       {
-        "label": "10:32\u201310:37",
+        "label": "10:32\u201310:42",
         "wr": 0.0,
-        "n": 3
+        "n": 4
       },
       {
-        "label": "10:42\u201311:04",
+        "label": "10:48\u201311:31",
         "wr": 0.0,
-        "n": 3
+        "n": 4
       },
       {
-        "label": "11:09\u201311:38",
+        "label": "11:38\u201312:02",
         "wr": 0.0,
-        "n": 3
+        "n": 4
       },
       {
-        "label": "11:38\u201312:09",
+        "label": "12:09\u201312:33",
         "wr": 0.0,
-        "n": 3
+        "n": 4
       },
       {
-        "label": "12:11\u201312:33",
-        "wr": 0.0,
-        "n": 3
+        "label": "12:33\u201314:39",
+        "wr": 0.25,
+        "n": 4
       },
       {
-        "label": "12:33\u201313:00",
-        "wr": 0.3333,
-        "n": 3
+        "label": "14:40\u201315:19",
+        "wr": 0.5,
+        "n": 4
       },
       {
-        "label": "14:39\u201315:21",
-        "wr": 0.3333,
-        "n": 3
-      },
-      {
-        "label": "15:24\u201315:26",
-        "wr": 0.3333,
-        "n": 3
+        "label": "15:21\u201315:26",
+        "wr": 0.25,
+        "n": 4
       },
       {
         "label": "15:26\u201315:27",
-        "wr": 0.6667,
-        "n": 3
+        "wr": 0.5,
+        "n": 4
+      },
+      {
+        "label": "15:29\u201315:29",
+        "wr": 0.75,
+        "n": 4
       },
       {
         "label": "15:29\u201315:45",
-        "wr": 0.4545,
-        "n": 11
+        "wr": 0.3333,
+        "n": 9
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946302"
-  },
-  "candlestick_three_white_soldiers": {
-    "strategy": "candlestick_three_white_soldiers",
-    "status": "STABLE",
-    "trend_tau": 0.2667,
-    "mk_pvalue": 0.8374,
-    "recent_wr": 0.4545,
-    "baseline_wr": 0.2667,
-    "decay_pct": -0.7044,
-    "n": 56,
-    "n_buckets": 10,
-    "buckets": [
-      {
-        "label": "10:32\u201310:45",
-        "wr": 0.2,
-        "n": 5
-      },
-      {
-        "label": "10:55\u201311:09",
-        "wr": 0.2,
-        "n": 5
-      },
-      {
-        "label": "11:17\u201311:26",
-        "wr": 0.4,
-        "n": 5
-      },
-      {
-        "label": "11:30\u201311:55",
-        "wr": 0.4,
-        "n": 5
-      },
-      {
-        "label": "12:00\u201312:48",
-        "wr": 0.0,
-        "n": 5
-      },
-      {
-        "label": "12:49\u201313:41",
-        "wr": 0.6,
-        "n": 5
-      },
-      {
-        "label": "13:43\u201314:10",
-        "wr": 0.4,
-        "n": 5
-      },
-      {
-        "label": "15:01\u201315:13",
-        "wr": 0.4,
-        "n": 5
-      },
-      {
-        "label": "15:17\u201315:26",
-        "wr": 0.2,
-        "n": 5
-      },
-      {
-        "label": "15:27\u201315:45",
-        "wr": 0.4545,
-        "n": 11
-      }
-    ],
-    "generated_at": "2026-09-05T11:39:17.946327"
+    "generated_at": "2026-10-13T21:15:17.816822"
   },
   "candlestick_fred_tam_white_inside_out": {
     "strategy": "candlestick_fred_tam_white_inside_out",
     "status": "INSUFFICIENT_DATA",
-    "n": 14
+    "n": 17
   },
   "candlestick_ladder_bottom": {
     "strategy": "candlestick_ladder_bottom",
@@ -2634,7 +2728,7 @@
         "n": 7
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946353"
+    "generated_at": "2026-10-13T21:15:17.816846"
   },
   "candlestick_three_river_morning_star": {
     "strategy": "candlestick_three_river_morning_star",
@@ -2708,12 +2802,12 @@
         "n": 10
       }
     ],
-    "generated_at": "2026-09-05T11:39:17.946382"
+    "generated_at": "2026-10-13T21:15:17.816869"
   },
   "candlestick_bullish_separating_lines": {
     "strategy": "candlestick_bullish_separating_lines",
     "status": "INSUFFICIENT_DATA",
-    "n": 11
+    "n": 12
   },
   "candlestick_bearish_separating_lines": {
     "strategy": "candlestick_bearish_separating_lines",
@@ -2725,35 +2819,25 @@
     "status": "INSUFFICIENT_DATA",
     "n": 2
   },
+  "candlestick_advance_block": {
+    "strategy": "candlestick_advance_block",
+    "status": "INSUFFICIENT_DATA",
+    "n": 3
+  },
   "candlestick_hanging_man": {
     "strategy": "candlestick_hanging_man",
     "status": "INSUFFICIENT_DATA",
-    "n": 1
-  },
-  "candlestick_bullish_marubozu": {
-    "strategy": "candlestick_bullish_marubozu",
-    "status": "INSUFFICIENT_DATA",
-    "n": 19
+    "n": 2
   },
   "candlestick_bearish_marubozu": {
     "strategy": "candlestick_bearish_marubozu",
     "status": "INSUFFICIENT_DATA",
     "n": 27
   },
-  "chart_pattern_bull_flag": {
-    "strategy": "chart_pattern_bull_flag",
-    "status": "INSUFFICIENT_DATA",
-    "n": 4
-  },
   "candlestick_tweezer_top": {
     "strategy": "candlestick_tweezer_top",
     "status": "INSUFFICIENT_DATA",
     "n": 23
-  },
-  "oops": {
-    "strategy": "oops",
-    "status": "INSUFFICIENT_DATA",
-    "n": 1
   },
   "candlestick_deliberation": {
     "strategy": "candlestick_deliberation",
@@ -2763,12 +2847,22 @@
   "chart_pattern_bull_pennant": {
     "strategy": "chart_pattern_bull_pennant",
     "status": "INSUFFICIENT_DATA",
-    "n": 1
+    "n": 3
+  },
+  "chart_pattern_symmetrical_triangle": {
+    "strategy": "chart_pattern_symmetrical_triangle",
+    "status": "INSUFFICIENT_DATA",
+    "n": 2
   },
   "chart_pattern_bear_pennant": {
     "strategy": "chart_pattern_bear_pennant",
     "status": "INSUFFICIENT_DATA",
     "n": 4
+  },
+  "ema_ribbon": {
+    "strategy": "ema_ribbon",
+    "status": "INSUFFICIENT_DATA",
+    "n": 1
   },
   "kama_trend": {
     "strategy": "kama_trend",
@@ -2784,16 +2878,6 @@
     "strategy": "candlestick_homing_pigeon_bullish",
     "status": "INSUFFICIENT_DATA",
     "n": 7
-  },
-  "uo_oversold": {
-    "strategy": "uo_oversold",
-    "status": "INSUFFICIENT_DATA",
-    "n": 2
-  },
-  "chart_pattern_symmetrical_triangle": {
-    "strategy": "chart_pattern_symmetrical_triangle",
-    "status": "INSUFFICIENT_DATA",
-    "n": 1
   },
   "pivot_scalping": {
     "strategy": "pivot_scalping",
@@ -2825,18 +2909,8 @@
     "status": "INSUFFICIENT_DATA",
     "n": 16
   },
-  "volatility_breakout": {
-    "strategy": "volatility_breakout",
-    "status": "INSUFFICIENT_DATA",
-    "n": 1
-  },
   "ema_cloud_sd": {
     "strategy": "ema_cloud_sd",
-    "status": "INSUFFICIENT_DATA",
-    "n": 1
-  },
-  "candlestick_advance_block": {
-    "strategy": "candlestick_advance_block",
     "status": "INSUFFICIENT_DATA",
     "n": 1
   }

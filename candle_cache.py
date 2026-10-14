@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 import sqlite3
 import logging
+import math
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -37,7 +38,7 @@ def _valid_ohlc(open_: float, high: float, low: float, close: float) -> bool:
         c = float(close)
     except Exception:
         return False
-    if min(o, h, l, c) <= 0:
+    if not all(math.isfinite(value) for value in (o, h, l, c)) or min(o, h, l, c) <= 0:
         return False
     if h < max(o, c) or l > min(o, c) or h < l:
         return False
@@ -95,6 +96,12 @@ def save_candles(symbol: str, interval: str, df) -> int:
         for idx, row in df.iterrows():
             ts = str(idx)
             try:
+                stamp = pd.Timestamp(idx)
+                if pd.isna(stamp):
+                    raise ValueError("missing timestamp")
+                if stamp.tzinfo is not None:
+                    stamp = stamp.tz_convert("Asia/Kolkata").tz_localize(None)
+                ts = stamp.isoformat()
                 open_ = float(row.get("open", 0))
                 high = float(row.get("high", 0))
                 low = float(row.get("low", 0))
@@ -102,6 +109,9 @@ def save_candles(symbol: str, interval: str, df) -> int:
                 if not _valid_ohlc(open_, high, low, close):
                     skipped_bad += 1
                     continue
+                volume = float(row.get("volume", 0))
+                if not math.isfinite(volume) or volume < 0:
+                    raise ValueError("invalid volume")
                 conn.execute(
                     "INSERT OR REPLACE INTO candles "
                     "(symbol, interval, timestamp, open, high, low, close, volume) "
@@ -111,7 +121,7 @@ def save_candles(symbol: str, interval: str, df) -> int:
                      high,
                      low,
                      close,
-                     int(row.get("volume", 0) or 0))
+                     int(volume))
                 )
                 inserted += 1
             except Exception as exc:
@@ -165,7 +175,8 @@ def get_cached_candles(
         conn = _get_conn()
         # A `days=N` cache request means N calendar sessions/dates. Using the
         # current wall-clock time dropped valid opening bars on the boundary day.
-        cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00")
+        # Date-only comparison includes both legacy space and ISO T separators.
+        cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
         
         rows = conn.execute(
             "SELECT timestamp, open, high, low, close, volume "
@@ -182,7 +193,7 @@ def get_cached_candles(
         data = []
         skipped_bad = 0
         for ts, o, h, l, c, v in rows:
-            if not _valid_ohlc(o, h, l, c):
+            if not _valid_ohlc(o, h, l, c) or v is None or not math.isfinite(float(v)) or float(v) < 0:
                 skipped_bad += 1
                 continue
             data.append({

@@ -1,0 +1,388 @@
+{
+  "targets": {
+    "0.5": {
+      "mfe_target": 0.5,
+      "n_total": 28123,
+      "n_train": 23668,
+      "n_val": 2250,
+      "n_holdout": 2205,
+      "n_features": 42,
+      "holdout_auc": 0.6191,
+      "cpcv_trainval": {
+        "mean": 0.6243937720421647,
+        "median": 0.6251277149354694,
+        "std": 0.01806617149324265,
+        "min": 0.5825934721472601,
+        "max": 0.6505414967273102,
+        "iqr": 0.027627361092184666,
+        "paths": [
+          0.5826,
+          0.6074,
+          0.6013,
+          0.6145,
+          0.6251,
+          0.6189,
+          0.6103,
+          0.6324,
+          0.6414,
+          0.6231,
+          0.6351,
+          0.6505,
+          0.6402,
+          0.6433,
+          0.6398
+        ],
+        "n_paths_used": 15,
+        "n_paths_total": 15
+      },
+      "baseline_holdout_net_r": -0.1667,
+      "val_by_threshold": [
+        {
+          "threshold": 0.5,
+          "n_selected": 1400,
+          "coverage": 0.6222,
+          "avg_net_r": -0.1542
+        },
+        {
+          "threshold": 0.55,
+          "n_selected": 826,
+          "coverage": 0.3671,
+          "avg_net_r": -0.1066
+        },
+        {
+          "threshold": 0.6,
+          "n_selected": 353,
+          "coverage": 0.1569,
+          "avg_net_r": -0.0254
+        },
+        {
+          "threshold": 0.65,
+          "n_selected": 50,
+          "coverage": 0.0222,
+          "avg_net_r": 0.2791
+        },
+        {
+          "threshold": 0.7,
+          "n_selected": 0,
+          "coverage": 0.0,
+          "avg_net_r": null
+        }
+      ],
+      "chosen_cutoff_from_validation": 0.65,
+      "holdout_result_LOCKED": {
+        "cutoff_used": 0.65,
+        "n_selected": 11,
+        "coverage": 0.005,
+        "precision_mfe_hit": 0.5455,
+        "avg_net_r": -0.1117
+      },
+      "top_features": [
+        {
+          "feature": "volume_ratio",
+          "importance": 0.1551
+        },
+        {
+          "feature": "hour_of_day",
+          "importance": 0.1244
+        },
+        {
+          "feature": "time_bucket_wt",
+          "importance": 0.113
+        },
+        {
+          "feature": "mtf_pivot_mod",
+          "importance": 0.0843
+        },
+        {
+          "feature": "sector_code",
+          "importance": 0.0763
+        },
+        {
+          "feature": "pcr_atm",
+          "importance": 0.0487
+        },
+        {
+          "feature": "fii_cum_5d",
+          "importance": 0.0484
+        },
+        {
+          "feature": "pct_from_w_r1",
+          "importance": 0.0408
+        },
+        {
+          "feature": "india_vix",
+          "importance": 0.0404
+        },
+        {
+          "feature": "ai_score",
+          "importance": 0.0292
+        },
+        {
+          "feature": "sr_level_mod",
+          "importance": 0.0288
+        },
+        {
+          "feature": "n_agree",
+          "importance": 0.0263
+        }
+      ],
+      "conclusion": "Cutoff P(MFE>=0.5R)>=0.65 chosen on validation only. Applied ONCE to locked holdout: avg_net_r=-0.1117 vs baseline (take every signal) -0.1667 (beats baseline, still NEGATIVE in absolute terms). NOT promoted regardless of this result -- report only, per this item's own instruction."
+    },
+    "0.75": {
+      "mfe_target": 0.75,
+      "n_total": 28123,
+      "n_train": 23668,
+      "n_val": 2250,
+      "n_holdout": 2205,
+      "n_features": 42,
+      "holdout_auc": 0.6378,
+      "cpcv_trainval": {
+        "mean": 0.65068715442371,
+        "median": 0.6526413484585039,
+        "std": 0.01301884152816062,
+        "min": 0.6287924755466483,
+        "max": 0.6749257659677753,
+        "iqr": 0.013987238752009135,
+        "paths": [
+          0.6288,
+          0.6331,
+          0.643,
+          0.638,
+          0.6537,
+          0.6447,
+          0.6532,
+          0.6532,
+          0.6749,
+          0.6459,
+          0.6415,
+          0.6679,
+          0.6589,
+          0.6711,
+          0.6526
+        ],
+        "n_paths_used": 15,
+        "n_paths_total": 15
+      },
+      "baseline_holdout_net_r": -0.1667,
+      "val_by_threshold": [
+        {
+          "threshold": 0.5,
+          "n_selected": 1354,
+          "coverage": 0.6018,
+          "avg_net_r": -0.1602
+        },
+        {
+          "threshold": 0.55,
+          "n_selected": 960,
+          "coverage": 0.4267,
+          "avg_net_r": -0.1183
+        },
+        {
+          "threshold": 0.6,
+          "n_selected": 457,
+          "coverage": 0.2031,
+          "avg_net_r": -0.0437
+        },
+        {
+          "threshold": 0.65,
+          "n_selected": 95,
+          "coverage": 0.0422,
+          "avg_net_r": 0.1667
+        },
+        {
+          "threshold": 0.7,
+          "n_selected": 4,
+          "coverage": 0.0018,
+          "avg_net_r": 0.6914
+        }
+      ],
+      "chosen_cutoff_from_validation": 0.65,
+      "holdout_result_LOCKED": {
+        "cutoff_used": 0.65,
+        "n_selected": 21,
+        "coverage": 0.0095,
+        "precision_mfe_hit": 0.2857,
+        "avg_net_r": -0.066
+      },
+      "top_features": [
+        {
+          "feature": "volume_ratio",
+          "importance": 0.1763
+        },
+        {
+          "feature": "hour_of_day",
+          "importance": 0.1273
+        },
+        {
+          "feature": "time_bucket_wt",
+          "importance": 0.1234
+        },
+        {
+          "feature": "mtf_pivot_mod",
+          "importance": 0.0963
+        },
+        {
+          "feature": "sector_code",
+          "importance": 0.0731
+        },
+        {
+          "feature": "fii_cum_5d",
+          "importance": 0.0511
+        },
+        {
+          "feature": "sr_level_mod",
+          "importance": 0.0389
+        },
+        {
+          "feature": "pct_from_w_r1",
+          "importance": 0.0371
+        },
+        {
+          "feature": "india_vix",
+          "importance": 0.0355
+        },
+        {
+          "feature": "cross_asset_mod",
+          "importance": 0.0254
+        },
+        {
+          "feature": "ai_score",
+          "importance": 0.0215
+        },
+        {
+          "feature": "n_agree",
+          "importance": 0.0201
+        }
+      ],
+      "conclusion": "Cutoff P(MFE>=0.75R)>=0.65 chosen on validation only. Applied ONCE to locked holdout: avg_net_r=-0.0660 vs baseline (take every signal) -0.1667 (beats baseline, still NEGATIVE in absolute terms). NOT promoted regardless of this result -- report only, per this item's own instruction."
+    },
+    "1.0": {
+      "mfe_target": 1.0,
+      "n_total": 28123,
+      "n_train": 23668,
+      "n_val": 2250,
+      "n_holdout": 2205,
+      "n_features": 42,
+      "holdout_auc": 0.6413,
+      "cpcv_trainval": {
+        "mean": 0.6794315385710094,
+        "median": 0.6797846744155202,
+        "std": 0.01679604753581552,
+        "min": 0.6523431700900837,
+        "max": 0.7122869078215696,
+        "iqr": 0.026779376027732282,
+        "paths": [
+          0.6585,
+          0.6523,
+          0.6911,
+          0.659,
+          0.6693,
+          0.6735,
+          0.7123,
+          0.688,
+          0.6918,
+          0.6832,
+          0.6599,
+          0.6779,
+          0.6942,
+          0.7006,
+          0.6798
+        ],
+        "n_paths_used": 15,
+        "n_paths_total": 15
+      },
+      "baseline_holdout_net_r": -0.1667,
+      "val_by_threshold": [
+        {
+          "threshold": 0.5,
+          "n_selected": 1336,
+          "coverage": 0.5938,
+          "avg_net_r": -0.1529
+        },
+        {
+          "threshold": 0.55,
+          "n_selected": 932,
+          "coverage": 0.4142,
+          "avg_net_r": -0.1181
+        },
+        {
+          "threshold": 0.6,
+          "n_selected": 519,
+          "coverage": 0.2307,
+          "avg_net_r": -0.0167
+        },
+        {
+          "threshold": 0.65,
+          "n_selected": 86,
+          "coverage": 0.0382,
+          "avg_net_r": 0.292
+        },
+        {
+          "threshold": 0.7,
+          "n_selected": 0,
+          "coverage": 0.0,
+          "avg_net_r": null
+        }
+      ],
+      "chosen_cutoff_from_validation": 0.65,
+      "holdout_result_LOCKED": {
+        "cutoff_used": 0.65,
+        "n_selected": 19,
+        "coverage": 0.0086,
+        "precision_mfe_hit": 0.1579,
+        "avg_net_r": -0.1938
+      },
+      "top_features": [
+        {
+          "feature": "volume_ratio",
+          "importance": 0.2025
+        },
+        {
+          "feature": "hour_of_day",
+          "importance": 0.1328
+        },
+        {
+          "feature": "mtf_pivot_mod",
+          "importance": 0.1185
+        },
+        {
+          "feature": "time_bucket_wt",
+          "importance": 0.1055
+        },
+        {
+          "feature": "sector_code",
+          "importance": 0.0764
+        },
+        {
+          "feature": "sr_level_mod",
+          "importance": 0.0427
+        },
+        {
+          "feature": "fii_cum_5d",
+          "importance": 0.0411
+        },
+        {
+          "feature": "pct_from_w_r1",
+          "importance": 0.0334
+        },
+        {
+          "feature": "india_vix",
+          "importance": 0.0257
+        },
+        {
+          "feature": "cross_asset_mod",
+          "importance": 0.0217
+        },
+        {
+          "feature": "fii_net_cash",
+          "importance": 0.0197
+        },
+        {
+          "feature": "n_agree",
+          "importance": 0.0195
+        }
+      ],
+      "conclusion": "Cutoff P(MFE>=1.0R)>=0.65 chosen on validation only. Applied ONCE to locked holdout: avg_net_r=-0.1938 vs baseline (take every signal) -0.1667 (does NOT beat baseline, still NEGATIVE in absolute terms). NOT promoted regardless of this result -- report only, per this item's own instruction."
+    }
+  }
+}

@@ -16,7 +16,7 @@
 # ════════════════════════════════════════════════════════════════
 set -uo pipefail
 
-BOT_DIR="/home/sridhar/Desktop/trading_robot"
+BOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 VENV_PY="$BOT_DIR/.venv/bin/python3"
 [ ! -x "$VENV_PY" ] && VENV_PY="$BOT_DIR/venv/bin/python3"
 cd "$BOT_DIR" || { echo "FATAL: $BOT_DIR not found"; exit 1; }

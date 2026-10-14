@@ -11,6 +11,7 @@ candidate, and block reasons.
 from __future__ import annotations
 
 import json
+from html import escape
 import logging
 import os
 import re
@@ -194,6 +195,8 @@ def _format_option_card(p: Dict[str, Any]) -> str:
     q = p.get("quality") or {}
     if isinstance(q.get("chain_quality"), dict):   # tolerate nested shape
         q = q["chain_quality"]
+    from option_visual_cards import signal_view
+    view = signal_view(p)
 
     sym = p.get("symbol", "")
     strike = sel.get("strike") or ""
@@ -202,23 +205,23 @@ def _format_option_card(p: Dict[str, Any]) -> str:
     if not leg and strike and otype:
         leg = f"{sym} {int(_safe_float(strike))}{otype}".strip()
     stype = str(sel.get("strike_type") or "").upper()          # ATM / OTM / ITM
-    side = str(p.get("side") or "").upper()
-    arrow = "📈" if side == "BUY" else ("📉" if side == "SELL" else "•")
+    side = view["side"]
+    arrow = "📈" if view["direction"] == "BULLISH" else ("📉" if view["direction"] == "BEARISH" else "•")
     style = str(sel.get("style") or "").strip()
 
-    hdr = f"🎯 <b>OPTION SELECTED — {sym}</b>"
+    hdr = f"🎯 <b>OPTION SELECTED — {escape(str(sym))}</b>"
     if style:
-        hdr += f"  <i>{style}</i>"
-    lines = [hdr, "━━━━━━━━━━━━━━━━━━"]
+        hdr += f"  <i>{escape(style)}</i>"
+    lines = [hdr, f"<b>{escape(view['status'])}</b> · {escape(view['direction'])}", "━━━━━━━━━━━━━━━━━━"]
 
-    legline = f"{arrow} <b>{side} {leg or sym}</b>"
+    legline = f"{arrow} <b>{escape(side)} {escape(str(leg or sym))}</b>"
     if stype:
-        legline += f"  ({stype})"
+        legline += f"  ({escape(stype)})"
     lines.append(legline)
 
     exp_bits = []
     if str(sel.get("expiry") or "").strip():
-        exp_bits.append(str(sel["expiry"]).strip())
+        exp_bits.append(escape(str(sel["expiry"]).strip()))
     if sel.get("dte") not in (None, ""):
         exp_bits.append(f"{int(_safe_float(sel.get('dte')))}DTE")
     if exp_bits:
@@ -233,6 +236,14 @@ def _format_option_card(p: Dict[str, Any]) -> str:
         money.append(f"OI {_fmt_oi(sel.get('oi'))}")
     if money:
         lines.append("💰 " + "  ·  ".join(money))
+
+    if view["stop"] or view["target"]:
+        from option_visual_cards import money as price_text
+        lines.append(f"🛑 SL {price_text(view['stop'])}  ·  🎯 T1 {price_text(view['target'])}")
+        if view["target2"]:
+            lines.append(f"🎯 T2 {price_text(view['target2'])}")
+        if view["rr"] is not None:
+            lines.append(f"⚖️ T1 reward/risk {view['rr']:.2f}R (before costs)")
 
     # OI-direction color indicator, one line per leg, for multi-leg
     # structures (C1/C3/...). 2026-07-20, operator: "include some image
@@ -258,7 +269,7 @@ def _format_option_card(p: Dict[str, Any]) -> str:
     if _safe_float(p.get("setup_score")) > 0:
         ctx.append(f"Score {_safe_float(p.get('setup_score')):.0f}")
     if p.get("strategy"):
-        ctx.append(str(p.get("strategy")))
+        ctx.append(escape(str(p.get("strategy"))))
     if ctx:
         lines.append("📊 " + " · ".join(ctx))
 
@@ -274,7 +285,8 @@ def _format_option_card(p: Dict[str, Any]) -> str:
         lines.append("🔎 " + " · ".join(chain))
 
     if p.get("reason"):
-        lines.append("📝 " + str(p.get("reason")))
+        lines.append("📝 " + escape(str(p.get("reason"))[:300]))
+    lines.append("<i>Setup and execution status are shown separately.</i>")
     return "\n".join(lines)
 
 
@@ -504,12 +516,38 @@ def _alert_option_selection(payload: Dict[str, Any]) -> bool:
         sel = payload.get("selected") or {}
         key = (payload.get("trade_id") or payload.get("source_id")
                or f"{payload.get('symbol')}_{sel.get('strike')}_{sel.get('option_type')}_{payload.get('side')}")
-        return bool(am.send(
+        from option_visual_cards import option_navigation
+        sent = bool(am.send(
             _format_option_card(payload),
             dedup_key=f"optsel_{key}", dedup_cooldown_override=3600,
+            reply_markup=option_navigation(),
         ))
+        if sent and str(payload.get("strategy", "")).upper() != "OPTION_SCALP":
+            _send_option_visual(am, payload)
+        return sent
     except Exception as exc:
         logger.debug("option selection alert: %s", exc)
+        return False
+
+
+def _send_option_visual(am, payload: Dict[str, Any], *, watch_key: str = "") -> bool:
+    """Best-effort visual after the deduplicated text; use existing photo retries."""
+    if os.getenv("OPTION_VISUAL_CARDS", "true").strip().lower() not in {"1", "true", "yes", "on"}:
+        return False
+    try:
+        # Watch images are capped at one per contract per half-hour. Text
+        # retains its existing behavior; images do not flood every snapshot.
+        if watch_key and hasattr(am, "_is_dedup_blocked") and am._is_dedup_blocked(watch_key, 1800):
+            return False
+        from option_visual_cards import premium_history, render_option_signal_card, signal_caption
+        path = render_option_signal_card(payload, history=premium_history(payload))
+        sent = bool(am.send_photo(path, signal_caption(payload)))
+        if watch_key and hasattr(am, "_mark_dedup_sent"):
+            # Failed uploads are already retained by AlertManager's spool.
+            am._mark_dedup_sent(watch_key)
+        return sent
+    except Exception as exc:
+        logger.debug("option visual card: %s", exc)
         return False
 
 
@@ -581,8 +619,13 @@ def alert_generated_option_signals(
             f"<i>{str(row.get('reason') or '')[:180]}</i>",
         ]
         key = f"optflow_{snapshot_time}_{underlying}_{strike:.0f}_{otype}"
-        if am.send("\n".join(lines), dedup_key=key, dedup_cooldown_override=86_400):
+        from option_visual_cards import option_navigation
+        if am.send("\n".join(lines), dedup_key=key, dedup_cooldown_override=86_400,
+                   reply_markup=option_navigation()):
             sent += 1
+            visual_payload = {**row, "underlying": underlying, "expiry": expiry, "snapshot_time": snapshot_time}
+            _send_option_visual(am, visual_payload, watch_key=(
+                f"optvisual_watch_{underlying}_{expiry}_{strike:g}_{otype}" if not row.get("tradable") else ""))
     return sent
 
 
@@ -604,8 +647,12 @@ def alert_option_lifecycle_events(events: list[Dict[str, Any]]) -> int:
         if status == "TARGET1_HIT":
             lines.append("SL revised to cost-to-cost after T1.")
         key = f"optlife_{event.get('signal_time')}_{leg}_{status}"
-        if am.send("\n".join(lines), dedup_key=key, dedup_cooldown_override=172_800):
+        from option_visual_cards import option_navigation
+        if am.send("\n".join(lines), dedup_key=key, dedup_cooldown_override=172_800,
+                   reply_markup=option_navigation()):
             sent += 1
+            _send_option_visual(am, {**event, "lifecycle_status": status, "side": "BUY",
+                                     "reason": f"Verified snapshot update: {status.replace('_', ' ')}"})
     return sent
 
 

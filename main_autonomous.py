@@ -2181,10 +2181,16 @@ class AutonomousTradingSystem:
                             bot_token=_opt_token, chat_id=_opt_chat, bot_ref=self)
 
                         def _cmd_opt_signals(_=""):
-                            """Recent DISTINCT live option selections — deduped (the journal
-                            re-records the same setup across scans) + most recent first."""
+                            """Visual board and compact text for distinct option contracts."""
                             from option_bot_views import generated_signals_text
-                            return generated_signals_text()
+                            from option_visual_cards import option_navigation
+                            try:
+                                from option_bot_views import generate_signal_board
+                                board = generate_signal_board()
+                                self._tg_cmd_option.send_photo(board["path"], board["caption"])
+                            except Exception as exc:
+                                logger.debug("option signal board: %s", exc)
+                            return generated_signals_text(), option_navigation()
                             # Legacy journal-selection view retained below for
                             # compatibility reference; generated signals are the
                             # authoritative option-bot source.
@@ -2362,10 +2368,10 @@ class AutonomousTradingSystem:
                             return (
                                 "🎯 <b>OPTION BOT — COMMANDS</b>\n\n"
                                 "📊 <b>REPORTS</b>\n"
-                                "  /report — post-market visual dashboard\n"
+                                "  /report — visual dashboard, anytime\n"
                                 "  /all — generated, lifecycle, ideal and traded P&L\n"
                                 "  /status — today's option summary\n"
-                                "  /signals — recent option selections\n"
+                                "  /signals — visual signal board + levels\n"
                                 "  /positions — open option positions\n"
                                 "  /edge — labelled option performance\n\n"
                                 "📈 <b>OI &amp; MARKET</b>\n"
@@ -2383,20 +2389,27 @@ class AutonomousTradingSystem:
                         except Exception: pass
 
                         def _cmd_opt_report(_=""):
-                            """Anytime levels/status table, plus visual dashboard post-market."""
+                            """Visual board intraday, performance dashboard post-market."""
                             try:
-                                from option_bot_views import anytime_report_table
+                                from option_bot_views import anytime_report_table, generate_signal_board
+                                from option_visual_cards import option_navigation
                                 from option_telegram_report import (
                                     generate_option_report, is_post_market)
-                                if not is_post_market():
-                                    return anytime_report_table()
-                                _rep = generate_option_report()
-                                uploaded = self._tg_cmd_option.send_photo(
-                                    _rep["path"], _rep["caption"])
                                 table = anytime_report_table()
-                                return table if uploaded else (
-                                    table + "\n⚠️ Visual dashboard upload failed."
-                                )
+                                try:
+                                    if not is_post_market():
+                                        _rep = generate_signal_board()
+                                    else:
+                                        _rep = generate_option_report()
+                                    uploaded = self._tg_cmd_option.send_photo(
+                                        _rep["path"], _rep["caption"])
+                                    text = table if uploaded else (
+                                        table + "\n⚠️ Visual dashboard upload failed."
+                                    )
+                                except Exception as exc:
+                                    logger.debug("option report visual: %s", exc)
+                                    text = table + "\n⚠️ Chart unavailable; recorded levels are shown above."
+                                return text, option_navigation()
                             except Exception as _re:
                                 return f"⚠️ /report error: {str(_re)[:100]}"
                         try: self._tg_cmd_option.register("report", _cmd_opt_report)

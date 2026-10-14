@@ -1,28 +1,60 @@
 {
-  "generated_at": "2026-08-18T20:13:07",
-  "mined_days": 20,
-  "train_days": 14,
-  "holdout_days": 6,
-  "cutoff_day": "2026-07-25",
+  "generated_at": "2026-10-13T19:57:24",
+  "cost_pct": 0.12,
+  "mined_days": 37,
+  "train_days": 25,
+  "holdout_days": 12,
+  "cutoff_day": "2026-09-12",
   "bonferroni_tests": 24,
   "candidates": [],
   "hurts": [
     {
-      "kind": "factor",
-      "name": "volume_expansion",
+      "kind": "setup",
+      "name": "mtf_momentum",
       "train": {
-        "n": 39997,
-        "mean_return_pct": -0.0393,
-        "win_rate": 0.476,
-        "t": -5.12,
+        "n": 22520,
+        "mean_return_pct": 0.0264,
+        "net_mean_return_pct": -0.0936,
+        "net_return_lcb95_pct": -0.1051,
+        "win_rate": 0.495,
+        "net_win_rate": 0.363,
+        "t": -13.47,
         "p": 0.0
       },
       "holdout": {
-        "n": 11829,
-        "mean_return_pct": 0.0123,
-        "win_rate": 0.48,
-        "t": 1.4,
-        "p": 0.16234
+        "n": 9988,
+        "mean_return_pct": 0.0207,
+        "net_mean_return_pct": -0.0993,
+        "net_return_lcb95_pct": -0.1103,
+        "win_rate": 0.506,
+        "net_win_rate": 0.372,
+        "t": -14.84,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "trend_1h_up",
+      "train": {
+        "n": 23148,
+        "mean_return_pct": 0.0036,
+        "net_mean_return_pct": -0.1164,
+        "net_return_lcb95_pct": -0.1297,
+        "win_rate": 0.456,
+        "net_win_rate": 0.338,
+        "t": -14.39,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 6212,
+        "mean_return_pct": 0.1082,
+        "net_mean_return_pct": -0.0118,
+        "net_return_lcb95_pct": -0.0265,
+        "win_rate": 0.552,
+        "net_win_rate": 0.416,
+        "t": -1.33,
+        "p": 0.18483
       },
       "verdict": "HURTS"
     },
@@ -30,55 +62,23 @@
       "kind": "setup",
       "name": "volume_breakout",
       "train": {
-        "n": 7805,
-        "mean_return_pct": -0.091,
-        "win_rate": 0.447,
-        "t": -5.18,
+        "n": 12707,
+        "mean_return_pct": -0.0725,
+        "net_mean_return_pct": -0.1925,
+        "net_return_lcb95_pct": -0.2122,
+        "win_rate": 0.45,
+        "net_win_rate": 0.366,
+        "t": -16.04,
         "p": 0.0
       },
       "holdout": {
-        "n": 2629,
-        "mean_return_pct": -0.0286,
-        "win_rate": 0.469,
-        "t": -1.47,
-        "p": 0.14104
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "micro_volume_expansion",
-      "train": {
-        "n": 36764,
-        "mean_return_pct": -0.0529,
-        "win_rate": 0.476,
-        "t": -7.21,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 14899,
-        "mean_return_pct": -0.0001,
-        "win_rate": 0.48,
-        "t": -0.01,
-        "p": 0.99259
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "breakdown_20",
-      "train": {
-        "n": 7209,
-        "mean_return_pct": -0.3609,
-        "win_rate": 0.455,
-        "t": -14.34,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1898,
-        "mean_return_pct": -0.1014,
-        "win_rate": 0.46,
-        "t": -5.4,
+        "n": 7080,
+        "mean_return_pct": -0.0735,
+        "net_mean_return_pct": -0.1935,
+        "net_return_lcb95_pct": -0.2113,
+        "win_rate": 0.461,
+        "net_win_rate": 0.373,
+        "t": -17.84,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -87,36 +87,148 @@
       "kind": "factor",
       "name": "breakout_20",
       "train": {
-        "n": 6256,
-        "mean_return_pct": -0.4354,
-        "win_rate": 0.403,
-        "t": -15.02,
+        "n": 10018,
+        "mean_return_pct": -0.2901,
+        "net_mean_return_pct": -0.4101,
+        "net_return_lcb95_pct": -0.4414,
+        "win_rate": 0.413,
+        "net_win_rate": 0.334,
+        "t": -21.51,
         "p": 0.0
       },
       "holdout": {
-        "n": 2208,
-        "mean_return_pct": 0.0233,
+        "n": 5379,
+        "mean_return_pct": -0.0116,
+        "net_mean_return_pct": -0.1316,
+        "net_return_lcb95_pct": -0.1499,
         "win_rate": 0.467,
-        "t": 1.19,
-        "p": 0.23566
+        "net_win_rate": 0.369,
+        "t": -11.81,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "kind": "factor",
-      "name": "trend_15m_down",
+      "name": "breakdown_20",
       "train": {
-        "n": 73439,
-        "mean_return_pct": -0.0835,
-        "win_rate": 0.501,
-        "t": -16.56,
+        "n": 11193,
+        "mean_return_pct": -0.2489,
+        "net_mean_return_pct": -0.3689,
+        "net_return_lcb95_pct": -0.3966,
+        "win_rate": 0.461,
+        "net_win_rate": 0.358,
+        "t": -21.89,
         "p": 0.0
       },
       "holdout": {
-        "n": 17558,
-        "mean_return_pct": -0.0414,
-        "win_rate": 0.484,
-        "t": -8.07,
+        "n": 6426,
+        "mean_return_pct": -0.0993,
+        "net_mean_return_pct": -0.2193,
+        "net_return_lcb95_pct": -0.2358,
+        "win_rate": 0.468,
+        "net_win_rate": 0.367,
+        "t": -21.8,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "volume_expansion",
+      "train": {
+        "n": 61596,
+        "mean_return_pct": -0.0234,
+        "net_mean_return_pct": -0.1434,
+        "net_return_lcb95_pct": -0.1524,
+        "win_rate": 0.475,
+        "net_win_rate": 0.386,
+        "t": -26.23,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 31185,
+        "mean_return_pct": -0.0061,
+        "net_mean_return_pct": -0.1261,
+        "net_return_lcb95_pct": -0.1344,
+        "win_rate": 0.494,
+        "net_win_rate": 0.4,
+        "t": -25.21,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "setup",
+      "name": "range_break",
+      "train": {
+        "n": 8504,
+        "mean_return_pct": -0.561,
+        "net_mean_return_pct": -0.681,
+        "net_return_lcb95_pct": -0.7232,
+        "win_rate": 0.42,
+        "net_win_rate": 0.317,
+        "t": -26.54,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 4725,
+        "mean_return_pct": -0.0381,
+        "net_mean_return_pct": -0.1581,
+        "net_return_lcb95_pct": -0.1733,
+        "win_rate": 0.476,
+        "net_win_rate": 0.361,
+        "t": -17.19,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "trend_1h_down",
+      "train": {
+        "n": 45438,
+        "mean_return_pct": -0.0062,
+        "net_mean_return_pct": -0.1262,
+        "net_return_lcb95_pct": -0.1334,
+        "win_rate": 0.495,
+        "net_win_rate": 0.374,
+        "t": -28.77,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 2986,
+        "mean_return_pct": -0.0915,
+        "net_mean_return_pct": -0.2115,
+        "net_return_lcb95_pct": -0.228,
+        "win_rate": 0.439,
+        "net_win_rate": 0.309,
+        "t": -21.08,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "micro_volume_expansion",
+      "train": {
+        "n": 60863,
+        "mean_return_pct": -0.034,
+        "net_mean_return_pct": -0.154,
+        "net_return_lcb95_pct": -0.162,
+        "win_rate": 0.474,
+        "net_win_rate": 0.369,
+        "t": -31.79,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 29501,
+        "mean_return_pct": -0.0005,
+        "net_mean_return_pct": -0.1205,
+        "net_return_lcb95_pct": -0.1281,
+        "win_rate": 0.491,
+        "net_win_rate": 0.39,
+        "t": -25.99,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -125,55 +237,23 @@
       "kind": "factor",
       "name": "micro_1m_up",
       "train": {
-        "n": 46480,
-        "mean_return_pct": -0.1389,
-        "win_rate": 0.44,
-        "t": -16.96,
+        "n": 74070,
+        "mean_return_pct": -0.0951,
+        "net_mean_return_pct": -0.2151,
+        "net_return_lcb95_pct": -0.224,
+        "win_rate": 0.443,
+        "net_win_rate": 0.341,
+        "t": -39.66,
         "p": 0.0
       },
       "holdout": {
-        "n": 17323,
-        "mean_return_pct": 0.0329,
-        "win_rate": 0.473,
-        "t": 5.74,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "micro_1m_down",
-      "train": {
-        "n": 61826,
-        "mean_return_pct": -0.0987,
-        "win_rate": 0.5,
-        "t": -17.12,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 15723,
-        "mean_return_pct": -0.0384,
-        "win_rate": 0.486,
-        "t": -6.86,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "ema21_lt_ema50",
-      "train": {
-        "n": 73518,
-        "mean_return_pct": -0.0862,
-        "win_rate": 0.498,
-        "t": -17.16,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 18059,
-        "mean_return_pct": -0.0485,
-        "win_rate": 0.481,
-        "t": -9.33,
+        "n": 41812,
+        "mean_return_pct": 0.0279,
+        "net_mean_return_pct": -0.0921,
+        "net_return_lcb95_pct": -0.0979,
+        "win_rate": 0.484,
+        "net_win_rate": 0.375,
+        "t": -25.97,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -182,36 +262,48 @@
       "kind": "factor",
       "name": "trend_15m_up",
       "train": {
-        "n": 51935,
-        "mean_return_pct": -0.143,
-        "win_rate": 0.439,
-        "t": -18.09,
+        "n": 86402,
+        "mean_return_pct": -0.089,
+        "net_mean_return_pct": -0.209,
+        "net_return_lcb95_pct": -0.2173,
+        "win_rate": 0.447,
+        "net_win_rate": 0.343,
+        "t": -41.58,
         "p": 0.0
       },
       "holdout": {
-        "n": 23200,
-        "mean_return_pct": 0.0413,
-        "win_rate": 0.483,
-        "t": 8.45,
+        "n": 49227,
+        "mean_return_pct": 0.0242,
+        "net_mean_return_pct": -0.0958,
+        "net_return_lcb95_pct": -0.1012,
+        "win_rate": 0.481,
+        "net_win_rate": 0.37,
+        "t": -29.42,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "kind": "factor",
-      "name": "ema9_gt_ema21",
+      "name": "macd_positive",
       "train": {
-        "n": 58315,
-        "mean_return_pct": -0.131,
-        "win_rate": 0.44,
-        "t": -18.1,
+        "n": 66817,
+        "mean_return_pct": -0.1254,
+        "net_mean_return_pct": -0.2454,
+        "net_return_lcb95_pct": -0.2551,
+        "win_rate": 0.442,
+        "net_win_rate": 0.341,
+        "t": -41.84,
         "p": 0.0
       },
       "holdout": {
-        "n": 23492,
-        "mean_return_pct": 0.0309,
-        "win_rate": 0.48,
-        "t": 6.39,
+        "n": 37068,
+        "mean_return_pct": 0.022,
+        "net_mean_return_pct": -0.098,
+        "net_return_lcb95_pct": -0.1042,
+        "win_rate": 0.477,
+        "net_win_rate": 0.369,
+        "t": -25.86,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -220,74 +312,73 @@
       "kind": "factor",
       "name": "ema21_gt_ema50",
       "train": {
-        "n": 53772,
-        "mean_return_pct": -0.1405,
-        "win_rate": 0.436,
-        "t": -18.3,
+        "n": 88431,
+        "mean_return_pct": -0.0898,
+        "net_mean_return_pct": -0.2098,
+        "net_return_lcb95_pct": -0.2179,
+        "win_rate": 0.445,
+        "net_win_rate": 0.34,
+        "t": -42.51,
         "p": 0.0
       },
       "holdout": {
-        "n": 23137,
-        "mean_return_pct": 0.038,
-        "win_rate": 0.483,
-        "t": 7.81,
+        "n": 49976,
+        "mean_return_pct": 0.0197,
+        "net_mean_return_pct": -0.1003,
+        "net_return_lcb95_pct": -0.1056,
+        "win_rate": 0.479,
+        "net_win_rate": 0.367,
+        "t": -31.28,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "kind": "factor",
-      "name": "ema9_lt_ema21",
+      "name": "above_vwap",
       "train": {
-        "n": 77153,
-        "mean_return_pct": -0.0933,
-        "win_rate": 0.498,
-        "t": -18.71,
+        "n": 84386,
+        "mean_return_pct": -0.1021,
+        "net_mean_return_pct": -0.2221,
+        "net_return_lcb95_pct": -0.2305,
+        "win_rate": 0.442,
+        "net_win_rate": 0.342,
+        "t": -43.87,
         "p": 0.0
       },
       "holdout": {
-        "n": 19433,
-        "mean_return_pct": -0.0482,
-        "win_rate": 0.481,
-        "t": -9.61,
+        "n": 48495,
+        "mean_return_pct": 0.0211,
+        "net_mean_return_pct": -0.0989,
+        "net_return_lcb95_pct": -0.1043,
+        "win_rate": 0.478,
+        "net_win_rate": 0.372,
+        "t": -30.11,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "kind": "factor",
-      "name": "rsi_below_45",
+      "name": "rsi_above_55",
       "train": {
-        "n": 55576,
-        "mean_return_pct": -0.1273,
-        "win_rate": 0.491,
-        "t": -19.91,
+        "n": 70272,
+        "mean_return_pct": -0.1269,
+        "net_mean_return_pct": -0.2469,
+        "net_return_lcb95_pct": -0.2561,
+        "win_rate": 0.44,
+        "net_win_rate": 0.337,
+        "t": -43.97,
         "p": 0.0
       },
       "holdout": {
-        "n": 14242,
-        "mean_return_pct": -0.0359,
-        "win_rate": 0.489,
-        "t": -6.16,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "below_vwap",
-      "train": {
-        "n": 75654,
-        "mean_return_pct": -0.1032,
-        "win_rate": 0.498,
-        "t": -20.02,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 17311,
-        "mean_return_pct": -0.0401,
-        "win_rate": 0.481,
-        "t": -7.57,
+        "n": 39627,
+        "mean_return_pct": 0.0234,
+        "net_mean_return_pct": -0.0966,
+        "net_return_lcb95_pct": -0.1025,
+        "win_rate": 0.479,
+        "net_win_rate": 0.372,
+        "t": -26.57,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -298,75 +389,49 @@
       "kind": "setup",
       "name": "mtf_momentum",
       "train": {
-        "n": 15381,
-        "mean_return_pct": 0.0422,
-        "win_rate": 0.494,
-        "t": 4.43,
-        "p": 1e-05
+        "n": 22520,
+        "mean_return_pct": 0.0264,
+        "net_mean_return_pct": -0.0936,
+        "net_return_lcb95_pct": -0.1051,
+        "win_rate": 0.495,
+        "net_win_rate": 0.363,
+        "t": -13.47,
+        "p": 0.0
       },
       "holdout": {
-        "n": 4653,
-        "mean_return_pct": -0.0205,
-        "win_rate": 0.497,
-        "t": -2.33,
-        "p": 0.01969
+        "n": 9988,
+        "mean_return_pct": 0.0207,
+        "net_mean_return_pct": -0.0993,
+        "net_return_lcb95_pct": -0.1103,
+        "win_rate": 0.506,
+        "net_win_rate": 0.372,
+        "t": -14.84,
+        "p": 0.0
       },
-      "verdict": "TRAIN_ONLY_OVERFIT"
-    },
-    {
-      "kind": "factor",
-      "name": "trend_1h_down",
-      "train": {
-        "n": 36561,
-        "mean_return_pct": 0.0038,
-        "win_rate": 0.517,
-        "t": 0.73,
-        "p": 0.46505
-      },
-      "holdout": {
-        "n": 2286,
-        "mean_return_pct": 0.0163,
-        "win_rate": 0.504,
-        "t": 1.63,
-        "p": 0.1033
-      },
-      "verdict": "NOISE"
+      "verdict": "HURTS"
     },
     {
       "kind": "factor",
       "name": "trend_1h_up",
       "train": {
-        "n": 16318,
-        "mean_return_pct": 0.0019,
-        "win_rate": 0.452,
-        "t": 0.17,
-        "p": 0.86145
-      },
-      "holdout": {
-        "n": 5101,
-        "mean_return_pct": 0.0045,
-        "win_rate": 0.46,
-        "t": 0.73,
-        "p": 0.46806
-      },
-      "verdict": "NOISE"
-    },
-    {
-      "kind": "factor",
-      "name": "volume_expansion",
-      "train": {
-        "n": 39997,
-        "mean_return_pct": -0.0393,
-        "win_rate": 0.476,
-        "t": -5.12,
+        "n": 23148,
+        "mean_return_pct": 0.0036,
+        "net_mean_return_pct": -0.1164,
+        "net_return_lcb95_pct": -0.1297,
+        "win_rate": 0.456,
+        "net_win_rate": 0.338,
+        "t": -14.39,
         "p": 0.0
       },
       "holdout": {
-        "n": 11829,
-        "mean_return_pct": 0.0123,
-        "win_rate": 0.48,
-        "t": 1.4,
-        "p": 0.16234
+        "n": 6212,
+        "mean_return_pct": 0.1082,
+        "net_mean_return_pct": -0.0118,
+        "net_return_lcb95_pct": -0.0265,
+        "win_rate": 0.552,
+        "net_win_rate": 0.416,
+        "t": -1.33,
+        "p": 0.18483
       },
       "verdict": "HURTS"
     },
@@ -374,55 +439,23 @@
       "kind": "setup",
       "name": "volume_breakout",
       "train": {
-        "n": 7805,
-        "mean_return_pct": -0.091,
-        "win_rate": 0.447,
-        "t": -5.18,
+        "n": 12707,
+        "mean_return_pct": -0.0725,
+        "net_mean_return_pct": -0.1925,
+        "net_return_lcb95_pct": -0.2122,
+        "win_rate": 0.45,
+        "net_win_rate": 0.366,
+        "t": -16.04,
         "p": 0.0
       },
       "holdout": {
-        "n": 2629,
-        "mean_return_pct": -0.0286,
-        "win_rate": 0.469,
-        "t": -1.47,
-        "p": 0.14104
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "micro_volume_expansion",
-      "train": {
-        "n": 36764,
-        "mean_return_pct": -0.0529,
-        "win_rate": 0.476,
-        "t": -7.21,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 14899,
-        "mean_return_pct": -0.0001,
-        "win_rate": 0.48,
-        "t": -0.01,
-        "p": 0.99259
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "breakdown_20",
-      "train": {
-        "n": 7209,
-        "mean_return_pct": -0.3609,
-        "win_rate": 0.455,
-        "t": -14.34,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1898,
-        "mean_return_pct": -0.1014,
-        "win_rate": 0.46,
-        "t": -5.4,
+        "n": 7080,
+        "mean_return_pct": -0.0735,
+        "net_mean_return_pct": -0.1935,
+        "net_return_lcb95_pct": -0.2113,
+        "win_rate": 0.461,
+        "net_win_rate": 0.373,
+        "t": -17.84,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -431,36 +464,148 @@
       "kind": "factor",
       "name": "breakout_20",
       "train": {
-        "n": 6256,
-        "mean_return_pct": -0.4354,
-        "win_rate": 0.403,
-        "t": -15.02,
+        "n": 10018,
+        "mean_return_pct": -0.2901,
+        "net_mean_return_pct": -0.4101,
+        "net_return_lcb95_pct": -0.4414,
+        "win_rate": 0.413,
+        "net_win_rate": 0.334,
+        "t": -21.51,
         "p": 0.0
       },
       "holdout": {
-        "n": 2208,
-        "mean_return_pct": 0.0233,
+        "n": 5379,
+        "mean_return_pct": -0.0116,
+        "net_mean_return_pct": -0.1316,
+        "net_return_lcb95_pct": -0.1499,
         "win_rate": 0.467,
-        "t": 1.19,
-        "p": 0.23566
+        "net_win_rate": 0.369,
+        "t": -11.81,
+        "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "kind": "factor",
-      "name": "trend_15m_down",
+      "name": "breakdown_20",
       "train": {
-        "n": 73439,
-        "mean_return_pct": -0.0835,
-        "win_rate": 0.501,
-        "t": -16.56,
+        "n": 11193,
+        "mean_return_pct": -0.2489,
+        "net_mean_return_pct": -0.3689,
+        "net_return_lcb95_pct": -0.3966,
+        "win_rate": 0.461,
+        "net_win_rate": 0.358,
+        "t": -21.89,
         "p": 0.0
       },
       "holdout": {
-        "n": 17558,
-        "mean_return_pct": -0.0414,
-        "win_rate": 0.484,
-        "t": -8.07,
+        "n": 6426,
+        "mean_return_pct": -0.0993,
+        "net_mean_return_pct": -0.2193,
+        "net_return_lcb95_pct": -0.2358,
+        "win_rate": 0.468,
+        "net_win_rate": 0.367,
+        "t": -21.8,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "volume_expansion",
+      "train": {
+        "n": 61596,
+        "mean_return_pct": -0.0234,
+        "net_mean_return_pct": -0.1434,
+        "net_return_lcb95_pct": -0.1524,
+        "win_rate": 0.475,
+        "net_win_rate": 0.386,
+        "t": -26.23,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 31185,
+        "mean_return_pct": -0.0061,
+        "net_mean_return_pct": -0.1261,
+        "net_return_lcb95_pct": -0.1344,
+        "win_rate": 0.494,
+        "net_win_rate": 0.4,
+        "t": -25.21,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "setup",
+      "name": "range_break",
+      "train": {
+        "n": 8504,
+        "mean_return_pct": -0.561,
+        "net_mean_return_pct": -0.681,
+        "net_return_lcb95_pct": -0.7232,
+        "win_rate": 0.42,
+        "net_win_rate": 0.317,
+        "t": -26.54,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 4725,
+        "mean_return_pct": -0.0381,
+        "net_mean_return_pct": -0.1581,
+        "net_return_lcb95_pct": -0.1733,
+        "win_rate": 0.476,
+        "net_win_rate": 0.361,
+        "t": -17.19,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "trend_1h_down",
+      "train": {
+        "n": 45438,
+        "mean_return_pct": -0.0062,
+        "net_mean_return_pct": -0.1262,
+        "net_return_lcb95_pct": -0.1334,
+        "win_rate": 0.495,
+        "net_win_rate": 0.374,
+        "t": -28.77,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 2986,
+        "mean_return_pct": -0.0915,
+        "net_mean_return_pct": -0.2115,
+        "net_return_lcb95_pct": -0.228,
+        "win_rate": 0.439,
+        "net_win_rate": 0.309,
+        "t": -21.08,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "micro_volume_expansion",
+      "train": {
+        "n": 60863,
+        "mean_return_pct": -0.034,
+        "net_mean_return_pct": -0.154,
+        "net_return_lcb95_pct": -0.162,
+        "win_rate": 0.474,
+        "net_win_rate": 0.369,
+        "t": -31.79,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 29501,
+        "mean_return_pct": -0.0005,
+        "net_mean_return_pct": -0.1205,
+        "net_return_lcb95_pct": -0.1281,
+        "win_rate": 0.491,
+        "net_win_rate": 0.39,
+        "t": -25.99,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -469,55 +614,23 @@
       "kind": "factor",
       "name": "micro_1m_up",
       "train": {
-        "n": 46480,
-        "mean_return_pct": -0.1389,
-        "win_rate": 0.44,
-        "t": -16.96,
+        "n": 74070,
+        "mean_return_pct": -0.0951,
+        "net_mean_return_pct": -0.2151,
+        "net_return_lcb95_pct": -0.224,
+        "win_rate": 0.443,
+        "net_win_rate": 0.341,
+        "t": -39.66,
         "p": 0.0
       },
       "holdout": {
-        "n": 17323,
-        "mean_return_pct": 0.0329,
-        "win_rate": 0.473,
-        "t": 5.74,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "micro_1m_down",
-      "train": {
-        "n": 61826,
-        "mean_return_pct": -0.0987,
-        "win_rate": 0.5,
-        "t": -17.12,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 15723,
-        "mean_return_pct": -0.0384,
-        "win_rate": 0.486,
-        "t": -6.86,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "ema21_lt_ema50",
-      "train": {
-        "n": 73518,
-        "mean_return_pct": -0.0862,
-        "win_rate": 0.498,
-        "t": -17.16,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 18059,
-        "mean_return_pct": -0.0485,
-        "win_rate": 0.481,
-        "t": -9.33,
+        "n": 41812,
+        "mean_return_pct": 0.0279,
+        "net_mean_return_pct": -0.0921,
+        "net_return_lcb95_pct": -0.0979,
+        "win_rate": 0.484,
+        "net_win_rate": 0.375,
+        "t": -25.97,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -526,36 +639,48 @@
       "kind": "factor",
       "name": "trend_15m_up",
       "train": {
-        "n": 51935,
-        "mean_return_pct": -0.143,
-        "win_rate": 0.439,
-        "t": -18.09,
+        "n": 86402,
+        "mean_return_pct": -0.089,
+        "net_mean_return_pct": -0.209,
+        "net_return_lcb95_pct": -0.2173,
+        "win_rate": 0.447,
+        "net_win_rate": 0.343,
+        "t": -41.58,
         "p": 0.0
       },
       "holdout": {
-        "n": 23200,
-        "mean_return_pct": 0.0413,
-        "win_rate": 0.483,
-        "t": 8.45,
+        "n": 49227,
+        "mean_return_pct": 0.0242,
+        "net_mean_return_pct": -0.0958,
+        "net_return_lcb95_pct": -0.1012,
+        "win_rate": 0.481,
+        "net_win_rate": 0.37,
+        "t": -29.42,
         "p": 0.0
       },
       "verdict": "HURTS"
     },
     {
       "kind": "factor",
-      "name": "ema9_gt_ema21",
+      "name": "macd_positive",
       "train": {
-        "n": 58315,
-        "mean_return_pct": -0.131,
-        "win_rate": 0.44,
-        "t": -18.1,
+        "n": 66817,
+        "mean_return_pct": -0.1254,
+        "net_mean_return_pct": -0.2454,
+        "net_return_lcb95_pct": -0.2551,
+        "win_rate": 0.442,
+        "net_win_rate": 0.341,
+        "t": -41.84,
         "p": 0.0
       },
       "holdout": {
-        "n": 23492,
-        "mean_return_pct": 0.0309,
-        "win_rate": 0.48,
-        "t": 6.39,
+        "n": 37068,
+        "mean_return_pct": 0.022,
+        "net_mean_return_pct": -0.098,
+        "net_return_lcb95_pct": -0.1042,
+        "win_rate": 0.477,
+        "net_win_rate": 0.369,
+        "t": -25.86,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -564,74 +689,23 @@
       "kind": "factor",
       "name": "ema21_gt_ema50",
       "train": {
-        "n": 53772,
-        "mean_return_pct": -0.1405,
-        "win_rate": 0.436,
-        "t": -18.3,
+        "n": 88431,
+        "mean_return_pct": -0.0898,
+        "net_mean_return_pct": -0.2098,
+        "net_return_lcb95_pct": -0.2179,
+        "win_rate": 0.445,
+        "net_win_rate": 0.34,
+        "t": -42.51,
         "p": 0.0
       },
       "holdout": {
-        "n": 23137,
-        "mean_return_pct": 0.038,
-        "win_rate": 0.483,
-        "t": 7.81,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "ema9_lt_ema21",
-      "train": {
-        "n": 77153,
-        "mean_return_pct": -0.0933,
-        "win_rate": 0.498,
-        "t": -18.71,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 19433,
-        "mean_return_pct": -0.0482,
-        "win_rate": 0.481,
-        "t": -9.61,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "rsi_below_45",
-      "train": {
-        "n": 55576,
-        "mean_return_pct": -0.1273,
-        "win_rate": 0.491,
-        "t": -19.91,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 14242,
-        "mean_return_pct": -0.0359,
-        "win_rate": 0.489,
-        "t": -6.16,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "below_vwap",
-      "train": {
-        "n": 75654,
-        "mean_return_pct": -0.1032,
-        "win_rate": 0.498,
-        "t": -20.02,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 17311,
-        "mean_return_pct": -0.0401,
-        "win_rate": 0.481,
-        "t": -7.57,
+        "n": 49976,
+        "mean_return_pct": 0.0197,
+        "net_mean_return_pct": -0.1003,
+        "net_return_lcb95_pct": -0.1056,
+        "win_rate": 0.479,
+        "net_win_rate": 0.367,
+        "t": -31.28,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -640,93 +714,23 @@
       "kind": "factor",
       "name": "above_vwap",
       "train": {
-        "n": 50433,
-        "mean_return_pct": -0.1611,
-        "win_rate": 0.435,
-        "t": -20.19,
+        "n": 84386,
+        "mean_return_pct": -0.1021,
+        "net_mean_return_pct": -0.2221,
+        "net_return_lcb95_pct": -0.2305,
+        "win_rate": 0.442,
+        "net_win_rate": 0.342,
+        "t": -43.87,
         "p": 0.0
       },
       "holdout": {
-        "n": 22629,
-        "mean_return_pct": 0.036,
-        "win_rate": 0.48,
-        "t": 7.11,
-        "p": 0.0
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "macd_negative",
-      "train": {
-        "n": 51127,
-        "mean_return_pct": -0.1467,
-        "win_rate": 0.492,
-        "t": -20.78,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 12977,
-        "mean_return_pct": -0.0235,
-        "win_rate": 0.503,
-        "t": -3.67,
-        "p": 0.00024
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "setup",
-      "name": "vwap_trend",
-      "train": {
-        "n": 115328,
-        "mean_return_pct": -0.0912,
-        "win_rate": 0.477,
-        "t": -21.02,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 36561,
-        "mean_return_pct": 0.0059,
-        "win_rate": 0.482,
-        "t": 1.57,
-        "p": 0.11603
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "setup",
-      "name": "range_break",
-      "train": {
-        "n": 5660,
-        "mean_return_pct": -0.8154,
-        "win_rate": 0.409,
-        "t": -21.68,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 1477,
-        "mean_return_pct": -0.0446,
-        "win_rate": 0.454,
-        "t": -2.75,
-        "p": 0.00601
-      },
-      "verdict": "HURTS"
-    },
-    {
-      "kind": "factor",
-      "name": "macd_positive",
-      "train": {
-        "n": 42381,
-        "mean_return_pct": -0.1904,
-        "win_rate": 0.436,
-        "t": -21.75,
-        "p": 0.0
-      },
-      "holdout": {
-        "n": 15084,
-        "mean_return_pct": 0.0401,
-        "win_rate": 0.477,
-        "t": 6.14,
+        "n": 48495,
+        "mean_return_pct": 0.0211,
+        "net_mean_return_pct": -0.0989,
+        "net_return_lcb95_pct": -0.1043,
+        "win_rate": 0.478,
+        "net_win_rate": 0.372,
+        "t": -30.11,
         "p": 0.0
       },
       "verdict": "HURTS"
@@ -735,17 +739,248 @@
       "kind": "factor",
       "name": "rsi_above_55",
       "train": {
-        "n": 43616,
-        "mean_return_pct": -0.196,
-        "win_rate": 0.428,
-        "t": -22.89,
+        "n": 70272,
+        "mean_return_pct": -0.1269,
+        "net_mean_return_pct": -0.2469,
+        "net_return_lcb95_pct": -0.2561,
+        "win_rate": 0.44,
+        "net_win_rate": 0.337,
+        "t": -43.97,
         "p": 0.0
       },
       "holdout": {
-        "n": 16773,
-        "mean_return_pct": 0.0341,
+        "n": 39627,
+        "mean_return_pct": 0.0234,
+        "net_mean_return_pct": -0.0966,
+        "net_return_lcb95_pct": -0.1025,
+        "win_rate": 0.479,
+        "net_win_rate": 0.372,
+        "t": -26.57,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "ema9_gt_ema21",
+      "train": {
+        "n": 94662,
+        "mean_return_pct": -0.088,
+        "net_mean_return_pct": -0.208,
+        "net_return_lcb95_pct": -0.2158,
+        "win_rate": 0.446,
+        "net_win_rate": 0.342,
+        "t": -44.14,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 52840,
+        "mean_return_pct": 0.0234,
+        "net_mean_return_pct": -0.0966,
+        "net_return_lcb95_pct": -0.1018,
+        "win_rate": 0.481,
+        "net_win_rate": 0.371,
+        "t": -30.66,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "macd_negative",
+      "train": {
+        "n": 78355,
+        "mean_return_pct": -0.0963,
+        "net_mean_return_pct": -0.2163,
+        "net_return_lcb95_pct": -0.2243,
+        "win_rate": 0.493,
+        "net_win_rate": 0.377,
+        "t": -44.59,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 39180,
+        "mean_return_pct": -0.0562,
+        "net_mean_return_pct": -0.1762,
+        "net_return_lcb95_pct": -0.1824,
         "win_rate": 0.484,
-        "t": 5.89,
+        "net_win_rate": 0.376,
+        "t": -47.09,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "micro_1m_down",
+      "train": {
+        "n": 94901,
+        "mean_return_pct": -0.0682,
+        "net_mean_return_pct": -0.1882,
+        "net_return_lcb95_pct": -0.1948,
+        "win_rate": 0.494,
+        "net_win_rate": 0.374,
+        "t": -47.22,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 46292,
+        "mean_return_pct": -0.0392,
+        "net_mean_return_pct": -0.1592,
+        "net_return_lcb95_pct": -0.1647,
+        "win_rate": 0.498,
+        "net_win_rate": 0.387,
+        "t": -47.46,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "rsi_below_45",
+      "train": {
+        "n": 85872,
+        "mean_return_pct": -0.0876,
+        "net_mean_return_pct": -0.2076,
+        "net_return_lcb95_pct": -0.2148,
+        "win_rate": 0.488,
+        "net_win_rate": 0.37,
+        "t": -47.51,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 43282,
+        "mean_return_pct": -0.0442,
+        "net_mean_return_pct": -0.1642,
+        "net_return_lcb95_pct": -0.1701,
+        "win_rate": 0.494,
+        "net_win_rate": 0.384,
+        "t": -46.29,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "trend_15m_down",
+      "train": {
+        "n": 112542,
+        "mean_return_pct": -0.0587,
+        "net_mean_return_pct": -0.1787,
+        "net_return_lcb95_pct": -0.1845,
+        "win_rate": 0.494,
+        "net_win_rate": 0.373,
+        "t": -51.12,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 52752,
+        "mean_return_pct": -0.0324,
+        "net_mean_return_pct": -0.1524,
+        "net_return_lcb95_pct": -0.1576,
+        "win_rate": 0.505,
+        "net_win_rate": 0.393,
+        "t": -48.05,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "ema21_lt_ema50",
+      "train": {
+        "n": 113195,
+        "mean_return_pct": -0.0627,
+        "net_mean_return_pct": -0.1827,
+        "net_return_lcb95_pct": -0.1884,
+        "win_rate": 0.491,
+        "net_win_rate": 0.37,
+        "t": -52.53,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 53689,
+        "mean_return_pct": -0.0318,
+        "net_mean_return_pct": -0.1518,
+        "net_return_lcb95_pct": -0.157,
+        "win_rate": 0.503,
+        "net_win_rate": 0.392,
+        "t": -48.31,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "below_vwap",
+      "train": {
+        "n": 115413,
+        "mean_return_pct": -0.072,
+        "net_mean_return_pct": -0.192,
+        "net_return_lcb95_pct": -0.1978,
+        "win_rate": 0.491,
+        "net_win_rate": 0.371,
+        "t": -53.57,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 54754,
+        "mean_return_pct": -0.0393,
+        "net_mean_return_pct": -0.1593,
+        "net_return_lcb95_pct": -0.1644,
+        "win_rate": 0.498,
+        "net_win_rate": 0.387,
+        "t": -51.08,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "factor",
+      "name": "ema9_lt_ema21",
+      "train": {
+        "n": 118458,
+        "mean_return_pct": -0.0656,
+        "net_mean_return_pct": -0.1856,
+        "net_return_lcb95_pct": -0.1913,
+        "win_rate": 0.493,
+        "net_win_rate": 0.373,
+        "t": -53.64,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 57216,
+        "mean_return_pct": -0.0352,
+        "net_mean_return_pct": -0.1552,
+        "net_return_lcb95_pct": -0.1602,
+        "win_rate": 0.5,
+        "net_win_rate": 0.388,
+        "t": -51.33,
+        "p": 0.0
+      },
+      "verdict": "HURTS"
+    },
+    {
+      "kind": "setup",
+      "name": "vwap_trend",
+      "train": {
+        "n": 182651,
+        "mean_return_pct": -0.0615,
+        "net_mean_return_pct": -0.1815,
+        "net_return_lcb95_pct": -0.1863,
+        "win_rate": 0.474,
+        "net_win_rate": 0.361,
+        "t": -62.17,
+        "p": 0.0
+      },
+      "holdout": {
+        "n": 93469,
+        "mean_return_pct": -0.0052,
+        "net_mean_return_pct": -0.1252,
+        "net_return_lcb95_pct": -0.129,
+        "win_rate": 0.491,
+        "net_win_rate": 0.381,
+        "t": -53.5,
         "p": 0.0
       },
       "verdict": "HURTS"

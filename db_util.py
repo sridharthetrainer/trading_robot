@@ -24,16 +24,17 @@ Usage
 from __future__ import annotations
 
 import sqlite3
+import time
 from contextlib import contextmanager
 from typing import Any, Iterable, List, Optional, Tuple
 
 
 @contextmanager
 def db_conn(db_path: str, *, timeout: float = 10.0, row_factory=None,
-            wal: bool = False, read_only: bool = False, **kwargs):
+            wal: bool = False, read_only: bool = False, query_budget: Optional[float] = None, **kwargs):
     """Yield a sqlite3 connection that is ALWAYS closed (commit on clean exit,
     rollback on error). `wal=True` sets journal_mode=WAL; `read_only=True` opens
-    the file in immutable read-only mode (no accidental writes/locks)."""
+    the file read-only. `query_budget` bounds VM work across the context."""
     if read_only:
         conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True,
                                timeout=timeout, **kwargs)
@@ -41,6 +42,12 @@ def db_conn(db_path: str, *, timeout: float = 10.0, row_factory=None,
         conn = sqlite3.connect(db_path, timeout=timeout, **kwargs)
     if row_factory is not None:
         conn.row_factory = row_factory
+    if query_budget is not None:
+        if query_budget <= 0:
+            conn.close()
+            raise sqlite3.OperationalError("query_budget_expired")
+        deadline = time.monotonic() + max(0.0, query_budget)
+        conn.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
     if wal and not read_only:
         try:
             conn.execute("PRAGMA journal_mode=WAL")

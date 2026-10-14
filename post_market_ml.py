@@ -754,7 +754,9 @@ def run_pipeline(
         "signals_used":   summary.get("n_total", 0),
         "overall_wr":     summary.get("overall_wr", 0),
         "danger_zones":   summary.get("danger_zones", 0),
-        "ml_auc":         (training.get("cross_symbol") or {}).get("cv_auc_mean", 0),
+        "ml_auc":         float(
+            (training.get("cross_symbol") or {}).get("cv_auc_mean") or 0.0
+        ),
         "per_symbol_models": len(training.get("per_symbol", {})),
         "filters_written": not dry_run,
         "filters_path":    str(filters_path) if filters_path else None,
@@ -809,7 +811,11 @@ def main() -> int:
 
     # Benign reasons the pipeline legitimately produces no output — do NOT alert
     # on these (avoids nightly false alarms, e.g. the expected data-gated state).
-    _BENIGN_SKIPS = {"market_open"}
+    _BENIGN_SKIPS = {
+        "market_open",
+        "outside_training_window",
+        "empty_feature_matrix",
+    }
     try:
         result = run_pipeline(
             days            = args.days,
@@ -827,7 +833,7 @@ def main() -> int:
     _err = result.get("error")
     if _err and _err not in _BENIGN_SKIPS:
         _alert_pipeline_failure(f"error: {_err}")
-    return 0 if not _err else 1
+    return 0 if not _err or _err in _BENIGN_SKIPS else 1
 
 
 if __name__ == "__main__":

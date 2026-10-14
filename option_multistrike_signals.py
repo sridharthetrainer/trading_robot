@@ -10,9 +10,10 @@ import sqlite3
 import time
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Any, Dict, Iterable, List, Optional
 
-from option_quality import extract_contract_liquidity
+from option_quality import extract_contract_liquidity, filter_expiry_rows, normalize_expiry
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +90,7 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
     )
     columns = {row[1] for row in conn.execute("PRAGMA table_info(option_strike_signals)")}
     migrations = {
+        "leg_ratio": "INTEGER DEFAULT 1",
         "outcome_label": "INTEGER DEFAULT -99",
         "exit_price": "REAL DEFAULT 0",
         "gross_pnl": "REAL DEFAULT 0",
@@ -154,7 +156,11 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
                   stop_loss=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2)*0.85,2),
                   target_1=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2)*1.20,2),
                   target_2=ROUND(price*(1+MAX(COALESCE(spread_pct,0),0)/2)*1.35,2)
-            WHERE price>0 AND COALESCE(entry_price,0)<=0"""
+            WHERE price>0 AND COALESCE(entry_price,0)<=0
+              AND strategy='single_strike_flow'
+              AND upper(COALESCE(side,'BUY'))='BUY'
+              AND COALESCE(combo_id,'')=''
+              AND lower(COALESCE(source,''))!='shadow_catalog'"""
     )
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_strike_signal_lookup "
@@ -180,7 +186,8 @@ def ensure_multistrike_schema(conn: sqlite3.Connection) -> None:
 
 def _f(value: Any, default: float = 0.0) -> float:
     try:
-        return float(value if value is not None else default)
+        parsed = float(value if value is not None else default)
+        return parsed if math.isfinite(parsed) else float(default)
     except Exception:
         return float(default)
 
@@ -220,12 +227,15 @@ def _pct(current: float, previous: float) -> float:
 def _snapshot_epoch(snapshot_time: str) -> float:
     text = str(snapshot_time or "").strip()
     try:
-        return datetime.fromisoformat(text).timestamp()
+        parsed = datetime.fromisoformat(text)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        return parsed.timestamp()
     except Exception:
         try:
             return datetime.strptime(text, "%Y-%m-%dT%H:%M:%S%z").timestamp()
         except Exception:
-            return time.time()
+            return 0.0
 
 
 def _expiry_dte(expiry: str, snapshot_time: str) -> int:
@@ -274,7 +284,8 @@ def _focused_paper_gate(
     max_spread = max(0.0, _cfg_float("OPTION_FOCUSED_MAX_SPREAD_PCT", 0.03))
     if item.spread_pct is None or spread > max_spread:
         return False, "focused_spread_too_wide", expected_move, break_even, risk_budget
-    if _expiry_dte(expiry, snapshot_time) > int(_cfg_float("OPTION_FOCUSED_MAX_DTE", 7)):
+    dte = _expiry_dte(normalize_expiry(expiry), snapshot_time)
+    if dte < 0 or dte > int(_cfg_float("OPTION_FOCUSED_MAX_DTE", 7)):
         return False, "focused_far_expiry_blocked", expected_move, break_even, risk_budget
     if expected_move <= break_even:
         return False, "expected_move_below_cost_break_even", expected_move, break_even, risk_budget
@@ -310,7 +321,7 @@ def _strikes(rows: Iterable[Dict[str, Any]]) -> List[float]:
     for row in rows:
         try:
             value = float(row.get("strikePrice", row.get("strike", 0)) or 0)
-            if value > 0:
+            if math.isfinite(value) and value > 0:
                 out.add(value)
         except Exception:
             continue
@@ -453,7 +464,9 @@ def build_multistrike_signals(
             # Premium-risk plan shown with every generated signal. Execution
             # still requires the tradable gate; these levels are not a fill.
             half_spread = max(0.0, float(spread or 0.0)) / 2.0
-            entry_price = price * (1.0 + half_spread)
+            # The ask is executable; LTP can sit outside the current book.
+            # Do not infer an ask by adding half-spread to an old last trade.
+            entry_price = _f(current.get("ask")) or price * (1.0 + half_spread)
             stop_loss = entry_price * 0.85
             target_1 = entry_price * 1.20
             target_2 = entry_price * 1.35
@@ -486,7 +499,7 @@ def build_multistrike_signals(
     final: List[StrikeFlowSignal] = []
     for rank, row in enumerate(sorted(output, key=lambda item: item.score, reverse=True), start=1):
         cluster = (row.direction, row.flow)
-        allow = row.tradable and cluster not in tradable_seen and tradable_count < max(1, int(max_tradable_per_snapshot))
+        allow = row.tradable and cluster not in tradable_seen and tradable_count < max(0, int(max_tradable_per_snapshot))
         reason = row.reason
         if row.tradable and not allow:
             reason = f"{reason},correlated_strike_deduplicated"
@@ -510,18 +523,35 @@ def persist_multistrike_signals(
     market_bias: str = "UNKNOWN",
 ) -> Dict[str, Any]:
     ensure_multistrike_schema(conn)
-    previous = conn.execute(
+    previous_candidates = conn.execute(
         """
-        SELECT rows_json FROM option_chain_snapshots
+        SELECT rows_json,snapshot_time,expiry FROM option_chain_snapshots
          WHERE upper(underlying)=upper(?) AND ok=1 AND snapshot_time < ?
-         ORDER BY ts DESC LIMIT 1
+         ORDER BY snapshot_time DESC LIMIT 20
         """,
         (underlying, snapshot_time),
-    ).fetchone()
-    try:
-        previous_rows = json.loads(previous[0] or "[]") if previous else []
-    except Exception:
-        previous_rows = []
+    ).fetchall()
+    previous_rows = []
+    snapshot_ts = _snapshot_epoch(snapshot_time)
+    max_gap = max(0.0, _cfg_float("OPTION_FLOW_MAX_SNAPSHOT_GAP_SEC", 900.0))
+    # Momentum is only comparable for the same contract and nearby snapshots
+    # in the same session. Overnight volume resets and expiry rolls are warmup.
+    for candidate in previous_candidates:
+        previous_ts = _snapshot_epoch(candidate[1])
+        if normalize_expiry(candidate[2]) != normalize_expiry(expiry):
+            continue
+        if not previous_ts or not 0 < snapshot_ts - previous_ts <= max_gap:
+            continue
+        if datetime.fromtimestamp(previous_ts, ZoneInfo("Asia/Kolkata")).date() != datetime.fromtimestamp(snapshot_ts, ZoneInfo("Asia/Kolkata")).date():
+            continue
+        try:
+            decoded = json.loads(candidate[0] or "[]")
+            if isinstance(decoded, list):
+                previous_rows = filter_expiry_rows(decoded, expiry)
+                break
+        except (TypeError, ValueError):
+            continue
+    current_rows = filter_expiry_rows(current_rows, expiry)
     signals = build_multistrike_signals(
         underlying=underlying,
         current_rows=current_rows,
@@ -709,6 +739,7 @@ def update_signal_lifecycle(
         )
         events.append({
             "underlying": row["underlying"], "strike": row["strike"],
+            "expiry": row["expiry"],
             "option_type": row["option_type"], "entry_price": row["entry_price"],
             "stop_loss": new_stop, "target_1": row["target_1"], "target_2": row["target_2"],
             "status": status, "current_price": price, "snapshot_time": snapshot_time,

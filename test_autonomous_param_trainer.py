@@ -15,4 +15,4 @@ def test_autonomous_param_trainer_dry_run_plan():
     assert report["promoted"] == []
     assert report["paper_only"] == []
     assert report["skipped"] == []
-    assert report["days"] == 210
+    assert report["days"] == 400

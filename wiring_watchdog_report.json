@@ -1,84 +1,17 @@
 {
-  "generated_at": "2026-09-05T11:41:46",
-  "sweep_rows": 479,
+  "generated_at": "2026-10-13T16:52:42",
+  "sweep_rows": 221,
   "sweep_days": 5,
-  "columns_checked": 156,
-  "dead_columns_now": [
-    "ai_score",
-    "bhav_delivery",
-    "bulk_deal_mod",
-    "client_ce_pct",
-    "daily_pnl_before",
-    "executed",
-    "expiry_mod",
-    "expiry_regime",
-    "footprint_available",
-    "frozen_model_version",
-    "iv_percentile",
-    "lifecycle_price",
-    "lifecycle_status",
-    "lifecycle_updated_at",
-    "option_dte",
-    "option_expiry",
-    "option_premium",
-    "option_strike",
-    "option_style",
-    "option_symbol",
-    "option_type",
-    "prediction_origin",
-    "rebal_mod",
-    "representation_coverage",
-    "risk_level_source",
-    "rr",
-    "sensex_nifty_div",
-    "signal_spread_pct",
-    "signal_spread_source",
-    "sip_boost",
-    "skew_mod",
-    "theta_mod",
-    "trade_id",
-    "training_eligible",
-    "training_exclusion_reason",
-    "whale_mod"
-  ],
+  "columns_checked": 0,
+  "dead_columns_now": [],
   "new_dead_columns": [],
   "revived_columns": [],
   "stale_artifacts": [
     {
-      "file": "daily_report.json",
+      "file": "strategy_performance.json",
       "status": "stale",
-      "age_hours": 355.9,
-      "max_hours": 80
-    },
-    {
-      "file": "option_strike_autotune.json",
-      "status": "stale",
-      "age_hours": 423.0,
-      "max_hours": 80
-    },
-    {
-      "file": "data_quality_watchdog_report.json",
-      "status": "stale",
-      "age_hours": 363.2,
-      "max_hours": 80
-    },
-    {
-      "file": "eod_signal_miner_report.json",
-      "status": "stale",
-      "age_hours": 423.5,
-      "max_hours": 80
-    },
-    {
-      "file": "eod_setup_edge_report.json",
-      "status": "stale",
-      "age_hours": 423.5,
+      "age_hours": 750.9,
       "max_hours": 200
-    },
-    {
-      "file": "option_signal_research_ledger.json",
-      "status": "stale",
-      "age_hours": 423.5,
-      "max_hours": 80
     }
   ],
   "orphan_modules": [
@@ -91,6 +24,7 @@
     "seed_cache",
     "setup_gdrive_backup",
     "telegram_backup",
+    "trading_time_pricer",
     "validate_telegram"
   ],
   "new_orphan_modules": [],

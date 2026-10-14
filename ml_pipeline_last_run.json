@@ -1,16 +1,16 @@
 {
-  "elapsed_sec": 193.0,
+  "elapsed_sec": 383.5,
   "labels_updated": 0,
-  "signals_used": 25,
-  "overall_wr": 0.36,
-  "danger_zones": 7,
-  "ml_auc": 0.4019,
+  "signals_used": 2274,
+  "overall_wr": 0.339,
+  "danger_zones": 143,
+  "ml_auc": 0.0,
   "per_symbol_models": 0,
   "filters_written": true,
   "filters_path": "learned_filters.json",
   "decay_strategies": [
-    "failed_bear_breakout",
     "elder_triple_screen",
+    "failed_bear_breakout",
     "alligator_ao",
     "vrvp_zone",
     "trend",
@@ -29,11 +29,13 @@
     "heikin_ashi",
     "candlestick_bearish_engulfing",
     "rsi2_mr",
+    "candlestick_shooting_star",
+    "candlestick_tweezer_bottom",
     "candlestick_spinning_top_black",
     "candlestick_three_black_soldiers"
   ],
   "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
   "edge_candidates": [],
   "dry_run": false,
-  "timestamp": "2026-09-05T11:41:46.012797"
+  "timestamp": "2026-10-13T16:52:42.807915"
 }

@@ -4,10 +4,10 @@ autonomous_param_trainer.py
 
 Nightly guarded strategy-parameter training.
 
-This connects validation_harness.py (walk-forward grid search + locked holdout)
-to param_bridge.py (live parameter consumption). It never promotes parameters
-unless the validation harness returns PASS, which requires DSR >= 0.95,
-stable parameters, positive holdout and beating buy-and-hold.
+Runs validation_harness.py with persistent evidence memory and stages candidates
+outside param_bridge.py's runtime paths. Rolling historical PASS results require
+independent forward validation before adoption; this trainer never activates live
+trading or rewrites the frozen strategy cohort.
 """
 from __future__ import annotations
 
@@ -23,6 +23,28 @@ from typing import Any, Dict, Iterable, List, Optional
 logger = logging.getLogger(__name__)
 
 REPORT_JSON = "autonomous_param_training_report.json"
+
+
+def _exclusive_training(fn):
+    """Prevent scheduler and manual runs from testing the same evidence together."""
+    from functools import wraps
+    @wraps(fn)
+    def guarded(**kwargs):
+        if kwargs.get("dry_run", False) or not kwargs.get("write", True):
+            return fn(**kwargs)
+        import fcntl
+        lock_path = Path(os.getenv("AUTONOMOUS_KNOWLEDGE_DB", "autonomous_knowledge.db") + ".lock")
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a") as handle:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return {"ok": True, "skipped": [{"reason": "training_already_running"}], "results": [], "promoted": [], "paper_only": []}
+            try:
+                return fn(**kwargs)
+            finally:
+                fcntl.flock(handle, fcntl.LOCK_UN)
+    return guarded
 
 
 def _normalise_backtest_data(df):
@@ -51,7 +73,11 @@ STRATEGY_BACKTESTS: Dict[str, tuple[str, str]] = {
     "orb": ("backtest_orb", "backtest_orb"),
     "vwap_reversion": ("backtest_vwap_reversion", "backtest_vwap_reversion"),
     "supertrend_mtf": ("backtest_supertrend_mtf", "backtest_supertrend_mtf"),
+    "fibonacci": ("backtest_fibonacci", "backtest_fibonacci"),
 }
+
+from research_backtest_adapters import EXTENDED_BACKTESTS, adapter_metadata, get_backtest_callable
+STRATEGY_BACKTESTS.update(EXTENDED_BACKTESTS)
 
 PARAM_FILE_BY_STRATEGY: Dict[str, str] = {
     "trend": "best_params_trend.json",
@@ -64,6 +90,7 @@ PARAM_FILE_BY_STRATEGY: Dict[str, str] = {
     "orb": "best_params_orb.json",
     "vwap_reversion": "best_params_vwap_reversion.json",
     "supertrend_mtf": "best_params_supertrend_mtf.json",
+    "fibonacci": "best_params_fibonacci.json",
 }
 
 
@@ -125,10 +152,10 @@ def _validation_metrics(result: Any, *, paper_training_only: bool = False) -> Di
         "paper_training_only": bool(paper_training_only),
         "total_trades": int(sum(int(row.get("num_trades", 0) or 0) for row in dev_details)),
         "num_trades": int(getattr(result, "holdout_trades", 0) or 0),
-        "sharpe": float(getattr(result, "holdout_sharpe", 0.0) or getattr(result, "dev_avg_sharpe", 0.0) or 0.0),
+        "sharpe": float(getattr(result, "holdout_sharpe", None) if getattr(result, "holdout_sharpe", None) is not None else (getattr(result, "dev_avg_sharpe", 0.0) or 0.0)),
         "win_rate": float(win_rate or 0.0),
         "deflated_sharpe": float(getattr(result, "deflated_sharpe", 0.0) or 0.0),
-        "parameter_stability_cv": float(getattr(result, "parameter_stability_cv", 1.0) or 1.0),
+        "parameter_stability_cv": float(getattr(result, "parameter_stability_cv", 1.0) if getattr(result, "parameter_stability_cv", None) is not None else 1.0),
         "holdout_pnl": getattr(result, "holdout_pnl", None),
         "beats_benchmark": bool(getattr(result, "beats_benchmark", False)),
     }
@@ -158,7 +185,11 @@ def _write_param_file(
         path = target_dir / f"{symbol.upper()}_{strategy}.json"
     else:
         path = Path(output_dir) / PARAM_FILE_BY_STRATEGY.get(strategy, f"best_params_{strategy}.json")
-    path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, suffix=".tmp", delete=False, encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, indent=2, default=str))
+        temporary = handle.name
+    os.replace(temporary, path)
     return str(path)
 
 
@@ -186,6 +217,7 @@ def _log_experiment_row(
         pass
 
 
+@_exclusive_training
 def run_autonomous_param_training(
     *,
     strategies: Iterable[str] | None = None,
@@ -204,7 +236,7 @@ def run_autonomous_param_training(
         from trading_calendar import in_ml_training_window
         _win_ok, _win = in_ml_training_window()
     except Exception:
-        _win_ok, _win = True, "07:00-21:00"
+        _win_ok, _win = False, "training_calendar_unavailable"
     # Planning is read-only and cheap; only actual optimization is windowed.
     if not dry_run and not force and not _win_ok:
         import time as _t
@@ -216,24 +248,35 @@ def run_autonomous_param_training(
 
     selected_strategies = [
         s.strip().lower()
-        for s in (strategies or _csv_env("PARAM_TRAIN_STRATEGIES", "trend,breakout,mean_reversion"))
+        for s in (strategies if strategies is not None else _csv_env("PARAM_TRAIN_STRATEGIES", ",".join(STRATEGY_BACKTESTS)))
         if s.strip().lower() in STRATEGY_BACKTESTS
     ]
     selected_symbols = [
         s.strip().upper()
-        for s in (symbols or _csv_env("PARAM_TRAIN_SYMBOLS", "NIFTY,BANKNIFTY"))
+        for s in (symbols if symbols is not None else _csv_env("PARAM_TRAIN_SYMBOLS", "NIFTY,BANKNIFTY"))
         if s.strip()
     ]
     selected_interval = (interval or os.getenv("PARAM_TRAIN_INTERVAL", "5m")).lower()
-    selected_days = int(days or os.getenv("PARAM_TRAIN_DAYS", "210") or 210)
-    selected_capital = float(capital or os.getenv("PARAM_TRAIN_CAPITAL", "100000") or 100000)
-    run_limit = int(max_runs or os.getenv("PARAM_TRAIN_MAX_RUNS", "3") or 3)
+    if selected_interval not in {"1m", "5m", "15m", "30m", "1h", "1d"}:
+        raise ValueError("unsupported training interval")
+    selected_days = int(days if days is not None else os.getenv("PARAM_TRAIN_DAYS", "400"))
+    selected_capital = float(capital if capital is not None else os.getenv("PARAM_TRAIN_CAPITAL", "500000"))
+    run_limit = int(max_runs if max_runs is not None else os.getenv("PARAM_TRAIN_MAX_RUNS", "3"))
+    grid_budget = int(os.getenv("PARAM_TRAIN_MAX_GRID_COMBINATIONS", "24"))
+    if grid_budget < 1:
+        raise ValueError("PARAM_TRAIN_MAX_GRID_COMBINATIONS must be positive")
+    import math
+    if selected_days <= 0 or not math.isfinite(selected_capital) or selected_capital <= 0 or run_limit < 0:
+        raise ValueError("days and finite capital must be positive; max_runs must be nonnegative")
 
-    planned = [
-        {"symbol": symbol, "strategy": strategy}
+    from autonomous_knowledge import ExperimentMemory
+    memory = ExperimentMemory(os.getenv("AUTONOMOUS_KNOWLEDGE_DB", "autonomous_knowledge.db"))
+    planned = memory.plan([
+        {"symbol": symbol, "strategy": strategy, "interval": (adapter_metadata(strategy) or {}).get("interval", selected_interval)}
         for symbol in selected_symbols
         for strategy in selected_strategies
-    ][: max(0, run_limit)]
+        if not (adapter_metadata(strategy) or {}).get("symbols") or symbol in adapter_metadata(strategy)["symbols"]
+    ], max(0, run_limit))
 
     report: Dict[str, Any] = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
@@ -241,6 +284,7 @@ def run_autonomous_param_training(
         "interval": selected_interval,
         "days": selected_days,
         "capital": selected_capital,
+        "max_grid_combinations": grid_budget,
         "planned": planned,
         "results": [],
         "promoted": [],
@@ -256,98 +300,112 @@ def run_autonomous_param_training(
     for item in planned:
         symbol = item["symbol"]
         strategy = item["strategy"]
+        job_interval = item["interval"]
         grid = _build_default_param_grid(strategy)
         if not grid:
             row = {**item, "status": "skipped", "reason": "no_param_grid"}
-            _log_experiment_row(
-                strategy=strategy,
-                symbol=symbol,
-                timeframe=selected_interval,
-                verdict="SKIPPED_NO_PARAM_GRID",
-            )
+            if write:
+                _log_experiment_row(
+                    strategy=strategy,
+                    symbol=symbol,
+                    timeframe=selected_interval,
+                    verdict="SKIPPED_NO_PARAM_GRID",
+                )
             report["skipped"].append(row)
             report["results"].append(row)
             continue
-        df, data_source = _load_training_data(symbol, selected_interval, selected_days)
+        try:
+            df, data_source = _load_training_data(symbol, job_interval, selected_days)
+        except Exception as exc:
+            row = {**item, "status": "error", "reason": f"data_load_failed: {exc}"}
+            report["skipped"].append(row)
+            report["results"].append(row)
+            continue
         if df is None or len(df) < 100:
             row = {**item, "status": "skipped", "reason": data_source, "bars": 0}
-            _log_experiment_row(
-                strategy=strategy,
-                symbol=symbol,
-                timeframe=selected_interval,
-                verdict="INSUFFICIENT_DATA",
-            )
+            if write:
+                _log_experiment_row(
+                    strategy=strategy,
+                    symbol=symbol,
+                    timeframe=selected_interval,
+                    verdict="INSUFFICIENT_DATA",
+                )
             report["skipped"].append(row)
             report["results"].append(row)
             continue
         mod_name, fn_name = STRATEGY_BACKTESTS[strategy]
         try:
-            backtest_fn = getattr(importlib.import_module(mod_name), fn_name)
+            evidence = memory.assess(item, df)
+            if not evidence["allowed"]:
+                row = {**item, "status": "waiting", "reason": evidence["reason"], "evidence": evidence}
+                report["skipped"].append(row)
+                report["results"].append(row)
+                continue
+            backtest_fn = get_backtest_callable(strategy) if strategy in EXTENDED_BACKTESTS else getattr(importlib.import_module(mod_name), fn_name)
             result = run_validation(
                 strategy_name=strategy,
                 backtest_fn=backtest_fn,
                 full_data=df,
                 param_grid=grid,
                 symbol=symbol,
-                interval_minutes=_interval_minutes(selected_interval),
+                interval_minutes=_interval_minutes(job_interval),
                 initial_capital=selected_capital,
+                max_grid_combinations=grid_budget,
+                record_experiment=write,
             )
             try:
-                save_result(result)
+                if write:
+                    save_result(result)
             except Exception:
                 pass
             params = dict(getattr(result, "best_params", {}) or {})
             metrics = _validation_metrics(result, paper_training_only=(getattr(result, "verdict", "") != "PASS"))
             row = {
                 **item,
-                "status": "validated",
+                "status": "evaluated",
                 "data_source": data_source,
+                "training_capital": selected_capital,
+                "evidence_kind": (adapter_metadata(strategy) or {}).get("evidence_kind", "UNDERLYING_PROXY"),
+                "max_grid_combinations": grid_budget,
                 "bars": int(len(df)),
                 "verdict": getattr(result, "verdict", ""),
                 "best_params": params,
                 "metrics": metrics,
+                "validation_errors": getattr(result, "backtest_errors", []),
+                "evidence": evidence,
+                "promotion_block_reason": "requires_independent_forward_validation",
             }
-            if params and getattr(result, "verdict", "") == "PASS":
-                global_path = _write_param_file(
-                    strategy=strategy,
-                    symbol=None,
-                    params=params,
-                    metrics=metrics,
-                    result=result,
-                )
-                symbol_path = _write_param_file(
-                    strategy=strategy,
-                    symbol=symbol,
-                    params=params,
-                    metrics=metrics,
-                    result=result,
-                )
-                row["promoted_paths"] = [global_path, symbol_path]
-                report["promoted"].append(row)
-            elif params:
+            if params and write:
+                # Rolling historical holdouts overlap across nightly runs. A PASS
+                # is a research candidate, not independent forward confirmation.
                 path = _write_param_file(
                     strategy=strategy,
                     symbol=symbol,
                     params=params,
                     metrics=metrics,
                     result=result,
+                    output_dir=str(Path("parameter_candidates") / evidence["fingerprint"][:16]),
                 )
-                row["paper_only_path"] = path
+                row["candidate_path"] = path
                 report["paper_only"].append(row)
-            else:
+            elif not params:
                 report["skipped"].append({**row, "reason": "no_best_params"})
             report["results"].append(row)
+            if write:
+                memory.record(item, evidence, row)
         except Exception as exc:
             row = {**item, "status": "error", "reason": str(exc)}
-            _log_experiment_row(
-                strategy=strategy,
-                symbol=symbol,
-                timeframe=selected_interval,
-                verdict="ERROR",
-            )
+            if write:
+                _log_experiment_row(
+                    strategy=strategy,
+                    symbol=symbol,
+                    timeframe=selected_interval,
+                    verdict="ERROR",
+                )
             report["skipped"].append(row)
             report["results"].append(row)
 
+    report["ok"] = not any(row.get("status") == "error" for row in report["results"])
     if write:
         Path(REPORT_JSON).write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
     return report

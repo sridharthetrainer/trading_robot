@@ -1,0 +1,64 @@
+{
+  "strategy": "supertrend_mtf",
+  "symbol": "NIFTY",
+  "params": {
+    "st_mult": 3.0,
+    "st_period": 7
+  },
+  "metrics": {
+    "validation_verdict": "INSUFFICIENT_DATA",
+    "paper_training_only": true,
+    "total_trades": 19,
+    "num_trades": 0,
+    "sharpe": -3.0071,
+    "win_rate": 0.4211,
+    "deflated_sharpe": 0.0,
+    "parameter_stability_cv": 1.0,
+    "holdout_pnl": null,
+    "beats_benchmark": false
+  },
+  "validation_result": {
+    "strategy": "supertrend_mtf",
+    "symbol": "NIFTY",
+    "run_date": "2026-10-14",
+    "n_trials": 12,
+    "dev_windows": 1,
+    "dev_avg_sharpe": -3.0071,
+    "dev_avg_pnl": -12621.41,
+    "dev_avg_trades": 19.0,
+    "dev_pct_profitable": 0.0,
+    "deflated_sharpe": 0.0,
+    "min_trade_ok": false,
+    "parameter_stability_cv": 1.0,
+    "stability_ok": false,
+    "holdout_sharpe": null,
+    "holdout_pnl": null,
+    "holdout_trades": null,
+    "holdout_win_rate": null,
+    "verdict": "INSUFFICIENT_DATA",
+    "dev_windows_detail": [
+      {
+        "window_idx": 0,
+        "test_start": "2026-06-17",
+        "test_end": "2026-07-29",
+        "pnl": -12621.41,
+        "num_trades": 19,
+        "win_rate": 0.4211,
+        "sharpe": -3.0071,
+        "max_drawdown": 21122.25,
+        "best_params": {
+          "st_period": 7,
+          "st_mult": 3.0
+        }
+      }
+    ],
+    "best_params": {
+      "st_mult": 3.0,
+      "st_period": 7
+    },
+    "benchmark_buyhold_sharpe": null,
+    "beats_benchmark": false
+  },
+  "generated_at": "2026-10-14T04:40:56+0530",
+  "source": "autonomous_param_trainer"
+}

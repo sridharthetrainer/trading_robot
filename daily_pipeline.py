@@ -37,6 +37,11 @@ logger = logging.getLogger(__name__)
 PIPELINE_LOG = "pipeline_run.json"
 
 
+def _option_report_skip_is_benign(result: Dict[str, Any]) -> bool:
+    """A timer catch-up on a weekend/holiday has no report to send."""
+    return result.get("skipped") == "not_post_market"
+
+
 def _run_step(name: str, fn, *args, **kwargs) -> Dict[str, Any]:
     """Run a pipeline step, catch exceptions, return timing + status dict."""
     t0 = time.time()
@@ -46,6 +51,9 @@ def _run_step(name: str, fn, *args, **kwargs) -> Dict[str, Any]:
     result = None
     try:
         result = fn(*args, **kwargs)
+        if isinstance(result, dict) and result.get("ok") is False and not _option_report_skip_is_benign(result):
+            status = "error"
+            error = str(result.get("error") or result.get("reason") or "step_reported_failure")
     except Exception as exc:
         status = "error"
         error  = str(exc)
@@ -57,6 +65,7 @@ def _run_step(name: str, fn, *args, **kwargs) -> Dict[str, Any]:
         "status":  status,
         "elapsed": elapsed,
         "error":   error,
+        "result": result,
     }
 
 
@@ -130,6 +139,9 @@ def run_pipeline(
             from option_telegram_report import send_post_market_option_report
             result = send_post_market_option_report()
             if not result.get("ok"):
+                if _option_report_skip_is_benign(result):
+                    logger.info("  option_report: skipped (%s)", result["skipped"])
+                    return result
                 raise RuntimeError(result.get("skipped") or "option report send failed")
             logger.info("  option_report: %s", result.get("skipped") or result.get("path"))
             return result
@@ -153,6 +165,16 @@ def run_pipeline(
         }
 
     steps.append(_run_step("candle_coverage_plan", _step_candle_coverage_plan))
+
+    def _step_candle_session_gaps():
+        from candle_session_gap_audit import audit
+        report = audit(write=not dry_run)
+        logger.info("  candle_session_gaps: missing_pairs=%d sessions=%d",
+                    report["missing_pairs"], len(report["missing_sessions"]))
+        return {"missing_pairs": report["missing_pairs"],
+                "missing_sessions": report["missing_sessions"]}
+
+    steps.append(_run_step("candle_session_gap_audit", _step_candle_session_gaps))
 
     # ── Step: Correlation matrix update ──────────────────────────────────────
     # 2026-08-19: run_correlation_update() (idle_engine.py) had zero callers
@@ -192,6 +214,14 @@ def run_pipeline(
     steps.append(_run_step("derive_daily_candles", _step_derive_daily))
 
     # ── Step 6: Guarded strategy parameter trainer ───────────────────────────
+    def _step_system_strategy_research():
+        from system_strategy_research import build_system_research
+        coverage = build_system_research(dry_run=dry_run, write=not dry_run)
+        return {"ok": coverage["ok"], "totals": coverage["totals"],
+                "income_target_supported": coverage["income_target_supported"]}
+
+    steps.append(_run_step("system_strategy_research", _step_system_strategy_research))
+
     def _step_param_training():
         from autonomous_param_trainer import run_autonomous_param_training
         report = run_autonomous_param_training(dry_run=dry_run, write=not dry_run)
@@ -203,6 +233,8 @@ def run_pipeline(
             len(report.get("skipped", []) or []),
         )
         return {
+            "ok": report.get("ok", True),
+            "error": report.get("error"),
             "planned": len(report.get("planned", []) or []),
             "promoted": len(report.get("promoted", []) or []),
             "paper_only": len(report.get("paper_only", []) or []),
@@ -238,7 +270,11 @@ def run_pipeline(
         def _step_ml():
             from post_market_ml import run_pipeline
             result = run_pipeline(dry_run=False)   # was run_post_market (undefined → ImportError); run_pipeline sends telegram internally
-            auc = (result.get("training") or {}).get("cross_symbol", {}).get("cv_auc_mean", 0)
+            auc = float(
+                (result.get("training") or {}).get("cross_symbol", {}).get("cv_auc_mean")
+                or result.get("ml_auc")
+                or 0.0
+            )
             logger.info("  post_market_ml: CV AUC=%.3f", auc)
             return {"cv_auc": auc}
         steps.append(_run_step("post_market_ml", _step_ml))

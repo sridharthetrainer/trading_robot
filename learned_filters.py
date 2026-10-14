@@ -290,7 +290,9 @@ def generate_and_save(
     filters = filters[:MAX_FILTERS]
     boosts  = boosts[:MAX_BOOSTS]
 
-    ml_auc = (training_results.get("cross_symbol") or {}).get("cv_auc_mean", 0)
+    ml_auc = float(
+        (training_results.get("cross_symbol") or {}).get("cv_auc_mean") or 0.0
+    )
 
     cross_result = training_results.get("cross_symbol") or {}
     model_promoted = bool(cross_result.get("promoted", False))

@@ -92,8 +92,8 @@ def _combined_forecast(price: pd.Series):
 
 def backtest_carver_ewmac(symbol: str = "NIFTY", capital: float = CAPITAL,
                            target_risk_pct: float = TARGET_RISK_PCT,
-                           verbose: bool = True) -> Dict[str, Any]:
-    price = _load_daily(symbol)
+                           verbose: bool = True, data=None, close_at_end: bool = False) -> Dict[str, Any]:
+    price = _load_daily(symbol) if data is None else data['Close' if 'Close' in data.columns else 'close'].copy()
     forecast, price_vol = _combined_forecast(price)
     ann_vol_points = price_vol * np.sqrt(252)
 
@@ -123,6 +123,12 @@ def backtest_carver_ewmac(symbol: str = "NIFTY", capital: float = CAPITAL,
                       "cost": cost, "net_pnl": gross - cost})
         prev_pos, prev_price = pos, px
 
+    if close_at_end and rows and prev_pos:
+        close_side = "SELL" if prev_pos > 0 else "BUY"
+        closing_cost = cost_model.single_leg_cost(abs(prev_pos) * prev_price, "FUT", close_side, symbol).total
+        rows[-1]["cost"] += closing_cost
+        rows[-1]["net_pnl"] -= closing_cost
+
     df = pd.DataFrame(rows)
     if df.empty:
         return {"strategy": "carver_ewmac", "error": "no valid days"}
@@ -134,7 +140,7 @@ def backtest_carver_ewmac(symbol: str = "NIFTY", capital: float = CAPITAL,
     sd = float(net.std(ddof=1)) if n > 1 else 0.0
     sharpe = float(mean / sd * np.sqrt(252)) if sd > 0 else 0.0
     win_rate = float((net > 0).mean())
-    equity = np.cumsum(net)
+    equity = np.r_[0., np.cumsum(net)]
     max_dd = float((np.maximum.accumulate(equity) - equity).max())
 
     if verbose:

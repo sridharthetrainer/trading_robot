@@ -26,7 +26,7 @@ def _step(name: str, fn) -> Dict[str, Any]:
     try:
         result = fn()
         return {
-            "ok": True,
+            "ok": result.get("ok", True) is not False if isinstance(result, dict) else True,
             "duration_sec": round(time.time() - started, 3),
             "result": result if isinstance(result, dict) else {"value": result},
         }
@@ -64,8 +64,14 @@ def _top_weight_changes(
 
     changes = []
     for feature in sorted(set(before_w) | set(after_w)):
-        old = float(before_w.get(feature, 1.0) or 1.0)
-        new = float(after_w.get(feature, 1.0) or 1.0)
+        import math
+        try:
+            old = float(before_w.get(feature, 1.0))
+            new = float(after_w.get(feature, 1.0))
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(old) or not math.isfinite(new):
+            continue
         delta = round(new - old, 4)
         if abs(delta) < 0.0001:
             continue
@@ -75,8 +81,8 @@ def _top_weight_changes(
             "after": round(new, 4),
             "delta": delta,
         })
-    promoted = sorted(changes, key=lambda x: x["delta"], reverse=True)[:limit]
-    demoted = sorted(changes, key=lambda x: x["delta"])[:limit]
+    promoted = sorted((x for x in changes if x["delta"] > 0), key=lambda x: x["delta"], reverse=True)[:limit]
+    demoted = sorted((x for x in changes if x["delta"] < 0), key=lambda x: x["delta"])[:limit]
     return {"promoted": promoted, "demoted": demoted}
 
 
@@ -372,7 +378,9 @@ def run_autonomous_learning_cycle(
         from candle_coverage_backfill import _learning_symbols
         from data_quality_watchdog import audit_candle_cache
 
-        audit = audit_candle_cache(symbols=_learning_symbols(None))
+        if dry_run:
+            return {"skipped": True, "reason": "dry_run", "ok": True}
+        audit = audit_candle_cache(symbols=_learning_symbols(None), write=True)
         return {
             "ok": bool(audit.get("ok")),
             "groups": audit.get("total_groups", 0),
@@ -416,7 +424,7 @@ def run_autonomous_learning_cycle(
     def _data_evidence_catalog() -> Dict[str, Any]:
         from data_evidence_catalog import build_evidence_catalog
 
-        result = build_evidence_catalog(write=not dry_run)
+        result = build_evidence_catalog(write=not dry_run, metadata_only=dry_run)
         return {
             "ok": bool(result.get("ok")),
             "databases": result.get("database_count", 0),
@@ -652,6 +660,21 @@ def run_autonomous_learning_cycle(
 
     report["steps"]["quality_gate"] = _step("quality_gate", _quality_gate)
 
+    def _knowledge_memory() -> Dict[str, Any]:
+        import os
+        from autonomous_knowledge import ExperimentMemory
+        return ExperimentMemory(os.getenv("AUTONOMOUS_KNOWLEDGE_DB", "autonomous_knowledge.db")).summary()
+
+    report["steps"]["knowledge_memory"] = _step("knowledge_memory", _knowledge_memory)
+
+    def _system_strategy_research() -> Dict[str, Any]:
+        from system_strategy_research import build_system_research
+        coverage = build_system_research(dry_run=dry_run, write=not dry_run)
+        return {"ok": coverage["ok"], "totals": coverage["totals"],
+                "income_target_supported": coverage["income_target_supported"]}
+
+    report["steps"]["system_strategy_research"] = _step("system_strategy_research", _system_strategy_research)
+
     after_autotune = before_autotune if dry_run else _read_json(AUTOTUNE_FILE)
     report["learning_delta"] = _build_learning_delta(
         before_autotune,
@@ -705,6 +728,8 @@ def render_summary(report: Dict[str, Any]) -> str:
     top_down = ", ".join(f"{x['feature']} {x['before']}->{x['after']}" for x in demoted[:3]) or "none"
     return "\n".join([
         "AUTONOMOUS LEARNING CYCLE",
+        f"strategy coverage={steps.get('system_strategy_research', {}).get('result', {}).get('totals', {})} income target unproven",
+        f"knowledge experiments={steps.get('knowledge_memory', {}).get('result', {}).get('experiments', 0)} staged research / forward validation required",
         f"status={'PASS' if report.get('ok') else 'WARN'} dry_run={bool(report.get('dry_run'))}",
         f"backfill trades={backfill.get('trades_db', 0)} signal_log={backfill.get('signal_log', 0)}",
         (

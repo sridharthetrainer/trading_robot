@@ -49,6 +49,7 @@ from typing import Callable, Dict, Optional
 import requests
 
 logger = logging.getLogger(__name__)
+PROJECT_DIR = Path(__file__).resolve().parent
 _POLL_TIMEOUT = 20  # long-poll seconds
 _POLL_INTERVAL = 2
 
@@ -4252,14 +4253,14 @@ class TelegramCommandHandler:
         try:
             _env = dict(os.environ)
             try:
-                for _el in open("/home/sridhar/Desktop/trading_robot/.env"):
+                for _el in (PROJECT_DIR / ".env").open():
                     _el = _el.strip()
                     if "=" in _el and not _el.startswith("#"):
                         _ek,_,_ev = _el.partition("=")
                         _env[_ek] = _ev
             except Exception: pass
             subprocess.Popen(
-                ["bash", "/home/sridhar/Desktop/trading_robot/do_deploy.sh"],
+                ["bash", str(PROJECT_DIR / "do_deploy.sh")],
                 env=_env, start_new_session=True,
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 close_fds=True

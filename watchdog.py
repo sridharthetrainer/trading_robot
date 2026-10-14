@@ -62,6 +62,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("watchdog")
 _LAST_CRASH_ID = 0
+PROJECT_DIR = Path(__file__).resolve().parent
 
 
 def _persist_crash(reason: str, pid: int = 0, **details) -> int:
@@ -419,7 +420,7 @@ def restart_svc() -> None:
       3. nohup direct launch (last resort — bot won't be systemd-tracked)
     """
     import os, signal
-    bot_dir = "/home/sridhar/Desktop/trading_robot"
+    bot_dir = str(PROJECT_DIR)
     venv_py = (
         f"{bot_dir}/.venv/bin/python3"
         if os.path.exists(f"{bot_dir}/.venv/bin/python3")

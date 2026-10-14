@@ -1,152 +1,250 @@
 {
-  "generated_at": "2026-07-15T19:07:48",
-  "bonferroni_tests": 4,
+  "generated_at": "2026-09-20T17:56:43",
+  "bonferroni_tests": 6,
   "value_factor": "excluded_no_fundamental_data",
   "factors": {
     "momentum": {
       "factor": "momentum",
-      "symbols_in_universe": 29,
-      "rebalance_points": 43,
-      "cutoff_date": "2025-05-06",
+      "symbols_in_universe": 192,
+      "rebalance_points": 40,
+      "cutoff_date": "2025-09-03",
       "long_short": {
         "train": {
-          "n": 29,
-          "mean_monthly_pct": -2.064,
-          "win_rate": 0.276,
-          "t": -1.6,
-          "p": 0.11013
+          "n": 27,
+          "mean_monthly_pct": -0.7578,
+          "return_lcb95_pct": -3.0297,
+          "win_rate": 0.37,
+          "t": -0.55,
+          "p": 0.58319
         },
         "holdout": {
-          "n": 12,
-          "mean_monthly_pct": 0.6916,
-          "win_rate": 0.583,
-          "t": 0.41,
-          "p": 0.6803
+          "n": 11,
+          "mean_monthly_pct": -1.0645,
+          "return_lcb95_pct": -3.1105,
+          "win_rate": 0.364,
+          "t": -0.86,
+          "p": 0.39209
         }
       },
       "long_only_active": {
         "train": {
-          "n": 29,
-          "mean_monthly_pct": -1.0375,
-          "win_rate": 0.241,
-          "t": -1.41,
-          "p": 0.15838
+          "n": 27,
+          "mean_monthly_pct": -0.6728,
+          "return_lcb95_pct": -1.8771,
+          "win_rate": 0.259,
+          "t": -0.92,
+          "p": 0.3581
         },
         "holdout": {
-          "n": 12,
-          "mean_monthly_pct": 0.3433,
-          "win_rate": 0.5,
-          "t": 0.5,
-          "p": 0.61693
+          "n": 11,
+          "mean_monthly_pct": -0.5135,
+          "return_lcb95_pct": -2.2898,
+          "win_rate": 0.364,
+          "t": -0.48,
+          "p": 0.63441
         }
       },
       "verdicts": {
         "long_short": {
           "verdict": "NOISE",
           "train": {
-            "n": 29,
-            "mean_monthly_pct": -2.064,
-            "win_rate": 0.276,
-            "t": -1.6,
-            "p": 0.11013
+            "n": 27,
+            "mean_monthly_pct": -0.7578,
+            "return_lcb95_pct": -3.0297,
+            "win_rate": 0.37,
+            "t": -0.55,
+            "p": 0.58319
           },
           "holdout": {
-            "n": 12,
-            "mean_monthly_pct": 0.6916,
-            "win_rate": 0.583,
-            "t": 0.41,
-            "p": 0.6803
+            "n": 11,
+            "mean_monthly_pct": -1.0645,
+            "return_lcb95_pct": -3.1105,
+            "win_rate": 0.364,
+            "t": -0.86,
+            "p": 0.39209
           }
         },
         "long_only_active": {
           "verdict": "NOISE",
           "train": {
-            "n": 29,
-            "mean_monthly_pct": -1.0375,
-            "win_rate": 0.241,
-            "t": -1.41,
-            "p": 0.15838
+            "n": 27,
+            "mean_monthly_pct": -0.6728,
+            "return_lcb95_pct": -1.8771,
+            "win_rate": 0.259,
+            "t": -0.92,
+            "p": 0.3581
           },
           "holdout": {
-            "n": 12,
-            "mean_monthly_pct": 0.3433,
-            "win_rate": 0.5,
-            "t": 0.5,
-            "p": 0.61693
+            "n": 11,
+            "mean_monthly_pct": -0.5135,
+            "return_lcb95_pct": -2.2898,
+            "win_rate": 0.364,
+            "t": -0.48,
+            "p": 0.63441
           }
         }
       }
     },
     "low_vol": {
       "factor": "low_vol",
-      "symbols_in_universe": 29,
-      "rebalance_points": 43,
-      "cutoff_date": "2025-05-06",
+      "symbols_in_universe": 192,
+      "rebalance_points": 40,
+      "cutoff_date": "2025-09-03",
       "long_short": {
         "train": {
-          "n": 29,
-          "mean_monthly_pct": -1.278,
-          "win_rate": 0.448,
-          "t": -1.05,
-          "p": 0.29272
+          "n": 27,
+          "mean_monthly_pct": -0.9954,
+          "return_lcb95_pct": -2.8971,
+          "win_rate": 0.481,
+          "t": -0.86,
+          "p": 0.38924
         },
         "holdout": {
-          "n": 12,
-          "mean_monthly_pct": -1.88,
-          "win_rate": 0.333,
-          "t": -1.87,
-          "p": 0.06103
+          "n": 11,
+          "mean_monthly_pct": -3.0788,
+          "return_lcb95_pct": -5.2631,
+          "win_rate": 0.273,
+          "t": -2.32,
+          "p": 0.02041
         }
       },
       "long_only_active": {
         "train": {
-          "n": 29,
-          "mean_monthly_pct": 0.1171,
-          "win_rate": 0.586,
-          "t": 0.24,
-          "p": 0.81306
+          "n": 27,
+          "mean_monthly_pct": 0.2662,
+          "return_lcb95_pct": -0.4719,
+          "win_rate": 0.556,
+          "t": 0.59,
+          "p": 0.55293
         },
         "holdout": {
-          "n": 12,
-          "mean_monthly_pct": -0.4171,
-          "win_rate": 0.333,
-          "t": -0.89,
-          "p": 0.37516
+          "n": 11,
+          "mean_monthly_pct": -0.6168,
+          "return_lcb95_pct": -1.5983,
+          "win_rate": 0.273,
+          "t": -1.03,
+          "p": 0.30125
         }
       },
       "verdicts": {
         "long_short": {
           "verdict": "NOISE",
           "train": {
-            "n": 29,
-            "mean_monthly_pct": -1.278,
-            "win_rate": 0.448,
-            "t": -1.05,
-            "p": 0.29272
+            "n": 27,
+            "mean_monthly_pct": -0.9954,
+            "return_lcb95_pct": -2.8971,
+            "win_rate": 0.481,
+            "t": -0.86,
+            "p": 0.38924
           },
           "holdout": {
-            "n": 12,
-            "mean_monthly_pct": -1.88,
-            "win_rate": 0.333,
-            "t": -1.87,
-            "p": 0.06103
+            "n": 11,
+            "mean_monthly_pct": -3.0788,
+            "return_lcb95_pct": -5.2631,
+            "win_rate": 0.273,
+            "t": -2.32,
+            "p": 0.02041
           }
         },
         "long_only_active": {
           "verdict": "NOISE",
           "train": {
-            "n": 29,
-            "mean_monthly_pct": 0.1171,
-            "win_rate": 0.586,
-            "t": 0.24,
-            "p": 0.81306
+            "n": 27,
+            "mean_monthly_pct": 0.2662,
+            "return_lcb95_pct": -0.4719,
+            "win_rate": 0.556,
+            "t": 0.59,
+            "p": 0.55293
           },
           "holdout": {
-            "n": 12,
-            "mean_monthly_pct": -0.4171,
-            "win_rate": 0.333,
-            "t": -0.89,
-            "p": 0.37516
+            "n": 11,
+            "mean_monthly_pct": -0.6168,
+            "return_lcb95_pct": -1.5983,
+            "win_rate": 0.273,
+            "t": -1.03,
+            "p": 0.30125
+          }
+        }
+      }
+    },
+    "52_week_high": {
+      "factor": "52_week_high",
+      "symbols_in_universe": 192,
+      "rebalance_points": 40,
+      "cutoff_date": "2025-09-03",
+      "long_short": {
+        "train": {
+          "n": 27,
+          "mean_monthly_pct": -2.3511,
+          "return_lcb95_pct": -3.8884,
+          "win_rate": 0.259,
+          "t": -2.52,
+          "p": 0.01188
+        },
+        "holdout": {
+          "n": 11,
+          "mean_monthly_pct": -2.2315,
+          "return_lcb95_pct": -5.1791,
+          "win_rate": 0.455,
+          "t": -1.25,
+          "p": 0.21302
+        }
+      },
+      "long_only_active": {
+        "train": {
+          "n": 27,
+          "mean_monthly_pct": -1.4117,
+          "return_lcb95_pct": -2.0858,
+          "win_rate": 0.222,
+          "t": -3.44,
+          "p": 0.00057
+        },
+        "holdout": {
+          "n": 11,
+          "mean_monthly_pct": -1.3363,
+          "return_lcb95_pct": -2.6974,
+          "win_rate": 0.273,
+          "t": -1.62,
+          "p": 0.1063
+        }
+      },
+      "verdicts": {
+        "long_short": {
+          "verdict": "NOISE",
+          "train": {
+            "n": 27,
+            "mean_monthly_pct": -2.3511,
+            "return_lcb95_pct": -3.8884,
+            "win_rate": 0.259,
+            "t": -2.52,
+            "p": 0.01188
+          },
+          "holdout": {
+            "n": 11,
+            "mean_monthly_pct": -2.2315,
+            "return_lcb95_pct": -5.1791,
+            "win_rate": 0.455,
+            "t": -1.25,
+            "p": 0.21302
+          }
+        },
+        "long_only_active": {
+          "verdict": "HURTS",
+          "train": {
+            "n": 27,
+            "mean_monthly_pct": -1.4117,
+            "return_lcb95_pct": -2.0858,
+            "win_rate": 0.222,
+            "t": -3.44,
+            "p": 0.00057
+          },
+          "holdout": {
+            "n": 11,
+            "mean_monthly_pct": -1.3363,
+            "return_lcb95_pct": -2.6974,
+            "win_rate": 0.273,
+            "t": -1.62,
+            "p": 0.1063
           }
         }
       }

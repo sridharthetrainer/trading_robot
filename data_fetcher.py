@@ -1217,6 +1217,11 @@ class DataFetcher:
             if not hasattr(self, "_sc_obj") or self._sc_obj is None or _sc_age > 21600:
                 try:
                     _sc = _SC(api_key=_cfg.API_KEY)
+                    # Coordinate account-wide logins with the live bot and
+                    # trackers. Generate TOTP only after any governor wait.
+                    from request_governor import acquire as _acquire_login_slot
+                    from angel import RECONNECT_MIN_INTERVAL as _login_interval
+                    _acquire_login_slot("angel_login", _login_interval)
                     _totp = _otp.TOTP(_cfg.TOTP_SECRET).now()
                     _r = _sc.generateSession(_cfg.CLIENT_ID, _cfg.PASSWORD, _totp)
                     if _r.get("status") == True:

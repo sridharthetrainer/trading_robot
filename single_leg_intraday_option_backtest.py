@@ -67,6 +67,10 @@ class Trade:
 
 
 def load_nifty_candles(symbol: str = "NIFTY", interval: str = "5m", db: str = CANDLES_DB) -> pd.DataFrame:
+    from research_backtest_adapters import contextual_candles
+    supplied = contextual_candles(symbol, interval)
+    if supplied is not None:
+        return supplied
     conn = sqlite3.connect(db)
     try:
         df = pd.read_sql(

@@ -1,0 +1,76 @@
+{
+  "strategy": "cpr",
+  "symbol": "NIFTY",
+  "params": {
+    "exit_on_opposite": true,
+    "invert_signals": true,
+    "narrow_cpr_pct": 0.4,
+    "require_narrow": true,
+    "stop_atr_mult": 1.5,
+    "trail_atr_mult": 1.0
+  },
+  "metrics": {
+    "validation_verdict": "INSUFFICIENT_DATA",
+    "paper_training_only": true,
+    "total_trades": 45,
+    "num_trades": 0,
+    "sharpe": -10.8313,
+    "win_rate": 0.17777777777777778,
+    "deflated_sharpe": 0.0,
+    "parameter_stability_cv": 1.0,
+    "holdout_pnl": null,
+    "beats_benchmark": false
+  },
+  "validation_result": {
+    "strategy": "cpr",
+    "symbol": "NIFTY",
+    "run_date": "2026-10-14",
+    "n_trials": 24,
+    "dev_windows": 1,
+    "dev_avg_sharpe": -10.8313,
+    "dev_avg_pnl": -42473.55,
+    "dev_avg_trades": 45.0,
+    "dev_pct_profitable": 0.0,
+    "deflated_sharpe": 0.0,
+    "min_trade_ok": true,
+    "parameter_stability_cv": 1.0,
+    "stability_ok": false,
+    "holdout_sharpe": null,
+    "holdout_pnl": null,
+    "holdout_trades": null,
+    "holdout_win_rate": null,
+    "verdict": "INSUFFICIENT_DATA",
+    "dev_windows_detail": [
+      {
+        "window_idx": 0,
+        "test_start": "2026-06-17",
+        "test_end": "2026-07-29",
+        "pnl": -42473.55368613542,
+        "num_trades": 45,
+        "win_rate": 0.17777777777777778,
+        "sharpe": -10.8313,
+        "max_drawdown": 42473.55368613551,
+        "best_params": {
+          "stop_atr_mult": 1.5,
+          "trail_atr_mult": 1.0,
+          "require_narrow": true,
+          "narrow_cpr_pct": 0.4,
+          "exit_on_opposite": true,
+          "invert_signals": true
+        }
+      }
+    ],
+    "best_params": {
+      "exit_on_opposite": true,
+      "invert_signals": true,
+      "narrow_cpr_pct": 0.4,
+      "require_narrow": true,
+      "stop_atr_mult": 1.5,
+      "trail_atr_mult": 1.0
+    },
+    "benchmark_buyhold_sharpe": null,
+    "beats_benchmark": false
+  },
+  "generated_at": "2026-10-14T04:40:23+0530",
+  "source": "autonomous_param_trainer"
+}

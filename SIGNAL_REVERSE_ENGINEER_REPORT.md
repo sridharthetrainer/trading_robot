@@ -1,62 +1,56 @@
 # Signal Reverse Engineering Report
 
-- Generated: `2026-09-05T11:39:12+0530`
+- Generated: `2026-10-14T06:53:53+0530`
 - Status: `READY`
-- Rows: `35520`
-- Labelled rows: `35040`
-- Pending rows: `413`
-- Labelled pct: `0.9865`
-- Overall target/loss/timeout: `4681` / `7768` / `22591`
-- Overall average return pct: `-0.0159`
+- Rows: `11975`
+- Labelled rows: `11969`
+- Pending rows: `6`
+- Labelled pct: `0.9995`
+- Overall target/loss/timeout: `771` / `1503` / `9695`
+- Overall average return pct: `-0.0`
 
 ## Best Context Edges
 
-- `strategy=PIVOT_SCALPING` n `10` target_rate `1.0` avg_return `2.6354`
-- `regime=UPTREND` n `10` target_rate `1.0` avg_return `2.6354`
-- `htf_bias=blank` n `10` target_rate `1.0` avg_return `2.6354`
-- `confluence=HIGH` n `10` target_rate `1.0` avg_return `2.6354`
-- `expiry_regime=0DTE_SCALPING` n `10` target_rate `1.0` avg_return `2.6354`
-- `confluence=WEAK` n `64` target_rate `0.1875` avg_return `0.5023`
-- `strategy=chart_pattern_falling_wedge` n `67` target_rate `0.1194` avg_return `0.3785`
-- `strategy=awesome_osc` n `15` target_rate `0.2` avg_return `0.3576`
-- `strategy=candlestick_three_river_evening_star` n `58` target_rate `0.1724` avg_return `0.3513`
-- `strategy=candlestick_bullish_separating_lines` n `37` target_rate `0.1892` avg_return `0.3137`
-- `strategy=candlestick_ladder_bottom` n `23` target_rate `0.087` avg_return `0.2574`
-- `strategy=vwap_reversion` n `81` target_rate `0.1975` avg_return `0.2451`
-- `strategy=vwap_bands` n `50` target_rate `0.36` avg_return `0.216`
-- `confluence=SHADOW` n `363` target_rate `0.5592` avg_return `0.202`
-- `strategy=chart_pattern_bull_flag` n `16` target_rate `0.1875` avg_return `0.1244`
+- `confluence=SINGLE` n `10` target_rate `0.3` avg_return `1.1925`
+- `strategy=chart_pattern_bull_flag` n `11` target_rate `0.4545` avg_return `0.6957`
+- `strategy=candlestick_three_river_evening_star` n `36` target_rate `0.2222` avg_return `0.6854`
+- `strategy=candlestick_bullish_separating_lines` n `28` target_rate `0.2857` avg_return `0.5056`
+- `confluence=WEAK` n `93` target_rate `0.129` avg_return `0.4`
+- `strategy=candlestick_spinning_top_black` n `56` target_rate `0.1964` avg_return `0.3498`
+- `strategy=candlestick_tweezer_top` n `28` target_rate `0.1786` avg_return `0.3142`
+- `strategy=oops` n `21` target_rate `0.0952` avg_return `0.262`
+- `strategy=candlestick_bullish_marubozu` n `59` target_rate `0.1017` avg_return `0.2461`
+- `strategy=uo_divergence` n `17` target_rate `0.1765` avg_return `0.2188`
+- `confluence=MEDIUM` n `268` target_rate `0.0821` avg_return `0.1572`
+- `strategy=candlestick_dark_cloud_cover` n `13` target_rate `0.0` avg_return `0.1524`
+- `strategy=chart_pattern_rectangle` n `15` target_rate `0.1333` avg_return `0.1484`
+- `strategy=candlestick_fred_tam_white_inside_out` n `82` target_rate `0.0854` avg_return `0.1385`
+- `strategy=anchored_vwap` n `34` target_rate `0.0294` avg_return `0.123`
 
 ## Feature Lifts
 
-- `pivot_boss_mod` positive_vs_silent lift `0.2222`
-- `pivot_boss_mod` negative_vs_silent lift `0.2156`
-- `news_mod` positive_vs_silent lift `0.1828`
-- `market_quality_mod` negative_vs_silent lift `0.1583`
-- `mtf_pivot_mod` negative_vs_silent lift `0.149`
-- `weinstein_mod` negative_vs_silent lift `0.0683`
-- `structure_mod` positive_vs_silent lift `0.0652`
-- `structure_mod` negative_vs_silent lift `0.0648`
-- `candidate_quality_mod` negative_vs_silent lift `0.0416`
-- `sr_level_mod` negative_vs_silent lift `0.0333`
-- `oi_mod` negative_vs_silent lift `0.0258`
-- `expiry_mod` negative_vs_silent lift `0.0161`
-- `sip_boost` positive_vs_silent lift `0.0119`
-- `cross_asset_mod` positive_vs_silent lift `0.0025`
-- `cross_asset_mod` negative_vs_silent lift `0.0006`
+- `pivot_boss_mod` negative_vs_silent lift `1.0184`
+- `pivot_boss_mod` positive_vs_silent lift `1.0036`
+- `market_quality_mod` negative_vs_silent lift `0.1905`
+- `news_mod` positive_vs_silent lift `0.1572`
+- `mtf_pivot_mod` negative_vs_silent lift `0.1057`
+- `sip_boost` positive_vs_silent lift `0.0912`
+- `candidate_quality_mod` negative_vs_silent lift `0.0504`
+- `structure_mod` positive_vs_silent lift `0.0491`
+- `sr_level_mod` negative_vs_silent lift `0.0467`
+- `ai_score` positive_vs_silent lift `0.042`
+- `expiry_mod` positive_vs_silent lift `0.0403`
+- `cross_asset_mod` positive_vs_silent lift `0.027`
+- `oi_mod` negative_vs_silent lift `0.0256`
+- `structure_mod` negative_vs_silent lift `0.0211`
+- `expiry_mod` negative_vs_silent lift `0.0083`
 
 ## Reverse Shadow A/B (All Signals)
 
-- Scope `all_generated_labelled_signals`; signals `35037`; days `38`; live reversal `BLOCKED`
-- `candlestick_bearish_marubozu` SHADOW_COLLECTING train/test `107/43` reverse OOS `0.0803%` positive test days `0.2857`
+- Scope `all_generated_labelled_signals`; signals `11969`; days `31`; live reversal `BLOCKED`
+- `failed_bear_breakout` SHADOW_COLLECTING train/test `540/62` reverse OOS `0.1762%` positive test days `0.5`
 
 ## Pending Signal Profile
 
-- `missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `159`
-- `edge_negative_edge,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `116`
-- `validation_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `67`
-- `edge_insufficient_data,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `52`
-- `missing_rigorous_validation,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `5`
-- `edge_negative_edge,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `5`
-- `strategy_missing_from_live_eligibility_manifest,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `5`
-- `edge_insufficient_data,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `4`
+- `missing_rigorous_validation,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `4`
+- `missing_rigorous_validation,score_below_live_min,ai_unvalidated_rule_fallback,filter_score_below_live_min` count `2`

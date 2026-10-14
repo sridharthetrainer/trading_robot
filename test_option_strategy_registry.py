@@ -31,15 +31,15 @@ def test_activation_matrix_matches_spec():
     assert reg.get_strategy("D5").risk_profile == "not_implemented"
 
 
-def test_only_c1_c3_and_d1_are_implemented_this_pass():
-    assert reg.implemented_ids() == ["C1", "C3", "D1"]
+def test_all_ids_have_logic_with_new_hypotheses_explicitly_research_only():
+    assert set(reg.implemented_ids()) == set(_EXPECTED_IDS)
     for strategy_def in reg.OPTION_STRATEGY_CATALOG:
         if strategy_def.id in ("C1", "C3", "D1"):
             assert strategy_def.logic_status == "IMPLEMENTED"
             assert strategy_def.evaluate_fn is not None
         else:
-            assert strategy_def.logic_status == "PLACEHOLDER"
-            assert strategy_def.evaluate_fn is None
+            assert strategy_def.logic_status == "RESEARCH_IMPLEMENTED"
+            assert strategy_def.evaluate_fn is not None
 
 
 class _RaisingRecorder:
@@ -55,7 +55,7 @@ def test_placeholder_strategies_are_inert(monkeypatch):
     fake = _RaisingRecorder()
     monkeypatch.setattr("option_decision_journal.record_option_decision", fake)
     for strategy_def in reg.OPTION_STRATEGY_CATALOG:
-        if strategy_def.logic_status == "IMPLEMENTED":
+        if strategy_def.evaluate_fn is not None:
             continue
         result = reg._placeholder_result(strategy_def, "NIFTY")
         assert result["status"] == "not_active"

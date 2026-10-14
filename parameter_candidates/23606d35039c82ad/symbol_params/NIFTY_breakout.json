@@ -1,0 +1,73 @@
+{
+  "strategy": "breakout",
+  "symbol": "NIFTY",
+  "params": {
+    "breakout_buffer_atr": 0.0,
+    "channel_period": 5,
+    "min_body_atr": 0.0,
+    "stop_atr_mult": 1.5,
+    "trail_atr_mult": 1.0
+  },
+  "metrics": {
+    "validation_verdict": "INSUFFICIENT_DATA",
+    "paper_training_only": true,
+    "total_trades": 216,
+    "num_trades": 0,
+    "sharpe": 2.1447,
+    "win_rate": 0.3611111111111111,
+    "deflated_sharpe": 0.9084,
+    "parameter_stability_cv": 1.0,
+    "holdout_pnl": null,
+    "beats_benchmark": false
+  },
+  "validation_result": {
+    "strategy": "breakout",
+    "symbol": "NIFTY",
+    "run_date": "2026-10-14",
+    "n_trials": 24,
+    "dev_windows": 1,
+    "dev_avg_sharpe": 2.1447,
+    "dev_avg_pnl": 29911.18,
+    "dev_avg_trades": 216.0,
+    "dev_pct_profitable": 1.0,
+    "deflated_sharpe": 0.9084,
+    "min_trade_ok": true,
+    "parameter_stability_cv": 1.0,
+    "stability_ok": false,
+    "holdout_sharpe": null,
+    "holdout_pnl": null,
+    "holdout_trades": null,
+    "holdout_win_rate": null,
+    "verdict": "INSUFFICIENT_DATA",
+    "dev_windows_detail": [
+      {
+        "window_idx": 0,
+        "test_start": "2026-06-17",
+        "test_end": "2026-07-29",
+        "pnl": 29911.181271346726,
+        "num_trades": 216,
+        "win_rate": 0.3611111111111111,
+        "sharpe": 2.144672136495315,
+        "max_drawdown": 32526.58152308024,
+        "best_params": {
+          "channel_period": 5,
+          "stop_atr_mult": 1.5,
+          "trail_atr_mult": 1.0,
+          "breakout_buffer_atr": 0.0,
+          "min_body_atr": 0.0
+        }
+      }
+    ],
+    "best_params": {
+      "breakout_buffer_atr": 0.0,
+      "channel_period": 5,
+      "min_body_atr": 0.0,
+      "stop_atr_mult": 1.5,
+      "trail_atr_mult": 1.0
+    },
+    "benchmark_buyhold_sharpe": null,
+    "beats_benchmark": false
+  },
+  "generated_at": "2026-10-14T04:39:57+0530",
+  "source": "autonomous_param_trainer"
+}

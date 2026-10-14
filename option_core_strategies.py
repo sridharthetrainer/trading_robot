@@ -23,13 +23,15 @@ asserts or implies these numbers are profitable.
 from __future__ import annotations
 
 import logging
+import math
 import sqlite3
 import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Any, Dict, List, Optional
 
 from greeks_live import compute_greeks
-from option_quality import extract_chain_rows, extract_spot, chain_age_sec
+from option_quality import extract_chain_rows, extract_spot, chain_age_sec, filter_expiry_rows, normalize_expiry
 import option_decision_journal as odj
 
 logger = logging.getLogger(__name__)
@@ -55,29 +57,33 @@ def _leg_quote(rows: List[Dict[str, Any]], strike: float, option_type: str) -> D
     sub-dicts, matching hero_zero_strategy.py's own _leg_quote/_chain_rows
     convention -- this is the shape option_data actually carries in this
     pipeline (market_context_builder.build_market_context wraps raw_json
-    ['records']). Deliberately NOT option_quality.extract_contract_liquidity(),
-    which assumes a flat CE_lastPrice-keyed row shape used by a different
-    caller (option_multistrike_signals' own per-strike scan), not this one."""
+    ['records']). This reader also supplies IV and signed OI changes needed
+    by the catalog's delta selection and evidence metadata."""
     for row in rows:
         try:
-            if abs(float(row.get("strikePrice", -1) or -1) - float(strike)) > 1e-6:
+            row_strike = float(row.get("strikePrice", -1) or -1)
+            if not math.isfinite(row_strike) or abs(row_strike - float(strike)) > 1e-6:
                 continue
         except Exception:
             continue
         leg = row.get(option_type, {}) or {}
+        if not isinstance(leg, dict):
+            continue
 
         def _f(*keys: str) -> float:
             for k in keys:
                 v = leg.get(k)
                 if v is not None:
                     try:
-                        return float(v)
+                        parsed = float(v)
+                        if math.isfinite(parsed):
+                            return parsed
                     except (TypeError, ValueError):
                         logger.debug("non-numeric chain field %s=%r", k, v)
             return 0.0
 
         bid, ask = _f("bidprice", "bidPrice", "bestBid"), _f("askPrice", "askprice", "bestAsk")
-        spread_pct = (ask - bid) / ((ask + bid) / 2.0) if (bid > 0 and ask >= bid and (ask + bid) > 0) else 0.0
+        spread_pct = (ask - bid) / ((ask + bid) / 2.0) if (bid > 0 and ask >= bid and (ask + bid) > 0) else float("inf")
         oi = _f("openInterest", "oi")
         oi_chg = _f("changeinOpenInterest", "changeInOpenInterest", "chg_oi")
         return {
@@ -92,7 +98,7 @@ def _leg_quote(rows: List[Dict[str, Any]], strike: float, option_type: str) -> D
         }
     return {
         "last_price": 0.0, "bid": 0.0, "ask": 0.0, "oi": 0.0,
-        "oi_change": 0.0, "volume": 0.0, "iv": 0.0, "spread_pct": 0.0,
+        "oi_change": 0.0, "volume": 0.0, "iv": 0.0, "spread_pct": float("inf"),
     }
 
 
@@ -121,13 +127,17 @@ def _strikes_near(spot: float, gap: int, steps: int) -> List[float]:
     return [center + i * gap for i in range(-steps, steps + 1)]
 
 
-def _dte_years(regime: Dict[str, Any]) -> float:
-    dte = regime.get("days_to_expiry", 5) if isinstance(regime, dict) else 5
-    if not isinstance(dte, (int, float)) or dte < 0:
-        dte = 5
-    # Floored at 1 day: compute_greeks requires T>0, and a 0DTE day's true
-    # intraday T (a few hours) is a further refinement not attempted here.
-    return max(int(dte), 1) / 365.0
+def _dte_years(regime: Dict[str, Any], now: Optional[datetime] = None) -> float:
+    dte = float(regime.get("days_to_expiry", -1))
+    if not math.isfinite(dte) or dte < 0:
+        raise ValueError("expiry unavailable or expired")
+    if dte == 0:
+        now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+        if now.tzinfo is not None:
+            now = now.astimezone(ZoneInfo("Asia/Kolkata"))
+        close = now.replace(hour=15, minute=30, second=0, microsecond=0)
+        return max((close - now).total_seconds(), 1.0) / (365.0 * 86400.0)
+    return float(dte) / 365.0
 
 
 def _delta_of(rows: List[Dict[str, Any]], strike: float, option_type: str,
@@ -167,7 +177,7 @@ def _select_delta_strike(rows: List[Dict[str, Any]], spot: float, gap: int, targ
         if q["last_price"] <= 0:
             continue
         delta = abs(_delta_of(rows, strike, option_type, spot, t_years))
-        if delta <= target_delta:
+        if 0 < delta <= target_delta:
             return {"strike": strike, "quote": q, "delta": delta}
     return None
 
@@ -188,12 +198,12 @@ def _persist_shadow_legs(conn: sqlite3.Connection, legs: List[Dict[str, Any]], *
             """INSERT OR REPLACE INTO option_strike_signals
                (ts, snapshot_time, underlying, expiry, strike, option_type, flow, signal,
                 direction, score, tradable, price, reason, source, strategy, combo_id, side,
-                volume, spread_pct)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                volume, spread_pct, leg_ratio)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (ts, snapshot_time, symbol.upper(), expiry, float(leg["strike"]), leg["option_type"],
              "SHADOW_STRATEGY", "SHADOW_ENTRY", "NEUTRAL", 0.0, 0, float(leg.get("price", 0.0) or 0.0),
-             f"shadow_{strategy}", "shadow_catalog", strategy, combo_id, side,
-             float(leg.get("volume", 0.0) or 0.0), float(leg.get("spread_pct", 0.0) or 0.0)),
+             f"shadow_{strategy}", "shadow_catalog", strategy, combo_id, leg.get("side", side),
+             float(leg.get("volume", 0.0) or 0.0), float(leg.get("spread_pct", 0.0) or 0.0), int(leg.get("ratio", 1))),
         )
         n += 1
     conn.commit()
@@ -202,6 +212,39 @@ def _persist_shadow_legs(conn: sqlite3.Connection, legs: List[Dict[str, Any]], *
 
 def _get_conn(conn: Optional[sqlite3.Connection]) -> sqlite3.Connection:
     return conn if conn is not None else sqlite3.connect(SNAPSHOT_DB)
+
+
+def _expiry_known(regime: Dict[str, Any]) -> bool:
+    try:
+        dte = float(regime.get("days_to_expiry", -1))
+        return math.isfinite(dte) and dte >= 0 and bool(normalize_expiry(regime.get("next_expiry")))
+    except (TypeError, ValueError):
+        return False
+
+
+def _iv_percentile(manager: Any, symbol: str) -> Optional[float]:
+    if manager is None or not hasattr(manager, "get_iv_percentile"):
+        return None
+    # The production manager returns a neutral 50 for insufficient history.
+    # That sentinel would incorrectly qualify a short-volatility entry.
+    tracker = getattr(manager, "iv_tracker", None)
+    if tracker is not None and hasattr(tracker, "_history"):
+        history = tracker._history.get(symbol.upper(), [])
+        usable = []
+        for row in history:
+            try:
+                value = float(row.get("iv", 0))
+                if math.isfinite(value) and value > 0:
+                    usable.append(value)
+            except (TypeError, ValueError):
+                continue
+        if len(usable) < 20:
+            return None
+    try:
+        value = float(manager.get_iv_percentile(symbol))
+        return value if math.isfinite(value) and 0 <= value <= 100 else None
+    except Exception:
+        return None
 
 
 # ── C1: 09:20 Short Straddle ────────────────────────────────────────────────
@@ -213,7 +256,7 @@ def evaluate_c1_short_straddle(symbol: str, df=None, df_htf=None, option_data=No
     strategy_id = "C1"
     regime = regime or {}
 
-    rows = extract_chain_rows(option_data)
+    rows = filter_expiry_rows(extract_chain_rows(option_data), (regime or {}).get("next_expiry", ""))
     spot = extract_spot(option_data)
     age = chain_age_sec(option_data)
 
@@ -225,20 +268,33 @@ def evaluate_c1_short_straddle(symbol: str, df=None, df_htf=None, option_data=No
 
     if not rows or spot <= 0:
         return _blocked("no_chain_data")
-    if age is not None and age > _param(strategy_id, "max_chain_age_sec", 180):
+    if age is None:
+        return _blocked("chain_timestamp_missing")
+    if age > _param(strategy_id, "max_chain_age_sec", 180):
         return _blocked("stale_chain")
+    if not _expiry_known(regime):
+        return _blocked("expiry_unavailable_or_expired")
+    if regime.get("primary", "UNKNOWN") == "UNKNOWN":
+        return _blocked("regime_unavailable")
 
     # Regime gate (spec: range-bound, low VIX; skip if trending, gapped, or
     # VIX itself is elevated -- see option_strategy_params.json's C1 entry
     # for the exact thresholds this is reading).
     is_nifty = symbol.upper() == "NIFTY"
     vix_max = _param(strategy_id, "vix_max_nifty" if is_nifty else "vix_max_banknifty", 12 if is_nifty else 15)
-    if float(regime.get("vix", 15.0)) > float(vix_max):
+    vix = float(regime.get("vix", 15.0))
+    if not math.isfinite(vix) or vix <= 0 or vix > float(vix_max):
         return _blocked("vix_too_high_for_theta")
     if regime.get("primary") == "STRONG_TREND":
         return _blocked("regime_strong_trend")
     if regime.get("gap"):
         return _blocked("gap_too_large")
+    if regime.get("event"):
+        return _blocked("event_risk_for_theta")
+    if regime.get("adx") is not None:
+        adx = float(regime["adx"])
+        if not math.isfinite(adx) or adx > float(_param(strategy_id, "skip_if_adx_above", 25)):
+            return _blocked("adx_too_high_for_theta")
 
     gap_pts = _strike_gap(symbol)
     picked = _select_synthetic_atm(rows, spot, gap_pts)
@@ -246,7 +302,7 @@ def evaluate_c1_short_straddle(symbol: str, df=None, df_htf=None, option_data=No
         return _blocked("no_valid_synthetic_atm_strike")
 
     strike, ce, pe = picked["strike"], picked["ce"], picked["pe"]
-    t_years = _dte_years(regime)
+    t_years = _dte_years(regime, kw.get("now"))
     ce_delta = _delta_of(rows, strike, "CE", spot, t_years)
     pe_delta = _delta_of(rows, strike, "PE", spot, t_years)
     # A short structure receives the executable bid, never the optimistic LTP.
@@ -346,12 +402,13 @@ def _safe_param(key: str, default: float) -> float:
 
 def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
                              regime: Optional[Dict[str, Any]] = None,
-                             conn: Optional[sqlite3.Connection] = None, **kw) -> Dict[str, Any]:
+                             conn: Optional[sqlite3.Connection] = None,
+                             gap_risk_manager: Any = None, **kw) -> Dict[str, Any]:
     from option_strategy_registry import _param
     strategy_id = "C3"
     regime = regime or {}
 
-    rows = extract_chain_rows(option_data)
+    rows = filter_expiry_rows(extract_chain_rows(option_data), (regime or {}).get("next_expiry", ""))
     spot = extract_spot(option_data)
     age = chain_age_sec(option_data)
 
@@ -363,22 +420,30 @@ def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
 
     if not rows or spot <= 0:
         return _blocked("no_chain_data")
-    if age is not None and age > _param(strategy_id, "max_chain_age_sec", 180):
+    if age is None:
+        return _blocked("chain_timestamp_missing")
+    if age > _param(strategy_id, "max_chain_age_sec", 180):
         return _blocked("stale_chain")
+    if not _expiry_known(regime):
+        return _blocked("expiry_unavailable_or_expired")
+    if regime.get("primary", "UNKNOWN") == "UNKNOWN":
+        return _blocked("regime_unavailable")
 
-    # Regime gate: range-bound preferred; still evaluated on MILD_TREND
-    # given the defined-risk wings (per spec's own framing) but not on a
-    # confirmed STRONG_TREND or gap day. IVP gating from the spec (50-80)
-    # is not applied here -- this repo has no IV-percentile calculator
-    # surfaced to this call path yet; noted as a known gap, not silently
-    # assumed to pass.
+    # Defined-risk wings do not remove directional or event exposure.
     if regime.get("primary") == "STRONG_TREND":
         return _blocked("regime_strong_trend")
     if regime.get("gap"):
         return _blocked("gap_too_large")
+    if regime.get("event"):
+        return _blocked("event_risk_for_theta")
+    ivp = _iv_percentile(gap_risk_manager, symbol)
+    if ivp is None:
+        return _blocked("ivp_unavailable_fail_closed")
+    if not float(_param(strategy_id, "ivp_min", 50)) <= ivp <= float(_param(strategy_id, "ivp_max", 80)):
+        return _blocked("ivp_out_of_target_band")
 
     gap_pts = _strike_gap(symbol)
-    t_years = _dte_years(regime)
+    t_years = _dte_years(regime, kw.get("now"))
     target_delta = float(_param(strategy_id, "short_delta_target", 0.16))
 
     short_ce = _select_delta_strike(rows, spot, gap_pts, target_delta, "CE", t_years)
@@ -389,14 +454,31 @@ def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
     is_nifty = symbol.upper() == "NIFTY"
     wing_key = "wing_width_pts_nifty" if is_nifty else "wing_width_pts_banknifty"
     wing_default = [100, 150] if is_nifty else [400, 500]
-    wing_width = float(_param(strategy_id, wing_key, wing_default)[0])
-
-    long_ce_strike = short_ce["strike"] + wing_width
-    long_pe_strike = short_pe["strike"] - wing_width
-    long_ce = _leg_quote(rows, long_ce_strike, "CE")
-    long_pe = _leg_quote(rows, long_pe_strike, "PE")
-    if long_ce["last_price"] <= 0 or long_pe["last_price"] <= 0:
+    widths = _param(strategy_id, wing_key, wing_default)
+    picked_wings = None
+    # Try the configured widths in order. A missing first hedge must not
+    # produce an unhedged position or hide a usable configured alternative.
+    for candidate in widths:
+        try:
+            width = float(candidate)
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(width) or width <= 0:
+            continue
+        ce_strike, pe_strike = short_ce["strike"] + width, short_pe["strike"] - width
+        ce_wing, pe_wing = _leg_quote(rows, ce_strike, "CE"), _leg_quote(rows, pe_strike, "PE")
+        if any(q["last_price"] <= 0 or q["volume"] <= 0 or q["spread_pct"] > 0.05
+               for q in (ce_wing, pe_wing)):
+            continue
+        credit = (short_ce["quote"]["bid"] - ce_wing["ask"]
+                  + short_pe["quote"]["bid"] - pe_wing["ask"])
+        if not 0 < credit < width:
+            continue
+        picked_wings = (width, ce_strike, pe_strike, ce_wing, pe_wing)
+        break
+    if picked_wings is None:
         return _blocked("no_liquid_wing_strike")
+    wing_width, long_ce_strike, long_pe_strike, long_ce, long_pe = picked_wings
 
     if (
         short_ce["quote"].get("bid", 0) <= 0
@@ -446,6 +528,7 @@ def evaluate_c3_iron_condor(symbol: str, df=None, df_htf=None, option_data=None,
         },
         metadata={
             "regime": regime,
+            "ivp": ivp,
             "sl_desc": _param(strategy_id, "sl_desc", "2x credit"),
             "target_desc": _param(strategy_id, "target_desc", "50% credit"),
             "risk_pct_capital": _param(strategy_id, "risk_pct_capital", 1.0),
@@ -553,7 +636,7 @@ def evaluate_d1_pre_event_strangle(symbol: str, df=None, df_htf=None, option_dat
     strategy_id = "D1"
     regime = regime or {}
 
-    rows = extract_chain_rows(option_data)
+    rows = filter_expiry_rows(extract_chain_rows(option_data), (regime or {}).get("next_expiry", ""))
     spot = extract_spot(option_data)
     age = chain_age_sec(option_data)
 
@@ -565,8 +648,12 @@ def evaluate_d1_pre_event_strangle(symbol: str, df=None, df_htf=None, option_dat
 
     if not rows or spot <= 0:
         return _blocked("no_chain_data")
-    if age is not None and age > _param(strategy_id, "max_chain_age_sec", 180):
+    if age is None:
+        return _blocked("chain_timestamp_missing")
+    if age > _param(strategy_id, "max_chain_age_sec", 180):
         return _blocked("stale_chain")
+    if not _expiry_known(regime):
+        return _blocked("expiry_unavailable_or_expired")
 
     # Event-day gate (beyond entry_window_ok()'s pure clock-time check).
     todays_events = _todays_high_impact_events()
@@ -581,7 +668,7 @@ def evaluate_d1_pre_event_strangle(symbol: str, df=None, df_htf=None, option_dat
         return _blocked("ivp_unavailable_fail_closed")
     ivp_max = float(_param(strategy_id, "ivp_max", 35))
     try:
-        ivp = float(gap_risk_manager.get_iv_percentile(symbol) or 0.0)
+        ivp = float(gap_risk_manager.get_iv_percentile(symbol))
     except Exception as exc:
         logger.debug("D1 get_iv_percentile(%s): %s", symbol, exc)
         return _blocked("ivp_unavailable_fail_closed")
@@ -593,9 +680,11 @@ def evaluate_d1_pre_event_strangle(symbol: str, df=None, df_htf=None, option_dat
     # separate sentinel check.
     if ivp > ivp_max:
         return _blocked("ivp_too_high")
+    if not math.isfinite(ivp) or not 0 <= ivp <= 100:
+        return _blocked("ivp_unavailable_fail_closed")
 
     gap_pts = _strike_gap(symbol)
-    t_years = _dte_years(regime)
+    t_years = _dte_years(regime, kw.get("now"))
     delta_min = float(_param(strategy_id, "delta_min", 0.30))
     delta_max = float(_param(strategy_id, "delta_max", 0.35))
 
@@ -607,14 +696,20 @@ def evaluate_d1_pre_event_strangle(symbol: str, df=None, df_htf=None, option_dat
         return _blocked("delta_out_of_target_band")
 
     ce_q, pe_q = ce_pick["quote"], pe_pick["quote"]
-    net_debit = round(ce_q["last_price"] + pe_q["last_price"], 2)
+    if any(q["bid"] <= 0 or q["ask"] < q["bid"] for q in (ce_q, pe_q)):
+        return _blocked("leg_quotes_missing_or_crossed")
+    if any(q["volume"] <= 0 for q in (ce_q, pe_q)):
+        return _blocked("leg_volume_unavailable")
+    if any(q["spread_pct"] > 0.05 for q in (ce_q, pe_q)):
+        return _blocked("leg_spread_too_wide")
+    net_debit = round(ce_q["ask"] + pe_q["ask"], 2)
 
     legs = [
-        {"strike": ce_pick["strike"], "option_type": "CE", "price": ce_q["last_price"],
+        {"strike": ce_pick["strike"], "option_type": "CE", "price": ce_q["ask"],
          "delta": round(ce_pick["delta"], 4),
          "volume": ce_q.get("volume", 0.0), "spread_pct": ce_q.get("spread_pct", 0.0),
          **_oi_direction(ce_q["oi"], ce_q.get("oi_change", 0.0))},
-        {"strike": pe_pick["strike"], "option_type": "PE", "price": pe_q["last_price"],
+        {"strike": pe_pick["strike"], "option_type": "PE", "price": pe_q["ask"],
          "delta": round(pe_pick["delta"], 4),
          "volume": pe_q.get("volume", 0.0), "spread_pct": pe_q.get("spread_pct", 0.0),
          **_oi_direction(pe_q["oi"], pe_q.get("oi_change", 0.0))},

@@ -1,0 +1,32 @@
+{
+  "n_train": 5662,
+  "n_val": 251,
+  "val_acc": 0.6255,
+  "val_auc": 0.5557,
+  "val_brier": 0.2352,
+  "baseline_brier": 0.2372,
+  "brier_skill": 0.0083,
+  "distinct_days": 41,
+  "holdout_start": "2026-09-08",
+  "training_contract": "all_generated_signals_v4_causal_representations",
+  "training_fingerprint": "10d99a6c7e980fc416589443f9a53b72952d0ba3d93e4106cf3c7764cca5b380",
+  "promoted": true,
+  "trained_at": "2026-10-11T20:17:46.958641",
+  "feature_coef": {
+    "score": -0.10489379390085248,
+    "n_agree": 0.09670830390904632,
+    "n_conflict": 0.045038628498273614,
+    "regime_num": -0.027510099876242023,
+    "confluence_num": -0.12245026716621225,
+    "india_vix": 0.047624718388201225,
+    "iv_percentile": 0.0,
+    "pcr_atm": 0.059376050441109475,
+    "fii_net_cash": -0.08200876927769521,
+    "fii_fut_ratio": -0.05668736096649207,
+    "cross_asset_mod": -0.010022232973618681,
+    "participant_mod": -0.11962524666248894,
+    "theta_mod": 0.0,
+    "news_mod": -0.056837274552420346,
+    "hour_of_day": 0.09218596815755745
+  }
+}

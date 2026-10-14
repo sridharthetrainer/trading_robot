@@ -1,0 +1,49 @@
+{
+  "created_as_of": "2026-10-14",
+  "policy": "research_watchlist_not_trading_authorization",
+  "capital_target": 500000,
+  "monthly_income_target": 30000,
+  "future_observations_start_after": "2026-10-14",
+  "live_enabled": false,
+  "capital_allocated": 0,
+  "existing_runtime_cohort_changed": false,
+  "historical_selection_is_exploratory": true,
+  "source_snapshot_sha256": "3632c38a6238c1e1e223317cc5b8fb0c40b1ca809b4a4aa7ae384e4a47b04d41",
+  "watchlist": [
+    {
+      "strategy": "candlestick_bullish_marubozu",
+      "source_file": "candlestick_signals.py",
+      "source_sha256": "655114117a1b6bd7e53647003ff07f0de5cbf15ee242619ad6524013ba8bdc98",
+      "status": "UNVALIDATED_RESEARCH_ONLY"
+    },
+    {
+      "strategy": "chart_pattern_falling_wedge",
+      "source_file": "pattern_engine/patterns/wedges.py",
+      "source_sha256": "b235bf086db5fb7fc1838a4b550e6f7f9a96cfff4f5d86b2060b78c614128227",
+      "status": "UNVALIDATED_RESEARCH_ONLY"
+    },
+    {
+      "strategy": "bollinger_otm_reversal",
+      "source_file": "backtest_bollinger_otm_reversal.py",
+      "source_sha256": "8fbb0e1305c7e59c2d5f50367cab06040a735ed55d1652c381dbb898af374414",
+      "status": "UNVALIDATED_RESEARCH_ONLY"
+    }
+  ],
+  "review_requirements": {
+    "minimum_complete_calendar_months": 3,
+    "minimum_independent_outcomes_per_strategy": 30,
+    "positive_after_cost_equal_day_returns": true,
+    "positive_after_cost_returns_excluding_best_day": true,
+    "executable_quote_and_fill_reconciliation": true,
+    "existing_rigorous_live_eligibility_gates_required": true,
+    "new_or_changed_rule_requires_new_experiment": true
+  },
+  "rules": [
+    "Do not choose candidates from future evaluation results.",
+    "Do not change parameter values to hit an income figure.",
+    "Do not raise size because a strategy missed the monthly target.",
+    "Treat proxy R and modeled option P&L as separate evidence classes.",
+    "Model-only Bollinger research needs an executable forward quote observer before confirmatory evaluation.",
+    "This plan does not approve any live capital allocation."
+  ]
+}

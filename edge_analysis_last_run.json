@@ -1,24 +1,24 @@
 {
-  "n_signals": 25960,
+  "n_signals": 28435,
   "corrupt_dropped": 0,
   "cost_pct": 0.12,
-  "n_tests": 77,
-  "alpha_corrected": 0.00065,
+  "n_tests": 82,
+  "alpha_corrected": 0.00061,
   "outcomes": {
-    "target": 1792,
-    "sl": 3831,
-    "timeout": 20337
+    "target": 1915,
+    "sl": 4027,
+    "timeout": 22493
   },
   "overall": {
-    "n": 25960,
-    "mean": -0.02,
-    "std": 1.041,
-    "win_rate": 0.4612,
-    "t_stat": -3.095,
-    "p_value": 0.00197,
+    "n": 28435,
+    "mean": -0.0154,
+    "std": 1.0205,
+    "win_rate": 0.4654,
+    "t_stat": -2.548,
+    "p_value": 0.01085,
     "significant": false,
-    "as_is_net": -0.14,
-    "fade_net": -0.1,
+    "as_is_net": -0.1354,
+    "fade_net": -0.1046,
     "verdict": "NO_EDGE"
   },
   "per_strategy": {
@@ -35,27 +35,39 @@
       "verdict": "NO_EDGE"
     },
     "ma_cross": {
-      "n": 1371,
-      "mean": 0.017,
-      "std": 0.9056,
-      "win_rate": 0.4712,
-      "t_stat": 0.693,
-      "p_value": 0.48822,
+      "n": 1728,
+      "mean": 0.0136,
+      "std": 0.8451,
+      "win_rate": 0.4763,
+      "t_stat": 0.668,
+      "p_value": 0.50435,
       "significant": false,
-      "as_is_net": -0.103,
-      "fade_net": -0.137,
+      "as_is_net": -0.1064,
+      "fade_net": -0.1336,
       "verdict": "NO_EDGE"
     },
+    "elder_triple_screen": {
+      "n": 1705,
+      "mean": 0.1075,
+      "std": 0.8756,
+      "win_rate": 0.5431,
+      "t_stat": 5.071,
+      "p_value": 0.0,
+      "significant": true,
+      "as_is_net": -0.0125,
+      "fade_net": -0.2275,
+      "verdict": "EDGE_BELOW_COST"
+    },
     "breakout": {
-      "n": 1362,
-      "mean": 0.0639,
-      "std": 1.186,
-      "win_rate": 0.5125,
-      "t_stat": 1.989,
-      "p_value": 0.04687,
+      "n": 1640,
+      "mean": 0.0687,
+      "std": 1.1128,
+      "win_rate": 0.5213,
+      "t_stat": 2.499,
+      "p_value": 0.01256,
       "significant": false,
-      "as_is_net": -0.0561,
-      "fade_net": -0.1839,
+      "as_is_net": -0.0513,
+      "fade_net": -0.1887,
       "verdict": "NO_EDGE"
     },
     "rsi_divergence": {
@@ -94,18 +106,6 @@
       "fade_net": -0.0861,
       "verdict": "NO_EDGE"
     },
-    "elder_triple_screen": {
-      "n": 1132,
-      "mean": 0.1045,
-      "std": 0.8358,
-      "win_rate": 0.5548,
-      "t_stat": 4.207,
-      "p_value": 3e-05,
-      "significant": true,
-      "as_is_net": -0.0155,
-      "fade_net": -0.2245,
-      "verdict": "EDGE_BELOW_COST"
-    },
     "trend": {
       "n": 1047,
       "mean": -0.0229,
@@ -116,6 +116,18 @@
       "significant": false,
       "as_is_net": -0.1429,
       "fade_net": -0.0971,
+      "verdict": "NO_EDGE"
+    },
+    "failed_bear_breakout": {
+      "n": 857,
+      "mean": 0.0129,
+      "std": 1.1911,
+      "win_rate": 0.4469,
+      "t_stat": 0.317,
+      "p_value": 0.7511,
+      "significant": false,
+      "as_is_net": -0.1071,
+      "fade_net": -0.1329,
       "verdict": "NO_EDGE"
     },
     "alligator_ao": {
@@ -140,18 +152,6 @@
       "significant": false,
       "as_is_net": -0.1095,
       "fade_net": -0.1305,
-      "verdict": "NO_EDGE"
-    },
-    "failed_bear_breakout": {
-      "n": 714,
-      "mean": 0.0206,
-      "std": 1.2655,
-      "win_rate": 0.4482,
-      "t_stat": 0.435,
-      "p_value": 0.66377,
-      "significant": false,
-      "as_is_net": -0.0994,
-      "fade_net": -0.1406,
       "verdict": "NO_EDGE"
     },
     "vrvp_zone": {
@@ -209,6 +209,18 @@
       "significant": false,
       "as_is_net": -0.3203,
       "fade_net": 0.0803,
+      "verdict": "NO_EDGE"
+    },
+    "candlestick_bullish_engulfing": {
+      "n": 442,
+      "mean": 0.0541,
+      "std": 1.2393,
+      "win_rate": 0.4525,
+      "t_stat": 0.917,
+      "p_value": 0.35944,
+      "significant": false,
+      "as_is_net": -0.0659,
+      "fade_net": -0.1741,
       "verdict": "NO_EDGE"
     },
     "chart_pattern_double_bottom": {
@@ -307,16 +319,28 @@
       "fade_net": -0.0523,
       "verdict": "NO_EDGE"
     },
-    "candlestick_bullish_engulfing": {
-      "n": 321,
-      "mean": 0.0655,
-      "std": 1.3967,
-      "win_rate": 0.4361,
-      "t_stat": 0.84,
-      "p_value": 0.40166,
+    "candlestick_three_white_soldiers": {
+      "n": 335,
+      "mean": 0.0042,
+      "std": 1.1388,
+      "win_rate": 0.4149,
+      "t_stat": 0.068,
+      "p_value": 0.94592,
       "significant": false,
-      "as_is_net": -0.0545,
-      "fade_net": -0.1855,
+      "as_is_net": -0.1158,
+      "fade_net": -0.1242,
+      "verdict": "NO_EDGE"
+    },
+    "candlestick_tweezer_bottom": {
+      "n": 322,
+      "mean": 0.0491,
+      "std": 0.8549,
+      "win_rate": 0.4938,
+      "t_stat": 1.03,
+      "p_value": 0.30378,
+      "significant": false,
+      "as_is_net": -0.0709,
+      "fade_net": -0.1691,
       "verdict": "NO_EDGE"
     },
     "chart_pattern_inverse_head_shoulders": {
@@ -341,6 +365,18 @@
       "significant": false,
       "as_is_net": -0.0968,
       "fade_net": -0.1432,
+      "verdict": "NO_EDGE"
+    },
+    "heikin_ashi": {
+      "n": 272,
+      "mean": 0.0569,
+      "std": 1.0742,
+      "win_rate": 0.4522,
+      "t_stat": 0.874,
+      "p_value": 0.38281,
+      "significant": false,
+      "as_is_net": -0.0631,
+      "fade_net": -0.1769,
       "verdict": "NO_EDGE"
     },
     "weinstein_stage": {
@@ -403,16 +439,16 @@
       "fade_net": -0.2068,
       "verdict": "NO_EDGE"
     },
-    "heikin_ashi": {
-      "n": 247,
-      "mean": 0.0659,
-      "std": 1.1199,
-      "win_rate": 0.4494,
-      "t_stat": 0.925,
-      "p_value": 0.35572,
+    "candlestick_hammer": {
+      "n": 246,
+      "mean": 0.0945,
+      "std": 0.9617,
+      "win_rate": 0.4675,
+      "t_stat": 1.542,
+      "p_value": 0.12447,
       "significant": false,
-      "as_is_net": -0.0541,
-      "fade_net": -0.1859,
+      "as_is_net": -0.0255,
+      "fade_net": -0.2145,
       "verdict": "NO_EDGE"
     },
     "candlestick_spinning_top_black": {
@@ -427,16 +463,16 @@
       "fade_net": -0.1265,
       "verdict": "NO_EDGE"
     },
-    "candlestick_three_white_soldiers": {
-      "n": 231,
-      "mean": 0.0674,
-      "std": 1.2664,
-      "win_rate": 0.4199,
-      "t_stat": 0.809,
-      "p_value": 0.41954,
+    "candlestick_doji": {
+      "n": 210,
+      "mean": 0.0833,
+      "std": 0.8568,
+      "win_rate": 0.5238,
+      "t_stat": 1.409,
+      "p_value": 0.16028,
       "significant": false,
-      "as_is_net": -0.0526,
-      "fade_net": -0.1874,
+      "as_is_net": -0.0367,
+      "fade_net": -0.2033,
       "verdict": "NO_EDGE"
     },
     "supertrend_mtf": {
@@ -463,6 +499,18 @@
       "fade_net": -0.1018,
       "verdict": "NO_EDGE"
     },
+    "candlestick_shooting_star": {
+      "n": 201,
+      "mean": 0.0534,
+      "std": 0.758,
+      "win_rate": 0.4776,
+      "t_stat": 0.999,
+      "p_value": 0.31915,
+      "significant": false,
+      "as_is_net": -0.0666,
+      "fade_net": -0.1734,
+      "verdict": "NO_EDGE"
+    },
     "chart_pattern_range_expansion": {
       "n": 194,
       "mean": -0.1955,
@@ -473,30 +521,6 @@
       "significant": false,
       "as_is_net": -0.3155,
       "fade_net": 0.0755,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_tweezer_bottom": {
-      "n": 182,
-      "mean": 0.0439,
-      "std": 0.9991,
-      "win_rate": 0.456,
-      "t_stat": 0.593,
-      "p_value": 0.55383,
-      "significant": false,
-      "as_is_net": -0.0761,
-      "fade_net": -0.1639,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_hammer": {
-      "n": 175,
-      "mean": 0.1345,
-      "std": 1.0534,
-      "win_rate": 0.4629,
-      "t_stat": 1.689,
-      "p_value": 0.09296,
-      "significant": false,
-      "as_is_net": 0.0145,
-      "fade_net": -0.2545,
       "verdict": "NO_EDGE"
     },
     "rsi2_mr": {
@@ -556,28 +580,28 @@
       "fade_net": 0.0955,
       "verdict": "NO_EDGE"
     },
-    "candlestick_shooting_star": {
-      "n": 129,
-      "mean": 0.1033,
-      "std": 0.8456,
-      "win_rate": 0.4806,
-      "t_stat": 1.387,
-      "p_value": 0.16781,
+    "chart_pattern_diamond_bottom": {
+      "n": 119,
+      "mean": 0.033,
+      "std": 1.1066,
+      "win_rate": 0.4286,
+      "t_stat": 0.325,
+      "p_value": 0.74571,
       "significant": false,
-      "as_is_net": -0.0167,
-      "fade_net": -0.2233,
+      "as_is_net": -0.087,
+      "fade_net": -0.153,
       "verdict": "NO_EDGE"
     },
-    "candlestick_doji": {
-      "n": 121,
-      "mean": 0.1046,
-      "std": 0.8169,
-      "win_rate": 0.4545,
-      "t_stat": 1.409,
-      "p_value": 0.16143,
+    "candlestick_bearish_harami": {
+      "n": 119,
+      "mean": 0.0715,
+      "std": 0.6498,
+      "win_rate": 0.5546,
+      "t_stat": 1.2,
+      "p_value": 0.23242,
       "significant": false,
-      "as_is_net": -0.0154,
-      "fade_net": -0.2246,
+      "as_is_net": -0.0485,
+      "fade_net": -0.1915,
       "verdict": "NO_EDGE"
     },
     "candlestick_bearish_marubozu": {
@@ -628,6 +652,18 @@
       "fade_net": -0.0916,
       "verdict": "NO_EDGE"
     },
+    "candlestick_fred_tam_white_inside_out": {
+      "n": 108,
+      "mean": 0.0977,
+      "std": 0.698,
+      "win_rate": 0.5185,
+      "t_stat": 1.454,
+      "p_value": 0.14878,
+      "significant": false,
+      "as_is_net": -0.0223,
+      "fade_net": -0.2177,
+      "verdict": "NO_EDGE"
+    },
     "candlestick_spinning_top_white": {
       "n": 103,
       "mean": -0.2424,
@@ -640,16 +676,40 @@
       "fade_net": 0.1224,
       "verdict": "NO_EDGE"
     },
-    "chart_pattern_diamond_bottom": {
-      "n": 92,
-      "mean": 0.1039,
-      "std": 1.212,
-      "win_rate": 0.413,
-      "t_stat": 0.822,
-      "p_value": 0.41315,
+    "vwap_reversion": {
+      "n": 93,
+      "mean": 0.1332,
+      "std": 1.0327,
+      "win_rate": 0.5806,
+      "t_stat": 1.244,
+      "p_value": 0.2167,
       "significant": false,
-      "as_is_net": -0.0161,
-      "fade_net": -0.2239,
+      "as_is_net": 0.0132,
+      "fade_net": -0.2532,
+      "verdict": "NO_EDGE"
+    },
+    "candlestick_bullish_marubozu": {
+      "n": 87,
+      "mean": 0.2042,
+      "std": 1.1622,
+      "win_rate": 0.4253,
+      "t_stat": 1.639,
+      "p_value": 0.10485,
+      "significant": false,
+      "as_is_net": 0.0842,
+      "fade_net": -0.3242,
+      "verdict": "NO_EDGE"
+    },
+    "chart_pattern_falling_wedge": {
+      "n": 87,
+      "mean": 0.2964,
+      "std": 2.0507,
+      "win_rate": 0.4828,
+      "t_stat": 1.348,
+      "p_value": 0.18115,
+      "significant": false,
+      "as_is_net": 0.1764,
+      "fade_net": -0.4164,
       "verdict": "NO_EDGE"
     },
     "elliott_wave": {
@@ -688,6 +748,18 @@
       "fade_net": -0.0469,
       "verdict": "NO_EDGE"
     },
+    "volume_profile_full": {
+      "n": 80,
+      "mean": -0.0201,
+      "std": 0.7668,
+      "win_rate": 0.525,
+      "t_stat": -0.235,
+      "p_value": 0.8151,
+      "significant": false,
+      "as_is_net": -0.1401,
+      "fade_net": -0.0999,
+      "verdict": "NO_EDGE"
+    },
     "uo_overbought": {
       "n": 79,
       "mean": 0.0885,
@@ -710,42 +782,6 @@
       "significant": false,
       "as_is_net": -0.2938,
       "fade_net": 0.0538,
-      "verdict": "NO_EDGE"
-    },
-    "vwap_reversion": {
-      "n": 72,
-      "mean": 0.1373,
-      "std": 1.1154,
-      "win_rate": 0.5556,
-      "t_stat": 1.045,
-      "p_value": 0.29965,
-      "significant": false,
-      "as_is_net": 0.0173,
-      "fade_net": -0.2573,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_fred_tam_white_inside_out": {
-      "n": 68,
-      "mean": 0.0774,
-      "std": 0.7461,
-      "win_rate": 0.5,
-      "t_stat": 0.855,
-      "p_value": 0.39564,
-      "significant": false,
-      "as_is_net": -0.0426,
-      "fade_net": -0.1974,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_bearish_harami": {
-      "n": 66,
-      "mean": 0.067,
-      "std": 0.7617,
-      "win_rate": 0.5303,
-      "t_stat": 0.715,
-      "p_value": 0.47727,
-      "significant": false,
-      "as_is_net": -0.053,
-      "fade_net": -0.187,
       "verdict": "NO_EDGE"
     },
     "gap_fill": {
@@ -772,40 +808,40 @@
       "fade_net": 0.2031,
       "verdict": "NO_EDGE"
     },
-    "chart_pattern_falling_wedge": {
-      "n": 61,
-      "mean": 0.4393,
-      "std": 2.4108,
-      "win_rate": 0.4754,
-      "t_stat": 1.423,
-      "p_value": 0.15991,
-      "significant": false,
-      "as_is_net": 0.3193,
-      "fade_net": -0.5593,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_bullish_marubozu": {
-      "n": 60,
-      "mean": 0.2179,
-      "std": 1.1745,
-      "win_rate": 0.4833,
-      "t_stat": 1.437,
-      "p_value": 0.15604,
-      "significant": false,
-      "as_is_net": 0.0979,
-      "fade_net": -0.3379,
-      "verdict": "NO_EDGE"
-    },
     "candlestick_three_river_evening_star": {
-      "n": 52,
-      "mean": 0.3695,
-      "std": 1.4271,
-      "win_rate": 0.3846,
-      "t_stat": 1.867,
-      "p_value": 0.06766,
+      "n": 62,
+      "mean": 0.3037,
+      "std": 1.3449,
+      "win_rate": 0.4032,
+      "t_stat": 1.778,
+      "p_value": 0.0804,
       "significant": false,
-      "as_is_net": 0.2495,
-      "fade_net": -0.4895,
+      "as_is_net": 0.1837,
+      "fade_net": -0.4237,
+      "verdict": "NO_EDGE"
+    },
+    "vwap_bands": {
+      "n": 55,
+      "mean": -0.0332,
+      "std": 1.0506,
+      "win_rate": 0.4727,
+      "t_stat": -0.234,
+      "p_value": 0.81551,
+      "significant": false,
+      "as_is_net": -0.1532,
+      "fade_net": -0.0868,
+      "verdict": "NO_EDGE"
+    },
+    "anchored_vwap": {
+      "n": 49,
+      "mean": 0.1804,
+      "std": 0.7053,
+      "win_rate": 0.6327,
+      "t_stat": 1.79,
+      "p_value": 0.07976,
+      "significant": false,
+      "as_is_net": 0.0604,
+      "fade_net": -0.3004,
       "verdict": "NO_EDGE"
     },
     "williams_r": {
@@ -820,6 +856,30 @@
       "fade_net": -0.1236,
       "verdict": "NO_EDGE"
     },
+    "kst": {
+      "n": 43,
+      "mean": -0.1641,
+      "std": 0.6369,
+      "win_rate": 0.5116,
+      "t_stat": -1.69,
+      "p_value": 0.09848,
+      "significant": false,
+      "as_is_net": -0.2841,
+      "fade_net": 0.0441,
+      "verdict": "NO_EDGE"
+    },
+    "candlestick_bullish_separating_lines": {
+      "n": 42,
+      "mean": 0.3124,
+      "std": 1.0041,
+      "win_rate": 0.4524,
+      "t_stat": 2.016,
+      "p_value": 0.05038,
+      "significant": false,
+      "as_is_net": 0.1924,
+      "fade_net": -0.4324,
+      "verdict": "NO_EDGE"
+    },
     "chart_pattern_rectangle": {
       "n": 42,
       "mean": -0.2713,
@@ -830,18 +890,6 @@
       "significant": false,
       "as_is_net": -0.3913,
       "fade_net": 0.1513,
-      "verdict": "NO_EDGE"
-    },
-    "volume_profile_full": {
-      "n": 42,
-      "mean": 0.1266,
-      "std": 0.5382,
-      "win_rate": 0.5714,
-      "t_stat": 1.524,
-      "p_value": 0.13524,
-      "significant": false,
-      "as_is_net": 0.0066,
-      "fade_net": -0.2466,
       "verdict": "NO_EDGE"
     },
     "candlestick_bullish_harami": {
@@ -880,6 +928,18 @@
       "fade_net": 0.2502,
       "verdict": "NO_EDGE"
     },
+    "candlestick_bearish_separating_lines": {
+      "n": 38,
+      "mean": -0.0591,
+      "std": 0.8301,
+      "win_rate": 0.4737,
+      "t_stat": -0.439,
+      "p_value": 0.66323,
+      "significant": false,
+      "as_is_net": -0.1791,
+      "fade_net": -0.0609,
+      "verdict": "NO_EDGE"
+    },
     "chaikin_mf": {
       "n": 38,
       "mean": -0.2869,
@@ -905,27 +965,39 @@
       "verdict": "NO_EDGE"
     },
     "chart_pattern_cup_handle": {
-      "n": 36,
-      "mean": -0.0623,
-      "std": 0.7801,
-      "win_rate": 0.4722,
-      "t_stat": -0.479,
-      "p_value": 0.6347,
+      "n": 37,
+      "mean": -0.0927,
+      "std": 0.7911,
+      "win_rate": 0.4595,
+      "t_stat": -0.713,
+      "p_value": 0.48043,
       "significant": false,
-      "as_is_net": -0.1823,
-      "fade_net": -0.0577,
+      "as_is_net": -0.2127,
+      "fade_net": -0.0273,
       "verdict": "NO_EDGE"
     },
-    "kst": {
-      "n": 35,
-      "mean": -0.1469,
-      "std": 0.5959,
-      "win_rate": 0.5429,
-      "t_stat": -1.458,
-      "p_value": 0.15397,
+    "ehlers_fisher": {
+      "n": 36,
+      "mean": -0.205,
+      "std": 1.1621,
+      "win_rate": 0.5,
+      "t_stat": -1.059,
+      "p_value": 0.29703,
       "significant": false,
-      "as_is_net": -0.2669,
-      "fade_net": 0.0269,
+      "as_is_net": -0.325,
+      "fade_net": 0.085,
+      "verdict": "NO_EDGE"
+    },
+    "ema_cloud_sd": {
+      "n": 34,
+      "mean": -0.0572,
+      "std": 0.4118,
+      "win_rate": 0.3824,
+      "t_stat": -0.81,
+      "p_value": 0.42372,
+      "significant": false,
+      "as_is_net": -0.1772,
+      "fade_net": -0.0628,
       "verdict": "NO_EDGE"
     },
     "expiry_scalp": {
@@ -940,18 +1012,6 @@
       "fade_net": 0.4576,
       "verdict": "NO_EDGE"
     },
-    "candlestick_bullish_separating_lines": {
-      "n": 32,
-      "mean": 0.407,
-      "std": 1.0701,
-      "win_rate": 0.5,
-      "t_stat": 2.152,
-      "p_value": 0.03934,
-      "significant": false,
-      "as_is_net": 0.287,
-      "fade_net": -0.527,
-      "verdict": "NO_EDGE"
-    },
     "candlestick_inverted_hammer": {
       "n": 32,
       "mean": -0.1091,
@@ -964,20 +1024,20 @@
       "fade_net": -0.0109,
       "verdict": "NO_EDGE"
     },
-    "candlestick_bearish_separating_lines": {
-      "n": 30,
-      "mean": -0.099,
-      "std": 0.9205,
-      "win_rate": 0.4333,
-      "t_stat": -0.589,
-      "p_value": 0.56053,
+    "smc": {
+      "n": 31,
+      "mean": 0.0836,
+      "std": 1.0807,
+      "win_rate": 0.6452,
+      "t_stat": 0.431,
+      "p_value": 0.6699,
       "significant": false,
-      "as_is_net": -0.219,
-      "fade_net": -0.021,
+      "as_is_net": -0.0364,
+      "fade_net": -0.2036,
       "verdict": "NO_EDGE"
     }
   },
   "candidates": {},
   "conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
-  "timestamp": "2026-09-05T11:38:34.305495"
+  "timestamp": "2026-10-13T16:46:20.205241"
 }

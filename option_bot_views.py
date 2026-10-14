@@ -5,11 +5,52 @@ from __future__ import annotations
 import sqlite3
 from collections import defaultdict
 from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
+from html import escape
 from typing import Any, Dict, List
 
 
 DB_PATH = "option_chain_snapshots.db"
+
+
+def latest_signal_rows(day: str | None = None, limit: int = 4) -> List[Dict[str, Any]]:
+    """Read distinct contracts without migrating or modifying the live database."""
+    report_day = day or datetime.now(ZoneInfo("Asia/Kolkata")).date().isoformat()
+    path = Path(DB_PATH).resolve()
+    if not path.exists():
+        return []
+    from contextlib import closing
+    try:
+        with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=3)) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """WITH ranked AS (
+                    SELECT *,ROW_NUMBER() OVER (
+                        PARTITION BY underlying,expiry,strike,option_type
+                        ORDER BY ts DESC,rowid DESC) rn
+                    FROM option_strike_signals
+                    WHERE snapshot_time LIKE ? AND signal LIKE 'BUY_%'
+                ) SELECT * FROM ranked WHERE rn=1
+                  ORDER BY tradable DESC,score DESC,ts DESC LIMIT ?""",
+                (report_day + "%", max(1, min(int(limit), 30))),
+            ).fetchall()
+            return [dict(row) for row in rows]
+    except (sqlite3.Error, OSError):
+        return []
+
+
+def generate_signal_board(day: str | None = None, output_dir: str | None = None) -> Dict[str, Any]:
+    from option_visual_cards import render_option_board
+    report_day = day or datetime.now(ZoneInfo("Asia/Kolkata")).date().isoformat()
+    rows = latest_signal_rows(report_day, limit=4)
+    path = render_option_board(rows, day=report_day, output_dir=output_dir)
+    return {"path": path, "rows": rows, "caption": (
+        f"📊 Option signal board · {report_day}\n"
+        f"Showing {len(rows)} contracts. WATCH = blocked or observation only.\n"
+        "Stored setup levels; gate passed does not mean an order was placed."
+    )}
 
 
 def _f(value: Any) -> float:
@@ -51,25 +92,11 @@ def score_gauge(score: Any, width: int = 10) -> str:
     return f"{bar} {s:.1f} ({label})"
 
 
-def generated_signals_text(day: str | None = None, limit: int = 15) -> str:
-    report_day = day or date.today().isoformat()
+def generated_signals_text(day: str | None = None, limit: int = 4) -> str:
+    report_day = day or datetime.now(ZoneInfo("Asia/Kolkata")).date().isoformat()
     if not Path(DB_PATH).exists():
         return "No generated option-signal database yet."
-    with sqlite3.connect(DB_PATH) as conn:
-        from option_multistrike_signals import ensure_multistrike_schema
-        ensure_multistrike_schema(conn)
-        conn.row_factory = sqlite3.Row
-        rows = conn.execute(
-            """SELECT s.* FROM option_strike_signals s
-                 JOIN (SELECT underlying,strike,option_type,MAX(snapshot_time) latest
-                         FROM option_strike_signals WHERE snapshot_time LIKE ? AND signal LIKE 'BUY_%'
-                        GROUP BY underlying,strike,option_type) x
-                   ON s.underlying=x.underlying AND s.strike=x.strike
-                  AND s.option_type=x.option_type AND s.snapshot_time=x.latest
-                ORDER BY s.tradable DESC,s.score DESC LIMIT ?""",
-            (report_day + "%", max(1, min(int(limit), 30))),
-        ).fetchall()
-        conn.commit()
+    rows = latest_signal_rows(report_day, min(limit, 8))
     if not rows:
         return f"No generated option signals for {report_day}."
     out = [f"🎯 <b>GENERATED OPTION SIGNALS — {report_day}</b>",
@@ -83,16 +110,18 @@ def generated_signals_text(day: str | None = None, limit: int = 15) -> str:
     for row in rows:
         state = str(row["lifecycle_status"] or ("OPEN" if row["tradable"] else "WATCH"))
         flag = "🟢" if row["tradable"] else "🟡"
+        from option_visual_cards import signal_view, money
+        view = signal_view(row)
         out.append(
-            f"{flag} <b>{row['underlying']} {row['strike']:.0f}{row['option_type']}</b> "
-            f"{row['signal']} · {state}\n"
+            f"{flag} <b>{escape(str(row['underlying']))} {row['strike']:.0f}{escape(str(row['option_type']))}</b> "
+            f"{escape(view['status'])} · {escape(state.replace('_', ' '))}\n"
             f"   {score_gauge(row['score'])}\n"
-            f"   Entry ₹{_f(row['entry_price']):.2f} | SL ₹{_f(row['stop_loss']):.2f} | "
-            f"T1 ₹{_f(row['target_1']):.2f} | T2 ₹{_f(row['target_2']):.2f}\n"
-            f"   Edge {row['edge_policy']} · n={int(row['edge_outcomes'] or 0)} · "
+            f"   Entry {money(view['entry'])} | SL {money(view['stop'])} | "
+            f"T1 {money(view['target'])} | T2 {money(view['target2'])}\n"
+            f"   Edge {escape(str(row['edge_policy']))} · n={int(row['edge_outcomes'] or 0)} · "
             f"PF {_f(row['edge_profit_factor']):.2f}"
         )
-    out.append("🟢 actionable (tradable gate passed) · 🟡 watch/rejected by final gates — NOT a trade call")
+    out.append("🟢 gate-passed setup · 🟡 watch/blocked · Execution is tracked separately.")
     return "\n".join(out)
 
 

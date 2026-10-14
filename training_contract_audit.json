@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-18T20:35:11+0530",
-  "training_contract": "all_generated_signals_v4_causal_representations",
+  "generated_at": "2026-10-13T20:09:39+0530",
+  "training_contract": "all_generated_signals_v5_locked_forward_holdout",
   "checks": {
     "outcome_fields_excluded": true,
     "model_artifact_contract_enforced": true,
@@ -18,12 +18,12 @@
     "win_prob": 0.5,
     "model_used": "cross_symbol",
     "available": false,
-    "reason": "missing_positive_profit_utility"
+    "reason": "legacy_training_contract"
   },
   "clean_evidence": {
-    "legacy_labelled": 34565,
-    "clean_labelled": 25485,
-    "clean_days": 27
+    "legacy_labelled": 37515,
+    "clean_labelled": 28435,
+    "clean_days": 43
   },
   "promotion_targets": {
     "samples": 5000,

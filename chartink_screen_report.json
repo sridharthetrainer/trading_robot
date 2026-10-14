@@ -1,0 +1,104 @@
+{
+  "generated_at": "2026-09-20T21:39:05",
+  "hold_days_primary": 10,
+  "bonferroni_tests": 4,
+  "universe_size": 192,
+  "screens": {
+    "sma200_breakout": {
+      "screen": "sma200_breakout",
+      "hold_days": 10,
+      "universe_size": 192,
+      "total_hits": 822,
+      "cutoff_date": "2026-06-24",
+      "train": {
+        "n": 580,
+        "mean_excess_pct": -0.095,
+        "lcb95_pct": -0.4109,
+        "win_rate": 0.471,
+        "t": -0.5,
+        "p": 0.62059
+      },
+      "holdout": {
+        "n": 209,
+        "mean_excess_pct": -1.4272,
+        "lcb95_pct": -2.1594,
+        "win_rate": 0.383,
+        "t": -3.21,
+        "p": 0.00134
+      },
+      "verdict": "NOISE"
+    },
+    "high52w_volume": {
+      "screen": "high52w_volume",
+      "hold_days": 10,
+      "universe_size": 192,
+      "total_hits": 580,
+      "cutoff_date": "2025-10-30",
+      "train": {
+        "n": 407,
+        "mean_excess_pct": -0.5072,
+        "lcb95_pct": -0.929,
+        "win_rate": 0.413,
+        "t": -1.98,
+        "p": 0.04792
+      },
+      "holdout": {
+        "n": 164,
+        "mean_excess_pct": -0.6068,
+        "lcb95_pct": -1.2938,
+        "win_rate": 0.445,
+        "t": -1.45,
+        "p": 0.14624
+      },
+      "verdict": "NOISE"
+    },
+    "supertrend_flip": {
+      "screen": "supertrend_flip",
+      "hold_days": 10,
+      "universe_size": 192,
+      "total_hits": 1110,
+      "cutoff_date": "2026-04-08",
+      "train": {
+        "n": 801,
+        "mean_excess_pct": -0.3396,
+        "lcb95_pct": -0.6304,
+        "win_rate": 0.468,
+        "t": -1.92,
+        "p": 0.05466
+      },
+      "holdout": {
+        "n": 296,
+        "mean_excess_pct": -1.3245,
+        "lcb95_pct": -1.9223,
+        "win_rate": 0.409,
+        "t": -3.64,
+        "p": 0.00027
+      },
+      "verdict": "NOISE"
+    },
+    "rsi_oversold_bounce": {
+      "screen": "rsi_oversold_bounce",
+      "hold_days": 10,
+      "universe_size": 192,
+      "total_hits": 1104,
+      "cutoff_date": "2026-03-16",
+      "train": {
+        "n": 772,
+        "mean_excess_pct": -0.4498,
+        "lcb95_pct": -0.7304,
+        "win_rate": 0.412,
+        "t": -2.64,
+        "p": 0.00836
+      },
+      "holdout": {
+        "n": 285,
+        "mean_excess_pct": 0.6893,
+        "lcb95_pct": 0.1749,
+        "win_rate": 0.481,
+        "t": 2.2,
+        "p": 0.02752
+      },
+      "verdict": "HURTS"
+    }
+  }
+}

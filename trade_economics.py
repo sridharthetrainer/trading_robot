@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from math import isfinite
 
 from capital_compounder import calculate_net_pnl
 
@@ -38,14 +39,42 @@ def evaluate_trade_economics(
     cost_hurdle_multiplier: float = 2.5,
     min_expected_net: float = 0.0,
     min_probability_margin: float = 0.02,
+    slippage_pct_per_leg: float = 0.0,
 ) -> TradeEconomics:
-    """Evaluate a setup using its target, stop, costs, and win probability."""
-    entry = float(entry_price or 0.0)
-    target = float(target_price or 0.0)
-    stop = float(stop_loss or 0.0)
-    quantity = int(qty or 0)
-    direction = str(side or "BUY").upper()
-    probability = max(0.0, min(1.0, float(win_probability or 0.0)))
+    """Evaluate after-fee, after-slippage expectancy.
+
+    Slippage is a fraction per leg (0.005 means 0.5%), applied adversely
+    to entry and both exits. Probability must be supplied on a 0–1 scale.
+    """
+    def rejected(reason: str) -> TradeEconomics:
+        return TradeEconomics(False, reason, 0.0, 1.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+    try:
+        entry, target, stop = map(float, (entry_price, target_price, stop_loss))
+        quantity_value = float(qty)
+        probability = float(win_probability)
+        brokerage = float(brokerage_per_leg)
+        hurdle = float(cost_hurdle_multiplier)
+        minimum = float(min_expected_net)
+        margin = float(min_probability_margin)
+        slip = float(slippage_pct_per_leg)
+    except (TypeError, ValueError, OverflowError):
+        return rejected("invalid_economic_inputs")
+    if not all(isfinite(value) for value in (
+        entry, target, stop, quantity_value, probability, brokerage,
+        hurdle, minimum, margin, slip,
+    )):
+        return rejected("invalid_economic_inputs")
+    if not 0 <= probability <= 1:
+        return rejected("invalid_win_probability")
+    if (brokerage < 0 or hurdle < 0 or minimum < 0 or not 0 <= margin <= 1
+            or not 0 <= slip < 1):
+        return rejected("invalid_economic_inputs")
+    quantity = int(quantity_value)
+    if quantity_value != quantity:
+        return rejected("invalid_risk_levels")
+    direction = str(side or "").strip().upper()
 
     valid = entry > 0 and target > 0 and stop > 0 and quantity > 0
     valid = valid and direction in {"BUY", "SELL"}
@@ -59,16 +88,22 @@ def evaluate_trade_economics(
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         )
 
-    target_gross, target_net, target_costs = calculate_net_pnl(
-        entry, target, quantity, direction, brokerage_per_leg,
+    sign = 1 if direction == "BUY" else -1
+    filled_entry = entry * (1 + sign * slip)
+    filled_target = target * (1 - sign * slip)
+    filled_stop = stop * (1 - sign * slip)
+    filled_flat = entry * (1 - sign * slip)
+    target_gross = sign * (target - entry) * quantity
+    _filled_gross, target_net, target_costs = calculate_net_pnl(
+        filled_entry, filled_target, quantity, direction, brokerage,
         is_options, product_type,
     )
     _stop_gross, stop_net, stop_costs = calculate_net_pnl(
-        entry, stop, quantity, direction, brokerage_per_leg,
+        filled_entry, filled_stop, quantity, direction, brokerage,
         is_options, product_type,
     )
     _flat_gross, _flat_net, flat_costs = calculate_net_pnl(
-        entry, entry, quantity, direction, brokerage_per_leg,
+        filled_entry, filled_flat, quantity, direction, brokerage,
         is_options, product_type,
     )
 
@@ -77,11 +112,17 @@ def evaluate_trade_economics(
     denominator = win_value + loss_value
     breakeven = loss_value / denominator if denominator > 0 else 1.0
     expected = probability * float(target_net) + (1.0 - probability) * float(stop_net)
-    required_gross = max(0.0, float(cost_hurdle_multiplier)) * float(flat_costs.total)
+    target_drag = float(target_costs.total) + (entry + target) * slip * quantity
+    stop_drag = float(stop_costs.total) + (entry + stop) * slip * quantity
+    flat_drag = float(flat_costs.total) + 2 * entry * slip * quantity
+    estimated_cost = max(target_drag, stop_drag, flat_drag)
+    required_gross = hurdle * estimated_cost
 
     reason = ""
     if target_gross < required_gross:
         reason = "target_does_not_cover_cost_hurdle"
+    elif target_net <= 0:
+        reason = "target_net_not_positive"
     elif probability < breakeven + max(0.0, float(min_probability_margin)):
         reason = "win_probability_below_after_cost_breakeven"
     elif expected < float(min_expected_net):
@@ -96,8 +137,6 @@ def evaluate_trade_economics(
         target_net=round(float(target_net), 2),
         stop_net=round(float(stop_net), 2),
         expected_net=round(float(expected), 2),
-        estimated_cost=round(
-            max(float(target_costs.total), float(stop_costs.total), float(flat_costs.total)), 2
-        ),
+        estimated_cost=round(estimated_cost, 2),
         required_target_gross=round(required_gross, 2),
     )

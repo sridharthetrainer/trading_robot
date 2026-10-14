@@ -23,7 +23,7 @@ def _trending_df(n=60, start=21000.0, step=15.0):
 def test_low_vol_overlay_independent_of_primary(monkeypatch):
     monkeypatch.setattr(osr, "_CACHE", {})
     monkeypatch.setattr("expiry_regime.get_expiry_regime",
-                         lambda symbol="NIFTY": {"is_expiry_day": False, "days_to_expiry": 5, "next_expiry": "2026-07-22", "regime_label": "NORMAL"})
+                         lambda symbol="NIFTY", today=None: {"is_expiry_day": False, "days_to_expiry": 5, "next_expiry": "2026-07-22", "regime_label": "NORMAL"})
     monkeypatch.setattr("time_regime.get_time_zone", lambda now=None: type("Z", (), {"value": "PRIMARY_TREND"})())
     monkeypatch.setattr("greeks_live.get_event_playbook", lambda symbol="NIFTY": {"events": [], "has_event": False})
 
@@ -35,7 +35,7 @@ def test_low_vol_overlay_independent_of_primary(monkeypatch):
 def test_high_vol_primary_from_classify_regime(monkeypatch):
     monkeypatch.setattr(osr, "_CACHE", {})
     monkeypatch.setattr("expiry_regime.get_expiry_regime",
-                         lambda symbol="NIFTY": {"is_expiry_day": False, "days_to_expiry": 5, "next_expiry": "", "regime_label": "NORMAL"})
+                         lambda symbol="NIFTY", today=None: {"is_expiry_day": False, "days_to_expiry": 5, "next_expiry": "", "regime_label": "NORMAL"})
     monkeypatch.setattr("time_regime.get_time_zone", lambda now=None: type("Z", (), {"value": "PRIMARY_TREND"})())
     monkeypatch.setattr("greeks_live.get_event_playbook", lambda symbol="NIFTY": {"events": [], "has_event": False})
 
@@ -46,7 +46,7 @@ def test_high_vol_primary_from_classify_regime(monkeypatch):
 def test_expiry_and_event_overlays_can_coexist_with_any_primary(monkeypatch):
     monkeypatch.setattr(osr, "_CACHE", {})
     monkeypatch.setattr("expiry_regime.get_expiry_regime",
-                         lambda symbol="NIFTY": {"is_expiry_day": True, "days_to_expiry": 0, "next_expiry": "2026-07-16", "regime_label": "WEEKLY_EXPIRY"})
+                         lambda symbol="NIFTY", today=None: {"is_expiry_day": True, "days_to_expiry": 0, "next_expiry": "2026-07-16", "regime_label": "WEEKLY_EXPIRY"})
     monkeypatch.setattr("time_regime.get_time_zone", lambda now=None: type("Z", (), {"value": "PRIMARY_TREND"})())
     monkeypatch.setattr("greeks_live.get_event_playbook",
                          lambda symbol="NIFTY": {"events": ["RBI MPC TODAY"], "has_event": True})
@@ -74,15 +74,15 @@ def test_gap_pct_safe_default_when_inputs_missing():
     assert osr._gap_pct(pd.DataFrame(), pd.DataFrame()) == 0.0
 
 
-def test_regime_cache_reused_within_ttl(monkeypatch):
+def test_regime_cache_does_not_hide_changed_vix(monkeypatch):
     monkeypatch.setattr(osr, "_CACHE", {})
     monkeypatch.setattr("expiry_regime.get_expiry_regime",
-                         lambda symbol="NIFTY": {"is_expiry_day": False, "days_to_expiry": 5, "next_expiry": "", "regime_label": "NORMAL"})
+                         lambda symbol="NIFTY", today=None: {"is_expiry_day": False, "days_to_expiry": 5, "next_expiry": "", "regime_label": "NORMAL"})
     monkeypatch.setattr("time_regime.get_time_zone", lambda now=None: type("Z", (), {"value": "PRIMARY_TREND"})())
     monkeypatch.setattr("greeks_live.get_event_playbook", lambda symbol="NIFTY": {"events": [], "has_event": False})
 
     first = osr.detect_regime(_flat_df(), vix=10.0, symbol="NIFTY")
-    # Second call with a wildly different vix should still return the cached
-    # (first) result within the TTL window -- proves the cache is consulted.
+    # VIX shocks invalidate classification immediately, even inside the TTL.
     second = osr.detect_regime(_flat_df(), vix=99.0, symbol="NIFTY")
-    assert second["vix"] == first["vix"] == 10.0
+    assert first["vix"] == 10.0
+    assert second["vix"] == 99.0

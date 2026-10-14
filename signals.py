@@ -509,3 +509,32 @@ def get_signal(
         return _scalping_signal(data, config)
 
     return _default_signal(data, config)
+
+
+def precompute_default_signals(data: pd.DataFrame, config: Optional[Dict] = None):
+    """Exactly reproduce default EMA/RSI signals using causal vector indicators.
+
+    Only the default branch is supported. The caller must supply one isolated
+    validation window; this function never caches across windows or calls.
+    """
+    if _normalize_strategy_hint(config or {}) in {'trend','mean_reversion','breakout','scalping'}:
+        return None
+    fast=calculate_ema(data,9).to_numpy()
+    slow=calculate_ema(data,21).to_numpy()
+    rsi=calculate_rsi(data,14).to_numpy()
+    adx=calculate_adx(data,14).to_numpy()
+    atr=calculate_atr(data,14).to_numpy()
+    close=data['Close'].to_numpy()
+    output=[]
+    for i in range(len(data)):
+        if i < 29:
+            output.append({'action':'HOLD','strategy':'default','confidence':0.,'reason':'not_enough_data','indicators':{}})
+            continue
+        fn,sn,fp,sp,r,a,t,c=map(_safe_float,(fast[i],slow[i],fast[i-1],slow[i-1],rsi[i],adx[i],atr[i],close[i]))
+        bullish=fn>sn and fp<=sp and r>=50
+        bearish=fn<sn and fp>=sp and r<=50
+        action='BUY' if bullish else 'SELL' if bearish else 'HOLD'
+        confidence=_compute_default_confidence(a,fn,sn,c,r,action) if action!='HOLD' else 0.
+        output.append({'action':action,'strategy':'default','confidence':confidence,'reason':'ema_rsi_default',
+                       'indicators':{'ema_fast':fn,'ema_slow':sn,'rsi':r,'adx':a,'atr':t,'close':c}})
+    return output

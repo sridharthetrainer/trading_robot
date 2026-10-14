@@ -548,6 +548,7 @@ def run_hero_zero_strategy(
 
         quality = evaluate_option_buy_quality(
             option_data=option_data,
+            expiry=now.date().isoformat(),
             spot=spot,
             df=df_c,
             max_chain_age_sec=int(os.getenv("OPTION_CHAIN_MAX_AGE_SEC", "120")),

@@ -1,9 +1,9 @@
 {
-  "n_signals": 25960,
+  "n_signals": 28435,
   "corrupt_dropped": 0,
   "recent_days": 30,
-  "n_tests": 88,
-  "alpha_corrected": 0.000568,
+  "n_tests": 90,
+  "alpha_corrected": 0.000556,
   "per_strategy": {
     "price_structure": {
       "n_reference": 0,
@@ -11,14 +11,33 @@
       "verdict": "INSUFFICIENT_DATA"
     },
     "ma_cross": {
-      "n_reference": 0,
-      "n_recent": 1371,
+      "n_reference": 22,
+      "n_recent": 1706,
       "verdict": "INSUFFICIENT_DATA"
     },
+    "elder_triple_screen": {
+      "n_reference": 469,
+      "n_recent": 1236,
+      "reference_mean": 0.068,
+      "recent_mean": 0.1225,
+      "recent_net_of_cost": 0.0025,
+      "t_stat": 1.113,
+      "t_p_value": 0.26587,
+      "ks_stat": 0.0629,
+      "ks_p_value": 0.12838,
+      "verdict": "STABLE"
+    },
     "breakout": {
-      "n_reference": 16,
-      "n_recent": 1346,
-      "verdict": "INSUFFICIENT_DATA"
+      "n_reference": 86,
+      "n_recent": 1554,
+      "reference_mean": 0.1252,
+      "recent_mean": 0.0655,
+      "recent_net_of_cost": -0.0545,
+      "t_stat": -0.575,
+      "t_p_value": 0.56681,
+      "ks_stat": 0.0875,
+      "ks_p_value": 0.53004,
+      "verdict": "STABLE"
     },
     "rsi_divergence": {
       "n_reference": 0,
@@ -35,22 +54,22 @@
       "n_recent": 1188,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "elder_triple_screen": {
-      "n_reference": 41,
-      "n_recent": 1091,
-      "reference_mean": 0.1204,
-      "recent_mean": 0.1039,
-      "recent_net_of_cost": -0.0161,
-      "t_stat": -0.157,
-      "t_p_value": 0.87559,
-      "ks_stat": 0.0927,
-      "ks_p_value": 0.8542,
-      "verdict": "STABLE"
-    },
     "trend": {
       "n_reference": 0,
       "n_recent": 1047,
       "verdict": "INSUFFICIENT_DATA"
+    },
+    "failed_bear_breakout": {
+      "n_reference": 116,
+      "n_recent": 741,
+      "reference_mean": 0.1252,
+      "recent_mean": -0.0047,
+      "recent_net_of_cost": -0.1247,
+      "t_stat": -1.597,
+      "t_p_value": 0.11165,
+      "ks_stat": 0.1002,
+      "ks_p_value": 0.24756,
+      "verdict": "STABLE"
     },
     "alligator_ao": {
       "n_reference": 0,
@@ -61,18 +80,6 @@
       "n_reference": 0,
       "n_recent": 718,
       "verdict": "INSUFFICIENT_DATA"
-    },
-    "failed_bear_breakout": {
-      "n_reference": 31,
-      "n_recent": 683,
-      "reference_mean": -0.0537,
-      "recent_mean": 0.024,
-      "recent_net_of_cost": -0.096,
-      "t_stat": 0.682,
-      "t_p_value": 0.49886,
-      "ks_stat": 0.1548,
-      "ks_p_value": 0.43079,
-      "verdict": "STABLE"
     },
     "vrvp_zone": {
       "n_reference": 0,
@@ -88,6 +95,18 @@
       "n_reference": 0,
       "n_recent": 463,
       "verdict": "INSUFFICIENT_DATA"
+    },
+    "candlestick_bullish_engulfing": {
+      "n_reference": 81,
+      "n_recent": 361,
+      "reference_mean": -0.0287,
+      "recent_mean": 0.0727,
+      "recent_net_of_cost": -0.0473,
+      "t_stat": 0.963,
+      "t_p_value": 0.33668,
+      "ks_stat": 0.1157,
+      "ks_p_value": 0.31101,
+      "verdict": "STABLE"
     },
     "chart_pattern_double_bottom": {
       "n_reference": 0,
@@ -129,10 +148,29 @@
       "n_recent": 339,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "candlestick_bullish_engulfing": {
-      "n_reference": 0,
-      "n_recent": 321,
-      "verdict": "INSUFFICIENT_DATA"
+    "candlestick_three_white_soldiers": {
+      "n_reference": 68,
+      "n_recent": 267,
+      "reference_mean": 0.005,
+      "recent_mean": 0.004,
+      "recent_net_of_cost": -0.116,
+      "t_stat": -0.009,
+      "t_p_value": 0.99294,
+      "ks_stat": 0.1265,
+      "ks_p_value": 0.31909,
+      "verdict": "STABLE"
+    },
+    "candlestick_tweezer_bottom": {
+      "n_reference": 39,
+      "n_recent": 283,
+      "reference_mean": 0.0314,
+      "recent_mean": 0.0515,
+      "recent_net_of_cost": -0.0685,
+      "t_stat": 0.133,
+      "t_p_value": 0.89439,
+      "ks_stat": 0.17,
+      "ks_p_value": 0.24403,
+      "verdict": "STABLE"
     },
     "chart_pattern_inverse_head_shoulders": {
       "n_reference": 0,
@@ -142,6 +180,11 @@
     "candlestick_three_black_soldiers": {
       "n_reference": 0,
       "n_recent": 276,
+      "verdict": "INSUFFICIENT_DATA"
+    },
+    "heikin_ashi": {
+      "n_reference": 0,
+      "n_recent": 272,
       "verdict": "INSUFFICIENT_DATA"
     },
     "weinstein_stage": {
@@ -169,19 +212,26 @@
       "n_recent": 250,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "heikin_ashi": {
-      "n_reference": 0,
-      "n_recent": 247,
-      "verdict": "INSUFFICIENT_DATA"
+    "candlestick_hammer": {
+      "n_reference": 31,
+      "n_recent": 215,
+      "reference_mean": -0.1543,
+      "recent_mean": 0.1304,
+      "recent_net_of_cost": 0.0104,
+      "t_stat": 2.173,
+      "t_p_value": 0.03411,
+      "ks_stat": 0.183,
+      "ks_p_value": 0.28356,
+      "verdict": "STABLE"
     },
     "candlestick_spinning_top_black": {
       "n_reference": 0,
       "n_recent": 235,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "candlestick_three_white_soldiers": {
-      "n_reference": 0,
-      "n_recent": 231,
+    "candlestick_doji": {
+      "n_reference": 26,
+      "n_recent": 184,
       "verdict": "INSUFFICIENT_DATA"
     },
     "supertrend_mtf": {
@@ -194,19 +244,21 @@
       "n_recent": 204,
       "verdict": "INSUFFICIENT_DATA"
     },
+    "candlestick_shooting_star": {
+      "n_reference": 36,
+      "n_recent": 165,
+      "reference_mean": 0.0295,
+      "recent_mean": 0.0586,
+      "recent_net_of_cost": -0.0614,
+      "t_stat": 0.191,
+      "t_p_value": 0.84952,
+      "ks_stat": 0.1899,
+      "ks_p_value": 0.20606,
+      "verdict": "STABLE"
+    },
     "chart_pattern_range_expansion": {
       "n_reference": 0,
       "n_recent": 194,
-      "verdict": "INSUFFICIENT_DATA"
-    },
-    "candlestick_tweezer_bottom": {
-      "n_reference": 0,
-      "n_recent": 182,
-      "verdict": "INSUFFICIENT_DATA"
-    },
-    "candlestick_hammer": {
-      "n_reference": 0,
-      "n_recent": 175,
       "verdict": "INSUFFICIENT_DATA"
     },
     "rsi2_mr": {
@@ -224,14 +276,14 @@
       "n_recent": 129,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "candlestick_shooting_star": {
-      "n_reference": 0,
-      "n_recent": 129,
+    "chart_pattern_diamond_bottom": {
+      "n_reference": 10,
+      "n_recent": 109,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "candlestick_doji": {
-      "n_reference": 0,
-      "n_recent": 121,
+    "candlestick_bearish_harami": {
+      "n_reference": 8,
+      "n_recent": 111,
       "verdict": "INSUFFICIENT_DATA"
     },
     "candlestick_bearish_marubozu": {
@@ -254,14 +306,29 @@
       "n_recent": 112,
       "verdict": "INSUFFICIENT_DATA"
     },
+    "candlestick_fred_tam_white_inside_out": {
+      "n_reference": 0,
+      "n_recent": 108,
+      "verdict": "INSUFFICIENT_DATA"
+    },
     "candlestick_spinning_top_white": {
       "n_reference": 0,
       "n_recent": 103,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "chart_pattern_diamond_bottom": {
+    "vwap_reversion": {
       "n_reference": 0,
-      "n_recent": 92,
+      "n_recent": 93,
+      "verdict": "INSUFFICIENT_DATA"
+    },
+    "candlestick_bullish_marubozu": {
+      "n_reference": 5,
+      "n_recent": 82,
+      "verdict": "INSUFFICIENT_DATA"
+    },
+    "chart_pattern_falling_wedge": {
+      "n_reference": 0,
+      "n_recent": 87,
       "verdict": "INSUFFICIENT_DATA"
     },
     "elliott_wave": {
@@ -279,6 +346,11 @@
       "n_recent": 81,
       "verdict": "INSUFFICIENT_DATA"
     },
+    "volume_profile_full": {
+      "n_reference": 0,
+      "n_recent": 80,
+      "verdict": "INSUFFICIENT_DATA"
+    },
     "uo_overbought": {
       "n_reference": 0,
       "n_recent": 79,
@@ -287,21 +359,6 @@
     "candlestick_tweezer_top": {
       "n_reference": 0,
       "n_recent": 76,
-      "verdict": "INSUFFICIENT_DATA"
-    },
-    "vwap_reversion": {
-      "n_reference": 0,
-      "n_recent": 72,
-      "verdict": "INSUFFICIENT_DATA"
-    },
-    "candlestick_fred_tam_white_inside_out": {
-      "n_reference": 0,
-      "n_recent": 68,
-      "verdict": "INSUFFICIENT_DATA"
-    },
-    "candlestick_bearish_harami": {
-      "n_reference": 0,
-      "n_recent": 66,
       "verdict": "INSUFFICIENT_DATA"
     },
     "gap_fill": {
@@ -314,14 +371,9 @@
       "n_recent": 62,
       "verdict": "INSUFFICIENT_DATA"
     },
-    "chart_pattern_falling_wedge": {
+    "candlestick_three_river_evening_star": {
       "n_reference": 0,
-      "n_recent": 61,
-      "verdict": "INSUFFICIENT_DATA"
-    },
-    "candlestick_bullish_marubozu": {
-      "n_reference": 0,
-      "n_recent": 60,
+      "n_recent": 62,
       "verdict": "INSUFFICIENT_DATA"
     }
   },
@@ -332,30 +384,37 @@
       "verdict": "INSUFFICIENT_DATA"
     },
     "cross_asset_mod": {
-      "n_reference": 0,
-      "n_recent": 7121,
-      "verdict": "INSUFFICIENT_DATA"
+      "n_reference": 4270,
+      "n_recent": 3814,
+      "reference_mean": -0.0832,
+      "recent_mean": 0.0392,
+      "recent_net_of_cost": -0.0808,
+      "t_stat": 6.182,
+      "t_p_value": 0.0,
+      "ks_stat": 0.0673,
+      "ks_p_value": 0.0,
+      "verdict": "STABLE"
     },
     "participant_mod": {
-      "n_reference": 1451,
-      "n_recent": 14063,
-      "reference_mean": 0.0623,
-      "recent_mean": -0.0428,
-      "recent_net_of_cost": -0.1628,
-      "t_stat": -5.148,
+      "n_reference": 10999,
+      "n_recent": 6023,
+      "reference_mean": -0.0518,
+      "recent_mean": 0.032,
+      "recent_net_of_cost": -0.088,
+      "t_stat": 5.409,
       "t_p_value": 0.0,
-      "ks_stat": 0.0717,
+      "ks_stat": 0.0639,
       "ks_p_value": 0.0,
-      "verdict": "DRIFT_SUSPECTED"
+      "verdict": "STABLE"
     },
     "expiry_mod": {
       "n_reference": 0,
-      "n_recent": 1551,
+      "n_recent": 1577,
       "verdict": "INSUFFICIENT_DATA"
     },
     "sip_boost": {
       "n_reference": 0,
-      "n_recent": 1334,
+      "n_recent": 1345,
       "verdict": "INSUFFICIENT_DATA"
     },
     "bulk_deal_mod": {
@@ -375,25 +434,32 @@
     },
     "news_mod": {
       "n_reference": 0,
-      "n_recent": 153,
+      "n_recent": 165,
       "verdict": "INSUFFICIENT_DATA"
     },
     "mtf_pivot_mod": {
-      "n_reference": 1488,
-      "n_recent": 16030,
-      "reference_mean": 0.0465,
-      "recent_mean": -0.0765,
-      "recent_net_of_cost": -0.1965,
-      "t_stat": -6.103,
-      "t_p_value": 0.0,
-      "ks_stat": 0.0756,
-      "ks_p_value": 0.0,
-      "verdict": "DRIFT_SUSPECTED"
+      "n_reference": 12038,
+      "n_recent": 7515,
+      "reference_mean": -0.0742,
+      "recent_mean": -0.0288,
+      "recent_net_of_cost": -0.1488,
+      "t_stat": 3.059,
+      "t_p_value": 0.00223,
+      "ks_stat": 0.0358,
+      "ks_p_value": 1e-05,
+      "verdict": "STABLE"
     },
     "ai_score": {
-      "n_reference": 0,
-      "n_recent": 24186,
-      "verdict": "INSUFFICIENT_DATA"
+      "n_reference": 14223,
+      "n_recent": 12438,
+      "reference_mean": -0.0363,
+      "recent_mean": 0.0114,
+      "recent_net_of_cost": -0.1086,
+      "t_stat": 4.147,
+      "t_p_value": 3e-05,
+      "ks_stat": 0.0333,
+      "ks_p_value": 0.0,
+      "verdict": "STABLE"
     },
     "rl_bias": {
       "n_reference": 0,
@@ -401,13 +467,20 @@
       "verdict": "INSUFFICIENT_DATA"
     },
     "weinstein_mod": {
-      "n_reference": 0,
-      "n_recent": 12593,
-      "verdict": "INSUFFICIENT_DATA"
+      "n_reference": 5823,
+      "n_recent": 8812,
+      "reference_mean": -0.0385,
+      "recent_mean": -0.0021,
+      "recent_net_of_cost": -0.1221,
+      "t_stat": 1.911,
+      "t_p_value": 0.05597,
+      "ks_stat": 0.046,
+      "ks_p_value": 0.0,
+      "verdict": "STABLE"
     },
     "gex_mod": {
       "n_reference": 0,
-      "n_recent": 0,
+      "n_recent": 5,
       "verdict": "INSUFFICIENT_DATA"
     },
     "skew_mod": {
@@ -421,27 +494,27 @@
       "verdict": "INSUFFICIENT_DATA"
     },
     "sr_level_mod": {
-      "n_reference": 1399,
-      "n_recent": 18631,
-      "reference_mean": 0.0464,
-      "recent_mean": -0.0389,
-      "recent_net_of_cost": -0.1589,
-      "t_stat": -4.27,
-      "t_p_value": 2e-05,
-      "ks_stat": 0.0658,
-      "ks_p_value": 2e-05,
-      "verdict": "DRIFT_SUSPECTED"
+      "n_reference": 12986,
+      "n_recent": 9157,
+      "reference_mean": -0.0457,
+      "recent_mean": -0.0006,
+      "recent_net_of_cost": -0.1206,
+      "t_stat": 3.165,
+      "t_p_value": 0.00156,
+      "ks_stat": 0.0337,
+      "ks_p_value": 1e-05,
+      "verdict": "STABLE"
     },
     "pivot_boss_mod": {
-      "n_reference": 1269,
-      "n_recent": 15014,
-      "reference_mean": 0.0151,
-      "recent_mean": -0.0193,
-      "recent_net_of_cost": -0.1393,
-      "t_stat": -1.601,
-      "t_p_value": 0.1096,
-      "ks_stat": 0.0382,
-      "ks_p_value": 0.06464,
+      "n_reference": 11460,
+      "n_recent": 6205,
+      "reference_mean": -0.0217,
+      "recent_mean": -0.0031,
+      "recent_net_of_cost": -0.1231,
+      "t_stat": 1.201,
+      "t_p_value": 0.22964,
+      "ks_stat": 0.0377,
+      "ks_p_value": 2e-05,
       "verdict": "STABLE"
     },
     "oi_mod": {
@@ -450,35 +523,56 @@
       "verdict": "INSUFFICIENT_DATA"
     },
     "sector_mod": {
-      "n_reference": 0,
-      "n_recent": 841,
-      "verdict": "INSUFFICIENT_DATA"
+      "n_reference": 274,
+      "n_recent": 766,
+      "reference_mean": -0.0424,
+      "recent_mean": 0.043,
+      "recent_net_of_cost": -0.077,
+      "t_stat": 1.483,
+      "t_p_value": 0.13861,
+      "ks_stat": 0.1001,
+      "ks_p_value": 0.03229,
+      "verdict": "STABLE"
     },
     "crsi_mod": {
-      "n_reference": 0,
-      "n_recent": 217,
+      "n_reference": 25,
+      "n_recent": 236,
       "verdict": "INSUFFICIENT_DATA"
     },
     "nr_mod": {
-      "n_reference": 0,
-      "n_recent": 3533,
-      "verdict": "INSUFFICIENT_DATA"
+      "n_reference": 361,
+      "n_recent": 3893,
+      "reference_mean": -0.1275,
+      "recent_mean": 0.0071,
+      "recent_net_of_cost": -0.1129,
+      "t_stat": 3.249,
+      "t_p_value": 0.00124,
+      "ks_stat": 0.1008,
+      "ks_p_value": 0.00225,
+      "verdict": "STABLE"
     },
     "volume_mod": {
-      "n_reference": 0,
-      "n_recent": 9155,
-      "verdict": "INSUFFICIENT_DATA"
+      "n_reference": 4548,
+      "n_recent": 5454,
+      "reference_mean": -0.0429,
+      "recent_mean": 0.0087,
+      "recent_net_of_cost": -0.1113,
+      "t_stat": 2.146,
+      "t_p_value": 0.03189,
+      "ks_stat": 0.0501,
+      "ks_p_value": 1e-05,
+      "verdict": "STABLE"
     },
     "structure_mod": {
-      "n_reference": 1250,
-      "n_recent": 15926,
-      "reference_mean": 0.0427,
-      "recent_mean": -0.013,
-      "recent_net_of_cost": -0.133,
-      "t_stat": -2.633,
-      "t_p_value": 0.00854,
-      "ks_stat": 0.05,
-      "ks_p_value": 0.00592,
+      "n_reference": 11557,
+      "n_recent": 7245,
+      "reference_mean": -0.0182,
+      "recent_mean": 0.0126,
+      "recent_net_of_cost": -0.1074,
+      "t_stat": 2.047,
+      "t_p_value": 0.04072,
+      "ks_stat": 0.0405,
+      "ks_p_value": 0.0,
       "verdict": "STABLE"
     },
     "market_quality_mod": {
@@ -487,15 +581,15 @@
       "verdict": "INSUFFICIENT_DATA"
     },
     "market_profile_mod": {
-      "n_reference": 961,
-      "n_recent": 12720,
-      "reference_mean": -0.0087,
-      "recent_mean": -0.0333,
-      "recent_net_of_cost": -0.1533,
-      "t_stat": -1.017,
-      "t_p_value": 0.30954,
-      "ks_stat": 0.0396,
-      "ks_p_value": 0.11775,
+      "n_reference": 9241,
+      "n_recent": 5714,
+      "reference_mean": -0.0355,
+      "recent_mean": -0.0143,
+      "recent_net_of_cost": -0.1343,
+      "t_stat": 1.239,
+      "t_p_value": 0.21547,
+      "ks_stat": 0.0327,
+      "ks_p_value": 0.00101,
       "verdict": "STABLE"
     },
     "candidate_quality_mod": {
@@ -518,25 +612,37 @@
       "verdict": "STABLE"
     },
     "ma_cross": {
-      "n_total": 1371,
+      "n_total": 1728,
       "n_reference": 15,
-      "n_evaluated": 1356,
-      "reference_mean": 0.0981,
-      "noise_std": 0.9056,
-      "k": 0.4528,
-      "h": 30.4422,
-      "final_cusum": -0.1528,
+      "n_evaluated": 1713,
+      "reference_mean": 0.1855,
+      "noise_std": 0.8451,
+      "k": 0.4226,
+      "h": 31.9313,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "elder_triple_screen": {
+      "n_total": 1705,
+      "n_reference": 15,
+      "n_evaluated": 1690,
+      "reference_mean": 0.1569,
+      "noise_std": 0.8756,
+      "k": 0.4378,
+      "h": 32.8589,
+      "final_cusum": -0.4002,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
     "breakout": {
-      "n_total": 1362,
+      "n_total": 1640,
       "n_reference": 15,
-      "n_evaluated": 1347,
-      "reference_mean": 0.1162,
-      "noise_std": 1.186,
-      "k": 0.593,
-      "h": 39.7364,
+      "n_evaluated": 1625,
+      "reference_mean": 0.143,
+      "noise_std": 1.1128,
+      "k": 0.5564,
+      "h": 40.951,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
@@ -577,18 +683,6 @@
       "flagged_at_index": 711,
       "verdict": "DRIFT_SUSPECTED"
     },
-    "elder_triple_screen": {
-      "n_total": 1132,
-      "n_reference": 15,
-      "n_evaluated": 1117,
-      "reference_mean": -0.0652,
-      "noise_std": 0.8358,
-      "k": 0.4179,
-      "h": 25.5014,
-      "final_cusum": 0.0,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
     "trend": {
       "n_total": 1047,
       "n_reference": 15,
@@ -597,6 +691,18 @@
       "noise_std": 0.7977,
       "k": 0.3988,
       "h": 23.393,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "failed_bear_breakout": {
+      "n_total": 857,
+      "n_reference": 15,
+      "n_evaluated": 842,
+      "reference_mean": 0.0394,
+      "noise_std": 1.1911,
+      "k": 0.5956,
+      "h": 31.552,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
@@ -622,18 +728,6 @@
       "k": 0.4598,
       "h": 22.2584,
       "final_cusum": 0.0,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
-    "failed_bear_breakout": {
-      "n_total": 714,
-      "n_reference": 15,
-      "n_evaluated": 699,
-      "reference_mean": 0.0216,
-      "noise_std": 1.2655,
-      "k": 0.6328,
-      "h": 30.5432,
-      "final_cusum": -0.6885,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
@@ -672,6 +766,18 @@
       "final_cusum": -98.7169,
       "flagged_at_index": 245,
       "verdict": "DRIFT_SUSPECTED"
+    },
+    "candlestick_bullish_engulfing": {
+      "n_total": 442,
+      "n_reference": 15,
+      "n_evaluated": 427,
+      "reference_mean": 0.0089,
+      "noise_std": 1.2393,
+      "k": 0.6197,
+      "h": 23.3776,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
     },
     "chart_pattern_double_bottom": {
       "n_total": 376,
@@ -769,14 +875,26 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "candlestick_bullish_engulfing": {
-      "n_total": 321,
+    "candlestick_three_white_soldiers": {
+      "n_total": 335,
       "n_reference": 15,
-      "n_evaluated": 306,
-      "reference_mean": -0.0252,
-      "noise_std": 1.3967,
-      "k": 0.6984,
-      "h": 22.3038,
+      "n_evaluated": 320,
+      "reference_mean": -0.3931,
+      "noise_std": 1.1388,
+      "k": 0.5694,
+      "h": 18.5962,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "candlestick_tweezer_bottom": {
+      "n_total": 322,
+      "n_reference": 15,
+      "n_evaluated": 307,
+      "reference_mean": 0.0134,
+      "noise_std": 0.8549,
+      "k": 0.4275,
+      "h": 13.6746,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
@@ -802,6 +920,18 @@
       "k": 0.5926,
       "h": 17.4806,
       "final_cusum": -8.8314,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "heikin_ashi": {
+      "n_total": 272,
+      "n_reference": 15,
+      "n_evaluated": 257,
+      "reference_mean": 0.4192,
+      "noise_std": 1.0742,
+      "k": 0.5371,
+      "h": 15.7201,
+      "final_cusum": -0.892,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
@@ -865,15 +995,15 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "heikin_ashi": {
-      "n_total": 247,
+    "candlestick_hammer": {
+      "n_total": 246,
       "n_reference": 15,
-      "n_evaluated": 232,
-      "reference_mean": 0.4482,
-      "noise_std": 1.1199,
-      "k": 0.5599,
-      "h": 15.5715,
-      "final_cusum": -3.2953,
+      "n_evaluated": 231,
+      "reference_mean": 0.0144,
+      "noise_std": 0.9617,
+      "k": 0.4809,
+      "h": 13.3431,
+      "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
@@ -889,14 +1019,14 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "candlestick_three_white_soldiers": {
-      "n_total": 231,
+    "candlestick_doji": {
+      "n_total": 210,
       "n_reference": 15,
-      "n_evaluated": 216,
-      "reference_mean": -0.1965,
-      "noise_std": 1.2664,
-      "k": 0.6332,
-      "h": 16.9903,
+      "n_evaluated": 195,
+      "reference_mean": 0.0237,
+      "noise_std": 0.8568,
+      "k": 0.4284,
+      "h": 10.922,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
@@ -925,6 +1055,18 @@
       "flagged_at_index": 142,
       "verdict": "DRIFT_SUSPECTED"
     },
+    "candlestick_shooting_star": {
+      "n_total": 201,
+      "n_reference": 15,
+      "n_evaluated": 186,
+      "reference_mean": -0.0258,
+      "noise_std": 0.758,
+      "k": 0.379,
+      "h": 9.437,
+      "final_cusum": -0.4904,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
     "chart_pattern_range_expansion": {
       "n_total": 194,
       "n_reference": 15,
@@ -934,30 +1076,6 @@
       "k": 0.8012,
       "h": 19.5707,
       "final_cusum": -10.9702,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
-    "candlestick_tweezer_bottom": {
-      "n_total": 182,
-      "n_reference": 15,
-      "n_evaluated": 167,
-      "reference_mean": -0.0652,
-      "noise_std": 0.9991,
-      "k": 0.4996,
-      "h": 11.7867,
-      "final_cusum": 0.0,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
-    "candlestick_hammer": {
-      "n_total": 175,
-      "n_reference": 15,
-      "n_evaluated": 160,
-      "reference_mean": -0.0669,
-      "noise_std": 1.0534,
-      "k": 0.5267,
-      "h": 12.1633,
-      "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
@@ -997,29 +1115,29 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "candlestick_shooting_star": {
-      "n_total": 129,
+    "chart_pattern_diamond_bottom": {
+      "n_total": 119,
       "n_reference": 15,
-      "n_evaluated": 114,
-      "reference_mean": -0.0268,
-      "noise_std": 0.8456,
-      "k": 0.4228,
-      "h": 8.2423,
+      "n_evaluated": 104,
+      "reference_mean": 0.153,
+      "noise_std": 1.1066,
+      "k": 0.5533,
+      "h": 10.3018,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "candlestick_doji": {
-      "n_total": 121,
+    "candlestick_bearish_harami": {
+      "n_total": 119,
       "n_reference": 15,
-      "n_evaluated": 106,
-      "reference_mean": 0.0096,
-      "noise_std": 0.8169,
-      "k": 0.4085,
-      "h": 7.6781,
-      "final_cusum": -0.7768,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
+      "n_evaluated": 104,
+      "reference_mean": 0.4311,
+      "noise_std": 0.6498,
+      "k": 0.3249,
+      "h": 6.0497,
+      "final_cusum": -12.195,
+      "flagged_at_index": 58,
+      "verdict": "DRIFT_SUSPECTED"
     },
     "candlestick_bearish_marubozu": {
       "n_total": 115,
@@ -1069,6 +1187,18 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
+    "candlestick_fred_tam_white_inside_out": {
+      "n_total": 108,
+      "n_reference": 15,
+      "n_evaluated": 93,
+      "reference_mean": -0.0683,
+      "noise_std": 0.698,
+      "k": 0.349,
+      "h": 6.1444,
+      "final_cusum": -0.5459,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
     "candlestick_spinning_top_white": {
       "n_total": 103,
       "n_reference": 15,
@@ -1081,17 +1211,41 @@
       "flagged_at_index": 50,
       "verdict": "DRIFT_SUSPECTED"
     },
-    "chart_pattern_diamond_bottom": {
-      "n_total": 92,
+    "vwap_reversion": {
+      "n_total": 93,
       "n_reference": 15,
-      "n_evaluated": 77,
-      "reference_mean": 0.153,
-      "noise_std": 1.212,
-      "k": 0.606,
-      "h": 9.7088,
+      "n_evaluated": 78,
+      "reference_mean": 0.2087,
+      "noise_std": 1.0327,
+      "k": 0.5164,
+      "h": 8.3259,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
+    },
+    "candlestick_bullish_marubozu": {
+      "n_total": 87,
+      "n_reference": 15,
+      "n_evaluated": 72,
+      "reference_mean": 0.2767,
+      "noise_std": 1.1622,
+      "k": 0.5811,
+      "h": 9.0021,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "chart_pattern_falling_wedge": {
+      "n_total": 87,
+      "n_reference": 15,
+      "n_evaluated": 72,
+      "reference_mean": 1.4379,
+      "noise_std": 2.0507,
+      "k": 1.0254,
+      "h": 15.8848,
+      "final_cusum": -27.8646,
+      "flagged_at_index": 60,
+      "verdict": "DRIFT_SUSPECTED"
     },
     "elliott_wave": {
       "n_total": 87,
@@ -1129,6 +1283,18 @@
       "flagged_at_index": 80,
       "verdict": "DRIFT_SUSPECTED"
     },
+    "volume_profile_full": {
+      "n_total": 80,
+      "n_reference": 15,
+      "n_evaluated": 65,
+      "reference_mean": 0.2307,
+      "noise_std": 0.7668,
+      "k": 0.3834,
+      "h": 5.6434,
+      "final_cusum": -4.565,
+      "flagged_at_index": 70,
+      "verdict": "DRIFT_SUSPECTED"
+    },
     "uo_overbought": {
       "n_total": 79,
       "n_reference": 15,
@@ -1151,42 +1317,6 @@
       "h": 11.8311,
       "final_cusum": 0.0,
       "flagged_at_index": 31,
-      "verdict": "DRIFT_SUSPECTED"
-    },
-    "vwap_reversion": {
-      "n_total": 72,
-      "n_reference": 15,
-      "n_evaluated": 57,
-      "reference_mean": 0.2087,
-      "noise_std": 1.1154,
-      "k": 0.5577,
-      "h": 7.6872,
-      "final_cusum": 0.0,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
-    "candlestick_fred_tam_white_inside_out": {
-      "n_total": 68,
-      "n_reference": 15,
-      "n_evaluated": 53,
-      "reference_mean": -0.0683,
-      "noise_std": 0.7461,
-      "k": 0.373,
-      "h": 4.9584,
-      "final_cusum": 0.0,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
-    "candlestick_bearish_harami": {
-      "n_total": 66,
-      "n_reference": 15,
-      "n_evaluated": 51,
-      "reference_mean": 0.4311,
-      "noise_std": 0.7617,
-      "k": 0.3808,
-      "h": 4.9657,
-      "final_cusum": -8.2466,
-      "flagged_at_index": 61,
       "verdict": "DRIFT_SUSPECTED"
     },
     "gap_fill": {
@@ -1213,39 +1343,39 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "chart_pattern_falling_wedge": {
-      "n_total": 61,
-      "n_reference": 15,
-      "n_evaluated": 46,
-      "reference_mean": 1.4893,
-      "noise_std": 2.4108,
-      "k": 1.2054,
-      "h": 14.9265,
-      "final_cusum": -10.4624,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
-    "candlestick_bullish_marubozu": {
-      "n_total": 60,
-      "n_reference": 15,
-      "n_evaluated": 45,
-      "reference_mean": 0.2767,
-      "noise_std": 1.1745,
-      "k": 0.5873,
-      "h": 7.1924,
-      "final_cusum": -0.1572,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
     "candlestick_three_river_evening_star": {
-      "n_total": 52,
+      "n_total": 62,
       "n_reference": 15,
-      "n_evaluated": 37,
+      "n_evaluated": 47,
       "reference_mean": -0.1899,
-      "noise_std": 1.4271,
-      "k": 0.7136,
-      "h": 7.9246,
+      "noise_std": 1.3449,
+      "k": 0.6724,
+      "h": 8.4167,
       "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "vwap_bands": {
+      "n_total": 55,
+      "n_reference": 15,
+      "n_evaluated": 40,
+      "reference_mean": 0.2337,
+      "noise_std": 1.0506,
+      "k": 0.5253,
+      "h": 6.0654,
+      "final_cusum": -7.1389,
+      "flagged_at_index": 54,
+      "verdict": "DRIFT_SUSPECTED"
+    },
+    "anchored_vwap": {
+      "n_total": 49,
+      "n_reference": 15,
+      "n_evaluated": 34,
+      "reference_mean": 0.3104,
+      "noise_std": 0.7053,
+      "k": 0.3526,
+      "h": 3.7541,
+      "final_cusum": -2.2474,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
@@ -1261,6 +1391,30 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
+    "kst": {
+      "n_total": 43,
+      "n_reference": 15,
+      "n_evaluated": 28,
+      "reference_mean": -0.2667,
+      "noise_std": 0.6369,
+      "k": 0.3185,
+      "h": 3.0767,
+      "final_cusum": -0.5302,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "candlestick_bullish_separating_lines": {
+      "n_total": 42,
+      "n_reference": 15,
+      "n_evaluated": 27,
+      "reference_mean": -0.0915,
+      "noise_std": 1.0041,
+      "k": 0.502,
+      "h": 4.7627,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
     "chart_pattern_rectangle": {
       "n_total": 42,
       "n_reference": 15,
@@ -1271,18 +1425,6 @@
       "h": 6.179,
       "final_cusum": 0.0,
       "flagged_at_index": 21,
-      "verdict": "DRIFT_SUSPECTED"
-    },
-    "volume_profile_full": {
-      "n_total": 42,
-      "n_reference": 15,
-      "n_evaluated": 27,
-      "reference_mean": 0.2204,
-      "noise_std": 0.5382,
-      "k": 0.2691,
-      "h": 2.5531,
-      "final_cusum": -2.4437,
-      "flagged_at_index": 34,
       "verdict": "DRIFT_SUSPECTED"
     },
     "candlestick_bullish_harami": {
@@ -1321,6 +1463,18 @@
       "flagged_at_index": 27,
       "verdict": "DRIFT_SUSPECTED"
     },
+    "candlestick_bearish_separating_lines": {
+      "n_total": 38,
+      "n_reference": 15,
+      "n_evaluated": 23,
+      "reference_mean": -0.279,
+      "noise_std": 0.8301,
+      "k": 0.4151,
+      "h": 3.6343,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
     "chaikin_mf": {
       "n_total": 38,
       "n_reference": 15,
@@ -1346,25 +1500,37 @@
       "verdict": "STABLE"
     },
     "chart_pattern_cup_handle": {
+      "n_total": 37,
+      "n_reference": 15,
+      "n_evaluated": 22,
+      "reference_mean": 0.2702,
+      "noise_std": 0.7911,
+      "k": 0.3956,
+      "h": 3.3874,
+      "final_cusum": -5.5679,
+      "flagged_at_index": 31,
+      "verdict": "DRIFT_SUSPECTED"
+    },
+    "ehlers_fisher": {
       "n_total": 36,
       "n_reference": 15,
       "n_evaluated": 21,
-      "reference_mean": 0.2702,
-      "noise_std": 0.7801,
-      "k": 0.39,
-      "h": 3.2634,
-      "final_cusum": -4.5827,
-      "flagged_at_index": 32,
-      "verdict": "DRIFT_SUSPECTED"
+      "reference_mean": -0.2838,
+      "noise_std": 1.1621,
+      "k": 0.5811,
+      "h": 4.8615,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
     },
-    "kst": {
-      "n_total": 35,
+    "ema_cloud_sd": {
+      "n_total": 34,
       "n_reference": 15,
-      "n_evaluated": 20,
-      "reference_mean": -0.2667,
-      "noise_std": 0.5959,
-      "k": 0.2979,
-      "h": 2.4327,
+      "n_evaluated": 19,
+      "reference_mean": -0.0065,
+      "noise_std": 0.4118,
+      "k": 0.2059,
+      "h": 1.6387,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
@@ -1381,18 +1547,6 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "candlestick_bullish_separating_lines": {
-      "n_total": 32,
-      "n_reference": 15,
-      "n_evaluated": 17,
-      "reference_mean": -0.0915,
-      "noise_std": 1.0701,
-      "k": 0.5351,
-      "h": 4.0279,
-      "final_cusum": 0.0,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
     "candlestick_inverted_hammer": {
       "n_total": 32,
       "n_reference": 15,
@@ -1405,15 +1559,15 @@
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "candlestick_bearish_separating_lines": {
-      "n_total": 30,
+    "smc": {
+      "n_total": 31,
       "n_reference": 15,
-      "n_evaluated": 15,
-      "reference_mean": -0.279,
-      "noise_std": 0.9205,
-      "k": 0.4602,
-      "h": 3.2545,
-      "final_cusum": 0.0,
+      "n_evaluated": 16,
+      "reference_mean": 0.2073,
+      "noise_std": 1.0807,
+      "k": 0.5403,
+      "h": 3.9461,
+      "final_cusum": -0.5016,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
@@ -1429,98 +1583,82 @@
       "flagged_at_index": 27,
       "verdict": "DRIFT_SUSPECTED"
     },
-    "ehlers_fisher": {
-      "n_total": 26,
+    "candlestick_three_river_morning_star": {
+      "n_total": 28,
       "n_reference": 15,
-      "n_evaluated": 11,
-      "reference_mean": -0.3934,
-      "noise_std": 1.2913,
-      "k": 0.6456,
-      "h": 3.9095,
-      "final_cusum": -2.9853,
-      "flagged_at_index": 24,
-      "verdict": "DRIFT_SUSPECTED"
-    },
-    "vwap_bands": {
-      "n_total": 24,
-      "n_reference": 15,
-      "n_evaluated": 9,
-      "reference_mean": 0.2337,
-      "noise_std": 0.6385,
-      "k": 0.3192,
-      "h": 1.7485,
+      "n_evaluated": 13,
+      "reference_mean": -0.1216,
+      "noise_std": 0.4792,
+      "k": 0.2396,
+      "h": 1.5771,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "anchored_vwap": {
-      "n_total": 24,
+    "oops": {
+      "n_total": 25,
       "n_reference": 15,
-      "n_evaluated": 9,
-      "reference_mean": 0.3104,
-      "noise_std": 0.6098,
-      "k": 0.3049,
-      "h": 1.6701,
-      "final_cusum": -0.3004,
-      "flagged_at_index": null,
-      "verdict": "STABLE"
-    },
-    "chart_pattern_cup_and_handle": {
-      "n_total": 21,
-      "n_reference": 15,
-      "n_evaluated": 6,
-      "reference_mean": -0.0422,
-      "noise_std": 1.156,
-      "k": 0.578,
-      "h": 2.5849,
-      "final_cusum": -1.5856,
+      "n_evaluated": 10,
+      "reference_mean": -0.1926,
+      "noise_std": 0.9411,
+      "k": 0.4705,
+      "h": 2.7167,
+      "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
     "candlestick_deliberation": {
-      "n_total": 21,
+      "n_total": 24,
       "n_reference": 15,
-      "n_evaluated": 6,
+      "n_evaluated": 9,
       "reference_mean": -0.3514,
-      "noise_std": 0.7384,
-      "k": 0.3692,
-      "h": 1.651,
+      "noise_std": 0.734,
+      "k": 0.367,
+      "h": 2.0101,
       "final_cusum": 0.0,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "smc": {
-      "n_total": 20,
+    "candlestick_ladder_bottom": {
+      "n_total": 24,
       "n_reference": 15,
-      "n_evaluated": 5,
-      "reference_mean": 0.2073,
-      "noise_std": 1.2391,
-      "k": 0.6195,
-      "h": 2.5292,
-      "final_cusum": -1.4938,
+      "n_evaluated": 9,
+      "reference_mean": 0.2642,
+      "noise_std": 0.6692,
+      "k": 0.3346,
+      "h": 1.8326,
+      "final_cusum": -1.6588,
       "flagged_at_index": null,
       "verdict": "STABLE"
     },
-    "candlestick_ladder_bottom": {
-      "n_total": 20,
+    "chart_pattern_cup_and_handle": {
+      "n_total": 23,
       "n_reference": 15,
-      "n_evaluated": 5,
-      "reference_mean": 0.2642,
-      "noise_std": 0.6911,
-      "k": 0.3455,
-      "h": 1.4106,
-      "final_cusum": -0.831,
+      "n_evaluated": 8,
+      "reference_mean": -0.0422,
+      "noise_std": 1.2214,
+      "k": 0.6107,
+      "h": 3.1537,
+      "final_cusum": 0.0,
+      "flagged_at_index": null,
+      "verdict": "STABLE"
+    },
+    "volatility_breakout": {
+      "n_total": 21,
+      "n_reference": 15,
+      "n_evaluated": 6,
+      "reference_mean": -0.1326,
+      "noise_std": 0.5752,
+      "k": 0.2876,
+      "h": 1.2861,
+      "final_cusum": -0.081,
       "flagged_at_index": null,
       "verdict": "STABLE"
     }
   },
   "summary": {
     "drifting_strategies": [],
-    "drifting_modifiers": [
-      "participant_mod",
-      "mtf_pivot_mod",
-      "sr_level_mod"
-    ],
+    "drifting_modifiers": [],
     "drifting_strategies_cusum": [
       "chart_pattern_descending_triangle",
       "alligator_ao",
@@ -1532,20 +1670,21 @@
       "chart_pattern_double_top",
       "ttm_squeeze",
       "rsi2_mr",
+      "candlestick_bearish_harami",
       "candlestick_bearish_marubozu",
       "candlestick_spinning_top_white",
+      "chart_pattern_falling_wedge",
       "kama_trend",
+      "volume_profile_full",
       "uo_overbought",
       "candlestick_tweezer_top",
-      "candlestick_bearish_harami",
+      "vwap_bands",
       "chart_pattern_rectangle",
-      "volume_profile_full",
       "order_flow",
       "cci_zero_cross",
       "chart_pattern_cup_handle",
-      "chart_pattern_bear_flag",
-      "ehlers_fisher"
+      "chart_pattern_bear_flag"
     ]
   },
-  "conclusion": "DRIFT SUSPECTED: strategies=\u2014 modifiers=['participant_mod', 'mtf_pivot_mod', 'sr_level_mod'] cusum=['chart_pattern_descending_triangle', 'alligator_ao', 'vrvp_zone', 'failed_bull_breakout', 'candlestick_bearish_engulfing', 'cpr', 'pivot_scalping', 'chart_pattern_double_top', 'ttm_squeeze', 'rsi2_mr', 'candlestick_bearish_marubozu', 'candlestick_spinning_top_white', 'kama_trend', 'uo_overbought', 'candlestick_tweezer_top', 'candlestick_bearish_harami', 'chart_pattern_rectangle', 'volume_profile_full', 'order_flow', 'cci_zero_cross', 'chart_pattern_cup_handle', 'chart_pattern_bear_flag', 'ehlers_fisher']. Report only \u2014 review manually before any pruned.json change."
+  "conclusion": "DRIFT SUSPECTED: strategies=\u2014 modifiers=\u2014 cusum=['chart_pattern_descending_triangle', 'alligator_ao', 'vrvp_zone', 'failed_bull_breakout', 'candlestick_bearish_engulfing', 'cpr', 'pivot_scalping', 'chart_pattern_double_top', 'ttm_squeeze', 'rsi2_mr', 'candlestick_bearish_harami', 'candlestick_bearish_marubozu', 'candlestick_spinning_top_white', 'chart_pattern_falling_wedge', 'kama_trend', 'volume_profile_full', 'uo_overbought', 'candlestick_tweezer_top', 'vwap_bands', 'chart_pattern_rectangle', 'order_flow', 'cci_zero_cross', 'chart_pattern_cup_handle', 'chart_pattern_bear_flag']. Report only \u2014 review manually before any pruned.json change."
 }

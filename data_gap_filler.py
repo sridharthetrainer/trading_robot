@@ -61,13 +61,15 @@ def _last_date(db: str, q: str) -> Optional[str]:
 
 def freshness() -> List[Dict[str, Any]]:
     today = date.today()
+    from trading_calendar import latest_expected_session
+    expected = latest_expected_session(today)
     out = []
     for s in SOURCES:
         last = _last_date(s["db"], s["q"])
         stale = None
         if last:
             try:
-                stale = (today - datetime.strptime(last[:10], "%Y-%m-%d").date()).days
+                stale = max(0, (expected - datetime.strptime(last[:10], "%Y-%m-%d").date()).days)
             except Exception:
                 pass
         out.append({"name": s["name"], "db": s["db"], "last": last, "stale_days": stale})
@@ -78,13 +80,15 @@ def fill(execute: bool = False, max_days: int = 45) -> List[Dict[str, Any]]:
     """For each stale EOD store, run its backfill from last+1 to today. execute=False
     reports what it WOULD do. Best-effort per source."""
     today = date.today()
+    from trading_calendar import latest_expected_session
+    expected = latest_expected_session(today)
     results = []
     for s in SOURCES:
         last = _last_date(s["db"], s["q"])
         sd = None
         if last:
             try:
-                sd = (today - datetime.strptime(last[:10], "%Y-%m-%d").date()).days
+                sd = max(0, (expected - datetime.strptime(last[:10], "%Y-%m-%d").date()).days)
             except Exception:
                 pass
         info = {"name": s["name"], "db": s["db"], "last": last, "stale_days": sd}
@@ -94,12 +98,12 @@ def fill(execute: bool = False, max_days: int = 45) -> List[Dict[str, Any]]:
         if sd <= 1:
             results.append({**info, "action": "current"})
             continue
-        start = today - timedelta(days=min(sd, max_days))
+        start = expected - timedelta(days=min(sd, max_days))
         if not execute:
-            results.append({**info, "action": f"would backfill {start}..{today}"})
+            results.append({**info, "action": f"would backfill {start}..{expected}"})
             continue
         try:
-            r = s["fill"](start, today)
+            r = s["fill"](start, expected)
             results.append({**info, "action": "filled", "result": r})
         except Exception as exc:
             results.append({**info, "action": f"backfill failed: {str(exc)[:80]}"})

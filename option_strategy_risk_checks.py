@@ -2,17 +2,14 @@
 option_strategy_risk_checks.py — pure, read-only risk-taxonomy checks for
 the 2026-07-16 option strategy catalog.
 
-Every function here is a pure calculation with no side effects: nothing in
-this module places an order, touches trade_manager, or gates a real trade,
-because nothing in this pass places an order at all (see
-option_strategy_registry.py's module docstring). These exist so the checks
-are unit-testable now and become the real gate once an execution layer is
-built later -- at that point this module is what gets wired in, not
-rewritten.
+Every function here is a pure calculation with no side effects.
+can_enter_trade is used by the catalog before shadow evaluation; it does
+not place orders or authorize live trading.
 """
 from __future__ import annotations
 
 import logging
+import math
 from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -70,15 +67,25 @@ def gap_and_adx_filter(gap_pct: float, adx: float,
 
 def can_enter_trade(regime: Dict[str, Any], vix: float, api_latency_sec: float = 0.0,
                      open_undefined_risk_count: int = 0, adx: float = 20.0,
+                     risk_profile: str = "undefined_risk",
                      **kw) -> Tuple[bool, str]:
     """The spec's can_enter_trade()/global-kill-switch aggregator (section
-    3.4), expressed as a pure boolean+reason. Unwired to any live gate this
-    pass -- there is nothing to gate yet -- but shaped exactly as the real
-    gate will be once execution exists, so nothing here needs rewriting
-    later, only calling."""
+    3.4), expressed as a pure boolean+reason and applied to catalog shadow
+    entries. Passing this check does not authorize execution."""
     vix_block_all = _cfg("OPTION_STRATEGY_VIX_BLOCK_ALL", 25.0)
     vix_block_nondirectional = _cfg("OPTION_STRATEGY_VIX_BLOCK_NONDIRECTIONAL", 30.0)
     latency_block = _cfg("OPTION_STRATEGY_API_LATENCY_BLOCK_SEC", 2.0)
+    try:
+        vix, api_latency_sec, adx = map(float, (vix, api_latency_sec, adx))
+        gap_pct = float(regime.get("gap_pct", 0.0)) if isinstance(regime, dict) else 0.0
+        count = float(open_undefined_risk_count)
+    except (TypeError, ValueError, OverflowError):
+        return False, "invalid_risk_inputs"
+    if not all(math.isfinite(value) for value in (
+        vix, api_latency_sec, adx, gap_pct, count,
+        vix_block_all, vix_block_nondirectional, latency_block,
+    )) or vix <= 0 or api_latency_sec < 0 or adx < 0 or count < 0 or count != int(count):
+        return False, "invalid_risk_inputs"
 
     # Spec lists both "VIX>25 blocks all new entries" and, separately,
     # "VIX>30 skip all non-directional" -- since 30>25 the second condition
@@ -90,17 +97,14 @@ def can_enter_trade(regime: Dict[str, Any], vix: float, api_latency_sec: float =
         return False, f"vix_{vix:.1f}_gt_{vix_block_nondirectional}_block_nondirectional"
     if vix > vix_block_all:
         return False, f"vix_{vix:.1f}_gt_{vix_block_all}_block_all"
-    if vix > vix_block_nondirectional:
-        return False, f"vix_{vix:.1f}_gt_{vix_block_nondirectional}_block_nondirectional"
     if api_latency_sec > latency_block:
         return False, f"api_latency_{api_latency_sec:.2f}s_gt_{latency_block}s"
 
-    gap_pct = float(regime.get("gap_pct", 0.0)) if isinstance(regime, dict) else 0.0
-    blocked, reason = gap_and_adx_filter(gap_pct, adx)
+    blocked, reason = gap_and_adx_filter(abs(gap_pct), adx)
     if blocked:
         return False, reason
 
-    if open_undefined_risk_count >= 1:
+    if count >= 1 and risk_profile == "undefined_risk":
         # Spec: at most 1 undefined-risk strategy concurrently. Enforcement
         # is moot until real positions exist, but the check is real now.
         return False, "max_1_undefined_risk_strategy_already_open"

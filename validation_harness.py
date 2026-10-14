@@ -103,6 +103,7 @@ class ValidationResult:
     # locked holdout (risk-adjusted, by Sharpe). None when holdout not evaluated.
     benchmark_buyhold_sharpe: Optional[float] = None
     beats_benchmark:          Optional[bool]  = None
+    backtest_errors:          List[Dict] = field(default_factory=list)
 
     def to_dict(self) -> Dict:
         return asdict(self)
@@ -265,10 +266,12 @@ def _run_wf_grid(
     interval_minutes: int,
     initial_capital:  float,
     symbol:           str,
-) -> Tuple[Optional[Dict], List[Dict], int]:
+    max_grid_combinations: Optional[int] = None,
+    diagnostics: Optional[List[Dict]] = None,
+) -> Tuple[Optional[Dict], List[Dict], int, List[Dict]]:
     """
     For each OOS window: grid-search on train, evaluate best params on test.
-    Returns (best_params_overall, window_results, n_trials_total).
+    Returns (best_params_overall, window_results, n_trials_total, params_per_window).
 
     best_params_overall : params with highest avg score across all windows
     window_results      : [{window_idx, test_start, test_end, pnl, trades,
@@ -284,11 +287,19 @@ def _run_wf_grid(
     # Build all param combos once
     keys   = list(param_grid.keys())
     combos = list(itertools.product(*[param_grid[k] for k in keys]))
+    if max_grid_combinations is not None:
+        if max_grid_combinations < 1:
+            raise ValueError("max_grid_combinations must be positive")
+        if len(combos) > max_grid_combinations:
+            # Fixed evenly spaced coverage, independent of outcome scores.
+            indices = np.linspace(0, len(combos) - 1, max_grid_combinations, dtype=int)
+            combos = [combos[int(i)] for i in indices]
     n_combos = len(combos)
 
     window_results: List[Dict]  = []
     params_per_win: List[Dict]  = []
     offset = 0
+    attempted_trials = 0
 
     while offset + train_bars + test_bars <= len(dev_df):
         train_df = dev_df.iloc[offset : offset + train_bars].copy()
@@ -314,6 +325,7 @@ def _run_wf_grid(
         best_params = None
         for combo in combos:
             params = dict(zip(keys, combo))
+            attempted_trials += 1
             try:
                 r = backtest_fn(
                     symbol          = symbol,
@@ -332,7 +344,9 @@ def _run_wf_grid(
                 if score > best_score:
                     best_score  = score
                     best_params = params.copy()
-            except Exception:
+            except Exception as exc:
+                if diagnostics is not None and len(diagnostics) < 10:
+                    diagnostics.append({"phase": "development", "error_type": type(exc).__name__, "message": str(exc)[:160]})
                 continue
 
         if best_params is None:
@@ -362,6 +376,8 @@ def _run_wf_grid(
             })
             params_per_win.append(best_params)
         except Exception as exc:
+            if diagnostics is not None and len(diagnostics) < 10:
+                diagnostics.append({"phase": "walk_forward_test", "error_type": type(exc).__name__, "message": str(exc)[:160]})
             logger.debug("WF window eval failed: %s", exc)
 
     # Overall best params = those that appear most as window winner
@@ -372,7 +388,7 @@ def _run_wf_grid(
         most_common = Counter(frozen).most_common(1)[0][0]
         best_overall = json.loads(most_common)
 
-    n_trials_total = n_combos * max(len(window_results), 1)
+    n_trials_total = attempted_trials
     return best_overall, window_results, n_trials_total, params_per_win
 
 
@@ -419,6 +435,8 @@ def run_validation(
     min_windows:      int           = WF_MIN_WINDOWS,
     holdout_ratio:    float         = HOLDOUT_RATIO,
     min_trades:       int           = MIN_TRADES,
+    max_grid_combinations: Optional[int] = None,
+    record_experiment: bool = True,
 ) -> ValidationResult:
     """
     Run the full validation pipeline for one strategy.
@@ -453,6 +471,7 @@ def run_validation(
     dev_df, holdout_df = split_holdout(full_data, holdout_ratio)
 
     # 2. Walk-forward grid search on dev set
+    errors: List[Dict] = []
     best_params, window_results, n_trials, params_per_win = _run_wf_grid(
         backtest_fn      = backtest_fn,
         dev_df           = dev_df,
@@ -463,6 +482,8 @@ def run_validation(
         interval_minutes = interval_minutes,
         initial_capital  = initial_capital,
         symbol           = symbol,
+        max_grid_combinations = max_grid_combinations,
+        diagnostics      = errors,
     )
 
     if not window_results:
@@ -476,7 +497,8 @@ def run_validation(
             parameter_stability_cv=1.0, stability_ok=False,
             holdout_sharpe=None, holdout_pnl=None,
             holdout_trades=None, holdout_win_rate=None,
-            verdict="INSUFFICIENT_DATA",
+            verdict="FAIL" if errors else "INSUFFICIENT_DATA",
+            backtest_errors=errors,
         )
 
     # 3. Dev-set aggregates
@@ -596,11 +618,13 @@ def run_validation(
         beats_benchmark        = beats_benchmark,
         dev_windows_detail     = window_results,
         best_params            = best_params or {},
+        backtest_errors        = errors,
     )
     # Registry (audit #9): record every run so failed ideas aren't retested.
     try:
         import experiment_registry
-        experiment_registry.log_result(result, timeframe=f"{interval_minutes}m")
+        if record_experiment:
+            experiment_registry.log_result(result, timeframe=f"{interval_minutes}m")
     except Exception:
         pass
     return result
@@ -762,7 +786,10 @@ def _build_default_param_grid(strategy_name: str) -> Dict[str, List[Any]]:
             "rsi_min_long":  [30, 35],
         },
     }
-    return grids.get(strategy_name, {})
+    if strategy_name in grids:
+        return grids[strategy_name]
+    from research_backtest_adapters import MODEL_GRIDS, NATIVE_GRIDS
+    return MODEL_GRIDS.get(strategy_name, NATIVE_GRIDS.get(strategy_name, {}))
 
 
 if __name__ == "__main__":

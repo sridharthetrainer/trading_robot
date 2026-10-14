@@ -1,0 +1,684 @@
+{
+  "_audit_snapshot": {
+    "sha256": "a140862e3aa3c10c0f52f6ea6d280ed4e26d47ab09e83d146e87142d83668976",
+    "snapshot_file": "audit_snapshots/system_readiness_report/20261011T205014+0530_a140862e3aa3.json"
+  },
+  "assurance": {
+    "execution_audit_chain": {
+      "chained_rows": 39,
+      "invalid_rows": 0,
+      "last_hash": "5796e96f4f0f14acb7fc3844e2bae0ade9a82000d7144803ea00bf9344410640",
+      "legacy_rows": 0,
+      "ok": true,
+      "path": "execution_compliance.jsonl"
+    },
+    "indicator_lookahead": {
+      "checks": [
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "sma",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "ema",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "rsi",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "atr",
+          "ok": true
+        },
+        {
+          "comparisons": 15,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "adx",
+          "ok": true
+        },
+        {
+          "comparisons": 10,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "supertrend",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "vwap",
+          "ok": true
+        },
+        {
+          "comparisons": 15,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "bollinger",
+          "ok": true
+        },
+        {
+          "comparisons": 15,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "macd",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "volume_ratio",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "obv",
+          "ok": true
+        },
+        {
+          "comparisons": 5,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "mfi",
+          "ok": true
+        },
+        {
+          "comparisons": 25,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "ichimoku",
+          "ok": true
+        },
+        {
+          "comparisons": 155,
+          "max_abs_error": 0.0,
+          "mismatches": 0,
+          "name": "alternative_price_representations",
+          "ok": true
+        }
+      ],
+      "failed": [],
+      "generated_at": "2026-10-11T20:49:24+0530",
+      "method": "full_history_vs_truncated_prefix",
+      "ok": true,
+      "rows": 320,
+      "sample": {
+        "interval": "5m",
+        "source": "candle_cache",
+        "symbol": "IGL"
+      }
+    },
+    "ml_training_contract": {
+      "checks": {
+        "calibrator_contract_enforced": false,
+        "legacy_eod_weights_neutral": true,
+        "legacy_learned_filters_neutral": true,
+        "model_artifact_contract_enforced": true,
+        "outcome_fields_excluded": true
+      },
+      "clean_evidence": {
+        "clean_days": 41,
+        "clean_labelled": 28220,
+        "legacy_labelled": 37300
+      },
+      "forbidden_selected": [],
+      "generated_at": "2026-10-11T20:50:13+0530",
+      "ok": false,
+      "ordered_features": [
+        "score",
+        "volume_ratio"
+      ],
+      "primary_model": {
+        "available": false,
+        "model_used": "cross_symbol",
+        "reason": "legacy_training_contract",
+        "win_prob": 0.5
+      },
+      "promotion_targets": {
+        "days": 15,
+        "min_auc": 0.55,
+        "positive_brier_skill": true,
+        "samples": 5000
+      },
+      "training_contract": "all_generated_signals_v5_locked_forward_holdout"
+    },
+    "stored_data_catalog": {
+      "databases": 25,
+      "empty_databases": [
+        "bhavcopy.db",
+        "historical_options.db",
+        "option_metrics.db",
+        "signal_lifecycle.db",
+        "trading.db"
+      ],
+      "issues": [],
+      "ok": true,
+      "rows": 19501410,
+      "tables": 48
+    }
+  },
+  "blocks": [
+    "no_live_ready_strategy",
+    "no_source_attributed_selected_option_outcomes",
+    "no_executed_option_fill_evidence",
+    "no_after_cost_statistical_edge",
+    "paper_live_fill_comparisons_below_100",
+    "release_integrity_unverified",
+    "ml_training_contract_audit_failed",
+    "prospective_execution_evidence_pending"
+  ],
+  "data": {
+    "bad_candle_groups": 0,
+    "candle_1d_symbols": 199,
+    "candle_1m_symbols": 198,
+    "derived_daily_symbols": 198,
+    "latest_option_snapshot_age_hours": 442.87,
+    "latest_option_snapshot_ok": "2026-09-23T09:57:53+0530",
+    "stale_candle_groups": 0,
+    "total_candle_groups": 970
+  },
+  "execution": {
+    "avg_entry_slippage_pct": 0.0,
+    "broker_connected": true,
+    "entry_slippage_coverage_pct": 100.0,
+    "fill_latency_coverage_pct": 0.0,
+    "fill_status_coverage_pct": 0.0,
+    "gross_pnl": -26.42,
+    "live_trades": 0,
+    "net_pnl": -625.47,
+    "order_id_coverage_pct": 100.0,
+    "paired_fill_comparison": {
+      "avg_absolute_deviation_pct": null,
+      "max_absolute_deviation_pct": null,
+      "paired_fills": 0,
+      "ready": false,
+      "target_paired_fills": 100
+    },
+    "profitable_trades": 0,
+    "role": "execution_infrastructure_validation_only",
+    "trades": 12
+  },
+  "generated_at": "2026-10-11T20:50:14+0530",
+  "learning": {
+    "custom_barrier_labels": 28222,
+    "edge_conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
+    "experiments_logged": 53,
+    "labelled_days": 41,
+    "labelled_rows": 28220,
+    "legacy_labelled_rows": 37300,
+    "prospective_execution": {
+      "active_days": 3,
+      "captured": 15,
+      "equal_day_net_r": {
+        "lcb95": -2.739899,
+        "mean": 0.26674,
+        "n": 3
+      },
+      "executable_quote_coverage": 0.0,
+      "experiment_id": "execution-2026-09-20",
+      "gates": {
+        "minimum_active_days": false,
+        "minimum_outcomes": false,
+        "positive_equal_day_lcb95": false,
+        "positive_signal_mean": true,
+        "quote_coverage": false
+      },
+      "generated_at": "2026-10-11T20:50:13+05:30",
+      "manifest_sha256": "5441b0d6e08174894fe6518921bf21a4c5366f42dac9640dedcf33f3b9b3c131",
+      "outcomes": 7,
+      "passed": false,
+      "pending": 8,
+      "research_only": true,
+      "signal_weighted_net_r": {
+        "lcb95": 0.220626,
+        "mean": 2.341471,
+        "n": 7
+      }
+    },
+    "sample_source": "all_training_eligible_generated_signals",
+    "shadow_portfolio": {
+      "after_cost_positive": true,
+      "average_net_r": 0.0286,
+      "days": 30,
+      "generated_at": "2026-10-11T20:49:18+0530",
+      "labelled_seen": 965,
+      "losses": 4,
+      "ok": true,
+      "rejected_wins": 4,
+      "shadow_trades": 35,
+      "target_rate": 0.1143,
+      "timeouts": 27,
+      "top": [
+        {
+          "date": "2026-09-11",
+          "executed": 0,
+          "label": 0,
+          "score": 22.3097,
+          "side": "SELL",
+          "strategy": "volume_profile_full",
+          "symbol": "MIDCPNIFTY"
+        },
+        {
+          "date": "2026-09-11",
+          "executed": 0,
+          "label": 0,
+          "score": 21.5587,
+          "side": "SELL",
+          "strategy": "volume_profile_full",
+          "symbol": "NIFTY"
+        },
+        {
+          "date": "2026-09-11",
+          "executed": 0,
+          "label": 0,
+          "score": 20.7707,
+          "side": "SELL",
+          "strategy": "volume_profile_full",
+          "symbol": "FINNIFTY"
+        },
+        {
+          "date": "2026-09-11",
+          "executed": 0,
+          "label": 0,
+          "score": 20.0557,
+          "side": "SELL",
+          "strategy": "volume_profile_full",
+          "symbol": "NIFTY"
+        },
+        {
+          "date": "2026-09-11",
+          "executed": 0,
+          "label": 0,
+          "score": 20.0517,
+          "side": "SELL",
+          "strategy": "volume_profile_full",
+          "symbol": "FINNIFTY"
+        },
+        {
+          "date": "2026-09-15",
+          "executed": 0,
+          "label": 0,
+          "score": 20.5227,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "NIFTY"
+        },
+        {
+          "date": "2026-09-15",
+          "executed": 0,
+          "label": 0,
+          "score": 20.3667,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "BANKNIFTY"
+        },
+        {
+          "date": "2026-09-15",
+          "executed": 0,
+          "label": 0,
+          "score": 19.8407,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "NIFTYNEXT50"
+        },
+        {
+          "date": "2026-09-15",
+          "executed": 0,
+          "label": 0,
+          "score": 18.9606,
+          "side": "SELL",
+          "strategy": "candlestick_low_price_gapping_play_bearish",
+          "symbol": "MRF"
+        },
+        {
+          "date": "2026-09-15",
+          "executed": 0,
+          "label": 0,
+          "score": 18.6777,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "FINNIFTY"
+        },
+        {
+          "date": "2026-09-17",
+          "executed": 0,
+          "label": 0,
+          "score": 20.9437,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "BANKNIFTY"
+        },
+        {
+          "date": "2026-09-17",
+          "executed": 0,
+          "label": 0,
+          "score": 19.4907,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "FINNIFTY"
+        },
+        {
+          "date": "2026-09-17",
+          "executed": 0,
+          "label": 0,
+          "score": 19.1447,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "SENSEX"
+        },
+        {
+          "date": "2026-09-17",
+          "executed": 0,
+          "label": 0,
+          "score": 18.6037,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "BIOCON"
+        },
+        {
+          "date": "2026-09-17",
+          "executed": 0,
+          "label": 0,
+          "score": 17.2357,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "JYOTHYLAB"
+        },
+        {
+          "date": "2026-09-18",
+          "executed": 0,
+          "label": 0,
+          "score": 18.8527,
+          "side": "SELL",
+          "strategy": "candlestick_shooting_star",
+          "symbol": "PERSISTENT"
+        },
+        {
+          "date": "2026-09-18",
+          "executed": 0,
+          "label": 0,
+          "score": 17.8697,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "NTPC"
+        },
+        {
+          "date": "2026-09-18",
+          "executed": 0,
+          "label": 0,
+          "score": 16.8527,
+          "side": "SELL",
+          "strategy": "candlestick_shooting_star",
+          "symbol": "SBIN"
+        },
+        {
+          "date": "2026-09-18",
+          "executed": 0,
+          "label": -1,
+          "score": 16.7699,
+          "side": "SELL",
+          "strategy": "chart_pattern_breakout_retest",
+          "symbol": "NESTLEIND"
+        },
+        {
+          "date": "2026-09-18",
+          "executed": 0,
+          "label": 0,
+          "score": 15.4104,
+          "side": "SELL",
+          "strategy": "candlestick_doji",
+          "symbol": "AXISBANK"
+        },
+        {
+          "date": "2026-09-21",
+          "executed": 0,
+          "label": 0,
+          "score": 18.4859,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "RELIANCE"
+        },
+        {
+          "date": "2026-09-21",
+          "executed": 0,
+          "label": -1,
+          "score": 16.8679,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "MARICO"
+        },
+        {
+          "date": "2026-09-21",
+          "executed": 0,
+          "label": 0,
+          "score": 15.8459,
+          "side": "BUY",
+          "strategy": "elder_triple_screen",
+          "symbol": "AUBANK"
+        },
+        {
+          "date": "2026-09-21",
+          "executed": 0,
+          "label": 0,
+          "score": 15.2619,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "TATASTEEL"
+        },
+        {
+          "date": "2026-09-21",
+          "executed": 0,
+          "label": -1,
+          "score": 15.0009,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "VOLTAS"
+        },
+        {
+          "date": "2026-09-22",
+          "executed": 0,
+          "label": 0,
+          "score": 21.3243,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "TCS"
+        },
+        {
+          "date": "2026-09-22",
+          "executed": 0,
+          "label": 0,
+          "score": 18.3288,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "TCS"
+        },
+        {
+          "date": "2026-09-22",
+          "executed": 0,
+          "label": 0,
+          "score": 18.0913,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "BANKNIFTY"
+        },
+        {
+          "date": "2026-09-22",
+          "executed": 0,
+          "label": 0,
+          "score": 17.1723,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "CANBK"
+        },
+        {
+          "date": "2026-09-22",
+          "executed": 0,
+          "label": 0,
+          "score": 16.7323,
+          "side": "SELL",
+          "strategy": "candlestick_tweezer_bottom",
+          "symbol": "SBICARD"
+        },
+        {
+          "date": "2026-09-23",
+          "executed": 0,
+          "label": -1,
+          "score": 12.5086,
+          "side": "BUY",
+          "strategy": "candlestick_three_white_soldiers",
+          "symbol": "AUBANK"
+        },
+        {
+          "date": "2026-09-23",
+          "executed": 0,
+          "label": 1,
+          "score": 11.4659,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "JKTYRE"
+        },
+        {
+          "date": "2026-09-23",
+          "executed": 0,
+          "label": 1,
+          "score": 11.4229,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "IRCTC"
+        },
+        {
+          "date": "2026-09-23",
+          "executed": 0,
+          "label": 1,
+          "score": 9.0939,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "BAJAJFINSV"
+        },
+        {
+          "date": "2026-09-23",
+          "executed": 0,
+          "label": 1,
+          "score": 8.5619,
+          "side": "SELL",
+          "strategy": "elder_triple_screen",
+          "symbol": "ITC"
+        }
+      ],
+      "top_per_day": 5,
+      "total_net_r": 0.9997,
+      "wins": 4
+    },
+    "target_days": 15,
+    "target_labelled": 5000
+  },
+  "mode": {
+    "live_block_reason": "no_strategy_passed_live_eligibility_manifest",
+    "live_ready_count": 0,
+    "paper_training_only": true,
+    "total_strategies": 112
+  },
+  "ready_for_scaled_live": false,
+  "release_integrity": {
+    "added": [
+      "backtest_adx_dmi_crossover.py",
+      "backtest_aroon_crossover.py",
+      "backtest_carver_ewmac.py",
+      "backtest_contrarian_sell.py",
+      "backtest_delta_hedged_iron_butterfly.py",
+      "backtest_donchian_breakout.py",
+      "backtest_ema_supertrend_confirm.py",
+      "backtest_macd_crossover.py",
+      "backtest_participant_oi_primary_signal.py",
+      "backtest_premium_breakout.py",
+      "backtest_real_option_translation.py",
+      "backtest_selective_vrp_credit_spread.py",
+      "backtest_stochastic_crossover.py",
+      "causal_htf.py",
+      "chartink_screen_backtest.py",
+      "cluster_risk_gate.py",
+      "cluster_strategy_map.py",
+      "credit_spread_backtest_real.py",
+      "margin_circuit_breaker.py",
+      "market_shock_monitor.py",
+      "mfe_threshold_labeler.py",
+      "naked_straddle_strangle_backtest.py",
+      "outage_candle_backfill.py",
+      "pivot_scalping_inversion_monitor.py",
+      "position_reconciliation.py"
+    ],
+    "changed": [
+      "INSTALL.sh",
+      "angel.py",
+      "auto-deploy.service",
+      "autonomous_learning_cycle.py",
+      "backtest_breakout.py",
+      "backtest_fibonacci.py",
+      "backtest_orb.py",
+      "backtest_supertrend_mtf.py",
+      "backtest_trend.py",
+      "bhavcopy_cache.py",
+      "bot_watchdog.sh",
+      "config.py",
+      "cross_sectional_factor_test.py",
+      "daily-pipeline.service",
+      "daily_pipeline.py",
+      "data_gap_filler.py",
+      "data_quality_watchdog.py",
+      "do_deploy.sh",
+      "dynamic_exit.py",
+      "eod_setup_edge_analyzer.py",
+      "fii_tracker.py",
+      "fix_missing_tokens.py",
+      "idle_engine.py",
+      "intraday_candle_recorder.py",
+      "learned_filters.py"
+    ],
+    "content_digest_matches": false,
+    "current_git_head": "b7e4a4c3197b91503cf11e4a971d2cd8aea3463f",
+    "file_count": 718,
+    "git_head_matches": false,
+    "manifest_git_head": "fffda9e763a53097af296f2b5e4cee27893337bb",
+    "missing": [
+      "install.sh"
+    ],
+    "ok": false,
+    "reason": "release_files_changed"
+  },
+  "score_dimensions": {
+    "capability_score": 86.5,
+    "execution_evidence_score": 0.0,
+    "interpretation": "Capability measures infrastructure only; edge and execution evidence independently control trading readiness.",
+    "profitability_observed": false,
+    "verified_edge_score": 0.0
+  },
+  "scores": {
+    "data_pipeline": 92.0,
+    "data_pipeline_grade": "A",
+    "data_pipeline_raw_capability": 92.0,
+    "institutional": 59.0,
+    "institutional_grade": "F",
+    "institutional_raw_capability": 89.0,
+    "option_bot": 59.0,
+    "option_bot_capability": 86.5,
+    "option_bot_evidence": 59.0,
+    "option_bot_grade": "F"
+  },
+  "warnings": []
+}

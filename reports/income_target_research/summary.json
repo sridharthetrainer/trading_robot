@@ -1,0 +1,5458 @@
+{
+  "as_of": "2026-10-14",
+  "mode": "RESEARCH_ONLY",
+  "target": {
+    "capital": 500000.0,
+    "monthly_target": 30000.0,
+    "required_monthly_return": 0.06,
+    "before_personal_income_tax": true,
+    "scenarios": [
+      {
+        "risk_fraction": 0.0025,
+        "planned_risk_rupees": 1250.0,
+        "monthly_trades": 10,
+        "required_average_net_r": 2.4
+      },
+      {
+        "risk_fraction": 0.0025,
+        "planned_risk_rupees": 1250.0,
+        "monthly_trades": 20,
+        "required_average_net_r": 1.2
+      },
+      {
+        "risk_fraction": 0.0025,
+        "planned_risk_rupees": 1250.0,
+        "monthly_trades": 40,
+        "required_average_net_r": 0.6
+      },
+      {
+        "risk_fraction": 0.0025,
+        "planned_risk_rupees": 1250.0,
+        "monthly_trades": 60,
+        "required_average_net_r": 0.4
+      },
+      {
+        "risk_fraction": 0.005,
+        "planned_risk_rupees": 2500.0,
+        "monthly_trades": 10,
+        "required_average_net_r": 1.2
+      },
+      {
+        "risk_fraction": 0.005,
+        "planned_risk_rupees": 2500.0,
+        "monthly_trades": 20,
+        "required_average_net_r": 0.6
+      },
+      {
+        "risk_fraction": 0.005,
+        "planned_risk_rupees": 2500.0,
+        "monthly_trades": 40,
+        "required_average_net_r": 0.3
+      },
+      {
+        "risk_fraction": 0.005,
+        "planned_risk_rupees": 2500.0,
+        "monthly_trades": 60,
+        "required_average_net_r": 0.2
+      }
+    ],
+    "warning": "Risk-unit arithmetic, not a return forecast; stop orders do not cap gap losses."
+  },
+  "coverage": {
+    "raw_training_rows": 28441,
+    "invalid_structural_rows": 0,
+    "distinct_setups": 19123,
+    "completed": 19117,
+    "pending_or_invalid_outcomes": 6,
+    "observed_dates": [
+      "2026-06-29",
+      "2026-06-30",
+      "2026-07-01",
+      "2026-07-02",
+      "2026-07-03",
+      "2026-07-06",
+      "2026-07-07",
+      "2026-07-08",
+      "2026-07-09",
+      "2026-07-10",
+      "2026-07-13",
+      "2026-07-14",
+      "2026-07-16",
+      "2026-07-20",
+      "2026-07-21",
+      "2026-07-22",
+      "2026-07-23",
+      "2026-07-24",
+      "2026-07-27",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-08-05",
+      "2026-08-07",
+      "2026-08-11",
+      "2026-08-13",
+      "2026-08-14",
+      "2026-08-17",
+      "2026-08-21",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+      "2026-09-08",
+      "2026-09-10",
+      "2026-09-11",
+      "2026-09-15",
+      "2026-09-17",
+      "2026-09-18",
+      "2026-09-21",
+      "2026-09-22",
+      "2026-09-23",
+      "2026-10-12",
+      "2026-10-13"
+    ],
+    "data_snapshot_sha256": "3632c38a6238c1e1e223317cc5b8fb0c40b1ca809b4a4aa7ae384e4a47b04d41"
+  },
+  "historical_search_is_exploratory": true,
+  "historical_data_is_not_an_untouched_holdout": true,
+  "scope": {
+    "signal_strategies_with_clean_outcomes": 125,
+    "live_manifest_strategies": 112,
+    "live_ready_count": 0
+  },
+  "ranked_signal_strategies": [
+    {
+      "strategy": "canslim",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 1,
+      "mean_net_r": 1.1721,
+      "profit_factor": null,
+      "positive_rate": 1.0,
+      "active_days": 1,
+      "last_day": "2026-07-07",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 1.1721,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-07": 1.1721
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_down_gap_side_by_side_white",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 1,
+      "mean_net_r": 0.7059,
+      "profit_factor": null,
+      "positive_rate": 1.0,
+      "active_days": 1,
+      "last_day": "2026-07-14",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.7059,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-07": 0.7059
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_bull_pennant",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 6,
+      "mean_net_r": 0.5773333333333334,
+      "profit_factor": 7.856690419635789,
+      "positive_rate": 0.6666666666666666,
+      "active_days": 6,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 2,
+        "mean_net_r": 1.29455,
+        "profit_factor": null,
+        "positive_rate": 1.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.5773333333333334,
+      "equal_day_mean_excluding_best_day": 0.27536000000000005,
+      "day_bootstrap_ci95_descriptive": [
+        -0.10326666666666666,
+        1.3170000000000002
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": 0.8749000000000001,
+        "2026-09": 2.0872,
+        "2026-10": 0.5019
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "range_bar_momentum",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 3,
+      "mean_net_r": 0.4001333333333333,
+      "profit_factor": 2.911464968152866,
+      "positive_rate": 0.6666666666666666,
+      "active_days": 3,
+      "last_day": "2026-08-11",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.4001333333333333,
+      "equal_day_mean_excluding_best_day": -0.03810000000000002,
+      "day_bootstrap_ci95_descriptive": [
+        -0.628,
+        1.2766
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 0.5518,
+        "2026-07": 1.2766,
+        "2026-08": -0.628
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "awesome_osc",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 10,
+      "mean_net_r": 0.39036,
+      "profit_factor": 2.8782658903911846,
+      "positive_rate": 0.3,
+      "active_days": 8,
+      "last_day": "2026-09-18",
+      "recent": {
+        "n": 2,
+        "mean_net_r": -0.5672999999999999,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.58171875,
+      "equal_day_mean_excluding_best_day": -0.005392857142857115,
+      "day_bootstrap_ci95_descriptive": [
+        -0.2343684375,
+        1.8645239062499983
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": 4.7097999999999995,
+        "2026-08": -0.3657,
+        "2026-09": -0.4404999999999999
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_falling_wedge",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 71,
+      "mean_net_r": 0.15801408450704224,
+      "profit_factor": 1.4949791754906112,
+      "positive_rate": 0.38028169014084506,
+      "active_days": 29,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 14,
+        "mean_net_r": -0.2170214285714286,
+        "profit_factor": 0.4925086438724548,
+        "positive_rate": 0.42857142857142855
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.2538204433497537,
+      "equal_day_mean_excluding_best_day": -0.04447704081632654,
+      "day_bootstrap_ci95_descriptive": [
+        -0.19501921592775037,
+        0.9837750256568142
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": 18.328,
+        "2026-08": -0.9809999999999998,
+        "2026-09": -5.2356,
+        "2026-10": -0.8924000000000001
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "point_and_figure",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 3,
+      "mean_net_r": 0.10746666666666667,
+      "profit_factor": 2.597621407333994,
+      "positive_rate": 0.6666666666666666,
+      "active_days": 3,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 1,
+        "mean_net_r": -0.2018,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.10746666666666667,
+      "equal_day_mean_excluding_best_day": -0.0947,
+      "day_bootstrap_ci95_descriptive": [
+        -0.2018,
+        0.5118
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": 0.5118,
+        "2026-08": 0.0124,
+        "2026-09": -0.2018
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_rising_three_methods",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 1,
+      "mean_net_r": 0.1009,
+      "profit_factor": null,
+      "positive_rate": 1.0,
+      "active_days": 1,
+      "last_day": "2026-09-04",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.1009,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-09": 0.1009
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_bull_flag",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 13,
+      "mean_net_r": 0.06294615384615386,
+      "profit_factor": 1.157820636451302,
+      "positive_rate": 0.38461538461538464,
+      "active_days": 8,
+      "last_day": "2026-09-18",
+      "recent": {
+        "n": 3,
+        "mean_net_r": -0.18903333333333333,
+        "profit_factor": 0.5794274695935924,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.40863125,
+      "equal_day_mean_excluding_best_day": 0.14636428571428575,
+      "day_bootstrap_ci95_descriptive": [
+        -0.2926703124999999,
+        1.182485
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": 0.3077000000000001,
+        "2026-09": 0.5106
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_eight_to_ten_new_record_highs",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 1,
+      "mean_net_r": 0.0606,
+      "profit_factor": null,
+      "positive_rate": 1.0,
+      "active_days": 1,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.0606,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-07": 0.0606
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "oops",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 23,
+      "mean_net_r": 0.01768695652173912,
+      "profit_factor": 1.0599911517475298,
+      "positive_rate": 0.5652173913043478,
+      "active_days": 9,
+      "last_day": "2026-10-13",
+      "recent": {
+        "n": 17,
+        "mean_net_r": 0.21421176470588235,
+        "profit_factor": 2.026902035982178,
+        "positive_rate": 0.7647058823529411
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.43133148148148154,
+      "equal_day_mean_excluding_best_day": -0.5610354166666667,
+      "day_bootstrap_ci95_descriptive": [
+        -1.1047963425925929,
+        0.10489791666666667
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -2.1531000000000002,
+        "2026-08": -1.0817,
+        "2026-09": 3.5395,
+        "2026-10": 0.1021
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bullish_marubozu",
+      "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+      "n": 75,
+      "mean_net_r": 0.0002546666666666721,
+      "profit_factor": 1.0006563348338546,
+      "positive_rate": 0.3466666666666667,
+      "active_days": 31,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 11,
+        "mean_net_r": 0.17402727272727272,
+        "profit_factor": 1.5347505447231686,
+        "positive_rate": 0.36363636363636365
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.1375530107526882,
+      "equal_day_mean_excluding_best_day": -0.047605222222222215,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3082059462365591,
+        0.6971799260752686
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 2.1198,
+        "2026-07": -6.535100000000001,
+        "2026-08": 4.985,
+        "2026-09": -0.14429999999999987,
+        "2026-10": -0.4063
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_piercing_line",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 3,
+      "mean_net_r": -0.011133333333333348,
+      "profit_factor": 0.9431295760258812,
+      "positive_rate": 0.3333333333333333,
+      "active_days": 3,
+      "last_day": "2026-09-08",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.011133333333333348,
+      "equal_day_mean_excluding_best_day": -0.29364999999999997,
+      "day_bootstrap_ci95_descriptive": [
+        -0.33790000000000003,
+        0.5539
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.5872999999999999,
+        "2026-09": 0.5539
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_deliberation",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 14,
+      "mean_net_r": -0.016428571428571435,
+      "profit_factor": 0.9238208797032327,
+      "positive_rate": 0.35714285714285715,
+      "active_days": 10,
+      "last_day": "2026-09-21",
+      "recent": {
+        "n": 1,
+        "mean_net_r": 0.2178,
+        "profit_factor": null,
+        "positive_rate": 1.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.008765,
+      "equal_day_mean_excluding_best_day": -0.10410555555555556,
+      "day_bootstrap_ci95_descriptive": [
+        -0.201050625,
+        0.22939874999999998
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.1825,
+        "2026-07": -0.2721,
+        "2026-08": -0.3368,
+        "2026-09": 0.5613999999999999
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_eight_to_ten_new_record_lows",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 2,
+      "mean_net_r": -0.04215,
+      "profit_factor": 0.5385878489326765,
+      "positive_rate": 0.5,
+      "active_days": 1,
+      "last_day": "2026-09-04",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.04215,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-09": -0.0843
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "failed_auction",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 5,
+      "mean_net_r": -0.04640000000000001,
+      "profit_factor": 0.9153871403041686,
+      "positive_rate": 0.4,
+      "active_days": 5,
+      "last_day": "2026-09-15",
+      "recent": {
+        "n": 1,
+        "mean_net_r": -1.2251,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.04640000000000001,
+      "equal_day_mean_excluding_best_day": -0.3756,
+      "day_bootstrap_ci95_descriptive": [
+        -1.0389075,
+        0.96512
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.2773,
+        "2026-09": 0.045299999999999896
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_dark_cloud_cover",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 12,
+      "mean_net_r": -0.04658333333333334,
+      "profit_factor": 0.7271440425635769,
+      "positive_rate": 0.5,
+      "active_days": 9,
+      "last_day": "2026-09-15",
+      "recent": {
+        "n": 4,
+        "mean_net_r": 0.117575,
+        "profit_factor": 5.129060579455662,
+        "positive_rate": 0.75
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.010700000000000003,
+      "equal_day_mean_excluding_best_day": -0.05360000000000001,
+      "day_bootstrap_ci95_descriptive": [
+        -0.17778986111111114,
+        0.1634505555555555
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.2031,
+        "2026-08": -0.8786,
+        "2026-09": 0.5227
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "anchored_vwap",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 43,
+      "mean_net_r": -0.05512790697674419,
+      "profit_factor": 0.7788609543355567,
+      "positive_rate": 0.4418604651162791,
+      "active_days": 17,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 16,
+        "mean_net_r": -0.14303125,
+        "profit_factor": 0.6381760976458125,
+        "positive_rate": 0.5
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.059043935574229704,
+      "equal_day_mean_excluding_best_day": -0.12445918154761906,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3604176764705882,
+        0.18725366176470587
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -1.1409,
+        "2026-08": 0.43239999999999995,
+        "2026-09": -2.6496,
+        "2026-10": 0.9876
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bullish_separating_lines",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 31,
+      "mean_net_r": -0.06316774193548387,
+      "profit_factor": 0.8111813939136806,
+      "positive_rate": 0.3548387096774194,
+      "active_days": 21,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 6,
+        "mean_net_r": -0.21701666666666664,
+        "profit_factor": 0.34017431843518803,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.17377222222222224,
+      "equal_day_mean_excluding_best_day": -0.23702583333333335,
+      "day_bootstrap_ci95_descriptive": [
+        -0.41025468253968267,
+        0.0713581150793648
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.6575000000000002,
+        "2026-07": -0.22739999999999994,
+        "2026-08": 1.6601,
+        "2026-09": -1.4238,
+        "2026-10": -0.3096
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_ladder_bottom",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 15,
+      "mean_net_r": -0.06938666666666667,
+      "profit_factor": 0.7963169533650365,
+      "positive_rate": 0.4,
+      "active_days": 12,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 3,
+        "mean_net_r": -0.37066666666666664,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.025645833333333333,
+      "equal_day_mean_excluding_best_day": -0.16427727272727274,
+      "day_bootstrap_ci95_descriptive": [
+        -0.32449000000000006,
+        0.3373779166666666
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.1827,
+        "2026-07": 2.0646,
+        "2026-08": -1.0945,
+        "2026-09": -1.6456,
+        "2026-10": -0.1826
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_fred_tam_white_inside_out",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 96,
+      "mean_net_r": -0.08029375,
+      "profit_factor": 0.7372891176169865,
+      "positive_rate": 0.4166666666666667,
+      "active_days": 30,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 19,
+        "mean_net_r": -0.10276315789473685,
+        "profit_factor": 0.6636346408944476,
+        "positive_rate": 0.42105263157894735
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.09604930555555556,
+      "equal_day_mean_excluding_best_day": -0.12358204022988506,
+      "day_bootstrap_ci95_descriptive": [
+        -0.2513977611111111,
+        0.056145529861111
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.8250000000000002,
+        "2026-07": -7.8626,
+        "2026-08": 1.6890000000000003,
+        "2026-09": -2.2145,
+        "2026-10": -1.1451
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "elder_triple_screen",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 1259,
+      "mean_net_r": -0.080536298649722,
+      "profit_factor": 0.7538310341503989,
+      "positive_rate": 0.40428911834789516,
+      "active_days": 43,
+      "last_day": "2026-10-13",
+      "recent": {
+        "n": 345,
+        "mean_net_r": -0.010486956521739128,
+        "profit_factor": 0.9673486037421858,
+        "positive_rate": 0.4
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.0594646921749258,
+      "equal_day_mean_excluding_best_day": -0.040434164360591836,
+      "day_bootstrap_ci95_descriptive": [
+        -0.1368123690767725,
+        0.34740180006023014
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.5201000000000005,
+        "2026-07": -64.3731,
+        "2026-08": -25.367,
+        "2026-09": -6.9018999999999995,
+        "2026-10": -6.2733
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "vwap_reversion",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 78,
+      "mean_net_r": -0.08272179487179487,
+      "profit_factor": 0.8006401957664275,
+      "positive_rate": 0.41025641025641024,
+      "active_days": 28,
+      "last_day": "2026-09-22",
+      "recent": {
+        "n": 16,
+        "mean_net_r": -0.027337500000000004,
+        "profit_factor": 0.8960773598802537,
+        "positive_rate": 0.4375
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.10171446428571428,
+      "equal_day_mean_excluding_best_day": 0.04855944444444445,
+      "day_bootstrap_ci95_descriptive": [
+        -0.14191663541666663,
+        0.3581089211309522
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -3.4934,
+        "2026-08": -1.7181000000000002,
+        "2026-09": -1.2408000000000001
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_doji",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 183,
+      "mean_net_r": -0.08330710382513662,
+      "profit_factor": 0.7292245390927499,
+      "positive_rate": 0.37158469945355194,
+      "active_days": 37,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 64,
+        "mean_net_r": -0.03920625,
+        "profit_factor": 0.7983493124814156,
+        "positive_rate": 0.34375
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": 0.026994760425054543,
+      "equal_day_mean_excluding_best_day": -0.08077760734091617,
+      "day_bootstrap_ci95_descriptive": [
+        -0.17420571289848863,
+        0.3016847976672238
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -2.1695,
+        "2026-07": 4.4812,
+        "2026-08": -8.7135,
+        "2026-09": -6.5033,
+        "2026-10": -2.3401
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bearish_harami",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 103,
+      "mean_net_r": -0.08389029126213593,
+      "profit_factor": 0.6878404936344851,
+      "positive_rate": 0.39805825242718446,
+      "active_days": 32,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 44,
+        "mean_net_r": -0.11628409090909092,
+        "profit_factor": 0.5350453913470188,
+        "positive_rate": 0.38636363636363635
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.09122632417929293,
+      "equal_day_mean_excluding_best_day": -0.14288846366894753,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3299739621212121,
+        0.10709614488636301
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 0.8705999999999999,
+        "2026-07": 0.9234999999999998,
+        "2026-08": -4.6989,
+        "2026-09": -7.3452,
+        "2026-10": 1.6093
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_hammer",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 213,
+      "mean_net_r": -0.10073615023474178,
+      "profit_factor": 0.7056958943529351,
+      "positive_rate": 0.3192488262910798,
+      "active_days": 37,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 44,
+        "mean_net_r": -0.22834545454545455,
+        "profit_factor": 0.33363841965286484,
+        "positive_rate": 0.29545454545454547
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.083382367009867,
+      "equal_day_mean_excluding_best_day": -0.13289391424162256,
+      "day_bootstrap_ci95_descriptive": [
+        -0.23916345919133417,
+        0.084334771530459
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.4511,
+        "2026-07": -1.6321999999999994,
+        "2026-08": -7.4437,
+        "2026-09": -7.7565,
+        "2026-10": -3.1733000000000002
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "hollow_candle_state",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 1,
+      "mean_net_r": -0.1009,
+      "profit_factor": 0.0,
+      "positive_rate": 0.0,
+      "active_days": 1,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 1,
+        "mean_net_r": -0.1009,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1009,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-09": -0.1009
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_tweezer_bottom",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 275,
+      "mean_net_r": -0.1172029090909091,
+      "profit_factor": 0.5906945321042198,
+      "positive_rate": 0.33090909090909093,
+      "active_days": 34,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 104,
+        "mean_net_r": -0.07149326923076924,
+        "profit_factor": 0.6457576003011058,
+        "positive_rate": 0.3557692307692308
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.13914054834054834,
+      "equal_day_mean_excluding_best_day": -0.15653420132056498,
+      "day_bootstrap_ci95_descriptive": [
+        -0.22966380980233003,
+        -0.04973898944539951
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -6.0433,
+        "2026-07": -8.614400000000002,
+        "2026-08": -7.5419,
+        "2026-09": -9.9062,
+        "2026-10": -0.12500000000000008
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_diamond_bottom",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 90,
+      "mean_net_r": -0.12639333333333333,
+      "profit_factor": 0.7345272768007168,
+      "positive_rate": 0.35555555555555557,
+      "active_days": 32,
+      "last_day": "2026-10-13",
+      "recent": {
+        "n": 19,
+        "mean_net_r": -0.3371157894736842,
+        "profit_factor": 0.15077428935086976,
+        "positive_rate": 0.3157894736842105
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1575044568452381,
+      "equal_day_mean_excluding_best_day": -0.21587234254992319,
+      "day_bootstrap_ci95_descriptive": [
+        -0.41740679687499993,
+        0.11224070014880946
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -4.1236,
+        "2026-07": 6.8304,
+        "2026-08": -5.8232,
+        "2026-09": -8.555299999999999,
+        "2026-10": 0.2963
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bullish_engulfing",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 371,
+      "mean_net_r": -0.12906280323450134,
+      "profit_factor": 0.6738529547993352,
+      "positive_rate": 0.3261455525606469,
+      "active_days": 37,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 74,
+        "mean_net_r": -0.13541621621621622,
+        "profit_factor": 0.6000925859413038,
+        "positive_rate": 0.40540540540540543
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.15706588654522477,
+      "equal_day_mean_excluding_best_day": -0.18713808709740695,
+      "day_bootstrap_ci95_descriptive": [
+        -0.27109342977103823,
+        -0.038803187351086406
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.9245999999999999,
+        "2026-07": -12.7804,
+        "2026-08": -12.694700000000001,
+        "2026-09": -16.43,
+        "2026-10": -4.0526
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_homing_pigeon_bearish",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 15,
+      "mean_net_r": -0.13826666666666668,
+      "profit_factor": 0.41344495036624335,
+      "positive_rate": 0.26666666666666666,
+      "active_days": 13,
+      "last_day": "2026-10-13",
+      "recent": {
+        "n": 6,
+        "mean_net_r": -0.20168333333333333,
+        "profit_factor": 0.35354452695122596,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.13043076923076924,
+      "equal_day_mean_excluding_best_day": -0.19460833333333333,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3241555769230769,
+        0.06943624999999988
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.12129999999999999,
+        "2026-08": -0.55,
+        "2026-09": -1.2085,
+        "2026-10": -0.19419999999999998
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "breakout",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 1149,
+      "mean_net_r": -0.1511779808529156,
+      "profit_factor": 0.6341568464576481,
+      "positive_rate": 0.38207136640557005,
+      "active_days": 34,
+      "last_day": "2026-09-10",
+      "recent": {
+        "n": 64,
+        "mean_net_r": -0.276478125,
+        "profit_factor": 0.3480682931861557,
+        "positive_rate": 0.328125
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.12512409434084093,
+      "equal_day_mean_excluding_best_day": -0.152846587557781,
+      "day_bootstrap_ci95_descriptive": [
+        -0.2160821076723681,
+        -0.0258983319403882
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.4867999999999997,
+        "2026-07": -75.7859,
+        "2026-08": -58.562599999999996,
+        "2026-09": -38.8682
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_three_white_soldiers",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 248,
+      "mean_net_r": -0.15201814516129034,
+      "profit_factor": 0.6157284245074356,
+      "positive_rate": 0.28225806451612906,
+      "active_days": 38,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 55,
+        "mean_net_r": -0.1976272727272727,
+        "profit_factor": 0.4432207600616737,
+        "positive_rate": 0.2909090909090909
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.2843220420763447,
+      "equal_day_mean_excluding_best_day": -0.320280836006336,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5222573556676146,
+        -0.10322676596941084
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -9.7836,
+        "2026-07": 6.850899999999999,
+        "2026-08": -7.4408,
+        "2026-09": -24.5826,
+        "2026-10": -2.7444
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_three_river_evening_star",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 44,
+      "mean_net_r": -0.15268409090909094,
+      "profit_factor": 0.6569510046723006,
+      "positive_rate": 0.29545454545454547,
+      "active_days": 23,
+      "last_day": "2026-09-17",
+      "recent": {
+        "n": 7,
+        "mean_net_r": -0.2205,
+        "profit_factor": 0.48016300687053753,
+        "positive_rate": 0.2857142857142857
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.14281731884057972,
+      "equal_day_mean_excluding_best_day": -0.2356703787878788,
+      "day_bootstrap_ci95_descriptive": [
+        -0.4172520905797101,
+        0.17606761956521713
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 0.7915,
+        "2026-07": -4.994700000000001,
+        "2026-08": -0.30190000000000006,
+        "2026-09": -2.213
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_rising_wedge",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 87,
+      "mean_net_r": -0.1529609195402299,
+      "profit_factor": 0.5832231958859748,
+      "positive_rate": 0.3218390804597701,
+      "active_days": 18,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.06872077721661055,
+      "equal_day_mean_excluding_best_day": -0.17057494058229353,
+      "day_bootstrap_ci95_descriptive": [
+        -0.28591260907687993,
+        0.2009781169332209
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -5.1724,
+        "2026-07": -8.1352
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_fred_tam_black_inside_out",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 82,
+      "mean_net_r": -0.1533719512195122,
+      "profit_factor": 0.5991834835485639,
+      "positive_rate": 0.2926829268292683,
+      "active_days": 21,
+      "last_day": "2026-08-07",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.009335763416477696,
+      "equal_day_mean_excluding_best_day": -0.08905755158730158,
+      "day_bootstrap_ci95_descriptive": [
+        -0.21716767157974304,
+        0.21953514399092966
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -3.6637999999999997,
+        "2026-07": -3.1424999999999996,
+        "2026-08": -5.7702
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "td_sequential",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 98,
+      "mean_net_r": -0.15422551020408162,
+      "profit_factor": 0.5415287733230603,
+      "positive_rate": 0.40816326530612246,
+      "active_days": 21,
+      "last_day": "2026-07-30",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.12899748677248676,
+      "equal_day_mean_excluding_best_day": -0.16546736111111113,
+      "day_bootstrap_ci95_descriptive": [
+        -0.30360787367724873,
+        0.026953138227513104
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.2862,
+        "2026-07": -14.8279
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "heikin_ashi",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 201,
+      "mean_net_r": -0.1546094527363184,
+      "profit_factor": 0.5740646321439242,
+      "positive_rate": 0.2885572139303483,
+      "active_days": 28,
+      "last_day": "2026-09-04",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.12560909238902057,
+      "equal_day_mean_excluding_best_day": -0.16949461432935467,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3361807845868008,
+        0.07371595656173742
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 3.6816999999999998,
+        "2026-07": -13.7613,
+        "2026-08": -16.4865,
+        "2026-09": -4.5104
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "failed_bear_breakout",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 616,
+      "mean_net_r": -0.15484253246753246,
+      "profit_factor": 0.6437665590306332,
+      "positive_rate": 0.35064935064935066,
+      "active_days": 35,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 48,
+        "mean_net_r": -0.33736041666666666,
+        "profit_factor": 0.26876374457554947,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.08109511967400977,
+      "equal_day_mean_excluding_best_day": -0.16399424084089242,
+      "day_bootstrap_ci95_descriptive": [
+        -0.21985114914022597,
+        0.12493789464647083
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 0.1414,
+        "2026-07": -45.367,
+        "2026-08": -20.512800000000002,
+        "2026-09": -29.6446
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_shooting_star",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 168,
+      "mean_net_r": -0.1564422619047619,
+      "profit_factor": 0.5576710761048841,
+      "positive_rate": 0.32142857142857145,
+      "active_days": 37,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 54,
+        "mean_net_r": -0.2385611111111111,
+        "profit_factor": 0.3118429487179487,
+        "positive_rate": 0.3148148148148148
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.13276982683982685,
+      "equal_day_mean_excluding_best_day": -0.19486621091871092,
+      "day_bootstrap_ci95_descriptive": [
+        -0.30266884155259155,
+        0.0711313369310868
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -2.543,
+        "2026-07": -4.975099999999999,
+        "2026-08": -2.7026,
+        "2026-09": -13.0381,
+        "2026-10": -3.0235000000000003
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bearish_marubozu",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 87,
+      "mean_net_r": -0.15911379310344828,
+      "profit_factor": 0.5656775140874236,
+      "positive_rate": 0.3218390804597701,
+      "active_days": 25,
+      "last_day": "2026-08-14",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.31579388571428574,
+      "equal_day_mean_excluding_best_day": -0.3668144642857143,
+      "day_bootstrap_ci95_descriptive": [
+        -0.8253207328571428,
+        0.03517248238095225
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 0.49610000000000004,
+        "2026-07": -9.729700000000001,
+        "2026-08": -4.6093
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "ma_cross",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 1171,
+      "mean_net_r": -0.16258958155422715,
+      "profit_factor": 0.530575799871347,
+      "positive_rate": 0.318531169940222,
+      "active_days": 32,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 116,
+        "mean_net_r": -0.3398793103448276,
+        "profit_factor": 0.1867372954776108,
+        "positive_rate": 0.21551724137931033
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.14023405143229845,
+      "equal_day_mean_excluding_best_day": -0.1567620315860285,
+      "day_bootstrap_ci95_descriptive": [
+        -0.1974110233192377,
+        -0.07946641792457991
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -3.2272,
+        "2026-07": -82.1217,
+        "2026-08": -54.5959,
+        "2026-09": -50.4476
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "vp_breakout",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 201,
+      "mean_net_r": -0.16600696517412936,
+      "profit_factor": 0.617530108812394,
+      "positive_rate": 0.3482587064676617,
+      "active_days": 21,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.12431702038702039,
+      "equal_day_mean_excluding_best_day": -0.16739412140637142,
+      "day_bootstrap_ci95_descriptive": [
+        -0.26412530919345206,
+        0.019123485750360575
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -11.8821,
+        "2026-07": -21.485300000000002
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_ascending_triangle",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 691,
+      "mean_net_r": -0.16629392185238784,
+      "profit_factor": 0.603519734458618,
+      "positive_rate": 0.34442836468885674,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.19433406755228463,
+      "equal_day_mean_excluding_best_day": -0.2127232617813798,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3042301976449953,
+        -0.0899855152683609
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -10.3873,
+        "2026-07": -104.5218
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "donchian_breakout",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 288,
+      "mean_net_r": -0.16866493055555556,
+      "profit_factor": 0.5766460954665211,
+      "positive_rate": 0.3055555555555556,
+      "active_days": 24,
+      "last_day": "2026-08-07",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.18000183127740066,
+      "equal_day_mean_excluding_best_day": -0.21811875872424416,
+      "day_bootstrap_ci95_descriptive": [
+        -0.34196692458141875,
+        -0.02494518933537912
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -8.4317,
+        "2026-07": -18.4515,
+        "2026-08": -21.6923
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "uo_overbought",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 53,
+      "mean_net_r": -0.17272452830188678,
+      "profit_factor": 0.5019639845492628,
+      "positive_rate": 0.3018867924528302,
+      "active_days": 21,
+      "last_day": "2026-08-14",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.12662990929705215,
+      "equal_day_mean_excluding_best_day": -0.19292390476190477,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3627335952380952,
+        0.10473347335600895
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.2815,
+        "2026-07": 0.8870000000000002,
+        "2026-08": -9.7599
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "vsa",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 8,
+      "mean_net_r": -0.173125,
+      "profit_factor": 0.47798884366048544,
+      "positive_rate": 0.25,
+      "active_days": 6,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 4,
+        "mean_net_r": -0.155675,
+        "profit_factor": 0.5209262963532851,
+        "positive_rate": 0.25
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.23748333333333335,
+      "equal_day_mean_excluding_best_day": -0.4032,
+      "day_bootstrap_ci95_descriptive": [
+        -0.72735,
+        0.2354333333333333
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.9478,
+        "2026-08": 0.18549999999999994,
+        "2026-09": 0.43320000000000003,
+        "2026-10": -1.0559
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_three_black_soldiers",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 230,
+      "mean_net_r": -0.17346521739130435,
+      "profit_factor": 0.567668256336737,
+      "positive_rate": 0.34782608695652173,
+      "active_days": 22,
+      "last_day": "2026-08-05",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.18246986635838908,
+      "equal_day_mean_excluding_best_day": -0.25202081237545526,
+      "day_bootstrap_ci95_descriptive": [
+        -0.40027812955037395,
+        0.03919573773858713
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -11.0777,
+        "2026-07": -24.5301,
+        "2026-08": -4.2892
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "order_flow",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 33,
+      "mean_net_r": -0.17414242424242424,
+      "profit_factor": 0.4803363928200027,
+      "positive_rate": 0.3939393939393939,
+      "active_days": 15,
+      "last_day": "2026-08-07",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.19239055555555554,
+      "equal_day_mean_excluding_best_day": -0.25098988095238095,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3733363194444444,
+        -0.0004023888888891201
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.5113,
+        "2026-07": -4.1617,
+        "2026-08": -1.0737
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "elder_ray",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 248,
+      "mean_net_r": -0.1752717741935484,
+      "profit_factor": 0.5017657597351761,
+      "positive_rate": 0.3548387096774194,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.22214703598245106,
+      "equal_day_mean_excluding_best_day": -0.24120557501851314,
+      "day_bootstrap_ci95_descriptive": [
+        -0.32346330994029193,
+        -0.13098875914513733
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -4.1032,
+        "2026-07": -39.364200000000004
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "ichimoku",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 320,
+      "mean_net_r": -0.176259375,
+      "profit_factor": 0.5286209637182807,
+      "positive_rate": 0.365625,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1256043397540609,
+      "equal_day_mean_excluding_best_day": -0.19675458085150874,
+      "day_bootstrap_ci95_descriptive": [
+        -0.34164406669200764,
+        0.09475035112172357
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -5.1419,
+        "2026-07": -51.2611
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_breakaway_bottom",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 1,
+      "mean_net_r": -0.1825,
+      "profit_factor": 0.0,
+      "positive_rate": 0.0,
+      "active_days": 1,
+      "last_day": "2026-07-03",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1825,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-07": -0.1825
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "three_line_break",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 1,
+      "mean_net_r": -0.1833,
+      "profit_factor": 0.0,
+      "positive_rate": 0.0,
+      "active_days": 1,
+      "last_day": "2026-08-14",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1833,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-08": -0.1833
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_head_and_shoulders",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 453,
+      "mean_net_r": -0.18486203090507727,
+      "profit_factor": 0.4919675145552968,
+      "positive_rate": 0.3620309050772627,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.04274453745789387,
+      "equal_day_mean_excluding_best_day": -0.227561826575925,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3382653190158974,
+        0.4169318459385397
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -9.1081,
+        "2026-07": -74.6344
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "volatility_breakout",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 16,
+      "mean_net_r": -0.18778125,
+      "profit_factor": 0.45886315334462013,
+      "positive_rate": 0.25,
+      "active_days": 14,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 1,
+        "mean_net_r": -0.6845,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.2719035714285714,
+      "equal_day_mean_excluding_best_day": -0.34207692307692306,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5402310714285714,
+        0.005791785714285579
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -1.6435,
+        "2026-08": -1.9572,
+        "2026-09": 1.2807,
+        "2026-10": -0.6845
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "vwap_bands",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 51,
+      "mean_net_r": -0.18799803921568628,
+      "profit_factor": 0.5407192025254001,
+      "positive_rate": 0.3333333333333333,
+      "active_days": 23,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 25,
+        "mean_net_r": -0.365128,
+        "profit_factor": 0.3708551302993335,
+        "positive_rate": 0.28
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.31492089371980675,
+      "equal_day_mean_excluding_best_day": -0.3936763888888889,
+      "day_bootstrap_ci95_descriptive": [
+        -0.9326432336956523,
+        0.09920400362318807
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.1068,
+        "2026-07": 1.0154999999999998,
+        "2026-08": 0.21960000000000002,
+        "2026-09": -8.3298,
+        "2026-10": -2.3864
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "elliott_wave",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 63,
+      "mean_net_r": -0.18886984126984127,
+      "profit_factor": 0.5109975013150974,
+      "positive_rate": 0.31746031746031744,
+      "active_days": 17,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1531007492997199,
+      "equal_day_mean_excluding_best_day": -0.18954454613095237,
+      "day_bootstrap_ci95_descriptive": [
+        -0.32752222198879544,
+        0.02749863445378146
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.8321,
+        "2026-07": -11.066699999999999
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_descending_triangle",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 649,
+      "mean_net_r": -0.19095762711864406,
+      "profit_factor": 0.45526842199417783,
+      "positive_rate": 0.3359013867488444,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.16939698601258465,
+      "equal_day_mean_excluding_best_day": -0.2411816787086022,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3077338560934389,
+        -0.0012774954074589752
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -33.002,
+        "2026-07": -90.9295
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "smc",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 27,
+      "mean_net_r": -0.1970777777777778,
+      "profit_factor": 0.5940229955214429,
+      "positive_rate": 0.37037037037037035,
+      "active_days": 17,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 9,
+        "mean_net_r": -0.29486666666666667,
+        "profit_factor": 0.3597587454764777,
+        "positive_rate": 0.1111111111111111
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.04700343137254903,
+      "equal_day_mean_excluding_best_day": -0.19053489583333333,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3928313725490196,
+        0.3327115441176468
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": 0.02230000000000002,
+        "2026-08": 0.3264999999999998,
+        "2026-09": -4.3586,
+        "2026-10": -1.3113000000000001
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "williams_r",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 32,
+      "mean_net_r": -0.19834374999999999,
+      "profit_factor": 0.46101784152379016,
+      "positive_rate": 0.4375,
+      "active_days": 14,
+      "last_day": "2026-08-05",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.14463333333333334,
+      "equal_day_mean_excluding_best_day": -0.24364358974358974,
+      "day_bootstrap_ci95_descriptive": [
+        -0.47944488095238097,
+        0.1806065476190476
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 0.8946,
+        "2026-07": -6.9392,
+        "2026-08": -0.3024
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_spinning_top_black",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 181,
+      "mean_net_r": -0.20019723756906077,
+      "profit_factor": 0.4564892297400468,
+      "positive_rate": 0.3259668508287293,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.17257917403233886,
+      "equal_day_mean_excluding_best_day": -0.20171801703413544,
+      "day_bootstrap_ci95_descriptive": [
+        -0.26110943556710686,
+        -0.08286654193198309
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -7.4086,
+        "2026-07": -28.827099999999998
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_hanging_man",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 11,
+      "mean_net_r": -0.20372727272727273,
+      "profit_factor": 0.23124421117628896,
+      "positive_rate": 0.18181818181818182,
+      "active_days": 10,
+      "last_day": "2026-09-17",
+      "recent": {
+        "n": 4,
+        "mean_net_r": -0.1553,
+        "profit_factor": 0.31404593639575973,
+        "positive_rate": 0.25
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.20651,
+      "equal_day_mean_excluding_best_day": -0.2727555555555556,
+      "day_bootstrap_ci95_descriptive": [
+        -0.4492925,
+        -0.013476750000000186
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -1.493,
+        "2026-09": -0.748
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bearish_engulfing",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 252,
+      "mean_net_r": -0.2081511904761905,
+      "profit_factor": 0.4453591983344101,
+      "positive_rate": 0.3373015873015873,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.19439738260535475,
+      "equal_day_mean_excluding_best_day": -0.2383654911627951,
+      "day_bootstrap_ci95_descriptive": [
+        -0.30868331575261687,
+        -0.05828234660235709
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -2.1962,
+        "2026-07": -50.2579
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "rsi_divergence",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 699,
+      "mean_net_r": -0.21007782546494994,
+      "profit_factor": 0.41961969708407554,
+      "positive_rate": 0.3104434907010014,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1959978677624848,
+      "equal_day_mean_excluding_best_day": -0.24517860123279536,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3057750629663345,
+        -0.07061497561332981
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -35.2151,
+        "2026-07": -111.6293
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "trend",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 717,
+      "mean_net_r": -0.2113044630404463,
+      "profit_factor": 0.49112181378665676,
+      "positive_rate": 0.3486750348675035,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.20520987254591655,
+      "equal_day_mean_excluding_best_day": -0.22750217804272754,
+      "day_bootstrap_ci95_descriptive": [
+        -0.2735170048953613,
+        -0.13856687449682753
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -28.4285,
+        "2026-07": -123.0768
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_double_bottom",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 259,
+      "mean_net_r": -0.21666100386100384,
+      "profit_factor": 0.4916769934271076,
+      "positive_rate": 0.3204633204633205,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3428372156182537,
+      "equal_day_mean_excluding_best_day": -0.3734272461155641,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5145222451230422,
+        -0.20384795486548324
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -10.179,
+        "2026-07": -45.9362
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_on_neck_pattern",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 93,
+      "mean_net_r": -0.21687096774193548,
+      "profit_factor": 0.4910609520685348,
+      "positive_rate": 0.34408602150537637,
+      "active_days": 20,
+      "last_day": "2026-07-28",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.2865050178571429,
+      "equal_day_mean_excluding_best_day": -0.3414579135338346,
+      "day_bootstrap_ci95_descriptive": [
+        -0.7744776001488095,
+        0.03767654613095239
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -3.0609,
+        "2026-07": -17.1081
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "ema_cloud_sd",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 31,
+      "mean_net_r": -0.21721290322580644,
+      "profit_factor": 0.2485576225602339,
+      "positive_rate": 0.16129032258064516,
+      "active_days": 17,
+      "last_day": "2026-09-17",
+      "recent": {
+        "n": 9,
+        "mean_net_r": -0.161,
+        "profit_factor": 0.3132050431320505,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.182448431372549,
+      "equal_day_mean_excluding_best_day": -0.2631077083333333,
+      "day_bootstrap_ci95_descriptive": [
+        -0.39746400000000004,
+        0.0399497794117647
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.0868,
+        "2026-07": -2.8581,
+        "2026-08": 0.5800000000000001,
+        "2026-09": -4.3687
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "pivot_scalping",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 47,
+      "mean_net_r": -0.2202468085106383,
+      "profit_factor": 0.05088661911136376,
+      "positive_rate": 0.0425531914893617,
+      "active_days": 13,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.2563219230769231,
+      "equal_day_mean_excluding_best_day": -0.2700870833333333,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3453856057692308,
+        -0.18015063141025645
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.335,
+        "2026-07": -9.0166
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "cci_zero_cross",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 30,
+      "mean_net_r": -0.22080666666666665,
+      "profit_factor": 0.45082986519872,
+      "positive_rate": 0.26666666666666666,
+      "active_days": 13,
+      "last_day": "2026-08-05",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.18136410256410254,
+      "equal_day_mean_excluding_best_day": -0.3365361111111111,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5798101282051281,
+        0.2324660576923074
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -5.3084,
+        "2026-08": -1.3157999999999999
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "orb",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 17,
+      "mean_net_r": -0.2256235294117647,
+      "profit_factor": 0.5802674487316978,
+      "positive_rate": 0.47058823529411764,
+      "active_days": 13,
+      "last_day": "2026-08-05",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.40031923076923076,
+      "equal_day_mean_excluding_best_day": -0.48682916666666665,
+      "day_bootstrap_ci95_descriptive": [
+        -0.820221923076923,
+        0.018111442307692138
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.1901000000000002,
+        "2026-07": -4.5023,
+        "2026-08": -0.5234
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "ttm_squeeze",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 155,
+      "mean_net_r": -0.2311541935483871,
+      "profit_factor": 0.45911456918050997,
+      "positive_rate": 0.38064516129032255,
+      "active_days": 17,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.2977161031577035,
+      "equal_day_mean_excluding_best_day": -0.36551537349394886,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5397186681324491,
+        -0.07177568161284127
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -11.2063,
+        "2026-07": -24.622600000000002
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_three_river_morning_star",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 28,
+      "mean_net_r": -0.23325714285714286,
+      "profit_factor": 0.2903415079373703,
+      "positive_rate": 0.21428571428571427,
+      "active_days": 20,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 8,
+        "mean_net_r": -0.1537625,
+        "profit_factor": 0.35444765153503016,
+        "positive_rate": 0.25
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.19956416666666665,
+      "equal_day_mean_excluding_best_day": -0.2485780701754386,
+      "day_bootstrap_ci95_descriptive": [
+        -0.36262185416666676,
+        -0.030790187500000146
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.018,
+        "2026-07": -4.5394000000000005,
+        "2026-08": -0.161,
+        "2026-09": -0.8061999999999999,
+        "2026-10": -1.0066
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_inverse_head_shoulders",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 192,
+      "mean_net_r": -0.23447604166666666,
+      "profit_factor": 0.4326112957480569,
+      "positive_rate": 0.2864583333333333,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.2557525730360175,
+      "equal_day_mean_excluding_best_day": -0.28952766318403816,
+      "day_bootstrap_ci95_descriptive": [
+        -0.38121648916289474,
+        -0.14602672241081965
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -13.264,
+        "2026-07": -31.7554
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "mean_reversion",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 248,
+      "mean_net_r": -0.23847782258064515,
+      "profit_factor": 0.3501388341012154,
+      "positive_rate": 0.31048387096774194,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.21965249089261946,
+      "equal_day_mean_excluding_best_day": -0.25605591210382556,
+      "day_bootstrap_ci95_descriptive": [
+        -0.3169798850412695,
+        -0.10291165279163557
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -7.5012,
+        "2026-07": -51.6413
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "vrvp_zone",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 426,
+      "mean_net_r": -0.23969366197183098,
+      "profit_factor": 0.47450019119002534,
+      "positive_rate": 0.34976525821596244,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.24676089640963467,
+      "equal_day_mean_excluding_best_day": -0.26598161329954867,
+      "day_bootstrap_ci95_descriptive": [
+        -0.31600499241309427,
+        -0.17855071035627823
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -37.0682,
+        "2026-07": -65.04129999999999
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "volume_profile_full",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 45,
+      "mean_net_r": -0.24086444444444444,
+      "profit_factor": 0.31217834411072265,
+      "positive_rate": 0.26666666666666666,
+      "active_days": 20,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 9,
+        "mean_net_r": -0.7336111111111111,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.25453633333333336,
+      "equal_day_mean_excluding_best_day": -0.30276456140350877,
+      "day_bootstrap_ci95_descriptive": [
+        -0.46636257500000006,
+        -0.06253785208333337
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.4776,
+        "2026-07": -0.007499999999999868,
+        "2026-08": -2.5229,
+        "2026-09": -7.830900000000001
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "uo_oversold",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 12,
+      "mean_net_r": -0.243625,
+      "profit_factor": 0.4529890541678361,
+      "positive_rate": 0.3333333333333333,
+      "active_days": 9,
+      "last_day": "2026-10-13",
+      "recent": {
+        "n": 3,
+        "mean_net_r": -0.42073333333333335,
+        "profit_factor": 0.23321790899702327,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.17719074074074076,
+      "equal_day_mean_excluding_best_day": -0.3629145833333334,
+      "day_bootstrap_ci95_descriptive": [
+        -0.7507095833333334,
+        0.35200925925925874
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -1.54,
+        "2026-08": 0.6373,
+        "2026-09": -2.4047,
+        "2026-10": 0.3839
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "uo_divergence",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 16,
+      "mean_net_r": -0.24509375,
+      "profit_factor": 0.30752251456825,
+      "positive_rate": 0.3125,
+      "active_days": 10,
+      "last_day": "2026-09-22",
+      "recent": {
+        "n": 5,
+        "mean_net_r": -0.40368,
+        "profit_factor": 0.09448183041722745,
+        "positive_rate": 0.2
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.13323933333333332,
+      "equal_day_mean_excluding_best_day": -0.1928659259259259,
+      "day_bootstrap_ci95_descriptive": [
+        -0.34510176666666664,
+        0.08586394999999981
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": 0.4094,
+        "2026-08": -0.4337,
+        "2026-09": -3.8971999999999998
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "kama_trend",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 75,
+      "mean_net_r": -0.2535773333333333,
+      "profit_factor": 0.33311008173813644,
+      "positive_rate": 0.32,
+      "active_days": 17,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3281197992530345,
+      "equal_day_mean_excluding_best_day": -0.3765385367063492,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5235715730625583,
+        -0.14028169701213833
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.0671,
+        "2026-07": -20.0854
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "price_structure",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 1605,
+      "mean_net_r": -0.2562590031152648,
+      "profit_factor": 0.4437533852889963,
+      "positive_rate": 0.3501557632398754,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3221026636966843,
+      "equal_day_mean_excluding_best_day": -0.3381444783465001,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5024067491860967,
+        -0.20158393134442482
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -42.3029,
+        "2026-07": -368.9928
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "aroon_trend",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 217,
+      "mean_net_r": -0.2590124423963134,
+      "profit_factor": 0.3612923313988438,
+      "positive_rate": 0.2995391705069124,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.25276587682054785,
+      "equal_day_mean_excluding_best_day": -0.2962324996068746,
+      "day_bootstrap_ci95_descriptive": [
+        -0.38161881833681666,
+        -0.11610279511552048
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -7.4033,
+        "2026-07": -48.8024
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "holy_grail",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 257,
+      "mean_net_r": -0.2656408560311284,
+      "profit_factor": 0.36570479825477464,
+      "positive_rate": 0.30739299610894943,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.2577672328866163,
+      "equal_day_mean_excluding_best_day": -0.2806862139205203,
+      "day_bootstrap_ci95_descriptive": [
+        -0.340771644238934,
+        -0.18188726862855603
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -17.740099999999998,
+        "2026-07": -50.5296
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "supertrend_mtf",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 165,
+      "mean_net_r": -0.2679569696969697,
+      "profit_factor": 0.4253243630370414,
+      "positive_rate": 0.30303030303030304,
+      "active_days": 17,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.24320321672759979,
+      "equal_day_mean_excluding_best_day": -0.3473471677730748,
+      "day_bootstrap_ci95_descriptive": [
+        -0.6848347033223027,
+        0.17229212165748148
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.3326,
+        "2026-07": -42.8803
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_spinning_top_white",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 80,
+      "mean_net_r": -0.27804249999999997,
+      "profit_factor": 0.29392980373360084,
+      "positive_rate": 0.2625,
+      "active_days": 17,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.37887416284695696,
+      "equal_day_mean_excluding_best_day": -0.41711629802489175,
+      "day_bootstrap_ci95_descriptive": [
+        -0.6306655435765215,
+        -0.1584155723357527
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.6566,
+        "2026-07": -20.5868
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bearish_separating_lines",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 35,
+      "mean_net_r": -0.27867714285714285,
+      "profit_factor": 0.2263327807346654,
+      "positive_rate": 0.2857142857142857,
+      "active_days": 20,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 7,
+        "mean_net_r": -0.039200000000000006,
+        "profit_factor": 0.7026118998591091,
+        "positive_rate": 0.2857142857142857
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.39085166666666665,
+      "equal_day_mean_excluding_best_day": -0.4190122807017544,
+      "day_bootstrap_ci95_descriptive": [
+        -0.8726637083333333,
+        -0.09409739583333333
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.5705,
+        "2026-07": -6.9801,
+        "2026-08": -0.4644,
+        "2026-09": -0.7387
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_symmetrical_triangle",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 12,
+      "mean_net_r": -0.28683333333333333,
+      "profit_factor": 0.3084048303160602,
+      "positive_rate": 0.3333333333333333,
+      "active_days": 8,
+      "last_day": "2026-09-15",
+      "recent": {
+        "n": 3,
+        "mean_net_r": -0.6886333333333333,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.27306875,
+      "equal_day_mean_excluding_best_day": -0.44689285714285715,
+      "day_bootstrap_ci95_descriptive": [
+        -0.68985078125,
+        0.1871009374999998
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.6402000000000001,
+        "2026-09": -2.8018
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_cup_handle",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 24,
+      "mean_net_r": -0.28757083333333333,
+      "profit_factor": 0.3831268658050446,
+      "positive_rate": 0.3333333333333333,
+      "active_days": 12,
+      "last_day": "2026-09-08",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.45838333333333336,
+      "equal_day_mean_excluding_best_day": -0.5270431818181819,
+      "day_bootstrap_ci95_descriptive": [
+        -0.7929359374999999,
+        -0.13656781250000014
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -4.1631,
+        "2026-08": -1.3692,
+        "2026-09": -1.3694
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "cci_trend",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 286,
+      "mean_net_r": -0.29268636363636363,
+      "profit_factor": 0.3356072836254943,
+      "positive_rate": 0.2902097902097902,
+      "active_days": 18,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3691187050498371,
+      "equal_day_mean_excluding_best_day": -0.40595509946453345,
+      "day_bootstrap_ci95_descriptive": [
+        -0.768994790265151,
+        -0.11666999992914702
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -2.7268000000000003,
+        "2026-07": -80.9815
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "cpr",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 264,
+      "mean_net_r": -0.3005219696969697,
+      "profit_factor": 0.3616785728365541,
+      "positive_rate": 0.3409090909090909,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.31387676889847443,
+      "equal_day_mean_excluding_best_day": -0.3454234580797028,
+      "day_bootstrap_ci95_descriptive": [
+        -0.4623571963517773,
+        -0.1659355175371806
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.1085000000000003,
+        "2026-07": -80.44630000000001
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_high_price_gapping_play_bullish",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 6,
+      "mean_net_r": -0.30493333333333333,
+      "profit_factor": 0.08647892949870181,
+      "positive_rate": 0.16666666666666666,
+      "active_days": 6,
+      "last_day": "2026-09-18",
+      "recent": {
+        "n": 1,
+        "mean_net_r": -0.8648,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.30493333333333333,
+      "equal_day_mean_excluding_best_day": -0.40055999999999997,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5826429166666667,
+        -0.06596666666666666
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.5595,
+        "2026-08": -0.2226,
+        "2026-09": -1.0475
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "alligator_ao",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 538,
+      "mean_net_r": -0.30809293680297395,
+      "profit_factor": 0.3399003203845411,
+      "positive_rate": 0.3215613382899628,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3178143126676306,
+      "equal_day_mean_excluding_best_day": -0.34661407050108445,
+      "day_bootstrap_ci95_descriptive": [
+        -0.42431414002382556,
+        -0.22975659960901035
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -30.1848,
+        "2026-07": -135.5692
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_tweezer_top",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 68,
+      "mean_net_r": -0.3089161764705882,
+      "profit_factor": 0.5007178000142609,
+      "positive_rate": 0.4411764705882353,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.1290549289891395,
+      "equal_day_mean_excluding_best_day": -0.21526538800705466,
+      "day_bootstrap_ci95_descriptive": [
+        -0.555228697786132,
+        0.2361984941520468
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.6256,
+        "2026-07": -19.3807
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "weinstein_stage",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 206,
+      "mean_net_r": -0.3113019417475728,
+      "profit_factor": 0.4743262695053134,
+      "positive_rate": 0.2766990291262136,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.260060524294419,
+      "equal_day_mean_excluding_best_day": -0.3444138867552201,
+      "day_bootstrap_ci95_descriptive": [
+        -0.613270261675459,
+        0.05776996919177247
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.7448999999999997,
+        "2026-07": -65.87310000000001
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_mat_hold_pattern",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 4,
+      "mean_net_r": -0.321675,
+      "profit_factor": 0.39472198701665256,
+      "positive_rate": 0.25,
+      "active_days": 4,
+      "last_day": "2026-09-04",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.321675,
+      "equal_day_mean_excluding_best_day": -0.7086,
+      "day_bootstrap_ci95_descriptive": [
+        -1.365975,
+        0.58365
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -1.104,
+        "2026-09": -0.1827
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_bear_flag",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 17,
+      "mean_net_r": -0.3230764705882353,
+      "profit_factor": 0.23427718990059535,
+      "positive_rate": 0.29411764705882354,
+      "active_days": 5,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.16281428571428572,
+      "equal_day_mean_excluding_best_day": -0.30624285714285715,
+      "day_bootstrap_ci95_descriptive": [
+        -0.43726190476190474,
+        0.16828666666666664
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -5.4923
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_inverted_hammer",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 31,
+      "mean_net_r": -0.32554516129032257,
+      "profit_factor": 0.13834292447191818,
+      "positive_rate": 0.22580645161290322,
+      "active_days": 17,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.40541078431372546,
+      "equal_day_mean_excluding_best_day": -0.44829270833333335,
+      "day_bootstrap_ci95_descriptive": [
+        -0.6417192156862745,
+        -0.19996250000000015
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.4597,
+        "2026-07": -8.6322
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "parabolic_sar",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 19,
+      "mean_net_r": -0.32664736842105263,
+      "profit_factor": 0.2689956537614398,
+      "positive_rate": 0.21052631578947367,
+      "active_days": 15,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 7,
+        "mean_net_r": -0.5241142857142858,
+        "profit_factor": 0.01698729971598521,
+        "positive_rate": 0.14285714285714285
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.28658,
+      "equal_day_mean_excluding_best_day": -0.40365,
+      "day_bootstrap_ci95_descriptive": [
+        -0.62442,
+        0.09057716666666661
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.47040000000000004,
+        "2026-08": -1.3788,
+        "2026-09": -4.2897,
+        "2026-10": -0.0674
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_double_top",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 177,
+      "mean_net_r": -0.32820056497175143,
+      "profit_factor": 0.3302376793548127,
+      "positive_rate": 0.288135593220339,
+      "active_days": 9,
+      "last_day": "2026-07-09",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3390556770934307,
+      "equal_day_mean_excluding_best_day": -0.37340513673010955,
+      "day_bootstrap_ci95_descriptive": [
+        -0.4528055090823696,
+        -0.2274939384611886
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -12.1325,
+        "2026-07": -45.959
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_advance_block",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 17,
+      "mean_net_r": -0.32875882352941177,
+      "profit_factor": 0.2101276198821318,
+      "positive_rate": 0.23529411764705882,
+      "active_days": 15,
+      "last_day": "2026-09-22",
+      "recent": {
+        "n": 6,
+        "mean_net_r": -0.33793333333333336,
+        "profit_factor": 0.21413898686097438,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.25622333333333336,
+      "equal_day_mean_excluding_best_day": -0.32728214285714285,
+      "day_bootstrap_ci95_descriptive": [
+        -0.49974516666666674,
+        -0.001402166666666806
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.9664,
+        "2026-07": -0.4073,
+        "2026-08": -0.5168,
+        "2026-09": -3.6984000000000004
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_range_expansion",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 144,
+      "mean_net_r": -0.3296541666666667,
+      "profit_factor": 0.4559763275634443,
+      "positive_rate": 0.3611111111111111,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3342000797448166,
+      "equal_day_mean_excluding_best_day": -0.3790516714766715,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5549893936261109,
+        -0.1245559122095011
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.7698,
+        "2026-07": -49.24
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "gap_fill",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 65,
+      "mean_net_r": -0.33622,
+      "profit_factor": 0.36801848435249823,
+      "positive_rate": 0.26153846153846155,
+      "active_days": 18,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.4431313425925926,
+      "equal_day_mean_excluding_best_day": -0.5253273039215687,
+      "day_bootstrap_ci95_descriptive": [
+        -0.7510832326388889,
+        -0.12083364930555593
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 0.389,
+        "2026-07": -22.2433
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_up_gap_side_by_side_white",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 1,
+      "mean_net_r": -0.3478,
+      "profit_factor": 0.0,
+      "positive_rate": 0.0,
+      "active_days": 1,
+      "last_day": "2026-10-12",
+      "recent": {
+        "n": 1,
+        "mean_net_r": -0.3478,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3478,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-10": -0.3478
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_morning_star",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 66,
+      "mean_net_r": -0.3533727272727273,
+      "profit_factor": 0.2923839633003028,
+      "positive_rate": 0.25757575757575757,
+      "active_days": 19,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.30394095238095237,
+      "equal_day_mean_excluding_best_day": -0.3432432275132275,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5240503753132831,
+        -0.099133599310777
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -4.7298,
+        "2026-07": -18.5928
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "ehlers_fisher",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 30,
+      "mean_net_r": -0.35845666666666665,
+      "profit_factor": 0.2991592805005214,
+      "positive_rate": 0.3333333333333333,
+      "active_days": 19,
+      "last_day": "2026-09-22",
+      "recent": {
+        "n": 9,
+        "mean_net_r": 0.11803333333333332,
+        "profit_factor": 1.873889437314906,
+        "positive_rate": 0.4444444444444444
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.4044517543859649,
+      "equal_day_mean_excluding_best_day": -0.4972824074074074,
+      "day_bootstrap_ci95_descriptive": [
+        -0.8393798026315789,
+        -0.03347427631578986
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -6.2459999999999996,
+        "2026-08": -5.327699999999999,
+        "2026-09": 0.8199999999999998
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "kst",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 31,
+      "mean_net_r": -0.3595548387096774,
+      "profit_factor": 0.179219440353461,
+      "positive_rate": 0.2903225806451613,
+      "active_days": 18,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 3,
+        "mean_net_r": -0.9441333333333334,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.35310092592592596,
+      "equal_day_mean_excluding_best_day": -0.4098009803921569,
+      "day_bootstrap_ci95_descriptive": [
+        -0.6029446990740741,
+        -0.10722273148148186
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.6977,
+        "2026-07": -4.4944,
+        "2026-08": -2.5774,
+        "2026-09": -3.3767
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "gap_and_go",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 1,
+      "mean_net_r": -0.3683,
+      "profit_factor": 0.0,
+      "positive_rate": 0.0,
+      "active_days": 1,
+      "last_day": "2026-08-05",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3683,
+      "equal_day_mean_excluding_best_day": null,
+      "day_bootstrap_ci95_descriptive": null,
+      "monthly_proxy_net_r": {
+        "2026-08": -0.3683
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_bear_pennant",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 6,
+      "mean_net_r": -0.37595,
+      "profit_factor": 0.0,
+      "positive_rate": 0.0,
+      "active_days": 3,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3370444444444445,
+      "equal_day_mean_excluding_best_day": -0.5040166666666667,
+      "day_bootstrap_ci95_descriptive": [
+        -0.7715000000000001,
+        -0.0031
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -2.2557
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_bullish_harami",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 37,
+      "mean_net_r": -0.38144864864864864,
+      "profit_factor": 0.24455910847526574,
+      "positive_rate": 0.24324324324324326,
+      "active_days": 19,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.43201754385964913,
+      "equal_day_mean_excluding_best_day": -0.47035462962962965,
+      "day_bootstrap_ci95_descriptive": [
+        -0.6475661842105263,
+        -0.2249866228070179
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -2.2071,
+        "2026-07": -11.9065
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "failed_bull_breakout",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 363,
+      "mean_net_r": -0.4168250688705234,
+      "profit_factor": 0.308872531442914,
+      "positive_rate": 0.3526170798898072,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.44292780163896417,
+      "equal_day_mean_excluding_best_day": -0.47685667950779553,
+      "day_bootstrap_ci95_descriptive": [
+        -0.692826022244113,
+        -0.24424091753944802
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -11.137500000000001,
+        "2026-07": -140.17
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "rsi2_mr",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 131,
+      "mean_net_r": -0.4181992366412214,
+      "profit_factor": 0.23785641944531005,
+      "positive_rate": 0.22137404580152673,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.3487637088934457,
+      "equal_day_mean_excluding_best_day": -0.40966724827641493,
+      "day_bootstrap_ci95_descriptive": [
+        -0.5219499862914863,
+        -0.16315949195906432
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": 1.2347,
+        "2026-07": -56.0188
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_cup_and_handle",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 16,
+      "mean_net_r": -0.42470625,
+      "profit_factor": 0.4164118859498454,
+      "positive_rate": 0.3125,
+      "active_days": 11,
+      "last_day": "2026-09-18",
+      "recent": {
+        "n": 2,
+        "mean_net_r": 1.13665,
+        "profit_factor": null,
+        "positive_rate": 1.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.5014151515151515,
+      "equal_day_mean_excluding_best_day": -0.7575066666666667,
+      "day_bootstrap_ci95_descriptive": [
+        -1.2396375,
+        0.2720252272727272
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -7.5869,
+        "2026-08": -1.4817,
+        "2026-09": 2.2733
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "ema_ribbon",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 12,
+      "mean_net_r": -0.44056666666666666,
+      "profit_factor": 0.2526223529079137,
+      "positive_rate": 0.4166666666666667,
+      "active_days": 7,
+      "last_day": "2026-09-15",
+      "recent": {
+        "n": 3,
+        "mean_net_r": -1.0478333333333334,
+        "profit_factor": 0.059282978214029204,
+        "positive_rate": 0.3333333333333333
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.23962142857142857,
+      "equal_day_mean_excluding_best_day": -0.35795,
+      "day_bootstrap_ci95_descriptive": [
+        -0.6927056547619047,
+        0.17776428571428568
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -0.3735,
+        "2026-08": 1.2064,
+        "2026-09": -6.1197
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_evening_star",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 97,
+      "mean_net_r": -0.44516701030927835,
+      "profit_factor": 0.27952080622017556,
+      "positive_rate": 0.30927835051546393,
+      "active_days": 19,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -1.2002853091060985,
+      "equal_day_mean_excluding_best_day": -1.300951159611993,
+      "day_bootstrap_ci95_descriptive": [
+        -3.2862995008354217,
+        -0.05919623538011748
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -8.1704,
+        "2026-07": -35.010799999999996
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_diamond_top",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 45,
+      "mean_net_r": -0.4700866666666667,
+      "profit_factor": 0.3746870316559905,
+      "positive_rate": 0.3111111111111111,
+      "active_days": 17,
+      "last_day": "2026-07-29",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.5529133333333334,
+      "equal_day_mean_excluding_best_day": -0.6757391666666667,
+      "day_bootstrap_ci95_descriptive": [
+        -0.9533764215686275,
+        -0.14454096813725517
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -1.6860000000000002,
+        "2026-07": -19.4679
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_rectangle",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 32,
+      "mean_net_r": -0.488175,
+      "profit_factor": 0.27927695168143796,
+      "positive_rate": 0.3125,
+      "active_days": 12,
+      "last_day": "2026-07-23",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.4315993055555556,
+      "equal_day_mean_excluding_best_day": -0.531144696969697,
+      "day_bootstrap_ci95_descriptive": [
+        -0.7272147569444445,
+        -0.11004961805555559
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.2131,
+        "2026-07": -15.4085
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chaikin_mf",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 30,
+      "mean_net_r": -0.49718666666666667,
+      "profit_factor": 0.13987993979690103,
+      "positive_rate": 0.26666666666666666,
+      "active_days": 13,
+      "last_day": "2026-08-07",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.36009679487179486,
+      "equal_day_mean_excluding_best_day": -0.45541319444444445,
+      "day_bootstrap_ci95_descriptive": [
+        -0.6485033814102565,
+        -0.0707521314102565
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.8064,
+        "2026-07": -13.2777,
+        "2026-08": -0.8315
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "kagi_reversal",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 4,
+      "mean_net_r": -0.4995,
+      "profit_factor": 0.09400081621548088,
+      "positive_rate": 0.25,
+      "active_days": 4,
+      "last_day": "2026-09-11",
+      "recent": {
+        "n": 1,
+        "mean_net_r": 0.2073,
+        "profit_factor": null,
+        "positive_rate": 1.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.4995,
+      "equal_day_mean_excluding_best_day": -0.7351,
+      "day_bootstrap_ci95_descriptive": [
+        -0.92845,
+        -0.019699999999999974
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -1.1007,
+        "2026-08": -1.1046,
+        "2026-09": 0.2073
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_low_price_gapping_play_bearish",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 10,
+      "mean_net_r": -0.60476,
+      "profit_factor": 0.10007291558161337,
+      "positive_rate": 0.3,
+      "active_days": 8,
+      "last_day": "2026-09-17",
+      "recent": {
+        "n": 4,
+        "mean_net_r": -0.2062,
+        "profit_factor": 0.26409707351891504,
+        "positive_rate": 0.25
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.7044,
+      "equal_day_mean_excluding_best_day": -0.8576857142857143,
+      "day_bootstrap_ci95_descriptive": [
+        -1.8447821875000001,
+        -0.0035250000000000004
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.4259,
+        "2026-07": -0.2752,
+        "2026-08": -4.5217,
+        "2026-09": -0.8248
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "waddah_attar",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 31,
+      "mean_net_r": -0.6105838709677419,
+      "profit_factor": 0.12516927570795378,
+      "positive_rate": 0.25806451612903225,
+      "active_days": 15,
+      "last_day": "2026-07-30",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.5757886666666666,
+      "equal_day_mean_excluding_best_day": -0.6702735714285715,
+      "day_bootstrap_ci95_descriptive": [
+        -0.9527785944444446,
+        -0.219728338888889
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.7923,
+        "2026-07": -18.1358
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "expiry_scalp",
+      "status": "NEGATIVE_AFTER_COST",
+      "n": 31,
+      "mean_net_r": -0.7785774193548387,
+      "profit_factor": 0.14585862160488366,
+      "positive_rate": 0.12903225806451613,
+      "active_days": 6,
+      "last_day": "2026-07-27",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.6621328525641026,
+      "equal_day_mean_excluding_best_day": -0.835919423076923,
+      "day_bootstrap_ci95_descriptive": [
+        -1.269991185897436,
+        -0.10169592548077057
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -24.1359
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_in_neck_pattern",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 10,
+      "mean_net_r": -0.7917,
+      "profit_factor": 0.018290036580073162,
+      "positive_rate": 0.2,
+      "active_days": 6,
+      "last_day": "2026-07-16",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.92845,
+      "equal_day_mean_excluding_best_day": -1.13522,
+      "day_bootstrap_ci95_descriptive": [
+        -1.6285999999999998,
+        -0.28889791666666725
+      ],
+      "monthly_proxy_net_r": {
+        "2026-06": -0.3228,
+        "2026-07": -7.5942
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "orb_2min",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 9,
+      "mean_net_r": -0.9161777777777778,
+      "profit_factor": 0.14774160206718345,
+      "positive_rate": 0.3333333333333333,
+      "active_days": 5,
+      "last_day": "2026-09-15",
+      "recent": {
+        "n": 2,
+        "mean_net_r": -4.0753,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.7159166666666668,
+      "equal_day_mean_excluding_best_day": -1.1403208333333335,
+      "day_bootstrap_ci95_descriptive": [
+        -2.505856666666667,
+        0.4950333333333333
+      ],
+      "monthly_proxy_net_r": {
+        "2026-08": -0.862,
+        "2026-09": -7.3836
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "chart_pattern_breakout_retest",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 10,
+      "mean_net_r": -0.97804,
+      "profit_factor": 0.014440178562431351,
+      "positive_rate": 0.1,
+      "active_days": 10,
+      "last_day": "2026-09-18",
+      "recent": {
+        "n": 1,
+        "mean_net_r": -1.8152,
+        "profit_factor": 0.0,
+        "positive_rate": 0.0
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.97804,
+      "equal_day_mean_excluding_best_day": -1.1026333333333334,
+      "day_bootstrap_ci95_descriptive": [
+        -1.60532575,
+        -0.46259700000000015
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -6.2225,
+        "2026-08": -1.6082,
+        "2026-09": -1.9497
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    },
+    {
+      "strategy": "candlestick_homing_pigeon_bullish",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "n": 10,
+      "mean_net_r": -1.17873,
+      "profit_factor": 0.15199890648268718,
+      "positive_rate": 0.2,
+      "active_days": 9,
+      "last_day": "2026-09-04",
+      "recent": {
+        "n": 0,
+        "mean_net_r": null,
+        "profit_factor": null,
+        "positive_rate": null
+      },
+      "recent_system_days": [
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-15",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-10-12",
+        "2026-10-13"
+      ],
+      "equal_active_day_mean_net_r": -0.7453277777777778,
+      "equal_day_mean_excluding_best_day": -1.02683125,
+      "day_bootstrap_ci95_descriptive": [
+        -2.0049305555555557,
+        0.19601333333333293
+      ],
+      "monthly_proxy_net_r": {
+        "2026-07": -12.0328,
+        "2026-08": -0.3606000000000002,
+        "2026-09": 0.6061
+      },
+      "live_approved": false,
+      "income_target_supported": false
+    }
+  ],
+  "paper_shortlist": [],
+  "option_bollinger_model_runs": {
+    "exploratory": {
+      "source_file": "reports/income_target_research/bollinger_1lot_exploratory.json",
+      "summary": {
+        "strategy": "bollinger_otm_reversal(period=14,std=1.5)",
+        "num_trades": 58,
+        "win_rate": 0.3276,
+        "gross_pnl": 6672.9,
+        "total_cost": 2693.01,
+        "total_pnl": 3979.89,
+        "sharpe": 1.5929,
+        "max_drawdown": 2811.28,
+        "exit_reasons": {
+          "TIME_EXIT": 57,
+          "PROFIT_TARGET": 1
+        },
+        "candidate_days": 75,
+        "skipped_no_pricing": 16,
+        "skipped_no_expiry": 1,
+        "qty": 65,
+        "lot_size": 65,
+        "research_inputs": {
+          "period": 14,
+          "std_mult": 1.5,
+          "lots": 1,
+          "lot_size": 65,
+          "profit_target": 3750,
+          "loss_limit": -2500,
+          "start_date": "2026-06-29",
+          "end_date": "2026-10-14",
+          "capital_assessed": 500000,
+          "price_method": "EOD-settlement-anchored Black-Scholes; not executable intraday quotes",
+          "parameter_search": false,
+          "sigma_shock": 0,
+          "extra_cost_pct": 0,
+          "retrospective_exploratory": true
+        }
+      },
+      "capital_replay": {
+        "price_evidence": "EOD_anchored_Black_Scholes_model_NOT_intraday_quotes",
+        "funded_model_trades": 58,
+        "skipped_unfunded_or_invalid": 0,
+        "initial_capital": 500000.0,
+        "final_model_equity": 503979.89,
+        "total_model_net_pnl": 3979.89,
+        "max_model_closed_trade_drawdown": 2811.28,
+        "monthly": {
+          "2026-06": {
+            "trades": 1,
+            "net_pnl": -24.25,
+            "target_met": false
+          },
+          "2026-07": {
+            "trades": 20,
+            "net_pnl": 5415.07,
+            "target_met": false
+          },
+          "2026-08": {
+            "trades": 15,
+            "net_pnl": -894.99,
+            "target_met": false
+          },
+          "2026-09": {
+            "trades": 16,
+            "net_pnl": -110.11,
+            "target_met": false
+          },
+          "2026-10": {
+            "trades": 6,
+            "net_pnl": -405.83,
+            "target_met": false
+          }
+        },
+        "income_target_supported": false,
+        "limits": [
+          "Retrospective exploratory sizing and exit rules",
+          "Partial months and missing pricing days",
+          "Uniform 65-unit lot assumption, not a historical lot schedule",
+          "No executable bid/ask validation",
+          "Closed-trade drawdown omits intratrade mark-to-market"
+        ]
+      }
+    },
+    "stress": {
+      "source_file": "reports/income_target_research/bollinger_1lot_stress.json",
+      "summary": {
+        "strategy": "bollinger_otm_reversal(period=14,std=1.5)",
+        "num_trades": 64,
+        "win_rate": 0.2969,
+        "gross_pnl": 316.55,
+        "total_cost": 5620.24,
+        "total_pnl": -5303.69,
+        "sharpe": -1.5762,
+        "max_drawdown": 10711.38,
+        "exit_reasons": {
+          "TIME_EXIT": 62,
+          "PROFIT_TARGET": 1,
+          "LOSS_LIMIT": 1
+        },
+        "candidate_days": 75,
+        "skipped_no_pricing": 10,
+        "skipped_no_expiry": 1,
+        "qty": 65,
+        "lot_size": 65,
+        "research_inputs": {
+          "period": 14,
+          "std_mult": 1.5,
+          "lots": 1,
+          "lot_size": 65,
+          "profit_target": 3750,
+          "loss_limit": -2500,
+          "start_date": "2026-06-29",
+          "end_date": "2026-10-14",
+          "capital_assessed": 500000,
+          "price_method": "EOD-settlement-anchored Black-Scholes; not executable intraday quotes",
+          "parameter_search": false,
+          "sigma_shock": {
+            "CE": 0.08,
+            "PE": 0.02
+          },
+          "extra_cost_pct": 0.01,
+          "retrospective_exploratory": true
+        }
+      },
+      "capital_replay": {
+        "price_evidence": "EOD_anchored_Black_Scholes_model_NOT_intraday_quotes",
+        "funded_model_trades": 64,
+        "skipped_unfunded_or_invalid": 0,
+        "initial_capital": 500000.0,
+        "final_model_equity": 494696.31,
+        "total_model_net_pnl": -5303.69,
+        "max_model_closed_trade_drawdown": 10711.38,
+        "monthly": {
+          "2026-06": {
+            "trades": 1,
+            "net_pnl": -152.93,
+            "target_met": false
+          },
+          "2026-07": {
+            "trades": 21,
+            "net_pnl": 3760.57,
+            "target_met": false
+          },
+          "2026-08": {
+            "trades": 18,
+            "net_pnl": -2839.27,
+            "target_met": false
+          },
+          "2026-09": {
+            "trades": 18,
+            "net_pnl": -1764.77,
+            "target_met": false
+          },
+          "2026-10": {
+            "trades": 6,
+            "net_pnl": -4307.29,
+            "target_met": false
+          }
+        },
+        "income_target_supported": false,
+        "limits": [
+          "Retrospective exploratory sizing and exit rules",
+          "Partial months and missing pricing days",
+          "Uniform 65-unit lot assumption, not a historical lot schedule",
+          "No executable bid/ask validation",
+          "Closed-trade drawdown omits intratrade mark-to-market"
+        ]
+      }
+    }
+  },
+  "rigorous_validation": {
+    "trend": {
+      "verdict": "INSUFFICIENT_DATA",
+      "dev_windows": 1,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": false,
+      "deflated_sharpe": 0.9998
+    },
+    "mean_reversion": {
+      "verdict": "INSUFFICIENT_DATA",
+      "dev_windows": 1,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": false,
+      "deflated_sharpe": 1.0
+    },
+    "breakout": {
+      "verdict": "INSUFFICIENT_DATA",
+      "dev_windows": 1,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": false,
+      "deflated_sharpe": 0.0
+    },
+    "ma_cross": {
+      "verdict": "FAIL",
+      "dev_windows": 66,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": true,
+      "deflated_sharpe": 0.0
+    },
+    "scalping": {
+      "verdict": "FAIL",
+      "dev_windows": 66,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": true,
+      "deflated_sharpe": 0.0
+    },
+    "ema_5min": {
+      "verdict": "FAIL",
+      "dev_windows": 66,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": true,
+      "deflated_sharpe": 0.0
+    },
+    "cpr": {
+      "verdict": "FAIL",
+      "dev_windows": 6,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": true,
+      "deflated_sharpe": 0.0
+    },
+    "orb": {
+      "verdict": "INSUFFICIENT_DATA",
+      "dev_windows": 0,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": false,
+      "deflated_sharpe": 0.0
+    },
+    "vwap_reversion": {
+      "verdict": "FAIL",
+      "dev_windows": 6,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": true,
+      "deflated_sharpe": 0.0
+    },
+    "supertrend_mtf": {
+      "verdict": "FAIL",
+      "dev_windows": 66,
+      "holdout_pnl": null,
+      "holdout_trades": null,
+      "stability_ok": true,
+      "deflated_sharpe": 0.0
+    }
+  },
+  "other_tracks": {
+    "pairs": 0,
+    "option_flow_candidates": 0,
+    "frozen_runtime_cohort": [
+      "heikin_ashi",
+      "td_sequential",
+      "weinstein_stage",
+      "candlestick_bearish_engulfing",
+      "cpr"
+    ]
+  },
+  "live_approved": false,
+  "income_target_supported": false,
+  "next_action": "Freeze this small research shortlist for future executable evidence; do not fund it from this report."
+}

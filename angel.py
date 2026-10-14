@@ -752,6 +752,11 @@ class AngelOne:
             password    = os.getenv("PASSWORD","")
             if not all([totp_secret, api_key, client_id, password]):
                 return False
+            # Login limits apply to the Angel account across all robot
+            # processes.  Acquire the shared slot before generating the TOTP so
+            # a wait cannot leave us submitting an expired/replayed code.
+            from request_governor import acquire as _acquire_login_slot
+            _acquire_login_slot("angel_login", RECONNECT_MIN_INTERVAL)
             totp = pyotp.TOTP(totp_secret).now()
             resp = self.obj.generateSession(client_id, password, totp)
             if resp and resp.get("status"):
