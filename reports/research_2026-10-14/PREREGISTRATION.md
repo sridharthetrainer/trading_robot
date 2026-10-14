@@ -362,3 +362,20 @@ FAIL. 61.8% bounce: 1,965 signals, mean -1.13% vs universe after 0.6% costs (abo
 -0.5% before costs), date-clustered t = -5.9, holdout -1.48%. Placebos: 55% level
 -0.82% (t -6.3), 70% level -1.04% (t -6.3). The Fibonacci level is no better than
 arbitrary levels -- worse than 55%. Retracement-bounce buying underperforms here.
+
+## Test 16 — Low-volatility factor, survivorship-free (before running)
+Prompted by the user's "refer all mathematical models"; published: Blitz & van Vliet
+(2007), Baker, Bradley & Wurgler (2011); NSE runs NIFTY Low Volatility indices.
+Earlier test (cross_sectional_factor_test.py) used survivorship-biased 2022-2026 data.
+- Identical to Test 7 (universe, timing, costs, haircut, benchmarks, holdout, broader
+  ETF filter) EXCEPT the signal: lowest standard deviation of daily adjusted returns
+  over the past 252 trading days; top 30 = the 30 LOWEST-volatility stocks.
+- PASS = Test 7's six checks unchanged, stability = 126- and 63-day volatility
+  windows. Stated in advance: low-vol mainly targets lower risk, so it can fail the
+  return-based checks while improving drawdown; Sharpe and drawdown are reported.
+
+### Test 16 result (recorded after running)
+FAIL (return-based checks). 9.09%/yr vs EW 9.92% vs NIFTY 9.33%; Sharpe 0.681 (best of
+the three); max DD -20.9% vs EW -49.3% / NIFTY -32.2%; holdout 0.99% vs EW 7.78%;
+bootstrap lower bound -9.73%; costs doubled -1.26% vs EW; 126/63-day windows below EW.
+As stated in advance: lower risk, no extra return.

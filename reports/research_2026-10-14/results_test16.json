@@ -1,0 +1,49 @@
+{
+  "months": 109,
+  "holdout_start": "2024-01-01",
+  "avg_monthly_turnover": 0.097,
+  "full": {
+    "momentum": {
+      "ann_return_pct": 9.09,
+      "sharpe": 0.681,
+      "max_dd_pct": -20.9
+    },
+    "equal_weight": {
+      "ann_return_pct": 9.92,
+      "sharpe": 0.559,
+      "max_dd_pct": -49.3
+    },
+    "nifty": {
+      "ann_return_pct": 9.33,
+      "sharpe": 0.613,
+      "max_dd_pct": -32.2
+    }
+  },
+  "holdout": {
+    "momentum": 0.99,
+    "equal_weight": 7.78,
+    "nifty": 1.13
+  },
+  "bootstrap_lower90_excess_vs_ew_pct": -9.73,
+  "excess_vs_ew_costs_doubled_pct": -1.26,
+  "stability": {
+    "126d_vol": {
+      "strategy_pct": 8.94,
+      "equal_weight_pct": 9.92
+    },
+    "63d_vol": {
+      "strategy_pct": 7.99,
+      "equal_weight_pct": 9.92
+    }
+  },
+  "note": "'momentum' column = the low-volatility portfolio (reused Test 7 code)",
+  "checks": {
+    "holdout_beats_ew_and_nifty_by_2pp": false,
+    "sharpe_above_nifty": true,
+    "bootstrap_lower90_positive": false,
+    "costs_doubled_excess_nonnegative": false,
+    "max_dd_within_1_5x_nifty": true,
+    "stable_126d_and_63d": false
+  },
+  "verdict": "FAIL"
+}
