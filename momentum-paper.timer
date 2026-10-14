@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the momentum paper tracker on the evenings of the 1st-7th of each month
+
+[Timer]
+OnCalendar=*-*-01..07 19:30:00
+Persistent=true
+Unit=momentum-paper.service
+
+[Install]
+WantedBy=timers.target

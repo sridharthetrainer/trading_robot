@@ -1,0 +1,13 @@
+[Unit]
+Description=Momentum strategy forward PAPER tracker (monthly selection + settlement; no orders)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/owner/Desktop/trading_robot
+Environment=PATH=/home/owner/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/momentum_paper_tracker.py
+TimeoutStartSec=3600
+StandardOutput=journal
+StandardError=journal

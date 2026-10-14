@@ -46,23 +46,34 @@ def holding_return(r: np.ndarray) -> float:
     return float(np.prod(1 + r) - 1)
 
 
+def select(Rv, Cv, TVv, p: int, lookback: int = 252):
+    """Universe and momentum picks (column indices) at month-end row p.
+    Shared by the backtest and momentum_paper_tracker.py so both use one rule."""
+    window = Rv[p - 251:p + 1]
+    ok = ~np.isnan(window).any(axis=0) & (Cv[p] >= 20)
+    liq = np.nanmedian(TVv[p - LIQ_WINDOW + 1:p + 1], axis=0)
+    cand = np.where(ok)[0]
+    uni = cand[np.argsort(-liq[cand])[:UNIVERSE]]
+    sig = np.prod(1 + Rv[p - lookback + 1:p - SKIP + 1, uni], axis=0) - 1
+    mom = uni[np.argsort(-sig)[:TOP_N]]
+    return uni, mom
+
+
+def month_end_rows(index) -> np.ndarray:
+    month = pd.to_datetime(index).to_period("M")
+    return np.where(month[:-1] != month[1:])[0]          # last trading day of each month
+
+
 def simulate(R, C, TV, lookback: int, cost: float):
     dates = R.index.to_numpy()
     Rv, Cv, TVv = R.to_numpy(), C.to_numpy(), TV.to_numpy()
-    month = pd.to_datetime(R.index).to_period("M")
-    month_end = np.where(month[:-1] != month[1:])[0]          # last trading day of each month
+    month_end = month_end_rows(R.index)
     rows, prev_mom, prev_uni = [], set(), set()
     for k in range(len(month_end) - 1):
         p, q = month_end[k], month_end[k + 1]
         if p < 252 or q + 1 >= len(dates):
             continue
-        window = Rv[p - 251:p + 1]
-        ok = ~np.isnan(window).any(axis=0) & (Cv[p] >= 20)
-        liq = np.nanmedian(TVv[p - LIQ_WINDOW + 1:p + 1], axis=0)
-        cand = np.where(ok)[0]
-        uni = cand[np.argsort(-liq[cand])[:UNIVERSE]]
-        sig = np.prod(1 + Rv[p - lookback + 1:p - SKIP + 1, uni], axis=0) - 1
-        mom = uni[np.argsort(-sig)[:TOP_N]]
+        uni, mom = select(Rv, Cv, TVv, p, lookback)
         period = Rv[p + 2:q + 2]                                # next-day close to next month's next-day close
         mom_ret = np.mean([holding_return(period[:, j]) for j in mom])
         uni_ret = np.mean([holding_return(period[:, j]) for j in uni])
