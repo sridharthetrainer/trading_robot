@@ -43,3 +43,23 @@ fixed; no parameter is tuned on these results. Out-of-sample (OOS) = the last
 
 A FAIL is recorded as a FAIL. No re-run with different parameters counts as
 this test.
+
+## Test 6 — NIFTY 10-month moving-average timing (added 2026-10-14, before running)
+Suggested by ChatGPT's review. Rules fixed here:
+- Data: the same stitched NIFTY daily close series as Test 1 (2015-01 → 2026-10),
+  month-end closes. It is a PRICE index, so add a 1.3%/yr dividend yield
+  (≈ NIFTY's typical yield) to every month held in NIFTY, for both the
+  strategy and the benchmarks.
+- Signal: at each completed month-end, if close > its 10-month simple average,
+  hold NIFTY next month; otherwise hold cash earning 6.5%/yr. No other periods.
+- Cost: 0.15% per switch (ETF brokerage + STT + spread, conservative).
+- Benchmarks: (a) NIFTY buy-and-hold; (b) static mix of NIFTY and cash with
+  the same volatility as the strategy over the full sample.
+- Holdout: the last 30% of months.
+- PASS only if ALL hold (ChatGPT's proposed rule):
+  1. holdout annualized return ≥ static mix (b) + 1.0 percentage point
+  2. full-sample max drawdown ≤ static mix (b)'s, and ≥ 20% smaller than (a)'s
+  3. 12-month block-bootstrap 90% lower bound of annualized excess return vs (b) > 0
+  4. excess return vs (b) still ≥ 0 with costs doubled
+- Known weakness, stated in advance: ~130 months with few switches is a small
+  sample; a pass would justify forward paper tracking only.

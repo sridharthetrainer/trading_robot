@@ -1,0 +1,37 @@
+{
+  "months": 140,
+  "start": "2015-02-28",
+  "end": "2026-09-30",
+  "holdout_start": "2023-04-30",
+  "switches": 22,
+  "pct_months_in_nifty": 67.9,
+  "static_mix_weight": 0.634,
+  "full": {
+    "strategy": {
+      "ann_return_pct": 9.69,
+      "max_dd_pct": -14.9
+    },
+    "static_mix": {
+      "ann_return_pct": 9.0,
+      "max_dd_pct": -18.4
+    },
+    "buy_hold": {
+      "ann_return_pct": 9.82,
+      "max_dd_pct": -29.1
+    }
+  },
+  "holdout": {
+    "strategy": 11.93,
+    "static_mix": 8.54,
+    "buy_hold": 9.26
+  },
+  "bootstrap_lower90_excess_vs_mix_pct": -2.64,
+  "excess_vs_mix_costs_doubled_pct": 0.39,
+  "checks": {
+    "holdout_beats_mix_by_1pp": true,
+    "dd_le_mix_and_20pct_below_bh": true,
+    "bootstrap_lower90_positive": false,
+    "costs_doubled_excess_nonnegative": true
+  },
+  "verdict": "FAIL"
+}
