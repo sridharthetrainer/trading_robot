@@ -99,7 +99,9 @@ def download_bhavcopy(for_date: date = None) -> int:
         "HIGH":       ["HIGH","HIGH_PRICE","HIGHPRICE"],
         "LOW":        ["LOW","LOW_PRICE","LOWPRICE"],
         "CLOSE":      ["CLOSE","CLOSE_PRICE","CLOSEPRICE","LAST_PRICE","LAST"],
-        "VOLUME":     ["TOTTRDQTY","VOLUME","TRADEDQTY","TTL_TRDQTY"],
+        # sec_bhavdata_full (the first URL tried, used from ~2019) names it
+        # TTL_TRD_QNTY; without it every row was stored with volume 0.
+        "VOLUME":     ["TOTTRDQTY","VOLUME","TRADEDQTY","TTL_TRDQTY","TTL_TRD_QNTY"],
     }
     rename = {}
     for target, candidates in col_map.items():

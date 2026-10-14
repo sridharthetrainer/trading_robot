@@ -102,3 +102,32 @@ def test_download_bhavcopy_skips_weekends(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     n = bc.download_bhavcopy(date(2026, 1, 17))  # a Saturday
     assert n == 0
+
+
+def test_download_bhavcopy_reads_volume_from_sec_bhavdata_full(tmp_path, monkeypatch):
+    # Real sec_bhavdata_full layout (", " separators, TTL_TRD_QNTY). Volume
+    # was silently stored as 0 for every row in this format before 2026-10-14.
+    monkeypatch.chdir(tmp_path)
+    csv_text = _padded(
+        "SYMBOL, SERIES, DATE1, PREV_CLOSE, OPEN_PRICE, HIGH_PRICE, LOW_PRICE, LAST_PRICE, "
+        "CLOSE_PRICE, AVG_PRICE, TTL_TRD_QNTY, TURNOVER_LACS, NO_OF_TRADES, DELIV_QTY, DELIV_PER\n"
+        "RELIANCE, EQ, 15-Mar-2021, 2100.00, 2105.00, 2120.00, 2090.00, 2110.00, "
+        "2111.50, 2105.20, 6226400, 131070.12, 52200, 3708600, 59.56\n"
+    )
+
+    class _FakeSession:
+        def __init__(self):
+            self.headers = {}
+        def get(self, url, timeout=15):
+            if url == bc._BHV_URL.format("15032021"):
+                return _FakeResponse(200, csv_text.encode())
+            return _FakeResponse(404, b"")
+
+    fake = _FakeSession()
+    import requests
+    monkeypatch.setattr(requests, "Session", lambda: fake)
+
+    assert bc.download_bhavcopy(date(2021, 3, 15)) >= 1
+    row = bc.get_ohlcv("RELIANCE", days=3650).iloc[0]
+    assert row["close"] == 2111.50
+    assert row["volume"] == 6226400
