@@ -141,3 +141,34 @@ Diagnosis: before ANY costs the rules give PF 0.97 (hold-to-day-before-expiry
 PF 0.81), so there is no gross edge in 2020-2026; costs (~₹2,150 per spread on
 a median ₹13,900 debit) make it strongly negative. X=25%/75% and no-Rule-1
 variants also fail. Paper's 2015-2019 result does not carry forward.
+
+## Test 9 — Grok #2: put credit spread, NIFTY > 200-DMA AND India VIX in top tercile (before running)
+- Data: options_nifty.db real EOD PE closes 2020-01 -> 2026-10; NIFTY = Test 1
+  stitched series; India VIX daily closes fetched from NSE (fetch_india_vix.py).
+- Entry: first trading day of each ISO week, nearest expiry with >= 3 trading days
+  left; short put = largest strike <= spot x (1 - 1.5%), long put 300 points lower;
+  credit > 0. Filter (same day's close): NIFTY > its 200-day SMA AND VIX >= the
+  67th percentile of its trailing 252 trading days.
+- Exit: PRIMARY hold to expiry (settle at intrinsic from NIFTY's expiry close).
+  Also reported: close when the spread can be bought back for <= 50% of the
+  credit at a day-end (else hold to expiry).
+- Costs: 2% slippage on each leg's premium at entry (and on 50% exits) + nse_cost_
+  model fees on each leg at entry/exit (historical STT on sells), qty 65, no
+  exercise-STT at expiry (understates costs slightly).
+- PASS (Grok's stated bar) only if ALL hold, primary version:
+  1. deflated Sharpe (validation_harness.deflated_sharpe_ratio, per-trade Sharpe
+     annualised by sqrt(52), n_trials = 8 option-selling variants) > 0.5
+  2. full-period profit factor > 1.2
+  3. max drawdown of cumulative ₹ P&L (1 lot) < ₹1,25,000 (25% of ₹5L)
+  4. net P&L positive in each regime: 2020-21, 2022-23, 2024-26
+  5. still net positive with costs doubled (4% slippage, 2x fees)
+  6. holdout (last 30% of trades) net positive
+
+### Test 9 result (recorded after running)
+FAIL on check 1 only: deflated Sharpe 0.0013 (needs > 0.5). Passed PF 1.277,
+max DD ₹22,090, positive in all three regimes, positive with costs doubled
+(PF 1.15), holdout +₹10,099. Only 53 trades in ~7 years; total ₹18,004 on one
+lot (~₹220/month). 50%-take-profit variant PF 0.91. Unfiltered with full
+costs PF 1.01, holdout -₹45,779. Note for later review: validation_harness.
+deflated_sharpe_ratio compares an annualised SR with a unit-variance SR*;
+units should be checked, but 53 trades / ₹220 a month is not usable either way.

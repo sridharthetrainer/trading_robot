@@ -1,0 +1,75 @@
+{
+  "primary_filtered_hold": {
+    "trades": 53,
+    "total_net_rs": 18004,
+    "profit_factor": 1.277,
+    "win_rate": 0.887,
+    "expectancy_R": 0.0235,
+    "max_dd_rs": 22090,
+    "annual_sharpe": 0.62,
+    "deflated_sharpe": 0.0013,
+    "holdout_net_rs": 10099,
+    "regimes_net_rs": {
+      "2020-21": 4465,
+      "2022-23": 8291,
+      "2024-26": 5248
+    }
+  },
+  "filtered_takeprofit50": {
+    "trades": 53,
+    "total_net_rs": -5607,
+    "profit_factor": 0.914,
+    "win_rate": 0.887,
+    "expectancy_R": -0.0031,
+    "max_dd_rs": 26581,
+    "annual_sharpe": -0.086,
+    "deflated_sharpe": 0.0,
+    "holdout_net_rs": 3495,
+    "regimes_net_rs": {
+      "2020-21": 4195,
+      "2022-23": -344,
+      "2024-26": -9458
+    }
+  },
+  "unfiltered_hold_same_costs": {
+    "trades": 352,
+    "total_net_rs": 4536,
+    "profit_factor": 1.01,
+    "win_rate": 0.875,
+    "expectancy_R": 0.0123,
+    "max_dd_rs": 95117,
+    "annual_sharpe": 0.251,
+    "deflated_sharpe": 0.0,
+    "holdout_net_rs": -45779,
+    "regimes_net_rs": {
+      "2020-21": 76717,
+      "2022-23": -4478,
+      "2024-26": -67703
+    }
+  },
+  "filtered_hold_costs_doubled": {
+    "trades": 53,
+    "total_net_rs": 9884,
+    "profit_factor": 1.15,
+    "win_rate": 0.887,
+    "expectancy_R": 0.0144,
+    "max_dd_rs": 23371,
+    "annual_sharpe": 0.382,
+    "deflated_sharpe": 0.0,
+    "holdout_net_rs": 7251,
+    "regimes_net_rs": {
+      "2020-21": 4006,
+      "2022-23": 6159,
+      "2024-26": -281
+    }
+  },
+  "checks": {
+    "deflated_sharpe_gt_0_5": false,
+    "profit_factor_gt_1_2": true,
+    "max_dd_lt_125k": true,
+    "positive_every_regime": true,
+    "positive_costs_doubled": true,
+    "holdout_positive": true
+  },
+  "verdict": "FAIL"
+}
