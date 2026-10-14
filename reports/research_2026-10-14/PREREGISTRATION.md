@@ -425,3 +425,35 @@ FAIL. 16 cycles (2018-2026), 491 pair trades: mean -2.24% per 6-month cycle afte
 1.2% round-trip costs (t -2.21); holdout -1.64%; costs doubled -4.08%. Costs are
 ~1.8% per cycle, so the gross result is about -0.4% -- no edge before costs either,
 consistent with GGR-type profits having faded. Also impractical on ₹5L (shorting).
+
+## Test 19 — Structure sweep over the 62-strategy options catalog (before running)
+Source: a pasted catalog (McMillan / Natenberg / Passarelli / Hull structures). These
+are payoff shapes, not strategies; to avoid per-structure tuning, every structure
+buildable from EOD data gets ONE identical mechanical rule, with a multiple-testing bar.
+- Data: options_nifty.db real EOD CE/PE closes 2020-01 -> 2026-10; spot = NIFTY close.
+- Cycle: entry at the close of the first trading day after each expiry date; front =
+  nearest expiry after entry; back = the next expiry after front. Single-expiry
+  structures hold to front expiry and settle at intrinsic. Calendars/diagonals exit at
+  the front expiry: front legs at intrinsic, back legs at their EOD close that day.
+- Strikes: listed strike nearest spot x (1 + offset); ATM 0, OTM/ITM +/-2%, wings +/-4%.
+- Underlying leg (covered call, protective put, collar): NIFTY spot as a futures proxy
+  (basis ignored), FUT costs.
+- Costs: 2% slippage on each option leg's premium per execution + nse_cost_model fees,
+  qty 65 per unit leg. Stress: 4% slippage.
+- Excluded, with reason: delta-hedged/gamma-scalping (33-35: need intraday hedging),
+  event long-vol (36: Test 13), three-expiry and diagonal-ratio (47-48), box spread
+  (62: arbitrage, fixed payoff), underlying-short or variable-ratio writes
+  (51-52, 54, 56, 58-59, 61: need stock/futures shorting or are restatements).
+- PASS for a structure only if ALL hold: >= 100 trades; mean net P&L > 0 with
+  t > 3.2 (Bonferroni for ~45 structures, two-sided 5%); holdout (last 30%) mean > 0;
+  profit factor > 1.1; mean still > 0 at 4% slippage.
+
+### Test 19 result (recorded after running)
+FAIL for all 50 buildable structures (353 weekly cycles; 349 for two-expiry ones);
+none reaches t > 3.2. Closest to positive: short strangle +₹784/trade (t 1.57), short
+OTM put +₹551 (t 1.32), short straddle +₹617 (t 0.80), covered call +₹801 (t 0.75) --
+all naked short premium with unlimited/large tail risk and statistically
+indistinguishable from zero. Long-premium shapes (straddles, strangles, strips,
+straps, backspreads) consistently negative; calendars/diagonals most negative
+(long call calendar -₹1,098, t -4.5; double calendar -₹2,403) and their REVERSES are
+negative too (costs on both directions). results_test19.json has every structure.
