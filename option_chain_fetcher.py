@@ -437,6 +437,10 @@ class NSEOptionChainFetcher:
             if len(times) == 2:
                 oldest = min(datetime.fromisoformat(t) for t in times)
                 payload["records"]["timestamp"] = oldest.strftime("%d-%b-%Y %H:%M:%S")
+                logger.info("Angel OC exchange time %s for %s", payload["records"]["timestamp"], self.underlying)
+            else:
+                logger.warning("Angel OC has NO exchange time for %s ATM quotes -- option_quality will "
+                               "reject this chain (check SmartAPI FULL quote key names)", self.underlying)
             from option_chain_providers import mark_provider
             return mark_provider(payload, "angel", is_live=True)
         except Exception as e:
