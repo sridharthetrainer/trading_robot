@@ -1,0 +1,51 @@
+{
+  "months": 109,
+  "holdout_start": "2024-01-01",
+  "avg_monthly_turnover": 0.562,
+  "full": {
+    "momentum": {
+      "ann_return_pct": 10.07,
+      "sharpe": 0.587,
+      "max_dd_pct": -32.6
+    },
+    "equal_weight": {
+      "ann_return_pct": 9.92,
+      "sharpe": 0.559,
+      "max_dd_pct": -49.3
+    },
+    "nifty": {
+      "ann_return_pct": 9.33,
+      "sharpe": 0.613,
+      "max_dd_pct": -32.2
+    }
+  },
+  "holdout": {
+    "momentum": 5.08,
+    "equal_weight": 7.78,
+    "nifty": 1.13
+  },
+  "bootstrap_lower90_excess_vs_ew_pct": -4.46,
+  "excess_vs_ew_costs_doubled_pct": -3.88,
+  "stability": {
+    "126d_high": {
+      "strategy_pct": 5.87,
+      "equal_weight_pct": 9.92
+    },
+    "189d_high": {
+      "strategy_pct": 8.2,
+      "equal_weight_pct": 9.92
+    }
+  },
+  "DIAGNOSTIC_near_52w_low_pct": 4.96,
+  "DIAGNOSTIC_corr_with_test7_momentum": 0.887,
+  "note": "'momentum' column = the 52-week-high portfolio (reused Test 7 code)",
+  "checks": {
+    "holdout_beats_ew_and_nifty_by_2pp": false,
+    "sharpe_above_nifty": false,
+    "bootstrap_lower90_positive": false,
+    "costs_doubled_excess_nonnegative": false,
+    "max_dd_within_1_5x_nifty": true,
+    "stable_126d_and_189d": false
+  },
+  "verdict": "FAIL"
+}

@@ -316,3 +316,25 @@ cap (<= 76.9 pts, from its ₹5,000/65-lot sizing) left only 3 trades at 1% wing
 (+₹5,170, all FOMC). 0.75% wings: 10 trades, expectancy -₹45.5 (NFP -₹1,972);
 1.25%: 2 trades. Deflated Sharpe 0.00. Diagnostic short fly on the same 3 events
 lost (-₹6,630). As sized by Kimi the strategy is mostly not tradeable on ₹5L.
+
+## Test 14 — 52-week high (George & Hwang 2004), survivorship-free (before running)
+Suggested by the user ("52 week high low"); published: George & Hwang (2004),
+"The 52-Week High and Momentum Investing", Journal of Finance. An earlier test
+(cross_sectional_factor_test.py, Sept 2026) on survivorship-biased 2022-2026 data
+with 40 rebalance points found it negative; this re-tests on the clean 2016-2026 data.
+- Identical to Test 7 (universe, rebalance timing, costs, delisting haircut,
+  benchmarks, holdout, broader ETF filter as in the tracker) EXCEPT the signal:
+  nearness to 52-week high = adjusted price at t / max adjusted price over the
+  past 252 trading days (adjusted price = compounded adjusted daily returns).
+- Portfolio: top 30 by nearness, equal weight, monthly.
+- Diagnostic (not part of the verdict): the 30 stocks NEAREST their 52-week LOW,
+  and the correlation of monthly returns with Test 7 momentum.
+- PASS = Test 7's six checks, with stability = 126- and 189-day high windows
+  (instead of 6-1 / 9-1 momentum).
+
+### Test 14 result (recorded after running)
+FAIL (5 of 6 checks). 109 months: 10.07%/yr vs equal-weight 9.92% vs NIFTY 9.33%;
+holdout 5.08% vs EW 7.78% (needed EW + 2 pp); bootstrap lower bound -4.46%/yr;
+costs doubled -3.88%/yr vs EW; 126-/189-day windows 5.87% / 8.20% (below EW).
+Turnover 56%/month (2x momentum). Correlation with Test 7 momentum 0.887 -- largely
+a noisier, costlier version of it. Diagnostic near-52-week-LOW portfolio 4.96%/yr.
