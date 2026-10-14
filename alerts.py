@@ -7,6 +7,7 @@ Dedup persisted to disk — survives restarts.
 from __future__ import annotations
 
 import logging
+import os
 import shutil
 import threading
 import time
@@ -233,18 +234,37 @@ class AlertManager:
             return 0
         self._last_spool_flush = time.time()
         sent = 0
+        dropped = 0
         kept: List[str] = []
+        # 2026-10-14: queued items had no age limit -- spools held failed sends
+        # back to June (chaos-test "CRITICAL", September option selections), and
+        # any that finally succeeded would be delivered as if current. A stale
+        # trading alert is worse than none, so items older than the max age are
+        # dropped (default 6 h; TELEGRAM_SPOOL_MAX_AGE_SEC to change).
+        max_age = float(os.getenv("TELEGRAM_SPOOL_MAX_AGE_SEC", "21600") or 21600)
         try:
             import json as _j
             lines = self._spool_file.read_text(encoding="utf-8", errors="replace").splitlines()
             for raw in lines:
                 if not raw.strip():
                     continue
+                try:
+                    item = _j.loads(raw)
+                except Exception:
+                    kept.append(raw)
+                    continue
+                if time.time() - float(item.get("ts") or 0) > max_age:
+                    dropped += 1
+                    if item.get("kind") == "photo" and item.get("photo_path"):
+                        try:
+                            Path(str(item["photo_path"])).unlink(missing_ok=True)
+                        except Exception:
+                            logger.debug("stale spooled photo cleanup failed", exc_info=True)
+                    continue
                 if sent >= limit:
                     kept.append(raw)
                     continue
                 try:
-                    item = _j.loads(raw)
                     data = item.get("data") or {}
                     if item.get("kind") == "photo":
                         photo_path = str(item.get("photo_path") or "")
@@ -272,6 +292,9 @@ class AlertManager:
                 except Exception:
                     kept.append(raw)
             self._spool_file.write_text("\n".join(kept) + ("\n" if kept else ""), encoding="utf-8")
+            if dropped:
+                logger.info("Telegram spool %s: dropped %d stale item(s) older than %.0fs",
+                            self._spool_file.name, dropped, max_age)
         except Exception as exc:
             logger.debug("Telegram spool flush failed: %s", exc)
         return sent
