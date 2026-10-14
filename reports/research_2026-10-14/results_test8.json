@@ -1,0 +1,101 @@
+{
+  "primary_X50_slip2": {
+    "trades": 1214,
+    "total_net_rs": -2669617,
+    "profit_factor": 0.277,
+    "win_rate": 0.261,
+    "avg_net_rs": -2199.0,
+    "holdout_start": "2024-08-22",
+    "holdout_total_net_rs": -944616,
+    "holdout_profit_factor": 0.198,
+    "exit_reasons": {
+      "rule2": 792,
+      "rule3": 318,
+      "rule1": 104
+    }
+  },
+  "dropped_unpriceable": 0,
+  "stress_X50_slip5": {
+    "trades": 1214,
+    "total_net_rs": -6261144,
+    "profit_factor": 0.047,
+    "win_rate": 0.16,
+    "avg_net_rs": -5157.4,
+    "holdout_start": "2024-08-22",
+    "holdout_total_net_rs": -2121728,
+    "holdout_profit_factor": 0.026,
+    "exit_reasons": {
+      "rule2": 792,
+      "rule3": 318,
+      "rule1": 104
+    }
+  },
+  "baseline_rule3_only": {
+    "trades": 1214,
+    "total_net_rs": -3209038,
+    "profit_factor": 0.338,
+    "win_rate": 0.413,
+    "avg_net_rs": -2643.4,
+    "holdout_start": "2024-08-22",
+    "holdout_total_net_rs": -1122961,
+    "holdout_profit_factor": 0.282,
+    "exit_reasons": {
+      "rule3": 1214
+    }
+  },
+  "X25_slip2": {
+    "trades": 1214,
+    "total_net_rs": -2573672,
+    "profit_factor": 0.208,
+    "win_rate": 0.364,
+    "avg_net_rs": -2120.0,
+    "holdout_start": "2024-08-22",
+    "holdout_total_net_rs": -937201,
+    "holdout_profit_factor": 0.127,
+    "exit_reasons": {
+      "rule2": 691,
+      "rule1": 411,
+      "rule3": 112
+    }
+  },
+  "X75_slip2": {
+    "trades": 1214,
+    "total_net_rs": -2685432,
+    "profit_factor": 0.282,
+    "win_rate": 0.244,
+    "avg_net_rs": -2212.1,
+    "holdout_start": "2024-08-22",
+    "holdout_total_net_rs": -936559,
+    "holdout_profit_factor": 0.205,
+    "exit_reasons": {
+      "rule2": 810,
+      "rule3": 377,
+      "rule1": 27
+    }
+  },
+  "no_rule1_slip2": {
+    "trades": 1214,
+    "total_net_rs": -2838228,
+    "profit_factor": 0.26,
+    "win_rate": 0.237,
+    "avg_net_rs": -2337.9,
+    "holdout_start": "2024-08-22",
+    "holdout_total_net_rs": -936559,
+    "holdout_profit_factor": 0.205,
+    "exit_reasons": {
+      "rule2": 825,
+      "rule3": 389
+    }
+  },
+  "bootstrap_lower90_mean_monthly_rs": -41755.0,
+  "max_open_debit_rs": 277072,
+  "checks": {
+    "trades_ge_100": true,
+    "pf_full_and_holdout_ge_1_2": false,
+    "holdout_net_positive": false,
+    "net_positive_at_5pct_slippage": false,
+    "beats_rule3_only_baseline": true,
+    "bootstrap_lower90_positive": false
+  },
+  "verdict": "FAIL"
+}
