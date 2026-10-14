@@ -38,6 +38,7 @@ RESEARCH = ROOT / "reports" / "research_2026-10-14"
 sys.path.insert(0, str(RESEARCH))
 
 import run_test7_momentum as t  # noqa: E402
+import run_test17_volscaled_momentum as v17  # noqa: E402
 
 LEDGER = ROOT / "reports" / "momentum_paper" / "ledger.json"
 FORWARD_START = "2026-10-01"     # first month-end on or after this (Oct-2026: Fri 30th)
@@ -67,6 +68,13 @@ def load_ledger() -> dict:
         return json.loads(LEDGER.read_text())
     return {"strategy": "Test 7: 12-1 momentum, top 30 of point-in-time top-200 liquid, monthly",
             "forward_start": FORWARD_START, "capital": CAPITAL, "entries": []}
+
+
+def volscaled_weight(R, C, TV, p: int) -> float:
+    """Test 17's exposure for the month starting after month-end row p, from the
+    strategy's daily returns up to and including the entry day (rows < p + 2)."""
+    df = t.simulate(R, C, TV, 252, t.COST)
+    return v17.weight_before(v17.daily_series(R, df), p + 2)
 
 
 def holding(period: np.ndarray, cols) -> float:
@@ -109,9 +117,14 @@ def update(ledger: dict) -> list[str]:
         prev = max(earlier, key=lambda e: e["month_end"]) if earlier else None
         turn = 1.0 if prev is None else len(set(entry["names"]) - set(prev["names"])) / t.TOP_N
         gross = holding(period, mom)
+        net = gross - 2 * t.COST * turn + (t.COST if prev is None else 0)
+        w = entry.get("volscaled_weight")
+        w_prev = prev.get("volscaled_weight") if prev else None
         entry["result"] = {
             "from": dates[p + 1], "to": dates[q + 1], "settled_on": date.today().isoformat(),
-            "momentum": round(gross - 2 * t.COST * turn + (t.COST if prev is None else 0), 5),
+            "momentum": round(net, 5),
+            "volscaled": None if w is None else round(
+                w * net + (1 - w) * v17.CASH / 12 - (abs(w - w_prev) * t.COST if w_prev is not None else 0.0), 5),
             "equal_weight": round(holding(period, uni), 5),
             "niftybees": benchmark_return("NIFTYBEES", dates[p + 2:q + 2]),
             "turnover": round(turn, 3)}
@@ -126,6 +139,8 @@ def update(ledger: dict) -> list[str]:
                  "enter_at_close_of": dates[p + 1],
                  "names": [cols[j] for j in mom], "universe": [cols[j] for j in uni],
                  "paper_qty_at_month_end_close": {cols[j]: int(per_stock // Cv[p, j]) for j in mom},
+                 # Test 17 (passed): exposure scaled to a 12% vol target, rest in cash
+                 "volscaled_weight": round(volscaled_weight(R, C, TV, p), 4),
                  "result": None}
         ledger["entries"].append(entry)
         ledger["entries"].sort(key=lambda e: e["month_end"])
@@ -138,17 +153,21 @@ def summary(ledger: dict) -> str:
     lines = ["📊 <b>MOMENTUM PAPER TRACKER</b> (no orders)"]
     if done:
         last = done[-1]["result"]
-        lines.append(f"Last month {last['from']}→{last['to']}: momentum {last['momentum']*100:+.2f}% | "
-                     f"equal-wt {last['equal_weight']*100:+.2f}% | "
-                     + (f"NIFTYBEES {last['niftybees']*100:+.2f}%" if last['niftybees'] is not None else "NIFTYBEES n/a"))
-        cum = lambda k: (np.prod([1 + e["result"][k] for e in done if e["result"][k] is not None]) - 1) * 100
+        pct = lambda v: f"{v*100:+.2f}%" if v is not None else "n/a"
+        lines.append(f"Last month {last['from']}→{last['to']}: momentum {pct(last['momentum'])} | "
+                     f"vol-scaled {pct(last.get('volscaled'))} | equal-wt {pct(last['equal_weight'])} | "
+                     f"NIFTYBEES {pct(last['niftybees'])}")
+        cum = lambda k: (np.prod([1 + e["result"][k] for e in done if e["result"].get(k) is not None]) - 1) * 100
         lines.append(f"Since {done[0]['result']['from']} ({len(done)} mo): momentum {cum('momentum'):+.2f}% | "
-                     f"equal-wt {cum('equal_weight'):+.2f}% | NIFTYBEES {cum('niftybees'):+.2f}%")
+                     f"vol-scaled {cum('volscaled'):+.2f}% | equal-wt {cum('equal_weight'):+.2f}% | "
+                     f"NIFTYBEES {cum('niftybees'):+.2f}%")
     pending = [e for e in ledger["entries"] if not e.get("result")]
     if pending:
         e = pending[-1]
         lines.append(f"Holding from close of {e['enter_at_close_of']} (₹{CAPITAL // t.TOP_N:,}/stock):")
         lines.append(", ".join(e["names"]))
+        if e.get("volscaled_weight") is not None:
+            lines.append(f"Vol-scaled version: {e['volscaled_weight']*100:.0f}% invested, rest in cash")
     return "\n".join(lines)
 
 

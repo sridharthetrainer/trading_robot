@@ -24,7 +24,8 @@ def test_tracker_matches_backtest_selection_and_settlement(tmp_path, monkeypatch
     def entry(p):
         uni, mom = t.select(Rv, Cv, TVv, p)
         return {"month_end": dates[p], "names": [cols[j] for j in mom],
-                "universe": [cols[j] for j in uni], "result": None}
+                "universe": [cols[j] for j in uni], "result": None,
+                "volscaled_weight": round(mpt.volscaled_weight(R, C, TV, p), 4)}
 
     ledger = {"entries": [entry(jul), entry(aug)]}
     monkeypatch.setattr(mpt, "FORWARD_START", "9999-12-31")   # settle only; record nothing new
@@ -44,3 +45,9 @@ def test_tracker_matches_backtest_selection_and_settlement(tmp_path, monkeypatch
     # the second month's turnover is measured against the first month's picks
     assert ledger["entries"][1]["result"]["turnover"] == pytest.approx(
         bt.loc[ledger["entries"][1]["result"]["from"], "turnover"])
+    # vol-scaled month return equals Test 17's for the second month (both have w_prev)
+    v17 = mpt.v17
+    bt_df = t.simulate(R, C, TV, 252, t.COST)
+    scaled = v17.scaled(R, bt_df, t.COST)
+    k = list(bt_df["start"].astype(str)).index(ledger["entries"][1]["result"]["from"])
+    assert ledger["entries"][1]["result"]["volscaled"] == pytest.approx(scaled[k], abs=2e-4)

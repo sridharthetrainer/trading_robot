@@ -22,7 +22,9 @@ t.ETF = re.compile(t.ETF.pattern + "|SILV|MON100|MAFANG|HNGSNG|NASDAQ|SP500|N100
 TARGET, LOOKBACK, CASH = 0.12, 126, 0.065
 
 
-def scaled(R, df, cost):
+def daily_series(R, df) -> pd.Series:
+    """The strategy's daily returns (mean of each month's holdings), by row of R.
+    Shared with momentum_paper_tracker.py."""
     cols = {c: i for i, c in enumerate(R.columns)}
     idx = {str(d): i for i, d in enumerate(R.index)}
     Rv = R.to_numpy()
@@ -30,11 +32,22 @@ def scaled(R, df, cost):
     for _, row in df.iterrows():                       # strategy's daily returns, month by month
         a, b = idx[str(row["start"])] + 1, idx[str(row["end"])] + 1
         daily.iloc[a:b] = np.nanmean(Rv[a:b, [cols[s] for s in row["names"]]], axis=1)
+    return daily
+
+
+def weight_before(daily: pd.Series, a: int) -> float:
+    """Exposure for a holding month whose first return row is a (uses rows < a only)."""
+    hist = daily.iloc[:a].dropna().iloc[-LOOKBACK:]
+    return min(1.0, TARGET / (hist.std(ddof=1) * np.sqrt(252))) if len(hist) >= LOOKBACK else 1.0
+
+
+def scaled(R, df, cost):
+    idx = {str(d): i for i, d in enumerate(R.index)}
+    daily = daily_series(R, df)
     out, w_prev = [], None
     for _, row in df.iterrows():
         a = idx[str(row["start"])] + 1
-        hist = daily.iloc[:a].dropna().iloc[-LOOKBACK:]
-        w = min(1.0, TARGET / (hist.std(ddof=1) * np.sqrt(252))) if len(hist) >= LOOKBACK else 1.0
+        w = weight_before(daily, a)
         trade = 0.0 if w_prev is None else abs(w - w_prev) * cost
         out.append(w * row["momentum"] + (1 - w) * CASH / 12 - trade)
         w_prev = w
