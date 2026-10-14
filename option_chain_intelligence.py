@@ -67,6 +67,9 @@ class OptionChainSummary:
 
     directional_score: float      # 0 to 5
     confidence: float             # 0 to 1
+    # False when the chain carries no change-in-OI at all (Angel FULL quotes have
+    # no such field); pcr_change_oi is then a neutral 1.0 placeholder, not data.
+    change_oi_available: bool = True
 
 
 # =============================================================================
@@ -123,6 +126,17 @@ class OptionChainIntelligence:
             df_window["PE_changeinOpenInterest"].sum(),
             df_window["CE_changeinOpenInterest"].sum(),
         )
+        # 2026-10-14: since Angel became the only live chain source, change-in-OI
+        # was 0 in 100% of snapshots, so pcr_change_oi was 0 -> oi_buildup_signal
+        # was always BEARISH_BUILDUP and every bias score got +2 bearish (NIFTY
+        # net_bias BEARISH in 99.6% of snapshots). With no change data at all,
+        # use a neutral placeholder and keep it out of every vote.
+        change_oi_available = bool(
+            df_window["PE_changeinOpenInterest"].abs().sum() > 0
+            or df_window["CE_changeinOpenInterest"].abs().sum() > 0
+        )
+        if not change_oi_available:
+            pcr_change_oi = 1.0
         pcr_volume = self._safe_ratio(
             df_window["PE_totalTradedVolume"].sum(),
             df_window["CE_totalTradedVolume"].sum(),
@@ -158,6 +172,7 @@ class OptionChainIntelligence:
             gamma_support=gamma_support,
             gamma_resistance=gamma_resistance,
             activity_sentiment=activity_sentiment,
+            change_oi_available=change_oi_available,
         )
 
         regime = self._detect_regime(
@@ -175,7 +190,7 @@ class OptionChainIntelligence:
             put_buildup_count=len(put_buildup_strikes),
             call_unwind_count=len(call_unwinding_strikes),
             put_unwind_count=len(put_unwinding_strikes),
-        )
+        ) if change_oi_available else "NO_CHANGE_OI_DATA"
 
         directional_score, confidence = self._compute_trade_quality(
             summary_bias=net_bias,
@@ -204,6 +219,7 @@ class OptionChainIntelligence:
             pcr_oi=float(pcr_oi),
             pcr_change_oi=float(pcr_change_oi),
             pcr_volume=float(pcr_volume),
+            change_oi_available=change_oi_available,
             bullish_score=float(bullish_score),
             bearish_score=float(bearish_score),
             net_bias=net_bias,
@@ -332,6 +348,7 @@ class OptionChainIntelligence:
             },
             "totals": {
                 "oi_buildup_signal": summary.oi_buildup_signal,
+                "change_oi_available": summary.change_oi_available,
                 "pcr_volume": round(summary.pcr_volume, 4),
                 "regime": summary.regime,
                 "directional_score": round(summary.directional_score, 2),
@@ -443,6 +460,12 @@ class OptionChainIntelligence:
     # -------------------------------------------------------------------------
     def _top_strike_by(self, df: pd.DataFrame, column: str) -> Optional[float]:
         if column not in df.columns or df.empty:
+            return None
+        # A column with no positive value carries no "top" strike. Angel chains
+        # have no greeks, so CE/PE_gamma were all 0 and idxmax() returned the
+        # LOWEST strike: gamma_support was always below spot (+1 bullish on every
+        # snapshot) and gamma_resistance never above it (2026-10-14 finding).
+        if not (pd.to_numeric(df[column], errors="coerce").fillna(0) > 0).any():
             return None
         idx = df[column].idxmax()
         if pd.isna(idx):
@@ -596,6 +619,7 @@ class OptionChainIntelligence:
         gamma_support: Optional[float],
         gamma_resistance: Optional[float],
         activity_sentiment: Optional[Dict[str, Any]] = None,
+        change_oi_available: bool = True,
     ) -> Tuple[float, float, str]:
         bullish_score = 0.0
         bearish_score = 0.0
@@ -610,8 +634,10 @@ class OptionChainIntelligence:
         elif pcr_oi <= 0.95:
             bearish_score += 1.0
 
-        # PCR Change OI
-        if pcr_change_oi >= 1.15:
+        # PCR Change OI (no vote when the chain has no change-in-OI data)
+        if not change_oi_available:
+            pass
+        elif pcr_change_oi >= 1.15:
             bullish_score += 2.0
         elif pcr_change_oi >= 1.00:
             bullish_score += 1.0
