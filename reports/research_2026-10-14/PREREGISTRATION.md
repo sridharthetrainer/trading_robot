@@ -379,3 +379,24 @@ FAIL (return-based checks). 9.09%/yr vs EW 9.92% vs NIFTY 9.33%; Sharpe 0.681 (b
 the three); max DD -20.9% vs EW -49.3% / NIFTY -32.2%; holdout 0.99% vs EW 7.78%;
 bootstrap lower bound -9.73%; costs doubled -1.26% vs EW; 126/63-day windows below EW.
 As stated in advance: lower risk, no extra return.
+
+## Test 17 — Volatility-scaled momentum (Barroso & Santa-Clara 2015) (before running)
+Published: Barroso & Santa-Clara (2015), "Momentum has its moments", JFE. Upgrade
+candidate for the Test 7 strategy (same picks, broader ETF filter as the tracker).
+- Daily strategy return = mean daily adjusted return of the month's 30 holdings.
+- At each rebalance, sigma = std of the strategy's daily returns over the previous
+  126 trading days x sqrt(252); weight w = min(1, 0.12 / sigma) (paper's 12% target;
+  NO leverage -- a cash account cannot lever cheaply, stated deviation); first months
+  without 126 days of history use w = 1. Rest in cash at 6.5%/yr.
+- Month return = w x momentum return + (1 - w) x cash - 0.30% x |w - w_prev|.
+- PASS only if ALL hold vs UNSCALED Test 7 momentum (same filter):
+  1. full-period Sharpe higher; 2. max drawdown smaller; 3. holdout Sharpe >= unscaled
+  holdout Sharpe; 4. full-period return >= equal-weight universe; 5. Sharpe still higher
+  with costs doubled.
+
+### Test 17 result (recorded after running)
+PASS on all five checks vs unscaled momentum: Sharpe 0.767 vs 0.708; max DD -27.9% vs
+-38.7%; holdout Sharpe 0.753 vs 0.558; return 10.36% vs equal-weight 9.92%; costs
+doubled Sharpe 0.680 vs 0.631. Trade-off: absolute return 10.36% vs 15.02% unscaled
+(partly in cash). A risk overlay -- qualifies for forward paper tracking alongside
+the unscaled version, not for capital.

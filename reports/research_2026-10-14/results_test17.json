@@ -1,0 +1,28 @@
+{
+  "months": 109,
+  "unscaled": {
+    "ann_pct": 15.02,
+    "sharpe": 0.708,
+    "max_dd_pct": -38.7,
+    "holdout_sharpe": 0.558
+  },
+  "scaled": {
+    "ann_pct": 10.36,
+    "sharpe": 0.767,
+    "max_dd_pct": -27.9,
+    "holdout_sharpe": 0.753
+  },
+  "equal_weight_ann_pct": 9.92,
+  "costs_doubled_sharpe": {
+    "unscaled": 0.631,
+    "scaled": 0.68
+  },
+  "checks": {
+    "sharpe_higher": true,
+    "max_dd_smaller": true,
+    "holdout_sharpe_ge": true,
+    "return_ge_equal_weight": true,
+    "sharpe_higher_costs_doubled": true
+  },
+  "verdict": "PASS"
+}
