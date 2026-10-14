@@ -1,0 +1,233 @@
+{
+  "preregistration": "PREREGISTRATION.md",
+  "test1_ewmac": {
+    "NIFTY": {
+      "variant_a": {
+        "days": 2878,
+        "start": "2015-02-18",
+        "end": "2026-10-12",
+        "oos_start": "2023-04-11",
+        "capital": 1000000.0,
+        "net_pnl": 908633,
+        "total_cost": 344661.74,
+        "sharpe": 0.303,
+        "max_drawdown": 615858.9,
+        "oos_net_pnl": 185053,
+        "oos_sharpe": 0.208,
+        "in_sample_sharpe": 0.344
+      },
+      "variant_b": {
+        "capital": 500000.0,
+        "lot": 75,
+        "net_pnl": 373559,
+        "sharpe": 0.24,
+        "pct_days_in_market": 56.5,
+        "max_abs_lots": 4
+      },
+      "buy_and_hold": {
+        "sharpe": 0.583,
+        "cagr_pct": 8.27
+      }
+    },
+    "BANKNIFTY": {
+      "variant_a": {
+        "days": 2215,
+        "start": "2015-02-18",
+        "end": "2024-01-25",
+        "oos_start": "2021-05-26",
+        "capital": 1000000.0,
+        "net_pnl": 796491,
+        "total_cost": 211980.68,
+        "sharpe": 0.35,
+        "max_drawdown": 357156.88,
+        "oos_net_pnl": -114967,
+        "oos_sharpe": -0.178,
+        "in_sample_sharpe": 0.559
+      },
+      "variant_b": {
+        "capital": 500000.0,
+        "lot": 75,
+        "net_pnl": 485328,
+        "sharpe": 0.439,
+        "pct_days_in_market": 19.5,
+        "max_abs_lots": 2
+      },
+      "buy_and_hold": {
+        "sharpe": 0.538,
+        "cagr_pct": 9.93
+      }
+    },
+    "checks": {
+      "full_sharpe_ge_0_5": false,
+      "oos_sharpe_ge_0_3": false,
+      "oos_pnl_positive": true,
+      "whole_lot_5L_pnl_positive": true
+    },
+    "verdict": "FAIL"
+  },
+  "test4_put_spread_above_200dma": {
+    "unfiltered": {
+      "params": {
+        "otm_pct": 0.015,
+        "wing_pts": 300,
+        "slippage_pct": 0.02,
+        "qty": 75
+      },
+      "all": {
+        "n": 353,
+        "win_rate": 0.875,
+        "expectancy_R": 0.0141,
+        "total_R": 4.97,
+        "profit_factor": 1.19,
+        "max_dd_R": -4.91,
+        "best_R": 4.28,
+        "worst_R": -1.06
+      },
+      "in_sample": {
+        "n": 247,
+        "win_rate": 0.895,
+        "expectancy_R": 0.0162,
+        "total_R": 3.99,
+        "profit_factor": 1.26,
+        "max_dd_R": -3.61,
+        "best_R": 0.45,
+        "worst_R": -1.06
+      },
+      "oos": {
+        "n": 106,
+        "win_rate": 0.83,
+        "expectancy_R": 0.0092,
+        "total_R": 0.98,
+        "profit_factor": 1.09,
+        "max_dd_R": -2.51,
+        "best_R": 4.28,
+        "worst_R": -1.01
+      },
+      "total_R_excl_worst3": 8.06,
+      "worst_trades": [
+        {
+          "entry": "2020-03-16",
+          "R": -1.06,
+          "net_rs": -16180.75
+        },
+        {
+          "entry": "2022-05-02",
+          "R": -1.02,
+          "net_rs": -18103.6
+        },
+        {
+          "entry": "2026-05-04",
+          "R": -1.01,
+          "net_rs": -18628.38
+        },
+        {
+          "entry": "2026-02-23",
+          "R": -1.01,
+          "net_rs": -20354.65
+        },
+        {
+          "entry": "2024-04-29",
+          "R": -1.01,
+          "net_rs": -20127.03
+        }
+      ]
+    },
+    "filtered": {
+      "params": {
+        "otm_pct": 0.015,
+        "wing_pts": 300,
+        "slippage_pct": 0.02,
+        "qty": 75
+      },
+      "all": {
+        "n": 261,
+        "win_rate": 0.893,
+        "expectancy_R": 0.0004,
+        "total_R": 0.09,
+        "profit_factor": 1.01,
+        "max_dd_R": -4.98,
+        "best_R": 0.34,
+        "worst_R": -1.01
+      },
+      "in_sample": {
+        "n": 182,
+        "win_rate": 0.912,
+        "expectancy_R": 0.0138,
+        "total_R": 2.52,
+        "profit_factor": 1.27,
+        "max_dd_R": -2.56,
+        "best_R": 0.34,
+        "worst_R": -1.01
+      },
+      "oos": {
+        "n": 79,
+        "win_rate": 0.848,
+        "expectancy_R": -0.0307,
+        "total_R": -2.42,
+        "profit_factor": 0.65,
+        "max_dd_R": -2.57,
+        "best_R": 0.18,
+        "worst_R": -1.01
+      },
+      "total_R_excl_worst3": 3.12,
+      "worst_trades": [
+        {
+          "entry": "2026-02-23",
+          "R": -1.01,
+          "net_rs": -20354.65
+        },
+        {
+          "entry": "2024-04-29",
+          "R": -1.01,
+          "net_rs": -20127.03
+        },
+        {
+          "entry": "2024-09-30",
+          "R": -1.01,
+          "net_rs": -20555.28
+        },
+        {
+          "entry": "2022-02-21",
+          "R": -1.01,
+          "net_rs": -20099.58
+        },
+        {
+          "entry": "2024-04-08",
+          "R": -1.01,
+          "net_rs": -20500.52
+        }
+      ]
+    },
+    "weeks_kept": 261,
+    "weeks_total": 353,
+    "total_R_excl_best3": -0.79,
+    "best_trades": [
+      {
+        "entry": "2022-01-24",
+        "R": 0.34,
+        "credit": 81.35,
+        "max_loss_u": 218.65
+      },
+      {
+        "entry": "2021-01-25",
+        "R": 0.28,
+        "credit": 68.2,
+        "max_loss_u": 231.8
+      },
+      {
+        "entry": "2022-01-31",
+        "R": 0.26,
+        "credit": 65.3,
+        "max_loss_u": 234.7
+      }
+    ],
+    "checks": {
+      "n_ge_60": true,
+      "oos_pf_ge_1_2": false,
+      "oos_expectancy_ge_0_03R": false,
+      "total_R_ex_best3_positive": false,
+      "beats_unfiltered": false
+    },
+    "verdict": "FAIL"
+  }
+}
