@@ -1,0 +1,40 @@
+"""Repo-wide pytest guard: tests must never reach the real Telegram API.
+
+2026-10-14 incident: test_option_decision_journal.py records fake "selected"
+option decisions (hero_zero / alert_only / NIFTY26JUN2623500CE at spot 20,000);
+record_option_decision() alerts on every "selected" row, and with .env loaded
+those fixtures were posted to the live option-bot channel as real signals.
+
+The guard answers Telegram calls with a harmless {"ok": true} instead of
+raising: alerts.AlertManager spools FAILED sends to disk and the live bot
+retries them later, so a raised error would still leak the message.
+"""
+from __future__ import annotations
+
+import pytest
+import requests
+
+
+class _FakeTelegramResponse:
+    status_code = 200
+    ok = True
+    text = '{"ok":true,"result":{}}'
+    content = text.encode()
+
+    def json(self):
+        return {"ok": True, "result": {}}
+
+    def raise_for_status(self):
+        return None
+
+
+@pytest.fixture(autouse=True)
+def _no_real_telegram(monkeypatch):
+    real_request = requests.sessions.Session.request
+
+    def guarded(self, method, url, *args, **kwargs):
+        if "api.telegram.org" in str(url):
+            return _FakeTelegramResponse()
+        return real_request(self, method, url, *args, **kwargs)
+
+    monkeypatch.setattr(requests.sessions.Session, "request", guarded)
