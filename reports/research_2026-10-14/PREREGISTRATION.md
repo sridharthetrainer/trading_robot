@@ -338,3 +338,27 @@ holdout 5.08% vs EW 7.78% (needed EW + 2 pp); bootstrap lower bound -4.46%/yr;
 costs doubled -3.88%/yr vs EW; 126-/189-day windows 5.87% / 8.20% (below EW).
 Turnover 56%/month (2x momentum). Correlation with Test 7 momentum 0.887 -- largely
 a noisier, costlier version of it. Diagnostic near-52-week-LOW portfolio 4.96%/yr.
+
+## Test 15 — Fibonacci 61.8% retracement bounce, with placebo levels (before running)
+Suggested by the user ("Fibonacci"). No verified published evidence that Fibonacci
+levels predict reversals; the system has calculate_fibonacci_levels() but no strategy
+uses it. The test asks whether the 61.8% level beats arbitrary levels.
+- Data/universe: adjusted_returns.db, point-in-time top-200 by 126-day median traded
+  value, recomputed at each month-end (Test 7 rules, broader ETF filter), daily signals.
+- Swing at day t (adjusted price path over the past 60 trading days, no missing
+  returns): L = 60-day low, H = 60-day high, L dated BEFORE H, and H/L - 1 >= 15%.
+- Signal: level = H - f x (H - L) with f = 0.618; trigger when today's close is within
+  +/-1% of the level AND today's close > yesterday's close (bounce). Entry at the NEXT
+  day's close; exit 10 trading days later; one open signal per stock at a time.
+- Placebos: identical rule with f = 0.55 and f = 0.70.
+- Measure: trade return minus the equal-weight universe return over the same days,
+  minus 0.6% round-trip cost. Holdout: last 30% of signals by date.
+- PASS only if ALL hold (f = 0.618): >= 200 signals; mean net excess > 0 with t > 2
+  (t from date-clustered means); holdout mean net excess > 0; mean net excess beats
+  BOTH placebos (Fibonacci-specific).
+
+### Test 15 result (recorded after running)
+FAIL. 61.8% bounce: 1,965 signals, mean -1.13% vs universe after 0.6% costs (about
+-0.5% before costs), date-clustered t = -5.9, holdout -1.48%. Placebos: 55% level
+-0.82% (t -6.3), 70% level -1.04% (t -6.3). The Fibonacci level is no better than
+arbitrary levels -- worse than 55%. Retracement-bounce buying underperforms here.
