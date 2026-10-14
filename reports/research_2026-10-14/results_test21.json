@@ -1,0 +1,32 @@
+{
+  "direction_chosen_in_sample": "fade",
+  "in_sample_2015_2021_gross": {
+    "n": 415,
+    "mean_pct": 0.0281,
+    "t": 0.43,
+    "win_rate": 0.448
+  },
+  "oos_2022_2024_net": {
+    "n": 140,
+    "mean_pct": -0.0254,
+    "t": -0.39,
+    "win_rate": 0.436
+  },
+  "recent_2025_2026_net": {
+    "n": 61,
+    "mean_pct": 0.0545,
+    "t": 0.64,
+    "win_rate": 0.508
+  },
+  "gap_days": {
+    "in_sample": 415,
+    "oos": 140,
+    "recent": 61
+  },
+  "checks": {
+    "in_sample_direction_t_gt_2": false,
+    "oos_mean_pos_t_gt_2_n_ge_60": false,
+    "recent_mean_pos": true
+  },
+  "verdict": "FAIL"
+}

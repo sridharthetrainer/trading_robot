@@ -480,3 +480,25 @@ FAIL (all four checks). 476 five-day blocks 2017-02 -> 2026-09: hit rate 50.4% v
 always-up 57.8% (z -3.25); strategy 1.28%/yr vs buy-and-hold 10.34%; Sharpe 0.166 vs
 0.695; holdout -0.079 vs 0.403; costs doubled -0.029. Long/short diagnostic -0.74.
 Past 20-day return shapes carry no usable information about NIFTY's next 5 days.
+
+## Test 21 — Opening-gap (GIFT Nifty-signalled) intraday follow/fade on NIFTY (before running)
+Suggested by the user ("GIFT Nifty opening and its levels"). No GIFT history is stored
+(market_data_feeds.GIFTNiftyFeed is live-only); GIFT's role is to predict the open,
+so the realised gap at 09:15 stands in for it. GIFT moves between 09:00 and 09:15
+beyond the gap cannot be tested.
+- Data: NIFTY 1-minute bars (external_data, 2015-01 -> 2024-01-25) and NIFTY 5-minute
+  bars (candle_cache.db, 2025-05 -> 2026-10). Gap = 09:15 open / previous day's last
+  close - 1. Trade only when |gap| >= 0.5%.
+- Entry at the 09:20 close; exit at the 15:25 close; same day. Cost 0.06% round trip
+  (futures STT + fees + slippage). Return = direction x (exit / entry - 1) - cost.
+- Direction (follow = same sign as the gap, or fade = opposite) is CHOSEN ONLY from
+  2015-2021 by the sign of the mean gross follow-return; it is then frozen.
+- PASS only if ALL hold: (1) 2015-2021 mean of the chosen direction has t > 2
+  (otherwise there is no direction to trade); (2) 2022-01 -> 2024-01 out-of-sample
+  mean net > 0 with t > 2 and >= 60 trades; (3) 2025-05 -> 2026-10 mean net > 0.
+
+### Test 21 result (recorded after running)
+FAIL. Gap days (|gap| >= 0.5%): 415 in 2015-2021, 140 in 2022-2024, 61 in 2025-2026.
+In-sample chose "fade" but only +0.028% gross per day (t 0.43) -- no direction to trade;
+2022-2024 out-of-sample -0.025% net (t -0.39); 2025-2026 +0.055% net (t 0.64).
+NIFTY's 09:20 -> 15:25 move after a GIFT-signalled gap is statistically random.
