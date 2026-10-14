@@ -292,6 +292,36 @@ def test_flip_alert_image_renders_one_card_per_event() -> None:
         assert "BULLISH→BEARISH" in result.caption
 
 
+def test_flip_alert_image_renders_session_timeseries_with_history() -> None:
+    events = [e for e in parse_flip_alert_text(_SAMPLE_FLIP_ALERTS) if e["symbol"] == "BANKNIFTY"]
+    bars = [
+        (f"09:{15 + 5 * i:02d}",
+         {"ce_delta": (i - 3) * 2000.0, "pe_delta": (2 - i) * 1500.0, "net_pcr": 1.0 + 0.02 * i},
+         55400.0 + 10 * i)
+        for i in range(8)
+    ]
+    # separate dirs: the output filename only has second resolution
+    with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as td2:
+        plain = generate_oi_flip_alert_image(events, output_dir=td)
+        with_ts = generate_oi_flip_alert_image(events, output_dir=td2, history={"BANKNIFTY": bars})
+        assert with_ts.ok, with_ts.reason
+        assert Path(with_ts.path).exists()
+        # time-series panels make the image taller than the plain card
+        from PIL import Image
+        assert Image.open(with_ts.path).size[1] > Image.open(plain.path).size[1]
+
+    # yesterday's bars carried over (tracker not restarted) must be dropped;
+    # only 1 bar of today left -> too short for a series -> plain card height
+    stale = [("15:20", {"ce_delta": 1.0, "pe_delta": 1.0, "net_pcr": 1.0}, 55000.0),
+             ("15:25", {"ce_delta": 1.0, "pe_delta": 1.0, "net_pcr": 1.0}, 55000.0),
+             ("09:20", {"ce_delta": 1.0, "pe_delta": 1.0, "net_pcr": 1.0}, 55000.0)]
+    with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as td2:
+        plain = generate_oi_flip_alert_image(events, output_dir=td)
+        trimmed = generate_oi_flip_alert_image(events, output_dir=td2, history={"BANKNIFTY": stale})
+        from PIL import Image
+        assert Image.open(trimmed.path).size[1] == Image.open(plain.path).size[1]
+
+
 def test_flip_alert_image_empty_events_returns_not_ok() -> None:
     result = generate_oi_flip_alert_image([])
     assert not result.ok

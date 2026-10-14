@@ -519,6 +519,59 @@ _FLIP_COLOR = {"BULLISH": ct.BULLISH, "BEARISH": ct.BEARISH}
 _FLIP_ICON = {"BULLISH": "📈", "BEARISH": "📉"}
 
 
+def _draw_flip_timeseries(ax_spot, ax_oi, ax_pcr, bars: list, e: Dict[str, Any]) -> None:
+    """Session time series under a flip card. `bars` is oi_tracker.py's
+    self._directions[symbol]: (ts, direction_dict, spot) per ~5min bar.
+    Top strip: spot line. Middle: CE/PE OI delta columns (K) per bar.
+    Bottom: PCR columns diverging from 1.0 (green above = put-heavy, red
+    below = call-heavy). The bar that triggered the flip (ts match, else the
+    latest bar) is marked with a dashed line in the flip color."""
+    ts = [str(b[0]) for b in bars]
+    ce = [float(b[1].get("ce_delta", 0) or 0) / 1000.0 for b in bars]
+    pe = [float(b[1].get("pe_delta", 0) or 0) / 1000.0 for b in bars]
+    pcr = [float(b[1].get("net_pcr", 0) or 0) for b in bars]
+    spot = [float(b[2] or 0) for b in bars]
+    x = list(range(len(bars)))
+    flip_i = max((i for i, t in enumerate(ts) if t == e["ts"]), default=len(bars) - 1)
+    flip_color = _FLIP_COLOR[e["curr"]]
+
+    ax_spot.plot(x, spot, color=ct.TEXT_SECONDARY, lw=1.4)
+    ax_spot.set_ylabel("Spot", color=ct.TEXT_MUTED, fontsize=8)
+    ax_spot.tick_params(labelbottom=False, labelsize=7)
+
+    w = 0.4
+    ax_oi.bar([i - w / 2 for i in x], ce, w, color=ct.CALL, label="CE Δ OI")
+    ax_oi.bar([i + w / 2 for i in x], pe, w, color=ct.PUT, label="PE Δ OI")
+    ax_oi.axhline(0, color=ct.GRID, lw=0.8)
+    ax_oi.set_ylabel("Δ OI / 5 min (K)", color=ct.TEXT_MUTED, fontsize=8)
+    ax_oi.tick_params(labelbottom=False, labelsize=7)
+
+    # PCR columns from a 1.0 baseline: above = more put OI, below = more call OI
+    ax_pcr.bar(x, [p - 1.0 for p in pcr], 0.7, bottom=1.0,
+               color=[ct.BULLISH if p >= 1.0 else ct.BEARISH for p in pcr])
+    ax_pcr.axhline(1.0, color=ct.TEXT_MUTED, lw=0.8)
+    ax_pcr.set_ylabel("PCR", color=ct.TEXT_MUTED, fontsize=8)
+    ax_pcr.tick_params(labelsize=7)
+    lo, hi = min(pcr + [1.0]), max(pcr + [1.0])
+    pad = max(0.02, (hi - lo) * 0.1)
+    ax_pcr.set_ylim(lo - pad, hi + pad)
+
+    ct.apply_theme(ax_oi.figure, [ax_spot, ax_oi, ax_pcr])
+
+    for a in (ax_spot, ax_oi, ax_pcr):
+        a.axvline(flip_i, color=flip_color, lw=1.2, ls="--", alpha=0.85)
+
+    step = max(1, len(x) // 8)
+    ax_pcr.set_xticks(x[::step])
+    ax_pcr.set_xticklabels(ts[::step])
+    ax_pcr.set_xlim(-0.6, len(x) - 0.4)
+
+    leg = ax_oi.legend(loc="upper left", fontsize=7, ncol=2,
+                       facecolor=ct.PANEL, edgecolor=ct.GRID)
+    for t in leg.get_texts():
+        t.set_color(ct.TEXT_SECONDARY)
+
+
 def generate_oi_flip_alert_image(
     events: List[Dict[str, Any]],
     output_dir: Optional[str] = None,
@@ -545,12 +598,37 @@ def generate_oi_flip_alert_image(
 
     n = len(events)
     card_h = 2.2
-    fig, axes = plt.subplots(n, 1, figsize=(9, card_h * n + 0.6), dpi=150)
-    if n == 1:
-        axes = [axes]
+
+    # 2026-10-14 (operator: "not showing time series ... column chart line
+    # chart"): when this symbol has >=2 bars of session history, each card
+    # gets a spot strip plus a per-5min CE/PE delta column panel with PCR on
+    # a twin axis below it, so the flip bar is seen in the context of the
+    # session instead of alone. No/short history -> the exact old card.
+    def _event_history(e: Dict[str, Any]) -> list:
+        bars = (history or {}).get(e["symbol"]) or []
+        # oi_tracker only resets its history on restart, so a process left
+        # running overnight carries yesterday's bars (seen live 2026-10-14:
+        # 10:31..15:25 then 09:22..). Keep only bars after the last time the
+        # "HH:MM" stamp goes backwards, i.e. the current session.
+        start = 0
+        for i in range(1, len(bars)):
+            if str(bars[i][0]) < str(bars[i - 1][0]):
+                start = i
+        bars = bars[start:]
+        return bars if len(bars) >= 2 else []
+
+    heights: List[float] = []
+    for e in events:
+        heights.append(card_h)
+        if _event_history(e):
+            heights += [0.9, 2.0, 1.3]
+    fig = plt.figure(figsize=(9, sum(heights) + 0.6), dpi=150)
+    grid = fig.add_gridspec(len(heights), 1, height_ratios=heights)
+    slots = iter(range(len(heights)))
     fig.patch.set_facecolor(ct.BG)
 
-    for ax, e in zip(axes, events):
+    for e in events:
+        ax = fig.add_subplot(grid[next(slots)])
         curr, prev = e["curr"], e["prev"]
         color = _FLIP_COLOR[curr]
         ax.set_facecolor(ct.BG)
@@ -636,6 +714,13 @@ def generate_oi_flip_alert_image(
                     f"(cumulative, {len(sym_history)} bars)",
                     color=ct.TEXT_MUTED, fontsize=8.5, fontstyle="italic",
                     transform=ax.transAxes)
+
+        ts_bars = _event_history(e)
+        if ts_bars:
+            ax_spot = fig.add_subplot(grid[next(slots)])
+            ax_oi = fig.add_subplot(grid[next(slots)], sharex=ax_spot)
+            ax_pcr = fig.add_subplot(grid[next(slots)], sharex=ax_spot)
+            _draw_flip_timeseries(ax_spot, ax_oi, ax_pcr, ts_bars, e)
 
     fig.suptitle("OI Direction Flips", color=ct.TEXT_PRIMARY, fontsize=14,
                  fontweight="bold", y=0.995)
