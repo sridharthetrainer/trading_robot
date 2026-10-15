@@ -118,9 +118,9 @@ def format_direction(result: Dict[str, Any]) -> str:
             f"\nEntry ₹{result['entry']:.1f} | SL ₹{result['sl']:.1f} | Target ₹{result['target']:.1f}"
             if result.get("entry") else "")
     return (f"{emoji} <b>{result['symbol']} — {result['action']}</b>\n"
-            f"Confidence: {result['confidence']:.0f}% | Spot {result['spot']:,.1f}\n"
+            f"Confluence score: {result['confidence']:.0f}/100 | Spot {result['spot']:,.1f}\n"
             f"PCR {result['pcr']:.2f} | OI {result['oi_bias']} | Quality {result['quality_score']:.0f}%"
-            f"{levels}\n\n"+"\n".join(f"• {x}" for x in result["reasons"]))
+            f"{levels}\nWin probability: uncalibrated\n\n"+"\n".join(f"• {x}" for x in result["reasons"]))
 
 
 def generate_direction_card(result: Dict[str, Any], output_dir: Optional[str]=None) -> str:
@@ -135,7 +135,7 @@ def generate_direction_card(result: Dict[str, Any], output_dir: Optional[str]=No
     ax1.set_title(f"{result['symbol']} PRICE / MOMENTUM",color=ct.TEXT_PRIMARY,weight="bold")
     ax2.axis("off"); color=ct.BULLISH if result["action"]=="BUY CALL" else ct.BEARISH if result["action"]=="BUY PUT" else ct.WARNING
     ax2.text(.03,.78,result["action"],color=color,fontsize=25,weight="bold",transform=ax2.transAxes)
-    ax2.text(.03,.52,f"Confidence {result['confidence']:.0f}%   PCR {result['pcr']:.2f}   OI {result['oi_bias']}",color=ct.TEXT_PRIMARY,fontsize=12,transform=ax2.transAxes)
+    ax2.text(.03,.52,f"Confluence score {result['confidence']:.0f}/100   PCR {result['pcr']:.2f}   OI {result['oi_bias']}",color=ct.TEXT_PRIMARY,fontsize=12,transform=ax2.transAxes)
     ax2.text(.03,.27," | ".join(result["reasons"][:3]),color=ct.TEXT_SECONDARY,fontsize=10,transform=ax2.transAxes)
     if result.get("entry"): ax2.text(.03,.05,f"{result['suggested_strike']}{result['option_type']}  Entry ₹{result['entry']:.1f}  SL ₹{result['sl']:.1f}  Target ₹{result['target']:.1f}",color=ct.TEXT_PRIMARY,fontsize=11,transform=ax2.transAxes)
     fig.suptitle(f"TRADE DIRECTION • {result['generated_at'][:16].replace('T',' ')}",color=ct.TEXT_PRIMARY,weight="bold")

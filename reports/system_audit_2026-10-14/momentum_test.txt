@@ -1,0 +1,13 @@
+.                                                                        [100%]
+=============================== warnings summary ===============================
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+  /tmp/trading-audit-adygtr9f/reports/research_2026-10-14/run_test7_momentum.py:54: RuntimeWarning: All-NaN slice encountered
+    liq = np.nanmedian(TVv[p - LIQ_WINDOW + 1:p + 1], axis=0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 6 warnings in 36.14s

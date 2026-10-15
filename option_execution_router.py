@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 import json
 import logging
+import math
 import os
 from pathlib import Path
 import time
@@ -43,6 +44,8 @@ class OptionExecutionReport:
     raw_fill: Dict[str, Any] = field(default_factory=dict)
     contract_hash: str = ""
     pricing_schedule: list[float] = field(default_factory=list)
+    reconciliation_required: bool = False
+    stage_latency_ms: Dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -52,9 +55,19 @@ def _f(value: Any, default: float = 0.0) -> float:
     try:
         if value is None:
             return default
-        return float(value)
+        number = float(value)
+        return number if math.isfinite(number) else default
     except Exception:
         return default
+
+
+def _timed_call(report, stage, function, *args, **kwargs):
+    started_ns = time.perf_counter_ns()
+    try:
+        return function(*args, **kwargs)
+    finally:
+        elapsed_ms = (time.perf_counter_ns() - started_ns) / 1_000_000
+        report.stage_latency_ms[stage] = round(report.stage_latency_ms.get(stage, 0.0) + elapsed_ms, 6)
 
 
 def _i(value: Any, default: int = 0) -> int:
@@ -123,6 +136,9 @@ def _fill_price(fill: Any, fallback: float) -> float:
 def _fill_qty(fill: Any, fallback: int) -> int:
     if not isinstance(fill, dict):
         return 0
+    for key in ("filled_qty", "filledshares", "filled_quantity"):
+        if key in fill and fill[key] is not None:
+            return _i(fill[key], 0)
     return _i(
         fill.get("filled_qty")
         or fill.get("filledshares")
@@ -169,7 +185,13 @@ def _orderbook_row(broker: Any, order_id: str) -> Optional[Dict[str, Any]]:
     try:
         angel = getattr(broker, "angel", None) or broker
         obj = getattr(angel, "obj", None)
-        if obj is None or getattr(angel, "paper_trade", False):
+        if getattr(angel, "paper_trade", False):
+            return None
+        if obj is None:
+            lookup = getattr(broker, "get_order_status", None)
+            row = lookup(order_id) if callable(lookup) else None
+            if isinstance(row, dict) and str(row.get("orderid") or row.get("order_id") or "") == str(order_id):
+                return row
             return None
         lock = getattr(angel, "_lock", None)
         if lock is not None:
@@ -206,7 +228,7 @@ def execute_option_entry(
     smart_cross_fraction: float = 0.75,
     contract_hash: str = "",
 ) -> OptionExecutionReport:
-    started = time.time()
+    started = time.monotonic()
     side = str(side or "BUY").upper()
     symbol = str(symbol or "").upper()
     qty = int(qty or 0)
@@ -256,10 +278,15 @@ def execute_option_entry(
     for attempt in range(1, attempts + 1):
         report.attempts = attempt
         try:
-            ltp = _f(broker.get_ltp(symbol, exchange=exchange) if hasattr(broker, "get_ltp") else 0.0)
+            ltp = _f(_timed_call(report, "quote_lookup", broker.get_ltp, symbol, exchange=exchange)
+                     if hasattr(broker, "get_ltp") else 0.0)
         except Exception as exc:
             report.reason = "ltp_fetch_failed"
             report.status = str(exc)[:160]
+            break
+
+        if ltp <= 0:
+            report.reason = "invalid_live_quote"
             break
 
         max_entry = _f(decision_price) * (1.0 + max(0.0, float(max_slippage_pct or 0.0)))
@@ -267,6 +294,13 @@ def execute_option_entry(
             report.reason = "price_moved_beyond_slippage_cap"
             report.status = f"ltp={round(ltp, 4)} max_entry={round(max_entry, 4)}"
             break
+
+        # Broker lookup and a prior cancel can consume the remaining signal
+        # lifetime. Recheck immediately before submitting each replacement.
+        if signal_generated_at and max_signal_age_sec > 0:
+            if time.time() - float(signal_generated_at) > max_signal_age_sec:
+                report.reason = "stale_signal_before_order"
+                break
 
         limit_price = (
             smart_schedule[min(attempt - 1, len(smart_schedule) - 1)]
@@ -277,6 +311,10 @@ def execute_option_entry(
                 reprice=attempt > 1,
             )
         )
+        # Nearest-tick rounding and quote-aware schedules must both respect
+        # the same absolute BUY cap; rounding upward can otherwise breach it.
+        cap_on_tick = round(math.floor((max_entry + 1e-9) / 0.05) * 0.05, 2)
+        limit_price = min(limit_price, cap_on_tick)
         if limit_price <= 0:
             report.reason = "invalid_limit_price"
             break
@@ -285,7 +323,7 @@ def execute_option_entry(
         report.final_limit_price = limit_price
 
         try:
-            placed = broker.place_order(
+            placed = _timed_call(report, "submit_to_ack", broker.place_order,
                 symbol=symbol,
                 qty=qty,
                 buy_sell=side,
@@ -297,26 +335,30 @@ def execute_option_entry(
             order_id = _normalise_order_id(placed)
         except Exception as exc:
             report.reason = "broker_place_order_failed"
+            report.reconciliation_required = True
             report.status = str(exc)[:160]
             break
 
         if not order_id:
             report.reason = "broker_returned_no_order_id"
+            report.reconciliation_required = True
             break
 
         report.order_id = order_id
         fill = None
         try:
             if hasattr(broker, "poll_order_fill"):
-                fill = broker.poll_order_fill(order_id, timeout_sec=max(1.0, float(wait_sec or 4.0)))
+                fill = _timed_call(report, "fill_wait", broker.poll_order_fill,
+                                   order_id, timeout_sec=max(1.0, float(wait_sec or 4.0)))
         except Exception as exc:
             report.status = f"poll_error:{str(exc)[:120]}"
 
         if _is_complete(fill):
-            fill_price = _fill_price(fill, limit_price)
+            fill_price = _fill_price(fill, 0.0)
             filled_qty = _fill_qty(fill, qty)
             report.ok = filled_qty > 0
             report.reason = "filled" if report.ok else "zero_fill_qty"
+            report.reconciliation_required = filled_qty <= 0 or fill_price <= 0
             report.status = _fill_status(fill)
             report.fill_price = round(fill_price, 4)
             report.filled_qty = filled_qty
@@ -324,14 +366,13 @@ def execute_option_entry(
             if report.decision_price > 0 and fill_price > 0:
                 report.slippage_pct = round((fill_price - report.decision_price) / report.decision_price, 6)
                 report.implementation_shortfall = round((fill_price - report.decision_price) * filled_qty, 2)
-            report.latency_sec = round(time.time() - started, 3)
+            report.latency_sec = round(time.monotonic() - started, 3)
             _audit(report.to_dict())
             return report
 
         try:
             if hasattr(broker, "cancel_order"):
-                broker.cancel_order(order_id)
-                report.cancelled_order_ids.append(order_id)
+                _timed_call(report, "cancel_to_ack", broker.cancel_order, order_id)
         except Exception as exc:
             logger.warning("option router cancel failed | order_id=%s error=%s", order_id, exc)
 
@@ -339,17 +380,23 @@ def execute_option_entry(
         # between the poll timeout and the cancel landing. Returning not-ok
         # while shares sit at the broker creates an UNTRACKED live position —
         # so re-check once and honour whatever actually filled.
+        recheck = None
         try:
             # The row is read directly (not via poll_order_fill, which
             # returns None for terminal states and would hide the
             # filledshares of a partial-fill-then-cancel).
-            recheck = _orderbook_row(broker, order_id)
+            recheck = _timed_call(report, "reconciliation_lookup", _orderbook_row, broker, order_id)
+            terminal_cancel = _fill_status(recheck) in {"CANCELLED", "CANCELED", "REJECTED", "EXPIRED"}
+            if terminal_cancel:
+                report.cancelled_order_ids.append(order_id)
             filled_after = (
                 _fill_qty(recheck, qty) if _is_complete(recheck)
                 else _strict_filled_qty(recheck)
             )
             if filled_after > 0:
-                fill_price = _fill_price(recheck, limit_price)
+                report.reconciliation_required = not (_is_complete(recheck) or terminal_cancel)
+                fill_price = _fill_price(recheck, 0.0)
+                report.reconciliation_required |= fill_price <= 0
                 report.ok = True
                 report.reason = "filled_after_cancel_race"
                 report.status = _fill_status(recheck)
@@ -359,11 +406,17 @@ def execute_option_entry(
                 if report.decision_price > 0 and fill_price > 0:
                     report.slippage_pct = round((fill_price - report.decision_price) / report.decision_price, 6)
                     report.implementation_shortfall = round((fill_price - report.decision_price) * filled_after, 2)
-                report.latency_sec = round(time.time() - started, 3)
+                report.latency_sec = round(time.monotonic() - started, 3)
                 _audit(report.to_dict())
                 return report
         except Exception as exc:
             logger.warning("option router post-cancel recheck failed | order_id=%s error=%s", order_id, exc)
+
+        if _fill_status(recheck) not in {"CANCELLED", "CANCELED", "REJECTED", "EXPIRED"}:
+            report.reason = "order_state_unresolved_after_cancel"
+            report.status = _fill_status(recheck)
+            report.reconciliation_required = True
+            break
 
         if attempt < attempts:
             report.reason = "not_filled_repricing"
@@ -371,6 +424,6 @@ def execute_option_entry(
         report.reason = "not_filled_cancelled"
         report.status = _fill_status(fill)
 
-    report.latency_sec = round(time.time() - started, 3)
+    report.latency_sec = round(time.monotonic() - started, 3)
     _audit(report.to_dict())
     return report

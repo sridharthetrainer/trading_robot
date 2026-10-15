@@ -1,4 +1,10 @@
 import requests
+import pytest
+
+
+def test_external_http_is_blocked_in_tests():
+    with pytest.raises(requests.ConnectionError, match="External HTTP disabled"):
+        requests.get("https://example.com", timeout=1)
 
 
 def test_telegram_calls_are_intercepted_in_tests():

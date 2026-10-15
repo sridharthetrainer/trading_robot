@@ -94,6 +94,7 @@ def _audit_candle_cache(
         parameters,
     ).fetchall()
     all_group_count = len(groups)
+    missing_symbols = sorted((requested_symbols or set()) - {row[0] for row in groups})
     checks: List[Dict[str, Any]] = []
     for symbol, interval, count, first_ts, last_ts in groups:
         rows = conn.execute(
@@ -153,7 +154,8 @@ def _audit_candle_cache(
         # check still said ok=true. Consumers (autonomous_learning_cycle's step
         # status) read this boolean directly, so it must reflect whether the
         # checks actually passed, not merely whether the audit ran.
-        "ok": len(checks) > 0 and len(bad) == 0,
+        "ok": len(checks) > 0 and len(bad) == 0 and not missing_symbols,
+        "missing_symbols": missing_symbols,
         "total_groups": len(checks),
         "all_cache_groups": all_group_count if requested_symbols is None else None,
         "ignored_out_of_scope_groups": 0 if requested_symbols is None else None,
@@ -183,10 +185,14 @@ def _audit_candle_cache(
 
 
 def audit_candle_cache(db_path: str = "candle_cache.db", *, max_intraday_age_days=None,
-                       symbols=None, write: bool = True, query_budget: float = 15.0) -> Dict[str, Any]:
+                       symbols=None, write: bool = True, query_budget: float | None = None) -> Dict[str, Any]:
     """Bounded read-only audit; incomplete scans cannot report ready data."""
     if not Path(db_path).exists():
         return {"ok": False, "reason": "candle_cache_missing", "checks": []}
+    if query_budget is None:
+        # The 9-million-row production cache takes over 40s to audit on this
+        # host. The former 15s deadline prevented any completed quality report.
+        query_budget = float(os.getenv("DATA_WATCHDOG_QUERY_BUDGET_SEC", "60"))
     from db_util import db_conn
     try:
         with db_conn(db_path, read_only=True, timeout=2, query_budget=query_budget) as conn:
@@ -203,10 +209,11 @@ def audit_candle_cache(db_path: str = "candle_cache.db", *, max_intraday_age_day
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-write", action="store_true")
+    parser.add_argument("--query-budget", type=float, default=None, help="SQLite audit budget in seconds (default: DATA_WATCHDOG_QUERY_BUDGET_SEC or 60)")
     parser.add_argument("--repair", action="store_true", help="quarantine invalid OHLCV rows before auditing")
     args = parser.parse_args(list(argv) if argv is not None else None)
     repair = quarantine_invalid_candles() if args.repair else None
-    report = audit_candle_cache(write=not args.no_write)
+    report = audit_candle_cache(write=not args.no_write, query_budget=args.query_budget)
     if repair is not None:
         report["repair"] = repair
         if not args.no_write:
@@ -218,7 +225,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         "stale_groups": report.get("stale_groups", 0),
         "total_bars": report.get("total_bars", 0),
     }, indent=2))
-    return 0
+    return 0 if report.get("ok") else 1
 
 
 if __name__ == "__main__":

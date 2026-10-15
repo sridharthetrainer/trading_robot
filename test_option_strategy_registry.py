@@ -234,7 +234,7 @@ def test_evaluate_catalog_threads_gap_risk_manager_to_evaluate_fn():
     try:
         reg._SELECTED_TODAY.clear()
         reg.evaluate_catalog(symbol="NIFTY", df=None, df_htf=None, option_data={}, regime={},
-                              gap_risk_manager=sentinel)
+                              now=datetime(2026, 7, 22, 10, 0), gap_risk_manager=sentinel)
         assert captured.get("gap_risk_manager") is sentinel
     finally:
         reg.OPTION_STRATEGY_CATALOG[idx] = original

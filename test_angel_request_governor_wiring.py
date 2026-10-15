@@ -127,3 +127,15 @@ def test_connect_paces_login_through_request_governor(monkeypatch):
 
     assert inst.connect() is True
     assert ("angel_login", angel.RECONNECT_MIN_INTERVAL) in calls
+
+
+def test_connect_without_credentials_does_not_consume_login_slot(monkeypatch):
+    calls = []
+    monkeypatch.setattr(request_governor, "acquire", lambda *args: calls.append(args))
+    inst = object.__new__(angel.AngelOne)
+    inst.obj = None
+    inst._last_connect_ts = 0.0
+    for name in ("api_key", "client_id", "password", "totp_secret"):
+        setattr(inst, name, "")
+    assert inst.connect() is False
+    assert calls == []

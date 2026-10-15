@@ -107,6 +107,7 @@ def _chain_rows(df) -> List[Dict[str, Any]]:
             "CE_bidPrice", "PE_bidPrice", "CE_bidQty", "PE_bidQty",
             "CE_askPrice", "PE_askPrice", "CE_askQty", "PE_askQty",
             "CE_delta", "PE_delta", "CE_theta", "PE_theta",
+            "CE_exchange_timestamp", "PE_exchange_timestamp", "CE_symbol", "PE_symbol", "quote_received_at",
             "distance_from_atm", "gamma_approx",
         }
     ]

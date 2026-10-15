@@ -1,0 +1,115 @@
+Here is the complete catalog of trading strategies, formulas, entry/exit rules, and market mechanics from **Secrets of a Pivot Boss** by Frank Ochoa.
+
+---
+
+### **1. Candlestick Confirmation Setups (Action Triggers)**
+
+These four setups act as precise entry triggers when price tests key pivot or value zones:
+
+* **Wick Reversal Setup:**
+  * **Structure:** The candle body must be small, with a tail/wick that is **2.5 to 3.5 times larger** than the body. For a bullish setup, the close must fall within the **top 35%** of the bar's range; for a bearish setup, within the **bottom 35%**.
+  * **Psychology:** Demonstrates sharp intra-bar rejection by responsive participants at extreme undervaluation or overvaluation.
+  * **Confirmation:** Execution is safest when the bar immediately following the wicking candle closes beyond the extreme of the wicking bar (e.g., closing above the high of a bullish wick candle).
+
+* **Extreme Reversal Setup ("Rubber Band Trade"):**
+  * **Structure:** A two-bar reversal setup. Bar 1 (the extreme bar) is **50% to 100% larger** than the average bar in the lookback period, with its body covering **50% to 85%** of the total bar range. Bar 2 is an opposing-colored candle.
+  * **Psychology:** Capitalizes on overextended, oversold/overbought conditions where aggressive movement exhausts itself and responsive buyers/sellers push price back toward fair value.
+  * **Trend Context:** Highly effective during pullbacks in an established trend.
+
+* **Outside Reversal Setup:**
+  * **Structure:** Bullish condition requires \\(Low < Low\\) and \\(Close > High\\). Bearish condition requires \\(High > High\\) and \\(Close < Low\\). The engulfing bar should be **5% to 25% larger** than the average candle.
+  * **Psychology:** Tests prices beyond value before snapping back. Mechanically, candlestick reduction combines the two bars into a single **Wick Reversal Setup**.
+
+* **Doji Reversal Setup:**
+  * **Structure:** Open and close must fall within **10% of each other** relative to the bar's total range.
+  * **Trend & Close Filters:** For a bullish setup, \\(High < \text{SMA}(10)\\) and one of the next two bars must close above the Doji's high. For a bearish setup, \\(Low > \text{SMA}(10)\\) and one of the next two bars must close below the Doji's low.
+
+---
+
+### **2. Central Pivot Range (CPR) & Floor Pivot Strategies**
+
+#### **Pivot Calculations**
+* \\(\text{Central Pivot (P)} = \frac{\text{High} + \text{Low} + \text{Close}}{3}\\)
+* \\(\text{Bottom Central (BC)} = \frac{\text{High} + \text{Low}}{2}\\)
+* \\(\text{Top Central (TC)} = (\text{Pivot} - \text{BC}) + \text{Pivot}\\)
+* \\(\text{S1} = (2 \times P) - \text{High} \quad | \quad \text{R1} = (2 \times P) - \text{Low}\\)
+
+#### **Two-Day CPR Relationships & Directional Bias**
+1. **Higher Value (Bullish):** Today's CPR is completely higher than yesterday's CPR. Look to buy dips at the CPR if opened above.
+2. **Lower Value (Bearish):** Today's CPR is completely lower than yesterday's CPR. Look to sell rallies at the CPR.
+3. **Overlapping Higher Value (Moderately Bullish):** CPR is higher but overlaps the prior range. Requires opening confirmation.
+4. **Overlapping Lower Value (Moderately Bearish):** CPR is lower but overlaps.
+5. **Unchanged Value (Sideways or Breakout):** CPR is virtually unchanged from the prior day. Opening print dictates whether it remains bound or triggers a breakout.
+6. **Outside Value (Sideways / Trading Range):** Today's CPR completely encompasses yesterday's CPR.
+7. **Inside Value (Breakout Candidate):** Today's CPR is completely inside yesterday's CPR, signifying price is winding up for an explosive move.
+
+#### **Pivot Width Forecasting**
+* **Narrow CPR (\\(TC - BC \approx 0\\)):** Indicates prior consolidation/quiet day; forecasts a **Trend or Breakout Day**.
+* **Wide CPR:** Indicates prior high volatility/large trend day; forecasts a **Sideways or Trading Range Day**.
+
+#### **Pivot Range Trend Analysis**
+* **Uptrend:** Price stays above the Bottom Central (\\(\text{BC}\\)) pivot; pullbacks to the CPR offer "buy the dip" opportunities.
+* **Downtrend:** Price stays below the Top Central (\\(\text{TC}\\)) pivot; rallies to the CPR offer "sell the rip" opportunities.
+
+#### **The Magnet Trade**
+* When price gaps open away from the CPR, it frequently reverts back toward the Central Pivot Point (which has a statistical touch/fill rate of ~63%).
+
+---
+
+### **3. Camarilla Equation Strategies**
+
+#### **Formulas**
+* \\(H4 = \text{Close} + \text{RANGE} \times \frac{1.1}{2} \quad | \quad L4 = \text{Close} - \text{RANGE} \times \frac{1.1}{2}\\)
+* \\(H3 = \text{Close} + \text{RANGE} \times \frac{1.1}{4} \quad | \quad L3 = \text{Close} - \text{RANGE} \times \frac{1.1}{4}\\)
+* \\(H5 = \left(\frac{\text{High}}{\text{Low}}\right) \times \text{Close} \quad | \quad L5 = \text{Close} - (H5 - \text{Close})\\)
+
+#### **Core Setups**
+* **H3 Reversal Trade (Mean Reversion):** Sell at \\(H3\\) resistance when momentum stalls. **Stop Loss:** at \\(H4\\). **Target:** \\(L3\\).
+* **L3 Reversal Trade (Mean Reversion):** Buy at \\(L3\\) support when price shows strength. **Stop Loss:** at \\(L4\\). **Target:** \\(H3\\).
+* **H4 Breakout Trade:** Buy when price breaks through \\(H4\\) and closes above it. **Stop Loss:** at \\(H3\\). **Target:** \\(H5\\).
+* **L4 Breakout Trade:** Sell short when price breaks through \\(L4\\) and closes below it. **Stop Loss:** at \\(L3\\). **Target:** \\(L5\\).
+* **Camarilla Trend Entries:**
+  * In an **Uptrend**: Buy pullbacks at \\(L3\\) (or at \\(H3\\) if price opened above \\(H3\\)).
+  * In a **Downtrend**: Sell rallies at \\(H3\\) (or at \\(L3\\) if price opened below \\(L3\\)).
+* **The Hidden Layers (\\(H1, H2, L1, L2\\)):** Active on Trading Range days when the prior day's range was excessively wide. Played exclusively for reversals (\\(H1/H2\\) for selling, \\(L1/L2\\) for buying).
+
+---
+
+### **4. Money Zone & Volume-at-Price (VAP) Strategies**
+
+#### **Key Levels**
+* **Point of Control (POC / Value Line):** Price with the highest Time-Price Opportunities (TPOs) / fairest value.
+* **Value Area High (VAH) & Value Area Low (VAL):** Encompasses 70% of the day's trading activity.
+
+#### **Entry Options in Trending Markets**
+* **Bullish Trend:**
+  * *Open Above Value:* Buy pullbacks at \\(VAH\\) and \\(POC\\).
+  * *Open Within Value:* Buy pullbacks at \\(POC\\) and \\(VAL\\).
+* **Bearish Trend:**
+  * *Open Below Value:* Sell rallies at \\(VAL\\) and \\(POC\\).
+  * *Open Within Value:* Sell rallies at \\(POC\\) and \\(VAH\\).
+
+#### **Virgin Levels (VPOC / VPC Fade & Target)**
+* **Virgin Point of Control (VPOC / VPC):** A POC or Volume POC that was never touched during its session of origin.
+* **Behavior:** Acts as a magnet (upward of 80% are filled within a week).
+* **Strategy:** Used as high-probability profit targets for trend/breakout plays or as responsive fading zones when tested early in a session.
+
+#### **Volume Point of Control (VPOC) Escalator Effect**
+* In an uptrend, every pullback to yesterday's VPOC or High Volume Area (HVA) serves as a low-risk buying opportunity as price steps higher.
+
+#### **Unchanged VPOC Relationship**
+* Two or more consecutive days with an unchanged VPOC indicate tight consolidation and build up energy for a major breakout move.
+
+---
+
+### **5. Multiple Pivot Hot Zones (Confluence Strategies)**
+
+* **Double Pivot Hot Zone (DPZ):** Occurs when any two independent pivot levels align in close proximity (e.g., \\(S2 + L4\\), or \\(R2 + \text{Virgin POC}\\)) to create reinforced support or resistance.
+* **Golden Pivot Zone (GPZ):** A high-confluence setup created when a Camarilla level (\\(H3\\) or \\(L3\\)) or Money Zone level (\\(VAH, VAL, POC, VPOC\\)) falls **inside** the Central Pivot Range (\\(TC \ge \text{Level} \ge BC\\)).
+  * **Bearish GPZ:** \\(H3\\) or a Money Zone level inside the CPR \\(\rightarrow\\) Sell setups target \\(S1\\) or \\(L3\\).
+  * **Bullish GPZ:** \\(L3\\) or a Money Zone level inside the CPR \\(\rightarrow\\) Buy setups target \\(R1\\) or \\(H3\\).
+* **Multiple Timeframe Hot Zones (MTZ):** Formed when Daily, Weekly, Monthly, and Yearly pivots overlap in the same price band, uniting Day Traders, Swing Traders, Position Traders, and Investors for major institutional moves.
+
+---
+
+📘 *Would you like me to build a Slide Deck presentation, an interactive Quiz, or Flashcards on these strategies for quick revision?*

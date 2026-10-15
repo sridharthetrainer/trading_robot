@@ -1,21 +1,21 @@
 {
-  "activation_reason": "clean_evidence_pending samples=329/5000 days=14/15",
+  "activation_reason": "clean_evidence_pending samples=361/5000 days=15/15",
   "active": false,
   "bounds": {
     "max": 1.5,
     "min": 0.5
   },
   "candidate_indicator_weights": {
-    "cross_asset": 0.89,
+    "cross_asset": 0.873,
     "expiry_regime": 0.952,
-    "monthly_pivot": 0.88,
-    "mtf_pivot": 0.845,
-    "participant_oi": 0.878,
+    "monthly_pivot": 0.858,
+    "mtf_pivot": 0.829,
+    "participant_oi": 0.866,
     "sip_boost": 1.0,
-    "time_bucket": 0.851,
-    "volume_confirmation": 0.87,
-    "weekly_pivot": 0.918,
-    "weinstein": 0.878
+    "time_bucket": 0.832,
+    "volume_confirmation": 0.857,
+    "weekly_pivot": 0.895,
+    "weinstein": 0.866
   },
   "candidate_strategy_weights": {
     "anchored_vwap": 1.0,
@@ -43,7 +43,7 @@
     "chart_pattern_falling_wedge": 1.0,
     "chart_pattern_symmetrical_triangle": 1.0,
     "ehlers_fisher": 1.0,
-    "elder_triple_screen": 0.928,
+    "elder_triple_screen": 0.911,
     "ema_ribbon": 1.0,
     "failed_auction": 1.0,
     "failed_bear_breakout": 0.865,
@@ -60,9 +60,9 @@
     "vwap_bands": 1.0,
     "vwap_reversion": 1.0
   },
-  "clean_distinct_days": 14,
-  "clean_labelled": 329,
-  "date": "2026-10-13",
+  "clean_distinct_days": 15,
+  "clean_labelled": 361,
+  "date": "2026-10-15",
   "indicator_weights": {},
   "lookback_days": 45,
   "min_samples": 20,
@@ -89,84 +89,84 @@
       "wins": 19
     },
     {
-      "avg_pnl": -1.8414,
+      "avg_pnl": -2.37,
       "indicator": "weekly_pivot",
-      "losses": 130,
-      "samples": 224,
-      "total_pnl": -412.4626,
-      "weight": 0.918,
-      "win_rate": 0.4196,
-      "wins": 94
-    },
-    {
-      "avg_pnl": -2.798,
-      "indicator": "cross_asset",
-      "losses": 134,
-      "samples": 222,
-      "total_pnl": -621.1546,
-      "weight": 0.89,
-      "win_rate": 0.3964,
-      "wins": 88
-    },
-    {
-      "avg_pnl": -2.5143,
-      "indicator": "monthly_pivot",
-      "losses": 131,
-      "samples": 211,
-      "total_pnl": -530.5269,
-      "weight": 0.88,
-      "win_rate": 0.3791,
-      "wins": 80
-    },
-    {
-      "avg_pnl": -2.8898,
-      "indicator": "participant_oi",
-      "losses": 204,
-      "samples": 329,
-      "total_pnl": -950.7592,
-      "weight": 0.878,
-      "win_rate": 0.3799,
-      "wins": 125
-    },
-    {
-      "avg_pnl": -2.8898,
-      "indicator": "weinstein",
-      "losses": 204,
-      "samples": 329,
-      "total_pnl": -950.7592,
-      "weight": 0.878,
-      "win_rate": 0.3799,
-      "wins": 125
-    },
-    {
-      "avg_pnl": -3.0268,
-      "indicator": "volume_confirmation",
-      "losses": 171,
-      "samples": 272,
-      "total_pnl": -823.2842,
-      "weight": 0.87,
-      "win_rate": 0.3713,
-      "wins": 101
-    },
-    {
-      "avg_pnl": -3.4676,
-      "indicator": "time_bucket",
       "losses": 147,
-      "samples": 226,
-      "total_pnl": -783.6862,
-      "weight": 0.851,
-      "win_rate": 0.3496,
-      "wins": 79
+      "samples": 244,
+      "total_pnl": -578.2683,
+      "weight": 0.895,
+      "win_rate": 0.3975,
+      "wins": 97
     },
     {
-      "avg_pnl": -3.7497,
+      "avg_pnl": -3.1788,
+      "indicator": "cross_asset",
+      "losses": 157,
+      "samples": 253,
+      "total_pnl": -804.233,
+      "weight": 0.873,
+      "win_rate": 0.3794,
+      "wins": 96
+    },
+    {
+      "avg_pnl": -3.1853,
+      "indicator": "participant_oi",
+      "losses": 228,
+      "samples": 361,
+      "total_pnl": -1149.9001,
+      "weight": 0.866,
+      "win_rate": 0.3684,
+      "wins": 133
+    },
+    {
+      "avg_pnl": -3.1853,
+      "indicator": "weinstein",
+      "losses": 228,
+      "samples": 361,
+      "total_pnl": -1149.9001,
+      "weight": 0.866,
+      "win_rate": 0.3684,
+      "wins": 133
+    },
+    {
+      "avg_pnl": -3.0541,
+      "indicator": "monthly_pivot",
+      "losses": 148,
+      "samples": 230,
+      "total_pnl": -702.4451,
+      "weight": 0.858,
+      "win_rate": 0.3565,
+      "wins": 82
+    },
+    {
+      "avg_pnl": -3.3668,
+      "indicator": "volume_confirmation",
+      "losses": 190,
+      "samples": 296,
+      "total_pnl": -996.5872,
+      "weight": 0.857,
+      "win_rate": 0.3581,
+      "wins": 106
+    },
+    {
+      "avg_pnl": -3.8811,
+      "indicator": "time_bucket",
+      "losses": 168,
+      "samples": 251,
+      "total_pnl": -974.1648,
+      "weight": 0.832,
+      "win_rate": 0.3307,
+      "wins": 83
+    },
+    {
+      "avg_pnl": -4.1483,
       "indicator": "mtf_pivot",
-      "losses": 175,
-      "samples": 267,
-      "total_pnl": -1001.164,
-      "weight": 0.845,
-      "win_rate": 0.3446,
-      "wins": 92
+      "losses": 196,
+      "samples": 292,
+      "total_pnl": -1211.3158,
+      "weight": 0.829,
+      "win_rate": 0.3288,
+      "wins": 96
     }
   ],
   "top_strategies": [
@@ -197,43 +197,43 @@
       "wins": 0
     },
     {
-      "avg_pnl": -3.2145,
-      "avg_score": 10.3951,
+      "avg_pnl": -6.3011,
+      "avg_score": 11.6866,
       "executed_trades": 0,
-      "losses": 2,
-      "samples": 3,
+      "losses": 3,
+      "samples": 4,
       "source": "triple_barrier",
       "strategy": "candlestick_bearish_harami",
-      "total_pnl": -9.6434,
+      "total_pnl": -25.2042,
       "weight": 1.0,
-      "win_rate": 0.3333,
+      "win_rate": 0.25,
       "wins": 1
     },
     {
-      "avg_pnl": -3.3828,
-      "avg_score": 11.3887,
+      "avg_pnl": -5.6543,
+      "avg_score": 11.4767,
       "executed_trades": 0,
-      "losses": 10,
-      "samples": 16,
+      "losses": 16,
+      "samples": 22,
       "source": "triple_barrier",
       "strategy": "candlestick_bullish_engulfing",
-      "total_pnl": -54.1254,
+      "total_pnl": -124.3938,
       "weight": 1.0,
-      "win_rate": 0.375,
+      "win_rate": 0.2727,
       "wins": 6
     },
     {
-      "avg_pnl": 3.8702,
-      "avg_score": 9.5186,
+      "avg_pnl": 3.4011,
+      "avg_score": 11.5916,
       "executed_trades": 0,
-      "losses": 1,
-      "samples": 3,
+      "losses": 2,
+      "samples": 6,
       "source": "triple_barrier",
       "strategy": "candlestick_bullish_marubozu",
-      "total_pnl": 11.6107,
+      "total_pnl": 20.4066,
       "weight": 1.0,
       "win_rate": 0.6667,
-      "wins": 2
+      "wins": 4
     },
     {
       "avg_pnl": 15.868,
@@ -249,42 +249,42 @@
       "wins": 1
     },
     {
-      "avg_pnl": -1.0833,
-      "avg_score": 10.6582,
+      "avg_pnl": 0.0699,
+      "avg_score": 10.6668,
       "executed_trades": 0,
-      "losses": 4,
-      "samples": 7,
+      "losses": 5,
+      "samples": 9,
       "source": "triple_barrier",
       "strategy": "candlestick_doji",
-      "total_pnl": -7.5829,
+      "total_pnl": 0.6291,
       "weight": 1.0,
-      "win_rate": 0.4286,
-      "wins": 3
+      "win_rate": 0.4444,
+      "wins": 4
     },
     {
-      "avg_pnl": -2.3061,
-      "avg_score": 11.9701,
+      "avg_pnl": -6.5888,
+      "avg_score": 12.3872,
       "executed_trades": 0,
-      "losses": 2,
-      "samples": 3,
+      "losses": 4,
+      "samples": 5,
       "source": "triple_barrier",
       "strategy": "candlestick_fred_tam_white_inside_out",
-      "total_pnl": -6.9184,
+      "total_pnl": -32.9438,
       "weight": 1.0,
-      "win_rate": 0.3333,
+      "win_rate": 0.2,
       "wins": 1
     },
     {
-      "avg_pnl": -1.7635,
-      "avg_score": 11.1529,
+      "avg_pnl": -3.0354,
+      "avg_score": 11.3816,
       "executed_trades": 0,
-      "losses": 5,
-      "samples": 8,
+      "losses": 6,
+      "samples": 9,
       "source": "triple_barrier",
       "strategy": "candlestick_hammer",
-      "total_pnl": -14.1079,
+      "total_pnl": -27.3189,
       "weight": 1.0,
-      "win_rate": 0.375,
+      "win_rate": 0.3333,
       "wins": 3
     },
     {
@@ -302,87 +302,87 @@
     }
   ],
   "training_contract": "all_generated_signals_v4_causal_representations",
-  "updated_at": "2026-10-13T18:55:44",
+  "updated_at": "2026-10-15T18:56:14",
   "weak_indicators": [
     {
-      "avg_pnl": -3.7497,
+      "avg_pnl": -4.1483,
       "indicator": "mtf_pivot",
-      "losses": 175,
-      "samples": 267,
-      "total_pnl": -1001.164,
-      "weight": 0.845,
-      "win_rate": 0.3446,
-      "wins": 92
+      "losses": 196,
+      "samples": 292,
+      "total_pnl": -1211.3158,
+      "weight": 0.829,
+      "win_rate": 0.3288,
+      "wins": 96
     },
     {
-      "avg_pnl": -3.4676,
+      "avg_pnl": -3.8811,
       "indicator": "time_bucket",
-      "losses": 147,
-      "samples": 226,
-      "total_pnl": -783.6862,
-      "weight": 0.851,
-      "win_rate": 0.3496,
-      "wins": 79
+      "losses": 168,
+      "samples": 251,
+      "total_pnl": -974.1648,
+      "weight": 0.832,
+      "win_rate": 0.3307,
+      "wins": 83
     },
     {
-      "avg_pnl": -3.0268,
+      "avg_pnl": -3.3668,
       "indicator": "volume_confirmation",
-      "losses": 171,
-      "samples": 272,
-      "total_pnl": -823.2842,
-      "weight": 0.87,
-      "win_rate": 0.3713,
-      "wins": 101
+      "losses": 190,
+      "samples": 296,
+      "total_pnl": -996.5872,
+      "weight": 0.857,
+      "win_rate": 0.3581,
+      "wins": 106
     },
     {
-      "avg_pnl": -2.8898,
-      "indicator": "participant_oi",
-      "losses": 204,
-      "samples": 329,
-      "total_pnl": -950.7592,
-      "weight": 0.878,
-      "win_rate": 0.3799,
-      "wins": 125
-    },
-    {
-      "avg_pnl": -2.8898,
-      "indicator": "weinstein",
-      "losses": 204,
-      "samples": 329,
-      "total_pnl": -950.7592,
-      "weight": 0.878,
-      "win_rate": 0.3799,
-      "wins": 125
-    },
-    {
-      "avg_pnl": -2.5143,
+      "avg_pnl": -3.0541,
       "indicator": "monthly_pivot",
-      "losses": 131,
-      "samples": 211,
-      "total_pnl": -530.5269,
-      "weight": 0.88,
-      "win_rate": 0.3791,
-      "wins": 80
+      "losses": 148,
+      "samples": 230,
+      "total_pnl": -702.4451,
+      "weight": 0.858,
+      "win_rate": 0.3565,
+      "wins": 82
     },
     {
-      "avg_pnl": -2.798,
+      "avg_pnl": -3.1853,
+      "indicator": "participant_oi",
+      "losses": 228,
+      "samples": 361,
+      "total_pnl": -1149.9001,
+      "weight": 0.866,
+      "win_rate": 0.3684,
+      "wins": 133
+    },
+    {
+      "avg_pnl": -3.1853,
+      "indicator": "weinstein",
+      "losses": 228,
+      "samples": 361,
+      "total_pnl": -1149.9001,
+      "weight": 0.866,
+      "win_rate": 0.3684,
+      "wins": 133
+    },
+    {
+      "avg_pnl": -3.1788,
       "indicator": "cross_asset",
-      "losses": 134,
-      "samples": 222,
-      "total_pnl": -621.1546,
-      "weight": 0.89,
-      "win_rate": 0.3964,
-      "wins": 88
+      "losses": 157,
+      "samples": 253,
+      "total_pnl": -804.233,
+      "weight": 0.873,
+      "win_rate": 0.3794,
+      "wins": 96
     },
     {
-      "avg_pnl": -1.8414,
+      "avg_pnl": -2.37,
       "indicator": "weekly_pivot",
-      "losses": 130,
-      "samples": 224,
-      "total_pnl": -412.4626,
-      "weight": 0.918,
-      "win_rate": 0.4196,
-      "wins": 94
+      "losses": 147,
+      "samples": 244,
+      "total_pnl": -578.2683,
+      "weight": 0.895,
+      "win_rate": 0.3975,
+      "wins": 97
     },
     {
       "avg_pnl": -1.9383,
@@ -433,17 +433,17 @@
       "wins": 11
     },
     {
-      "avg_pnl": -1.5708,
-      "avg_score": 9.1142,
+      "avg_pnl": -1.8394,
+      "avg_score": 9.1174,
       "executed_trades": 0,
-      "losses": 51,
-      "samples": 90,
+      "losses": 59,
+      "samples": 101,
       "source": "triple_barrier",
       "strategy": "elder_triple_screen",
-      "total_pnl": -141.3687,
-      "weight": 0.928,
-      "win_rate": 0.4333,
-      "wins": 39
+      "total_pnl": -185.7777,
+      "weight": 0.911,
+      "win_rate": 0.4158,
+      "wins": 42
     },
     {
       "avg_pnl": -0.4902,
@@ -472,43 +472,43 @@
       "wins": 0
     },
     {
-      "avg_pnl": -3.2145,
-      "avg_score": 10.3951,
+      "avg_pnl": -6.3011,
+      "avg_score": 11.6866,
       "executed_trades": 0,
-      "losses": 2,
-      "samples": 3,
+      "losses": 3,
+      "samples": 4,
       "source": "triple_barrier",
       "strategy": "candlestick_bearish_harami",
-      "total_pnl": -9.6434,
+      "total_pnl": -25.2042,
       "weight": 1.0,
-      "win_rate": 0.3333,
+      "win_rate": 0.25,
       "wins": 1
     },
     {
-      "avg_pnl": -3.3828,
-      "avg_score": 11.3887,
+      "avg_pnl": -5.6543,
+      "avg_score": 11.4767,
       "executed_trades": 0,
-      "losses": 10,
-      "samples": 16,
+      "losses": 16,
+      "samples": 22,
       "source": "triple_barrier",
       "strategy": "candlestick_bullish_engulfing",
-      "total_pnl": -54.1254,
+      "total_pnl": -124.3938,
       "weight": 1.0,
-      "win_rate": 0.375,
+      "win_rate": 0.2727,
       "wins": 6
     },
     {
-      "avg_pnl": 3.8702,
-      "avg_score": 9.5186,
+      "avg_pnl": 3.4011,
+      "avg_score": 11.5916,
       "executed_trades": 0,
-      "losses": 1,
-      "samples": 3,
+      "losses": 2,
+      "samples": 6,
       "source": "triple_barrier",
       "strategy": "candlestick_bullish_marubozu",
-      "total_pnl": 11.6107,
+      "total_pnl": 20.4066,
       "weight": 1.0,
       "win_rate": 0.6667,
-      "wins": 2
+      "wins": 4
     },
     {
       "avg_pnl": 15.868,
@@ -524,17 +524,17 @@
       "wins": 1
     },
     {
-      "avg_pnl": -1.0833,
-      "avg_score": 10.6582,
+      "avg_pnl": 0.0699,
+      "avg_score": 10.6668,
       "executed_trades": 0,
-      "losses": 4,
-      "samples": 7,
+      "losses": 5,
+      "samples": 9,
       "source": "triple_barrier",
       "strategy": "candlestick_doji",
-      "total_pnl": -7.5829,
+      "total_pnl": 0.6291,
       "weight": 1.0,
-      "win_rate": 0.4286,
-      "wins": 3
+      "win_rate": 0.4444,
+      "wins": 4
     }
   ]
 }

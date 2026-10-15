@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-10-14T23:49:36.483222+05:30",
+  "complete": false,
+  "stop_reason": "trial_budget",
+  "search_scope": "all subset sizes with minimum training support",
+  "training_strategy_count": 132,
+  "supported_strategy_count": 101,
+  "theoretical_supported_universe_subsets": 2535301200456458802993406410650,
+  "minimum_train_rows": 40,
+  "tested": 100000,
+  "max_tests": 100000,
+  "elapsed_seconds": 17.633,
+  "cutoff_day": "2026-09-02",
+  "train_days": 30,
+  "holdout_days": 14,
+  "multiple_testing_correction": 2535301200456458802993406410650,
+  "counts_by_size": {
+    "2": 2097,
+    "3": 16627,
+    "4": 73420,
+    "5": 7856
+  },
+  "income_target_supported": false,
+  "live_approved": false,
+  "limits": [
+    "Repeated historical exploration; holdout is not untouched future evidence",
+    "Co-occurrence net R is not a funded portfolio or executable-fill backtest",
+    "Daily averages reduce within-day replication; cross-day dependence remains",
+    "Incomplete search uses the full eligible-universe subset count for correction",
+    "No ordered strategy pipelines or arbitrary continuous parameter values tested"
+  ],
+  "completed_subset_sizes": [
+    2,
+    3,
+    4
+  ],
+  "partially_searched_subset_size": 5,
+  "candidate_count": 0
+}

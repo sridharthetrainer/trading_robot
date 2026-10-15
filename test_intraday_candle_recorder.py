@@ -205,6 +205,22 @@ def test_data_quality_watchdog_can_scope_out_retired_symbols(tmp_path):
     )
     assert report["ok"] is True
     assert report["total_groups"] == 1
-    assert report["all_cache_groups"] == 2
-    assert report["ignored_out_of_scope_groups"] == 1
+    # A scoped audit deliberately avoids scanning/counting the full cache.
+    assert report["all_cache_groups"] is None
+    assert report["ignored_out_of_scope_groups"] is None
     assert report["scope"] == "selected_symbols"
+
+    missing = audit_candle_cache(
+        str(db), symbols=["ACTIVE", "MISSING"], write=False
+    )
+    assert missing["ok"] is False
+    assert missing["missing_symbols"] == ["MISSING"]
+
+
+def test_data_quality_cli_propagates_failure(monkeypatch, capsys):
+    import data_quality_watchdog as watchdog
+
+    for ok, expected in ((False, 1), (True, 0)):
+        monkeypatch.setattr(watchdog, "audit_candle_cache", lambda **kwargs: {"ok": ok})
+        assert watchdog.main(["--no-write"]) == expected
+    capsys.readouterr()

@@ -1,0 +1,447 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-15",
+  "source": {
+    "path": "quant_specs/pivot_boss_source_request_2026-10-15.txt",
+    "sha256": "98fb76566fa957bee963d0f7c92ed6303a5027b9e63880a94c63f1f506012a57",
+    "attribution": "User-supplied summary attributed to Frank Ochoa; full-book coverage and exact wording not verified",
+    "author_reference": "https://www.pivotboss.com/wp-content/uploads/2017/09/Secrets-of-a-Pivot-Boss-by-Frank-Ochoa.pdf",
+    "exhaustive_claim_verified": false
+  },
+  "policy": {
+    "research_only": true,
+    "auto_schedule": false,
+    "live_approved": false,
+    "probability_claims_validated": false
+  },
+  "supplied_sections": [
+    {
+      "heading": "1. Candlestick Confirmation Setups (Action Triggers)",
+      "supplied_text": "### **1. Candlestick Confirmation Setups (Action Triggers)**\n\nThese four setups act as precise entry triggers when price tests key pivot or value zones:\n\n* **Wick Reversal Setup:**\n  * **Structure:** The candle body must be small, with a tail/wick that is **2.5 to 3.5 times larger** than the body. For a bullish setup, the close must fall within the **top 35%** of the bar's range; for a bearish setup, within the **bottom 35%**.\n  * **Psychology:** Demonstrates sharp intra-bar rejection by responsive participants at extreme undervaluation or overvaluation.\n  * **Confirmation:** Execution is safest when the bar immediately following the wicking candle closes beyond the extreme of the wicking bar (e.g., closing above the high of a bullish wick candle).\n\n* **Extreme Reversal Setup (\"Rubber Band Trade\"):**\n  * **Structure:** A two-bar reversal setup. Bar 1 (the extreme bar) is **50% to 100% larger** than the average bar in the lookback period, with its body covering **50% to 85%** of the total bar range. Bar 2 is an opposing-colored candle.\n  * **Psychology:** Capitalizes on overextended, oversold/overbought conditions where aggressive movement exhausts itself and responsive buyers/sellers push price back toward fair value.\n  * **Trend Context:** Highly effective during pullbacks in an established trend.\n\n* **Outside Reversal Setup:**\n  * **Structure:** Bullish condition requires \\\\(Low < Low\\\\) and \\\\(Close > High\\\\). Bearish condition requires \\\\(High > High\\\\) and \\\\(Close < Low\\\\). The engulfing bar should be **5% to 25% larger** than the average candle.\n  * **Psychology:** Tests prices beyond value before snapping back. Mechanically, candlestick reduction combines the two bars into a single **Wick Reversal Setup**.\n\n* **Doji Reversal Setup:**\n  * **Structure:** Open and close must fall within **10% of each other** relative to the bar's total range.\n  * **Trend & Close Filters:** For a bullish setup, \\\\(High < \\text{SMA}(10)\\\\) and one of the next two bars must close above the Doji's high. For a bearish setup, \\\\(Low > \\text{SMA}(10)\\\\) and one of the next two bars must close below the Doji's low.\n\n---"
+    },
+    {
+      "heading": "2. Central Pivot Range (CPR) & Floor Pivot Strategies",
+      "supplied_text": "### **2. Central Pivot Range (CPR) & Floor Pivot Strategies**\n\n#### **Pivot Calculations**\n* \\\\(\\text{Central Pivot (P)} = \\frac{\\text{High} + \\text{Low} + \\text{Close}}{3}\\\\)\n* \\\\(\\text{Bottom Central (BC)} = \\frac{\\text{High} + \\text{Low}}{2}\\\\)\n* \\\\(\\text{Top Central (TC)} = (\\text{Pivot} - \\text{BC}) + \\text{Pivot}\\\\)\n* \\\\(\\text{S1} = (2 \\times P) - \\text{High} \\quad | \\quad \\text{R1} = (2 \\times P) - \\text{Low}\\\\)\n\n#### **Two-Day CPR Relationships & Directional Bias**\n1. **Higher Value (Bullish):** Today's CPR is completely higher than yesterday's CPR. Look to buy dips at the CPR if opened above.\n2. **Lower Value (Bearish):** Today's CPR is completely lower than yesterday's CPR. Look to sell rallies at the CPR.\n3. **Overlapping Higher Value (Moderately Bullish):** CPR is higher but overlaps the prior range. Requires opening confirmation.\n4. **Overlapping Lower Value (Moderately Bearish):** CPR is lower but overlaps.\n5. **Unchanged Value (Sideways or Breakout):** CPR is virtually unchanged from the prior day. Opening print dictates whether it remains bound or triggers a breakout.\n6. **Outside Value (Sideways / Trading Range):** Today's CPR completely encompasses yesterday's CPR.\n7. **Inside Value (Breakout Candidate):** Today's CPR is completely inside yesterday's CPR, signifying price is winding up for an explosive move.\n\n#### **Pivot Width Forecasting**\n* **Narrow CPR (\\\\(TC - BC \\approx 0\\\\)):** Indicates prior consolidation/quiet day; forecasts a **Trend or Breakout Day**.\n* **Wide CPR:** Indicates prior high volatility/large trend day; forecasts a **Sideways or Trading Range Day**.\n\n#### **Pivot Range Trend Analysis**\n* **Uptrend:** Price stays above the Bottom Central (\\\\(\\text{BC}\\\\)) pivot; pullbacks to the CPR offer \"buy the dip\" opportunities.\n* **Downtrend:** Price stays below the Top Central (\\\\(\\text{TC}\\\\)) pivot; rallies to the CPR offer \"sell the rip\" opportunities.\n\n#### **The Magnet Trade**\n* When price gaps open away from the CPR, it frequently reverts back toward the Central Pivot Point (which has a statistical touch/fill rate of ~63%).\n\n---"
+    },
+    {
+      "heading": "3. Camarilla Equation Strategies",
+      "supplied_text": "### **3. Camarilla Equation Strategies**\n\n#### **Formulas**\n* \\\\(H4 = \\text{Close} + \\text{RANGE} \\times \\frac{1.1}{2} \\quad | \\quad L4 = \\text{Close} - \\text{RANGE} \\times \\frac{1.1}{2}\\\\)\n* \\\\(H3 = \\text{Close} + \\text{RANGE} \\times \\frac{1.1}{4} \\quad | \\quad L3 = \\text{Close} - \\text{RANGE} \\times \\frac{1.1}{4}\\\\)\n* \\\\(H5 = \\left(\\frac{\\text{High}}{\\text{Low}}\\right) \\times \\text{Close} \\quad | \\quad L5 = \\text{Close} - (H5 - \\text{Close})\\\\)\n\n#### **Core Setups**\n* **H3 Reversal Trade (Mean Reversion):** Sell at \\\\(H3\\\\) resistance when momentum stalls. **Stop Loss:** at \\\\(H4\\\\). **Target:** \\\\(L3\\\\).\n* **L3 Reversal Trade (Mean Reversion):** Buy at \\\\(L3\\\\) support when price shows strength. **Stop Loss:** at \\\\(L4\\\\). **Target:** \\\\(H3\\\\).\n* **H4 Breakout Trade:** Buy when price breaks through \\\\(H4\\\\) and closes above it. **Stop Loss:** at \\\\(H3\\\\). **Target:** \\\\(H5\\\\).\n* **L4 Breakout Trade:** Sell short when price breaks through \\\\(L4\\\\) and closes below it. **Stop Loss:** at \\\\(L3\\\\). **Target:** \\\\(L5\\\\).\n* **Camarilla Trend Entries:**\n  * In an **Uptrend**: Buy pullbacks at \\\\(L3\\\\) (or at \\\\(H3\\\\) if price opened above \\\\(H3\\\\)).\n  * In a **Downtrend**: Sell rallies at \\\\(H3\\\\) (or at \\\\(L3\\\\) if price opened below \\\\(L3\\\\)).\n* **The Hidden Layers (\\\\(H1, H2, L1, L2\\\\)):** Active on Trading Range days when the prior day's range was excessively wide. Played exclusively for reversals (\\\\(H1/H2\\\\) for selling, \\\\(L1/L2\\\\) for buying).\n\n---"
+    },
+    {
+      "heading": "4. Money Zone & Volume-at-Price (VAP) Strategies",
+      "supplied_text": "### **4. Money Zone & Volume-at-Price (VAP) Strategies**\n\n#### **Key Levels**\n* **Point of Control (POC / Value Line):** Price with the highest Time-Price Opportunities (TPOs) / fairest value.\n* **Value Area High (VAH) & Value Area Low (VAL):** Encompasses 70% of the day's trading activity.\n\n#### **Entry Options in Trending Markets**\n* **Bullish Trend:**\n  * *Open Above Value:* Buy pullbacks at \\\\(VAH\\\\) and \\\\(POC\\\\).\n  * *Open Within Value:* Buy pullbacks at \\\\(POC\\\\) and \\\\(VAL\\\\).\n* **Bearish Trend:**\n  * *Open Below Value:* Sell rallies at \\\\(VAL\\\\) and \\\\(POC\\\\).\n  * *Open Within Value:* Sell rallies at \\\\(POC\\\\) and \\\\(VAH\\\\).\n\n#### **Virgin Levels (VPOC / VPC Fade & Target)**\n* **Virgin Point of Control (VPOC / VPC):** A POC or Volume POC that was never touched during its session of origin.\n* **Behavior:** Acts as a magnet (upward of 80% are filled within a week).\n* **Strategy:** Used as high-probability profit targets for trend/breakout plays or as responsive fading zones when tested early in a session.\n\n#### **Volume Point of Control (VPOC) Escalator Effect**\n* In an uptrend, every pullback to yesterday's VPOC or High Volume Area (HVA) serves as a low-risk buying opportunity as price steps higher.\n\n#### **Unchanged VPOC Relationship**\n* Two or more consecutive days with an unchanged VPOC indicate tight consolidation and build up energy for a major breakout move.\n\n---"
+    },
+    {
+      "heading": "5. Multiple Pivot Hot Zones (Confluence Strategies)",
+      "supplied_text": "### **5. Multiple Pivot Hot Zones (Confluence Strategies)**\n\n* **Double Pivot Hot Zone (DPZ):** Occurs when any two independent pivot levels align in close proximity (e.g., \\\\(S2 + L4\\\\), or \\\\(R2 + \\text{Virgin POC}\\\\)) to create reinforced support or resistance.\n* **Golden Pivot Zone (GPZ):** A high-confluence setup created when a Camarilla level (\\\\(H3\\\\) or \\\\(L3\\\\)) or Money Zone level (\\\\(VAH, VAL, POC, VPOC\\\\)) falls **inside** the Central Pivot Range (\\\\(TC \\ge \\text{Level} \\ge BC\\\\)).\n  * **Bearish GPZ:** \\\\(H3\\\\) or a Money Zone level inside the CPR \\\\(\\rightarrow\\\\) Sell setups target \\\\(S1\\\\) or \\\\(L3\\\\).\n  * **Bullish GPZ:** \\\\(L3\\\\) or a Money Zone level inside the CPR \\\\(\\rightarrow\\\\) Buy setups target \\\\(R1\\\\) or \\\\(H3\\\\).\n* **Multiple Timeframe Hot Zones (MTZ):** Formed when Daily, Weekly, Monthly, and Yearly pivots overlap in the same price band, uniting Day Traders, Swing Traders, Position Traders, and Investors for major institutional moves.\n\n---\n\n📘 *Would you like me to build a Slide Deck presentation, an interactive Quiz, or Flashcards on these strategies for quick revision?*"
+    }
+  ],
+  "entries": [
+    {
+      "id": "PB01",
+      "category": "Candles",
+      "name": "Wick reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Exact pivot/value zone context",
+        "Risk sizing and stop/exit rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB02",
+      "category": "Candles",
+      "name": "Extreme reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Average-range lookback absent in paste; 20 is a project feature choice",
+        "Exact trend/context and exit rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB03",
+      "category": "Candles",
+      "name": "Outside reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Unindexed comparisons are ambiguous; project uses previous-bar extremes",
+        "Stop, sizing and pivot-context rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB04",
+      "category": "Candles",
+      "name": "Doji reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Risk/exit rules and instrument/timeframe",
+        "Execution only after the first confirming close"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB05",
+      "category": "CPR",
+      "name": "CPR and floor levels",
+      "research_feature": "pivot_boss.calc_cpr",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Completed prior-session OHLC",
+        "Levels alone do not specify entries"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB06",
+      "category": "CPR",
+      "name": "Seven two-day CPR relationships",
+      "research_feature": "pivot_boss_research.cpr_relationship",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Tick/tolerance definition",
+        "Opening confirmation and execution rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB07",
+      "category": "CPR",
+      "name": "Pivot width hypotheses",
+      "research_feature": "pivot_boss.classify_cpr_width",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Relative width threshold or training-only quantiles",
+        "Prospective validation of day-type association"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB08",
+      "category": "CPR",
+      "name": "Pivot range trend",
+      "research_feature": "pivot_boss.analyse_cpr_trend",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Trend persistence and session definition",
+        "Existing local trend rule is an adaptation"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB09",
+      "category": "CPR",
+      "name": "Magnet trade",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Gap threshold, entry, stop and time horizon",
+        "Independent touch statistics and net option outcomes"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null,
+      "reported_touch_claim": {
+        "reported_value": 0.63,
+        "validated_in_this_system": false,
+        "trade_win_probability": null
+      }
+    },
+    {
+      "id": "PB10",
+      "category": "Camarilla",
+      "name": "Camarilla levels H1-H5/L1-L5",
+      "research_feature": "pivot_boss.calc_camarilla_pivots",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Prior completed session OHLC",
+        "No execution from a level alone"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB11",
+      "category": "Camarilla",
+      "name": "H3 reversal",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Quantify momentum stalls/confirmation",
+        "Fill timing, sizing, time exit and fees"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB12",
+      "category": "Camarilla",
+      "name": "L3 reversal",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Quantify price strength/confirmation",
+        "Fill timing, sizing, time exit and fees"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB13",
+      "category": "Camarilla",
+      "name": "H4 breakout",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Close-based crossing and next-observable entry",
+        "Gap/target reachability, quantity and expiry selection"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB14",
+      "category": "Camarilla",
+      "name": "L4 breakout",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Close-based crossing and next-observable entry",
+        "Gap/target reachability, quantity and expiry selection"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB15",
+      "category": "Camarilla",
+      "name": "Trend pullback entries",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Trend classifier and opening relation",
+        "Trigger, invalidation and maximum holding period"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB16",
+      "category": "Camarilla",
+      "name": "Hidden H1/H2/L1/L2 reversals",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Prior wide-range threshold",
+        "Exact rejection trigger, stop and exit"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB17",
+      "category": "Money Zone",
+      "name": "Time-based POC and value area",
+      "research_feature": "pivot_boss_research.profile_from_price_counts",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Observed TPO counts and session boundaries",
+        "Row size/tie/expansion conventions"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB18",
+      "category": "Money Zone",
+      "name": "Volume-at-price POC and value area",
+      "research_feature": "pivot_boss_research.profile_from_price_counts",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Observed executed volume by price",
+        "Do not replace with uniformly distributed OHLCV volume"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB19",
+      "category": "Money Zone",
+      "name": "Value-area trend entries",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Completed prior-session profile and trend rules",
+        "Pullback trigger, stop/exit and risk rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB20",
+      "category": "Money Zone",
+      "name": "Virgin time/volume POC",
+      "research_feature": "pivot_boss_research.virgin_level_status",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Origin-session identifier and complete subsequent-session history",
+        "Define touch/fade timing without a universal win rate"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null,
+      "reported_touch_claim": {
+        "reported_value_at_least": 0.8,
+        "reported_horizon": "one week",
+        "validated_in_this_system": false,
+        "trade_win_probability": null
+      }
+    },
+    {
+      "id": "PB21",
+      "category": "Money Zone",
+      "name": "Volume POC escalator",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Observed volume POC and causal trend sequence",
+        "Entry tolerance, protection and net-cost evidence"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB22",
+      "category": "Money Zone",
+      "name": "Unchanged volume POC",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Tick-based equality and consecutive-session count",
+        "Breakout/exit rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB23",
+      "category": "Confluence",
+      "name": "Double pivot hot zone",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Independent level origins and proximity tolerance",
+        "Avoid duplicate labels of the same level; define execution and risk"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB24",
+      "category": "Confluence",
+      "name": "Golden pivot zone",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Normalized CPR and independently sourced Camarilla/Money Zone levels",
+        "Trigger, directional conflict and stop/target rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB25",
+      "category": "Confluence",
+      "name": "Multiple-timeframe hot zones",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Completed daily/weekly/monthly/yearly periods",
+        "Proximity, independent origins and execution timing"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    }
+  ],
+  "corrections": [
+    "Normalize CPR bounds with min/max of raw BC and TC; raw TC may be below raw BC.",
+    "Outside reversals require indexed bars; literal Low < Low and High > High cannot be executable definitions.",
+    "Time-based POC and volume-based POC are distinct; VPOC is also used ambiguously for virgin versus volume POC.",
+    "A virgin profile level is untested in subsequent sessions, not untouched in its formation session.",
+    "Reported touch rates do not establish trade win rates or monthly income probability.",
+    "Narrow/wide CPR thresholds, average-range lookbacks, equality tolerances and tie policies require explicit specifications.",
+    "Current-period and future daily bars cannot supply prior completed higher-timeframe pivots.",
+    "OHLCV-uniform volume profiles are modeled approximations, not observed executed volume by price."
+  ],
+  "related_local_files": [
+    "pivot_boss.py",
+    "pivot_scalping_strategy.py",
+    "volume_profile_advanced.py",
+    "indicators.py",
+    "backtest_pivot_boss.py",
+    "backtest_pivot_boss_intraday.py"
+  ],
+  "original_28_group_catalog_changed": false,
+  "orders_placed": 0
+}

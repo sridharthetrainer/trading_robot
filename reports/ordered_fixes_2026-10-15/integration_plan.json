@@ -1,0 +1,1089 @@
+{
+  "as_of": "2026-10-15",
+  "source_sha256": "6338433af38cc1abc2090f769e4d8e96d74f2f9d57e0c7c9f25f4e9cb522c871",
+  "group_count": 28,
+  "named_variant_count": 60,
+  "declared_configuration_count": 86,
+  "configurations_evaluated": 0,
+  "capabilities_are_verified": false,
+  "kind_counts": {
+    "signal_strategy": 14,
+    "portfolio_allocator": 4,
+    "predictive_model": 4,
+    "rl_agent": 1,
+    "risk_overlay": 1,
+    "microstructure_inference": 1,
+    "optimizer": 1,
+    "market_making": 1,
+    "execution_algorithm": 1
+  },
+  "runnable_backtests": 0,
+  "live_eligible": 0,
+  "probability_of_monthly_target": null,
+  "models": [
+    {
+      "id": "Q01",
+      "name": "The Perfect Order FX Strategy",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "ADX initialization convention",
+        "Position sizing and leverage",
+        "Stop trigger and gap-through fill semantics",
+        "Whether the five-bar gate resets after exit",
+        "End-of-day crossing exit execution timing"
+      ],
+      "missing_declared_data": [
+        "daily_ohlc",
+        "dated_costs"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "backtest_ma_cross.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q02",
+      "name": "Enhanced Multi-Factor Technical & Sentiment Strategy",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Momentum return definition and MA type",
+        "Point-in-time investable universe and rank tie rules",
+        "Transcript publication timestamps and model version",
+        "Portfolio weight and rebalance rules",
+        "Trailing ATR update and execution timing"
+      ],
+      "missing_declared_data": [
+        "daily_adjusted_ohlcv",
+        "point_in_time_universe",
+        "publication_time_transcripts"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "strategies_new.py",
+        "news_sentiment_engine.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q03",
+      "name": "Triple Technical Breakout (ASP Framework: ADX + Supertrend + Fibonacci Pivots)",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Supertrend ATR period and multiplier",
+        "ATR period and stop distance",
+        "Prior-session pivot formula and S1/P/R1 ambiguity",
+        "Exact Fibonacci target selection and execution timeframe"
+      ],
+      "missing_declared_data": [
+        "ohlc",
+        "prior_session_pivots"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "backtest_fibonacci.py",
+        "indicators.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q04",
+      "name": "Dual & Triple Moving Average Crossover Systems",
+      "kind": "signal_strategy",
+      "named_variants": 4,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 4,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "ATR period and stop multiple",
+        "Which variants inherit the 2% sizing rule",
+        "Triple-system confirmation sequencing and slope period",
+        "Exit and reversal rules per variant"
+      ],
+      "missing_declared_data": [
+        "dated_costs",
+        "ohlc",
+        "portfolio_equity"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "backtest_ma_cross.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q05",
+      "name": "MACD Momentum with Volume Surge Filter",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Signal timeframe",
+        "Volume SMA includes current bar or only prior bars",
+        "Entry timing after complete volume is known",
+        "Stops, exits and sizing"
+      ],
+      "missing_declared_data": [
+        "ohlcv"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "backtest_macd_crossover.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q06",
+      "name": "Dual-Lookback Hybrid Momentum-Mean Reversion Strategy",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Signal timeframe and permitted instruments",
+        "Close auction order cutoff or next-open adaptation",
+        "Costs, sizing, stops and reversal fills"
+      ],
+      "missing_declared_data": [
+        "ohlc"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q07",
+      "name": "RSI Mean Reversion with Stationarity Filter",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "ADF window, deterministic terms and lag selection",
+        "Test refit timing and multiple-testing control",
+        "Position sizing, stop and time exits",
+        "Execution timeframe"
+      ],
+      "missing_declared_data": [
+        "ohlc",
+        "rolling_stationarity_training"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "backtest_mean_reversion.py",
+        "indicators.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q08",
+      "name": "Cointegrated Pairs & Triples Trading (CADF & Johansen)",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Point-in-time asset universe and formation window",
+        "CADF/Johansen deterministic terms and lags",
+        "Spread normalization and hedge-ratio refit rules",
+        "Entry/exit/stop thresholds and leverage",
+        "Separate dollar-neutral exposure constraint"
+      ],
+      "missing_declared_data": [
+        "borrow_and_margin",
+        "synchronized_multi_asset_prices"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "pairs_stat_arb_validation.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q09",
+      "name": "Bollinger Band Spread Mean Reversion",
+      "kind": "signal_strategy",
+      "named_variants": 2,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 2,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Spread definition and hedge weights",
+        "Lookback and standard-deviation estimator",
+        "Select one threshold example or count each variant as a trial",
+        "Maximum scaling inventory and hard loss limit",
+        "Execution timeframe and financing"
+      ],
+      "missing_declared_data": [
+        "borrow_and_margin",
+        "synchronized_multi_asset_prices"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "pairs_stat_arb_validation.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q10",
+      "name": "Dynamic Kalman Filter Pairs Trading",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "State transition and observation matrices",
+        "Process/measurement noise and initial covariance",
+        "Predict-before-update ordering",
+        "Exit, sizing, stop and beta-refit constraints"
+      ],
+      "missing_declared_data": [
+        "borrow_and_margin",
+        "synchronized_multi_asset_prices"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q11",
+      "name": "Intraday Rolling OLS Regression Pairs Engine",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 27,
+      "declared_configurations": 27,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Asset universe and prior training selection",
+        "Spread normalization, regression intercept and stop",
+        "Maximum holding period and hedge rebalancing",
+        "Borrow/margin constraints and synchronized executable leg quotes"
+      ],
+      "missing_declared_data": [
+        "borrow_and_margin",
+        "executable_multi_leg_quotes",
+        "synchronized_minute_prices"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "pairs_stat_arb_validation.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q12",
+      "name": "Cross-Sectional Basket Mean Reversion",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Return measurement window",
+        "Weight normalization and gross leverage",
+        "Point-in-time universe and rebalance auction timing",
+        "Short availability, financing and costs"
+      ],
+      "missing_declared_data": [
+        "borrow_and_margin",
+        "daily_adjusted_prices",
+        "point_in_time_universe"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "quant_models.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q13",
+      "name": "Opening Gap-Down Intraday Strategy",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Gap return denominator and standard-deviation ddof",
+        "Point-in-time top-10 ranking tie rule",
+        "How auction opening prices become observable before fills",
+        "Target alternative, sizing and loss limit"
+      ],
+      "missing_declared_data": [
+        "auction_executable_quotes",
+        "daily_adjusted_ohlcv",
+        "point_in_time_universe"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "strategies_new.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q14",
+      "name": "Futures Calendar Spread & Roll Return Strategy",
+      "kind": "signal_strategy",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Eligible futures and synchronized contract prices",
+        "Beta and rolling mean/std lookback",
+        "Exit threshold, roll price and position sizing",
+        "Carry/financing and expiry settlement convention"
+      ],
+      "missing_declared_data": [
+        "dated_futures_contracts",
+        "historical_roll_and_margin",
+        "synchronized_multi_leg_prices"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q15",
+      "name": "Follow-the-Winner (FTW) Momentum Portfolio Family",
+      "kind": "portfolio_allocator",
+      "named_variants": 5,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 5,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Per-family learning rates, ridge beta and Monte Carlo budget/seed",
+        "Initial portfolio and cash treatment",
+        "Rebalance timing, turnover constraints and transaction costs"
+      ],
+      "missing_declared_data": [
+        "adjusted_price_relatives",
+        "dated_costs",
+        "point_in_time_universe"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q16",
+      "name": "Follow-the-Loser (FTL-Reversion) Portfolio Family",
+      "kind": "portfolio_allocator",
+      "named_variants": 5,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 5,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Anticor window and exact capital transfer rules",
+        "PAMR epsilon/variant and aggressiveness parameter",
+        "CWMR mean/variance update and confidence parameter",
+        "OLMAR window/epsilon and RMR spatial-median convergence rules",
+        "Simplex projection, cash, costs and turnover limits"
+      ],
+      "missing_declared_data": [
+        "adjusted_price_relatives",
+        "dated_costs",
+        "point_in_time_universe"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q17",
+      "name": "Nonparametric Pattern-Matching Portfolio Framework",
+      "kind": "portfolio_allocator",
+      "named_variants": 12,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 12,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Window lengths, histogram bins and kernel bandwidth",
+        "kNN k and correlation cutoff",
+        "Candidate-label timing and minimum sample count",
+        "Optimizer constraints, covariance estimator and costs"
+      ],
+      "missing_declared_data": [
+        "adjusted_price_relatives",
+        "dated_costs",
+        "point_in_time_universe"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "quant_models.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q18",
+      "name": "Meta-Learning & Ensemble Portfolio Frameworks",
+      "kind": "portfolio_allocator",
+      "named_variants": 4,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 4,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Precise gradient/Newton updates and regularization",
+        "Expert initialization, birth/pruning schedule and random seeds",
+        "Expert returns must be causal and net of implementation costs",
+        "Turnover budget and comparator definition"
+      ],
+      "missing_declared_data": [
+        "causal_expert_returns",
+        "dated_costs"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q19",
+      "name": "Supervised Random Forest Classifier (Walk-Forward)",
+      "kind": "predictive_model",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Names and causal availability of all 47 features",
+        "Labels, entry/exit rules, costs and threshold calibration",
+        "Forest hyperparameters, seeds and missing-data policy",
+        "Purging/embargo and minimum rolling training coverage"
+      ],
+      "missing_declared_data": [
+        "causal_feature_table",
+        "purged_forward_labels",
+        "sufficient_walk_forward_history"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "ml_trainer.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q20",
+      "name": "ASP-LSTM Deep Learning Hybrid System",
+      "kind": "predictive_model",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Sequence length, normalization and full ASP parameters",
+        "Loss, optimizer, learning rate, epochs and seeds",
+        "Exact prediction target and sign/threshold mapping",
+        "Temporal validation, leakage control and risk rules"
+      ],
+      "missing_declared_data": [
+        "causal_asp_features",
+        "ohlcv",
+        "purged_forward_labels"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "lstm_model.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q21",
+      "name": "Multi-Factor Supervised Classification Suite",
+      "kind": "predictive_model",
+      "named_variants": 4,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 4,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Full feature definitions and label availability",
+        "Per-algorithm hyperparameters and calibration",
+        "Purging/embargo for overlapping 21-day labels",
+        "Execution, risk and missing-data rules"
+      ],
+      "missing_declared_data": [
+        "causal_feature_table",
+        "purged_forward_labels"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "ml_trainer.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q22",
+      "name": "Multi-Modal Sentiment-Gated Execution",
+      "kind": "predictive_model",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Publication-time data, revisions and deduplication",
+        "FinBERT checkpoint/version and score aggregation",
+        "Sentiment cutoff, expiration window and conflict policy",
+        "Underlying technical strategy and execution timing"
+      ],
+      "missing_declared_data": [
+        "publication_time_text",
+        "versioned_sentiment_model"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "news_sentiment_engine.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q23",
+      "name": "Advantage Actor-Critic (A2C) Deep RL Portfolio Agent",
+      "kind": "rl_agent",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Concrete state normalization, action bounds and lot constraints",
+        "Reward scaling and transaction-cost accounting without double counting",
+        "Discount, n-step horizon, networks and training budgets",
+        "Point-in-time environment, train/evaluation separation and seeds"
+      ],
+      "missing_declared_data": [
+        "point_in_time_prices",
+        "realistic_portfolio_simulator"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [
+        "rl_agent.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q24",
+      "name": "Turbulence Index Circuit Breaker",
+      "kind": "risk_overlay",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Historical mean/covariance window and shrinkage",
+        "Threshold fitting on training data only",
+        "Trigger observability, next executable exit and re-entry rule",
+        "Instrument-specific exit costs and liquidity constraints"
+      ],
+      "missing_declared_data": [
+        "executable_quotes",
+        "synchronized_asset_returns"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [],
+      "related_local_files": [
+        "portfolio_risk.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q25",
+      "name": "Gaussian Process Inverse Reinforcement Learning (GPIRL)",
+      "kind": "microstructure_inference",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "243-state encoding and full MDP transitions",
+        "Order-level create/cancel/execute audit-trail dataset",
+        "GP kernel/prior, likelihood and inference algorithm",
+        "Identification assumptions and evaluation objective"
+      ],
+      "missing_declared_data": [
+        "order_level_audit_trail"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q26",
+      "name": "Genetic Algorithm (GA) Strategy Rule Discovery",
+      "kind": "optimizer",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Causal indicator-policy genome; avoid timestamp-specific action memorization",
+        "Population, generations, crossover/mutation distributions and seeds",
+        "Fitness penalty coefficients and separate locked validation",
+        "Count every evaluated genome and impose runtime/compute budgets"
+      ],
+      "missing_declared_data": [
+        "causal_policy_simulator",
+        "locked_validation_windows"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [],
+      "related_local_files": [
+        "strategy_evolution.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q27",
+      "name": "Multivariate Hawkes Process High-Frequency Market Making",
+      "kind": "market_making",
+      "named_variants": 1,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 1,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Event definitions, kernel/decay and stability constraints",
+        "Timestamped order-level feed and exchange queue rules",
+        "HJB boundary conditions, inventory bounds and gamma",
+        "Latency, adverse selection, fill model and fee/rebate calibration"
+      ],
+      "missing_declared_data": [
+        "calibrated_latency_and_fills",
+        "exchange_queue_events",
+        "order_level_audit_trail"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [
+        "Exact underlying/contract/expiry/strike selection",
+        "Dated lot sizes, tick sizes, settlement and margin rules",
+        "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+        "Partial-fill, protection and reconciliation model"
+      ],
+      "related_local_files": [],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    },
+    {
+      "id": "Q28",
+      "name": "Institutional Algorithmic Order Execution Suite",
+      "kind": "execution_algorithm",
+      "named_variants": 4,
+      "grid_points_per_variant": 1,
+      "declared_configurations": 4,
+      "status": "SPECIFICATION_INCOMPLETE",
+      "missing_definitions": [
+        "Parent-order side/size/limit and participation constraints",
+        "Schedules, horizon and point-in-time volume forecast",
+        "Venue rules, partial fills, cancellation and reconciliation",
+        "Counterfactual benchmark, impact model and latency budget"
+      ],
+      "missing_declared_data": [
+        "execution_benchmark",
+        "parent_order_intents",
+        "timestamped_depth"
+      ],
+      "common_requirements": [
+        "Versioned causal specification and source provenance",
+        "Point-in-time universe, timestamps and instrument metadata",
+        "Explicit execution timing, costs, financing and risk limits",
+        "Chronological validation, trial accounting and independent forward evidence",
+        "Existing research admission requirements apply before historical evaluation"
+      ],
+      "options_requirements": [],
+      "related_local_files": [
+        "execution_algo.py"
+      ],
+      "adapter": null,
+      "backtest_schedulable": false,
+      "live_approved": false
+    }
+  ],
+  "research_adaptations": [
+    {
+      "model_id": "Q01",
+      "adapter": "quant_research_adapters.backtest",
+      "evidence_kind": "UNDERLYING_PROXY",
+      "options_translation_ready": false,
+      "source_replica": false,
+      "auto_schedule": false,
+      "live_approved": false
+    },
+    {
+      "model_id": "Q06",
+      "adapter": "quant_research_adapters.backtest",
+      "evidence_kind": "UNDERLYING_PROXY",
+      "options_translation_ready": false,
+      "source_replica": false,
+      "auto_schedule": false,
+      "live_approved": false
+    }
+  ]
+}

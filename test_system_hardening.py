@@ -118,6 +118,28 @@ def test_request_governor_is_shared_across_callers(monkeypatch, tmp_path):
     assert waits == [0.5]
 
 
+@pytest.mark.parametrize("state", ["9999999999", "nan", "inf", "partial-write"])
+def test_request_governor_recovers_from_future_or_invalid_state(monkeypatch, tmp_path, state):
+    import request_governor
+
+    monkeypatch.setattr(request_governor, "_STATE_DIR", tmp_path)
+    (tmp_path / "broker.last").write_text(state)
+    monkeypatch.setattr(request_governor.time, "time", lambda: 100.0)
+    waits = []
+    monkeypatch.setattr(request_governor.time, "sleep", waits.append)
+    assert request_governor.acquire("broker", 0.5) == 0.5
+    assert waits == [0.5]
+    assert float((tmp_path / "broker.last").read_text()) == 100.0
+
+
+@pytest.mark.parametrize("interval", [-1, float("nan"), float("inf")])
+def test_request_governor_rejects_invalid_intervals(interval):
+    import request_governor
+
+    with pytest.raises(ValueError, match="finite and nonnegative"):
+        request_governor.acquire("broker", interval)
+
+
 def test_request_governor_shares_state_across_separate_module_instances(monkeypatch, tmp_path):
     """The real bug: two OS processes each import request_governor and get
     their own in-memory state. Simulate that by clearing the in-process

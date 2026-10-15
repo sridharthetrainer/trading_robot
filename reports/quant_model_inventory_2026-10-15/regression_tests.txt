@@ -1,0 +1,37 @@
+........................................................................ [  5%]
+........................................................................ [ 11%]
+........................................................................ [ 17%]
+........................................................................ [ 23%]
+........................................................................ [ 29%]
+........................................................................ [ 35%]
+........................................................................ [ 41%]
+........................................................................ [ 46%]
+........................................................................ [ 52%]
+........................................................................ [ 58%]
+........................................................................ [ 64%]
+........................................................................ [ 70%]
+........................................................................ [ 76%]
+........................................................................ [ 82%]
+........................................................................ [ 87%]
+........................................................................ [ 93%]
+........................................................................ [ 99%]
+.....                                                                    [100%]
+=============================== warnings summary ===============================
+test_ml_trainer_parallel.py::test_train_all_parallel_matches_serial_semantics_end_to_end
+test_ml_trainer_parallel.py::test_train_all_parallel_matches_serial_semantics_end_to_end
+test_ml_trainer_parallel.py::test_train_all_one_bad_symbol_does_not_lose_the_others
+test_ml_trainer_parallel.py::test_train_all_one_bad_symbol_does_not_lose_the_others
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=363964) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+  /tmp/trading-audit-adygtr9f/reports/research_2026-10-14/run_test7_momentum.py:54: RuntimeWarning: All-NaN slice encountered
+    liq = np.nanmedian(TVv[p - LIQ_WINDOW + 1:p + 1], axis=0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1229 passed, 10 warnings in 91.87s (0:01:31)

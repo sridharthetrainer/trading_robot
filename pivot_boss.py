@@ -1,7 +1,8 @@
 """
 pivot_boss.py
 
-Complete implementation of Frank Ochoa's "Secrets of a Pivot Boss" strategies.
+Pivot-derived research utilities inspired by Frank Ochoa.
+Coverage is partial; levels and heuristic signals do not establish trading edge.
 
 STRATEGIES IMPLEMENTED
 ───────────────────────
@@ -185,28 +186,31 @@ def calc_ochao_level_pack(high: float, low: float, close: float, prefix: str = "
     return out
 
 
-def _completed_period_ohlc(df: pd.DataFrame, period: str) -> Tuple[float, float, float]:
-    """Return H/L/C for the last completed D/W/M period from an intraday/daily frame."""
-    if df is None or len(df) < 2:
-        return 0.0, 0.0, 0.0
-    d = df.copy()
-    d.columns = [str(c).lower() for c in d.columns]
-    if not {"high", "low", "close"}.issubset(d.columns):
-        return 0.0, 0.0, 0.0
-    if not isinstance(d.index, pd.DatetimeIndex):
-        bars = d.iloc[:-1] if len(d) > 1 else d
-        return float(bars["high"].max()), float(bars["low"].min()), float(bars["close"].iloc[-1])
-    freq = "ME" if period == "M" else "YE" if period == "Y" else period
-    grouped = d.groupby(pd.Grouper(freq=freq))
-    rows = []
-    for _, g in grouped:
-        if len(g):
-            rows.append(g)
-    if len(rows) < 2:
-        bars = d.iloc[:-1] if len(d) > 1 else d
-    else:
-        bars = rows[-2]
-    return float(bars["high"].max()), float(bars["low"].min()), float(bars["close"].iloc[-1])
+def _completed_period_ohlc(df: pd.DataFrame, period: str, as_of=None) -> Tuple[float, float, float]:
+    """Last prior calendar period only; insufficient history never uses current bars."""
+    from zoneinfo import ZoneInfo
+    if df is None or df.empty or not isinstance(df.index,pd.DatetimeIndex):
+        return 0.0,0.0,0.0
+    d=df.copy();d.columns=[str(c).lower() for c in d.columns]
+    if not {'high','low','close'}.issubset(d.columns) or not d.index.is_monotonic_increasing or d.index.has_duplicates:
+        return 0.0,0.0,0.0
+    d.index=d.index.tz_localize('Asia/Kolkata') if d.index.tz is None else d.index.tz_convert('Asia/Kolkata')
+    anchor=pd.Timestamp(as_of) if as_of is not None else d.index[-1]
+    anchor=anchor.tz_localize('Asia/Kolkata') if anchor.tzinfo is None else anchor.tz_convert('Asia/Kolkata')
+    d=d.loc[d.index<=anchor]
+    freq={'D':'D','W':'W-SUN','M':'M','Y':'Y'}.get(period)
+    if freq is None:raise ValueError('Unsupported pivot period')
+    keys=d.index.tz_localize(None).to_period(freq)
+    prior=keys < anchor.tz_localize(None).to_period(freq)
+    if not prior.any():return 0.0,0.0,0.0
+    target=keys[prior].max() if period=='D' else anchor.tz_localize(None).to_period(freq)-1
+    bars=d.loc[prior & (keys==target)]
+    if bars.empty:return 0.0,0.0,0.0
+    values=bars[['high','low','close']].apply(pd.to_numeric,errors='coerce')
+    import numpy as np
+    if not np.isfinite(values.to_numpy()).all() or (values<=0).any().any():return 0.0,0.0,0.0
+    if ((values.high<values.close)|(values.low>values.close)|(values.high<values.low)).any():return 0.0,0.0,0.0
+    return float(values.high.max()),float(values.low.min()),float(values.close.iloc[-1])
 
 
 def build_ochao_levels(df: pd.DataFrame, df_daily: Optional[pd.DataFrame] = None) -> Dict[str, Dict[str, float]]:
@@ -217,10 +221,12 @@ def build_ochao_levels(df: pd.DataFrame, df_daily: Optional[pd.DataFrame] = None
     Weekly/monthly levels prefer df_daily when supplied.
     """
     source = df_daily if df_daily is not None and len(df_daily) >= 5 else df
-    dh, dl, dc = _completed_period_ohlc(df, "D")
-    wh, wl, wc = _completed_period_ohlc(source, "W")
-    mh, ml, mc = _completed_period_ohlc(source, "M")
-    yh, yl, yc = _completed_period_ohlc(source, "Y")
+    anchor=df.index[-1] if df is not None and len(df) and isinstance(df.index,pd.DatetimeIndex) else None
+    if anchor is None:return {key:{} for key in ("daily","weekly","monthly","yearly")}
+    dh, dl, dc = _completed_period_ohlc(df, "D", as_of=anchor)
+    wh, wl, wc = _completed_period_ohlc(source, "W", as_of=anchor)
+    mh, ml, mc = _completed_period_ohlc(source, "M", as_of=anchor)
+    yh, yl, yc = _completed_period_ohlc(source, "Y", as_of=anchor)
     return {
         "daily": calc_ochao_level_pack(dh, dl, dc),
         "weekly": calc_ochao_level_pack(wh, wl, wc, "W_"),
@@ -330,51 +336,32 @@ def classify_cpr_width(cpr: Dict[str, float]) -> Dict[str, str]:
 
 # ── Virgin CPR Detection ──────────────────────────────────────────────────────
 
-def is_virgin_cpr(
-    df_today: pd.DataFrame,
-    cpr:      Dict[str, float],
-) -> Dict[str, bool]:
+def is_virgin_cpr(df_today: pd.DataFrame, cpr: Dict[str,float]) -> Dict:
+    """Untested CPR in the supplied observation window; no touch probability implied.
+
+    Missing/malformed bars yield UNKNOWN, never evidence of virgin support.
+    This CPR state is distinct from a prior-session time/volume POC.
     """
-    Detect if today's CPR is Virgin (price has not touched it yet).
-    Virgin CPR = magnetic level — price will be pulled toward it.
-
-    A CPR is touched if any bar's High >= BC and Low <= TC
-    (i.e., price entered the CPR range).
-    """
-    tc    = cpr.get("tc", 0)
-    bc    = cpr.get("bc", 0)
-    pivot = cpr.get("pivot", 0)
-
-    if df_today is None or len(df_today) == 0:
-        return {"virgin": True, "touched": False, "bars_since_touch": -1}
-
-    df = df_today.copy()
-    df.columns = [c.lower() for c in df.columns]
-
-    if "high" not in df.columns or "low" not in df.columns:
-        return {"virgin": True, "touched": False, "bars_since_touch": -1}
-
-    # CPR is touched if price entered the TC-BC zone
-    touched_mask = (df["high"] >= bc) & (df["low"] <= tc)
-    touched      = bool(touched_mask.any())
-
-    first_touch = int(touched_mask.idxmax()) if touched else -1
-    bars_since  = len(df) - first_touch if touched else len(df)
-
-    pivot_touched = bool((df["high"] >= pivot) & (df["low"] <= pivot)).any() \
-                    if pivot > 0 else False
-
-    return {
-        "virgin":           not touched,
-        "touched":          touched,
-        "pivot_touched":    pivot_touched,
-        "bars_since_touch": bars_since,
-        "note": (
-            "Virgin CPR — price will be attracted to this zone"
-            if not touched
-            else f"CPR touched {bars_since} bars ago"
-        ),
-    }
+    import numpy as np
+    unknown=dict(virgin=None,touched=None,pivot_touched=None,bars_since_touch=-1,status='UNKNOWN')
+    if df_today is None or df_today.empty:return unknown
+    df=df_today.copy();df.columns=[str(c).lower() for c in df.columns]
+    if not {'high','low'}.issubset(df.columns):return unknown
+    try:
+        low,high=sorted((float(cpr['bc']),float(cpr['tc'])))
+        pivot=float(cpr['pivot'])
+        values=df[['high','low']].apply(pd.to_numeric,errors='coerce')
+        if not np.isfinite([low,high,pivot]).all() or low<=0 or not low<=pivot<=high:return unknown
+        if not np.isfinite(values.to_numpy()).all() or (values<=0).any().any() or (values.high<values.low).any():return unknown
+    except (KeyError,ValueError,TypeError):return unknown
+    touches=((values.high>=low)&(values.low<=high)).to_numpy()
+    touched=bool(touches.any())
+    last=int(np.flatnonzero(touches)[-1]) if touched else None
+    pivot_touched=bool(((values.high>=pivot)&(values.low<=pivot)).any())
+    return dict(virgin=not touched,touched=touched,pivot_touched=pivot_touched,
+                bars_since_touch=len(df)-1-last if last is not None else len(df),
+                status='TESTED' if touched else 'UNTESTED_IN_OBSERVED_WINDOW',
+                note='Observed touch state only; no calibrated return probability')
 
 
 # ── CPR Trend Analysis (multi-day) ────────────────────────────────────────────
@@ -656,13 +643,9 @@ def get_pdh_pdl(df: pd.DataFrame) -> Dict[str, float]:
     if "high" not in df_c.columns:
         return {}
 
-    prev_day_bars = df_c.iloc[:78]   # first 78 5-min bars = previous full session
-    if len(prev_day_bars) < 10:
-        return {}
-
-    pdh = float(prev_day_bars["high"].max())
-    pdl = float(prev_day_bars["low"].min())
-    pdc = float(prev_day_bars["close"].iloc[-1])
+    high,low,close=_completed_period_ohlc(df_c,'D')
+    if not high or not low:return {}
+    pdh,pdl,pdc=high,low,close
 
     return {
         "PDH": round(pdh, 2),
@@ -706,16 +689,14 @@ def pivot_boss_signal(
     if "close" not in df_c.columns:
         return empty
 
-    # ── Get previous day data ───────────────────────────────────────────
-    prev_bars  = df_c.iloc[:78]
-    if len(prev_bars) < 20:
-        return empty
-
-    prev_H = float(prev_bars["high"].max())  if "high"  in prev_bars.columns else 0
-    prev_L = float(prev_bars["low"].min())   if "low"   in prev_bars.columns else 0
-    prev_C = float(prev_bars["close"].iloc[-1])
-    if prev_H <= 0 or prev_L <= 0:
-        return empty
+    # Calendar sessions, not a fixed 78-bar slice (NSE 5m sessions have 75 bars).
+    if not isinstance(df_c.index,pd.DatetimeIndex) or not df_c.index.is_monotonic_increasing or df_c.index.has_duplicates:
+        return dict(empty,reason='timestamped_sessions_required')
+    session_index=df_c.index.tz_localize('Asia/Kolkata') if df_c.index.tz is None else df_c.index.tz_convert('Asia/Kolkata')
+    today=session_index[-1].date()
+    today_mask=session_index.date==today
+    prev_H,prev_L,prev_C=_completed_period_ohlc(df_c,'D')
+    if not prev_H or not prev_L:return empty
 
     # ── Calculate all levels ───────────────────────────────────────────
     cpr    = calc_cpr(prev_H, prev_L, prev_C)
@@ -724,34 +705,10 @@ def pivot_boss_signal(
     ochao_levels = build_ochao_levels(df_c, df_daily)
     pdh_pdl = get_pdh_pdl(df_c)
 
-    # ── Weekly levels from df_daily (if available) ─────────────────────
-    weekly_levels  = {}
-    monthly_levels = {}
-    if df_daily is not None and len(df_daily) >= 5:
-        try:
-            dfc = df_daily.copy()
-            dfc.columns = [c.lower() for c in dfc.columns]
-            # Weekly: last 5 daily bars
-            w_bars = dfc.tail(6).iloc[:-1]  # last full week
-            if len(w_bars) >= 3:
-                wH = float(w_bars["high"].max())
-                wL = float(w_bars["low"].min())
-                wC = float(w_bars["close"].iloc[-1])
-                weekly_levels = calc_weekly_pivots(wH, wL, wC)
-            # Monthly: last 20 daily bars
-            m_bars = dfc.tail(22).iloc[:-2]  # approx last month
-            if len(m_bars) >= 10:
-                mH = float(m_bars["high"].max())
-                mL = float(m_bars["low"].min())
-                mC = float(m_bars["close"].iloc[-1])
-                monthly_levels = calc_monthly_pivots(mH, mL, mC)
-        except Exception as _we:
-            logger.debug("Weekly/monthly pivot calc: %s", _we)
-
-    # ── Today's data ───────────────────────────────────────────────────
-    today_bars = df_c.iloc[78:]
-    if len(today_bars) < 3:
-        today_bars = df_c.iloc[-15:]
+    weekly_levels=ochao_levels.get('weekly',{})
+    monthly_levels=ochao_levels.get('monthly',{})
+    today_bars=df_c.loc[today_mask]
+    if len(today_bars)<3:return empty
 
     open_price = float(today_bars["open"].iloc[0]  if "open" in today_bars.columns else today_bars["close"].iloc[0])
     close      = float(df_c["close"].iloc[-1])

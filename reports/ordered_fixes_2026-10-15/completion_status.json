@@ -1,0 +1,54 @@
+{
+  "as_of": "2026-10-15",
+  "sequence": [
+    {
+      "step": 1,
+      "area": "Q01/Q06 runnable rules",
+      "implementation": "IMPLEMENTED_RESEARCH_ADAPTATIONS",
+      "evidence": "Synthetic causality and next-open backtests; no historical alpha evaluation performed",
+      "option_pnl_ready": false
+    },
+    {
+      "step": 2,
+      "area": "Options data",
+      "implementation": "FORWARD_TIMESTAMP_PRESERVATION_AND_DATED_IMPORT_IMPLEMENTED",
+      "external_requirement": "Verified historical quote/contract data still required; old missing data not repaired"
+    },
+    {
+      "step": 3,
+      "area": "Execution tests and recovery",
+      "implementation": "REPLAY_AND_EXACT_TERMINAL_RECONCILIATION_IMPLEMENTED",
+      "limitation": "Quote replay is not actual broker fill evidence",
+      "details": "Stable alphanumeric hashed broker tags, account-bound reviews, terminal order-book reconciliation, partial fills and consumed-depth replay."
+    },
+    {
+      "step": 4,
+      "area": "Portfolio risk",
+      "implementation": "FULL_PREMIUM_GATE_AND_FAIL_CLOSED_CHECKS_IMPLEMENTED",
+      "limitation": "Telegram live entries continue requiring a flat broker book; exits remain separately managed",
+      "details": "Combined disjoint manual/ALGO daily losses, flat native/broker live book, exact quantity, full-premium/correlation/cutoff controls."
+    },
+    {
+      "step": 5,
+      "area": "Probability report",
+      "implementation": "QUALIFIED_EVIDENCE_REPORT_AND_TELEGRAM_STATUS_IMPLEMENTED",
+      "monthly_probability": null,
+      "reason": "No qualified independent daily option evidence",
+      "telegram_command": "/probability"
+    }
+  ],
+  "live_approved": false,
+  "orders_sent": 0,
+  "services_restarted": false,
+  "remaining_requirements": [
+    "Verified historical exchange-time bid/ask and dated contract metadata imports",
+    "Independent forward net option outcomes across sufficient complete months",
+    "Controlled bot restart to activate source changes"
+  ],
+  "validation": {
+    "focused_passed": 154,
+    "full_regression_passed": 1275,
+    "warnings": 12,
+    "isolated_network_blocked": true
+  }
+}

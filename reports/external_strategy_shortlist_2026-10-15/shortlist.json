@@ -1,0 +1,212 @@
+{
+  "as_of": "2026-10-15",
+  "policy": "Research shortlist only; no orders, promotion, runtime parameter edits or capital allocation",
+  "capital": 500000,
+  "monthly_target": 30000,
+  "live_enabled_by_this_task": false,
+  "all_vendor_strategies_reviewed": false,
+  "performance_backtests_run_by_this_task": 0,
+  "candidates": [
+    {
+      "id": "EXT_ORB_30M_NSE_V1",
+      "family": "Opening-range breakout",
+      "sources": [
+        "https://tradetron.tech/community/t/30133/build-a-list-based-orb-opening-range-breakout-strategy",
+        "https://www.angelone.in/knowledge-center/online-share-trading/opening-range-breakout-strategy",
+        "https://chartink.com/screener/gap-up-opening-range-breakout-6"
+      ],
+      "existing_family_overlap": [
+        "option_strategy_registry.py",
+        "option_catalog_research.py"
+      ],
+      "status": "FAMILY_EXISTS_NEW_ADAPTATION_SPECIFIED",
+      "remaining_work": [
+        "Verify overlap with existing ORB parameter experiments before scheduling another test.",
+        "NSE timing and option overlay are project adaptations, not vendor performance claims.",
+        "Require synchronized actual option quotes and historically correct contract metadata for P&L."
+      ],
+      "research_priority": 1,
+      "live_eligible": false,
+      "win_probability": null,
+      "monthly_target_probability": null,
+      "project_adaptation": {
+        "scope": "Frozen research specification only; not installed in signal generation or execution",
+        "timezone": "Asia/Kolkata",
+        "underlying": "NIFTY",
+        "bar_interval": "5m",
+        "opening_range": "09:15 inclusive to 09:45 exclusive; require six complete valid 5-minute bars",
+        "signal": "First completed bar closing above range high or below range low, after the opening range; compare with preceding close to require a crossing",
+        "entry_window": "Signal must be known strictly before 11:30; one trade per session, no re-entry",
+        "entry": "Earliest observable executable quote after the signal; never fill at the completed signal bar price",
+        "direction": "CE for upside, PE for downside",
+        "contract": "ATM listed strike at signal time; nearest listed expiry at least two calendar days away; bind exact contract until exit",
+        "exits": "Underlying crossing opposite range boundary, underlying reaching entry spot plus/minus two opening-range widths, or 15:10 time exit, whichever is observed first",
+        "quote_requirements": "Actual exchange-timestamped uncrossed bid/ask with displayed quantity, quote age at most 10 seconds; buy at ask and sell at bid plus separately stated costs; missing exit path means unpriceable, never zero P&L",
+        "sizing": "Research comparison uses one historically valid contract lot; reject if full premium plus modeled charges exceeds INR 5000 on INR 500000 capital. Do not resize to reach income target.",
+        "parameter_search": "None for this specification; every later change is a new counted experiment",
+        "evidence": "Historical exploration only. Previously examined dates cannot become untouched confirmation data.",
+        "monthly_probability": "Not estimable until actual option outcomes and sufficient chronological months are available"
+      }
+    },
+    {
+      "id": "EXT_NR7",
+      "family": "NR7 compression breakout",
+      "sources": [
+        "https://chartink.com/screener/nr7-scanner"
+      ],
+      "existing_family_overlap": [
+        "signal_engine.py"
+      ],
+      "status": "FAMILY_FILTER_EXISTS_SOURCE_RULES_INCOMPLETE",
+      "remaining_work": [
+        "Source page was inaccessible through the research tool; do not infer its exact scanner formula.",
+        "An NR7 modifier is already present; a standalone strategy still needs explicit entry, exit and options selection rules."
+      ],
+      "research_priority": 3,
+      "live_eligible": false,
+      "win_probability": null,
+      "monthly_target_probability": null
+    },
+    {
+      "id": "EXT_RSI2",
+      "family": "Short-lookback RSI mean reversion",
+      "sources": [
+        "https://quantifiedstrategies.substack.com/p/rsi-trading-strategies"
+      ],
+      "existing_family_overlap": [
+        "strategies_new.py",
+        "signal_engine.py"
+      ],
+      "status": "FAMILY_EXISTS_EXACT_PUBLISHED_RULES_PAYWALLED",
+      "remaining_work": [
+        "Published article describes US ETF tests; exact rule section is subscription-only.",
+        "Do not label the existing local RSI2 thresholds as a reproduction of those paid rules.",
+        "Indian option translation is a separate hypothesis; existing RSI2 is not newly discovered."
+      ],
+      "research_priority": 3,
+      "live_eligible": false,
+      "win_probability": null,
+      "monthly_target_probability": null
+    },
+    {
+      "id": "EXT_DEBIT_VERTICAL",
+      "family": "Bull call / bear put debit spread",
+      "sources": [
+        "https://zerodha.com/varsity/chapter/bull-call-spread/",
+        "https://groww.in/p/bull-call-spread"
+      ],
+      "existing_family_overlap": [
+        "option_strategy_registry.py",
+        "option_catalog_research.py"
+      ],
+      "status": "STRUCTURE_EXISTS_TIMING_RULE_REQUIRED",
+      "remaining_work": [
+        "Catalog B1 already covers the structure; payoff mechanics alone do not specify a predictive entry.",
+        "Freeze signal, expiry, width, exits and all-leg quotes before testing.",
+        "Multi-leg execution remains outside the single-leg Telegram confirmation flow."
+      ],
+      "research_priority": 2,
+      "live_eligible": false,
+      "win_probability": null,
+      "monthly_target_probability": null
+    },
+    {
+      "id": "EXT_CREDIT_VERTICAL",
+      "family": "Defined-risk credit spread",
+      "sources": [
+        "https://zerodha.com/varsity/chapter/bull-put-spread/",
+        "https://groww.in/blog/best-option-trading-strategies"
+      ],
+      "existing_family_overlap": [
+        "option_strategy_registry.py",
+        "backtest_selective_vrp_credit_spread.py"
+      ],
+      "status": "STRUCTURE_AND_VOLATILITY_FILTER_RESEARCH_EXIST",
+      "remaining_work": [
+        "Reconcile prior selective-VRP research before proposing another equivalent experiment.",
+        "Need simultaneous executable leg prices, cost/margin assumptions and dated lot sizes."
+      ],
+      "research_priority": 2,
+      "live_eligible": false,
+      "win_probability": null,
+      "monthly_target_probability": null
+    },
+    {
+      "id": "EXT_BOLLINGER",
+      "family": "Bollinger breakout / mean reversion",
+      "sources": [
+        "https://www.investing.com/education/webinars/applying-bollinger-bands-to-your-charts-trading-13344"
+      ],
+      "existing_family_overlap": [
+        "backtest_bollinger_otm_momentum.py",
+        "backtest_bollinger_otm_reversal.py"
+      ],
+      "status": "FAMILY_EXISTS_EDUCATIONAL_SOURCE_NOT_COMPLETE_RULESET",
+      "remaining_work": [
+        "The webinar listing does not provide a complete reproducible system.",
+        "Breakout and fade are different hypotheses; do not combine after inspecting outcomes.",
+        "Existing intraday option research is model-dependent."
+      ],
+      "research_priority": 3,
+      "live_eligible": false,
+      "win_probability": null,
+      "monthly_target_probability": null
+    },
+    {
+      "id": "EXT_VOLATILITY_STRUCTURES",
+      "family": "Straddle / strangle / iron condor",
+      "sources": [
+        "https://zerodha.com/varsity/modules/",
+        "https://groww.in/blog/best-option-trading-strategies"
+      ],
+      "existing_family_overlap": [
+        "option_strategy_registry.py",
+        "option_catalog_research.py"
+      ],
+      "status": "STRUCTURES_EXIST_EVENT_AND_VOLATILITY_RULES_REQUIRED",
+      "remaining_work": [
+        "Catalog C1-C4 and D1-D4 already cover these structures.",
+        "Need causal event timestamps, volatility state and simultaneous leg quotes.",
+        "Structures with uncovered short-option exposure are not candidates for the current BUY-only confirmation workflow."
+      ],
+      "research_priority": 3,
+      "live_eligible": false,
+      "win_probability": null,
+      "monthly_target_probability": null
+    }
+  ],
+  "data_providers": [
+    {
+      "name": "Dhan",
+      "role": "Candidate expired-options/history and chain data source",
+      "source": "https://dhan.co/support/platforms/dhanhq-api/do-dhan-provides-expired-options-data-via-the-api-s/",
+      "connected_by_this_task": false,
+      "subscription_purchased": false
+    },
+    {
+      "name": "TrueData",
+      "role": "Candidate live/historical market-data source; coverage/entitlement must be checked",
+      "source": "https://www.truedata.in/downloads/TrueData_1MarketView_WhitePaper.pdf",
+      "connected_by_this_task": false,
+      "subscription_purchased": false
+    },
+    {
+      "name": "FYERS",
+      "role": "Candidate history/market-data API source; verify expired-contract coverage separately",
+      "source": "https://fyers.in/products/api",
+      "connected_by_this_task": false,
+      "subscription_purchased": false
+    }
+  ],
+  "local_source_sha256": {
+    "RESEARCH_QUEUE_2026-09-13.md": "e0057aebf4d42c6c94a0278b2e8edf4c6a410fdb4066ef9e8ae56fdcb52f663e",
+    "backtest_bollinger_otm_momentum.py": "c15059ebdb1210d884256a52192c9ea17b85fa0c7a8e41606620914da90c5d16",
+    "backtest_bollinger_otm_reversal.py": "8fbb0e1305c7e59c2d5f50367cab06040a735ed55d1652c381dbb898af374414",
+    "backtest_selective_vrp_credit_spread.py": "cc2c0905d345f32bab913d0e673b036839b071f9b1b5e91e3afdd8977eca643b",
+    "option_catalog_research.py": "5e73bb6749a252f604cd240bc84129ac3cc180b5c67880393e940d303b0d5e46",
+    "option_strategy_registry.py": "0b540d156dff99013a1a82ae40e0cfbbf9426c2a635d5fb0e4f0c5865b3c629d",
+    "signal_engine.py": "876dc82f63498d035f51e4aca433cb15f6b332c0e3853cd76a7779c67ae3767e",
+    "single_leg_intraday_option_backtest.py": "04479c8e30d8c896675a87b3ff6db3c8c46f9466468ad4c6c81c78458f39fb18",
+    "strategies_new.py": "d7efbc3ea15117ecfb00533da020191191151f989cf9d77009759d339d9aef69"
+  }
+}

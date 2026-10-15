@@ -1,0 +1,899 @@
+{
+  "scope": "all compatible NIFTY/BANKNIFTY family jobs, current 400-day cache, no new optimization",
+  "jobs": [
+    {
+      "symbol": "NIFTY",
+      "strategy": "trend",
+      "interval": "5m",
+      "grid_combinations": 1152,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "trend",
+      "interval": "5m",
+      "grid_combinations": 1152,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "mean_reversion",
+      "interval": "5m",
+      "grid_combinations": 500,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "mean_reversion",
+      "interval": "5m",
+      "grid_combinations": 500,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "breakout",
+      "interval": "5m",
+      "grid_combinations": 120,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "breakout",
+      "interval": "5m",
+      "grid_combinations": 120,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "ma_cross",
+      "interval": "5m",
+      "grid_combinations": 40,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "ma_cross",
+      "interval": "5m",
+      "grid_combinations": 40,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "scalping",
+      "interval": "5m",
+      "grid_combinations": 128,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "scalping",
+      "interval": "5m",
+      "grid_combinations": 128,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "ema_5min",
+      "interval": "5m",
+      "grid_combinations": 96,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "ema_5min",
+      "interval": "5m",
+      "grid_combinations": 96,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "cpr",
+      "interval": "5m",
+      "grid_combinations": 96,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "cpr",
+      "interval": "5m",
+      "grid_combinations": 96,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "orb",
+      "interval": "5m",
+      "grid_combinations": 60,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "orb",
+      "interval": "5m",
+      "grid_combinations": 60,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "vwap_reversion",
+      "interval": "5m",
+      "grid_combinations": 64,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "vwap_reversion",
+      "interval": "5m",
+      "grid_combinations": 64,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "supertrend_mtf",
+      "interval": "5m",
+      "grid_combinations": 12,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "supertrend_mtf",
+      "interval": "5m",
+      "grid_combinations": 12,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "fibonacci",
+      "interval": "5m",
+      "grid_combinations": 36,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "fibonacci",
+      "interval": "5m",
+      "grid_combinations": 36,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "adx_dmi_crossover",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "adx_long_straddle",
+      "interval": "1m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "f520c82a2f69adde0236c91b79ee0486a44ca54cfb42835ea8d80aef050c001f",
+        "last_session": "2026-10-14",
+        "sessions": 98,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "aroon_crossover",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "bollinger_otm_momentum",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "bollinger_otm_reversal",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "contrarian_sell",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "delta_hedged_iron_butterfly",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "di_momentum_call",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "donchian_breakout",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "ema_supertrend_confirm",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "macd_crossover",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "premium_breakout",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "real_option_translation",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "rolling_short_straddle",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "sma20_atm_option",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "stochastic_crossover",
+      "interval": "5m",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "confluence_backtest",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "confluence_backtest",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "legacy_mean_reversion",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "legacy_mean_reversion",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "sahi_daily",
+      "interval": "1d",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "ef1ccaf584dfd718c49e83d0cb07519d4f3a13ed86511c4c15ab64a35f21009e",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "sahi_daily",
+      "interval": "1d",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "854716e57e49fa72f88b1c4311a6915391341ba6cd0bfc9a59858a9affd7d74d",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "carver_ewmac",
+      "interval": "1d",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "ef1ccaf584dfd718c49e83d0cb07519d4f3a13ed86511c4c15ab64a35f21009e",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": false,
+        "reason": "waiting_for_new_sessions"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "carver_ewmac",
+      "interval": "1d",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "854716e57e49fa72f88b1c4311a6915391341ba6cd0bfc9a59858a9affd7d74d",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    }
+  ],
+  "counts": {
+    "newly_backfilled_development_history": 11,
+    "waiting_for_new_sessions": 31,
+    "new_evidence": 4
+  },
+  "eligible_jobs": [
+    {
+      "symbol": "NIFTY",
+      "strategy": "trend",
+      "interval": "5m",
+      "grid_combinations": 1152,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "mean_reversion",
+      "interval": "5m",
+      "grid_combinations": 500,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "breakout",
+      "interval": "5m",
+      "grid_combinations": 120,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "ma_cross",
+      "interval": "5m",
+      "grid_combinations": 40,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "scalping",
+      "interval": "5m",
+      "grid_combinations": 128,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "ema_5min",
+      "interval": "5m",
+      "grid_combinations": 96,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "cpr",
+      "interval": "5m",
+      "grid_combinations": 96,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "orb",
+      "interval": "5m",
+      "grid_combinations": 60,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "vwap_reversion",
+      "interval": "5m",
+      "grid_combinations": 64,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "supertrend_mtf",
+      "interval": "5m",
+      "grid_combinations": 12,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "NIFTY",
+      "strategy": "fibonacci",
+      "interval": "5m",
+      "grid_combinations": 36,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "newly_backfilled_development_history",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "confluence_backtest",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "legacy_mean_reversion",
+      "interval": "5m",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "4f790d580955340bdeae936029b9a657558e07237377731c9a29515e478b2c11",
+        "last_session": "2026-10-14",
+        "sessions": 93,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "sahi_daily",
+      "interval": "1d",
+      "grid_combinations": 4,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "854716e57e49fa72f88b1c4311a6915391341ba6cd0bfc9a59858a9affd7d74d",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    },
+    {
+      "symbol": "BANKNIFTY",
+      "strategy": "carver_ewmac",
+      "interval": "1d",
+      "grid_combinations": 2,
+      "data_source": "candle_cache",
+      "evidence": {
+        "fingerprint": "854716e57e49fa72f88b1c4311a6915391341ba6cd0bfc9a59858a9affd7d74d",
+        "last_session": "2026-10-14",
+        "sessions": 267,
+        "allowed": true,
+        "reason": "new_evidence",
+        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
+      }
+    }
+  ],
+  "daily_training_budget": 3,
+  "max_grid_combinations_per_job": 24,
+  "no_live_activation": true
+}

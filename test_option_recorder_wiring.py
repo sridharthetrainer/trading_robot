@@ -12,6 +12,11 @@ import option_chain_fetcher
 import option_chain_recorder as rec
 
 
+@pytest.fixture(autouse=True)
+def _offline_direction_context(monkeypatch):
+    monkeypatch.setattr(rec, "_direction_context", lambda _: ("UNKNOWN", "UNKNOWN"))
+
+
 class _FakeResult:
     def __init__(self, df, spot=25000.0):
         self.summary = {"pcr_oi": 1.1, "pcr_change_oi": 1.0, "max_pain": 25000.0}

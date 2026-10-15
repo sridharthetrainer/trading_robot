@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14T07:53:26.312132+05:30",
+  "generated_at": "2026-10-15T15:47:44.643501+05:30",
   "ok": true,
   "ok_scope": "source_inventory_and_research_adapter_contracts; not live or profit approval",
   "mode": "RESEARCH_ONLY",
@@ -2327,23 +2327,13 @@
     "backtest_iron_condor.py": "Quarantined synthetic option credit; use condor_backtest_real.py on actual EOD quotes."
   },
   "last_parameter_training": {
-    "generated_at": "2026-10-14T07:09:52+0530",
+    "generated_at": "2026-10-14T15:47:56+0530",
     "dry_run": false,
     "interval": "5m",
     "days": 400,
     "capital": 500000.0,
     "max_grid_combinations": 24,
     "planned": [
-      {
-        "symbol": "NIFTY",
-        "strategy": "adx_long_straddle",
-        "interval": "1m"
-      },
-      {
-        "symbol": "NIFTY",
-        "strategy": "confluence_backtest",
-        "interval": "5m"
-      },
       {
         "symbol": "NIFTY",
         "strategy": "legacy_mean_reversion",
@@ -2363,65 +2353,16 @@
     "results": [
       {
         "symbol": "NIFTY",
-        "strategy": "adx_long_straddle",
-        "interval": "1m",
-        "status": "evaluated",
-        "data_source": "candle_cache",
-        "training_capital": 500000.0,
-        "evidence_kind": "MODELED_OPTION_RESEARCH",
-        "max_grid_combinations": 24,
-        "bars": 36441,
-        "verdict": "INSUFFICIENT_DATA",
-        "best_params": {},
-        "metrics": {
-          "validation_verdict": "INSUFFICIENT_DATA",
-          "paper_training_only": true,
-          "total_trades": 0,
-          "num_trades": 0,
-          "sharpe": 0.0,
-          "win_rate": 0.0,
-          "deflated_sharpe": 0.0,
-          "parameter_stability_cv": 1.0,
-          "holdout_pnl": null,
-          "beats_benchmark": false
-        },
-        "validation_errors": [],
-        "evidence": {
-          "fingerprint": "45b7fa984a610b03adfdbde5880c34ae6290c2e36abe23a74d912ef3a298ec21",
-          "last_session": "2026-10-13",
-          "sessions": 97,
-          "allowed": true,
-          "reason": "new_evidence",
-          "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
-        },
-        "promotion_block_reason": "requires_independent_forward_validation"
-      },
-      {
-        "symbol": "NIFTY",
-        "strategy": "confluence_backtest",
-        "interval": "5m",
-        "status": "waiting",
-        "reason": "already_tested_data",
-        "evidence": {
-          "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-          "last_session": "2026-10-13",
-          "sessions": 266,
-          "allowed": false,
-          "reason": "already_tested_data"
-        }
-      },
-      {
-        "symbol": "NIFTY",
         "strategy": "legacy_mean_reversion",
         "interval": "5m",
         "status": "waiting",
-        "reason": "already_tested_data",
+        "reason": "waiting_for_new_sessions",
         "evidence": {
-          "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-          "last_session": "2026-10-13",
-          "sessions": 266,
+          "fingerprint": "342362ebe8bc2db5c2649c18cf4a03c2ffdfd00597d72958603310b859f64424",
+          "last_session": "2026-10-14",
+          "sessions": 267,
           "allowed": false,
-          "reason": "already_tested_data"
+          "reason": "waiting_for_new_sessions"
         }
       },
       {
@@ -2429,13 +2370,13 @@
         "strategy": "sahi_daily",
         "interval": "1d",
         "status": "waiting",
-        "reason": "already_tested_data",
+        "reason": "waiting_for_new_sessions",
         "evidence": {
-          "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-          "last_session": "2026-10-13",
-          "sessions": 266,
+          "fingerprint": "d297c752ff8ba11c33974b3c74c399495afd17d0fd030d2bde1b742a7958530f",
+          "last_session": "2026-10-14",
+          "sessions": 267,
           "allowed": false,
-          "reason": "already_tested_data"
+          "reason": "waiting_for_new_sessions"
         }
       },
       {
@@ -2443,13 +2384,13 @@
         "strategy": "carver_ewmac",
         "interval": "1d",
         "status": "waiting",
-        "reason": "already_tested_data",
+        "reason": "waiting_for_new_sessions",
         "evidence": {
-          "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-          "last_session": "2026-10-13",
-          "sessions": 266,
+          "fingerprint": "d297c752ff8ba11c33974b3c74c399495afd17d0fd030d2bde1b742a7958530f",
+          "last_session": "2026-10-14",
+          "sessions": 267,
           "allowed": false,
-          "reason": "already_tested_data"
+          "reason": "waiting_for_new_sessions"
         }
       }
     ],
@@ -2458,66 +2399,16 @@
     "skipped": [
       {
         "symbol": "NIFTY",
-        "strategy": "adx_long_straddle",
-        "interval": "1m",
-        "status": "evaluated",
-        "data_source": "candle_cache",
-        "training_capital": 500000.0,
-        "evidence_kind": "MODELED_OPTION_RESEARCH",
-        "max_grid_combinations": 24,
-        "bars": 36441,
-        "verdict": "INSUFFICIENT_DATA",
-        "best_params": {},
-        "metrics": {
-          "validation_verdict": "INSUFFICIENT_DATA",
-          "paper_training_only": true,
-          "total_trades": 0,
-          "num_trades": 0,
-          "sharpe": 0.0,
-          "win_rate": 0.0,
-          "deflated_sharpe": 0.0,
-          "parameter_stability_cv": 1.0,
-          "holdout_pnl": null,
-          "beats_benchmark": false
-        },
-        "validation_errors": [],
-        "evidence": {
-          "fingerprint": "45b7fa984a610b03adfdbde5880c34ae6290c2e36abe23a74d912ef3a298ec21",
-          "last_session": "2026-10-13",
-          "sessions": 97,
-          "allowed": true,
-          "reason": "new_evidence",
-          "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
-        },
-        "promotion_block_reason": "requires_independent_forward_validation",
-        "reason": "no_best_params"
-      },
-      {
-        "symbol": "NIFTY",
-        "strategy": "confluence_backtest",
-        "interval": "5m",
-        "status": "waiting",
-        "reason": "already_tested_data",
-        "evidence": {
-          "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-          "last_session": "2026-10-13",
-          "sessions": 266,
-          "allowed": false,
-          "reason": "already_tested_data"
-        }
-      },
-      {
-        "symbol": "NIFTY",
         "strategy": "legacy_mean_reversion",
         "interval": "5m",
         "status": "waiting",
-        "reason": "already_tested_data",
+        "reason": "waiting_for_new_sessions",
         "evidence": {
-          "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-          "last_session": "2026-10-13",
-          "sessions": 266,
+          "fingerprint": "342362ebe8bc2db5c2649c18cf4a03c2ffdfd00597d72958603310b859f64424",
+          "last_session": "2026-10-14",
+          "sessions": 267,
           "allowed": false,
-          "reason": "already_tested_data"
+          "reason": "waiting_for_new_sessions"
         }
       },
       {
@@ -2525,13 +2416,13 @@
         "strategy": "sahi_daily",
         "interval": "1d",
         "status": "waiting",
-        "reason": "already_tested_data",
+        "reason": "waiting_for_new_sessions",
         "evidence": {
-          "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-          "last_session": "2026-10-13",
-          "sessions": 266,
+          "fingerprint": "d297c752ff8ba11c33974b3c74c399495afd17d0fd030d2bde1b742a7958530f",
+          "last_session": "2026-10-14",
+          "sessions": 267,
           "allowed": false,
-          "reason": "already_tested_data"
+          "reason": "waiting_for_new_sessions"
         }
       },
       {
@@ -2539,13 +2430,13 @@
         "strategy": "carver_ewmac",
         "interval": "1d",
         "status": "waiting",
-        "reason": "already_tested_data",
+        "reason": "waiting_for_new_sessions",
         "evidence": {
-          "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-          "last_session": "2026-10-13",
-          "sessions": 266,
+          "fingerprint": "d297c752ff8ba11c33974b3c74c399495afd17d0fd030d2bde1b742a7958530f",
+          "last_session": "2026-10-14",
+          "sessions": 267,
           "allowed": false,
-          "reason": "already_tested_data"
+          "reason": "waiting_for_new_sessions"
         }
       }
     ],
@@ -2890,38 +2781,155 @@
       "symbol": "NIFTY",
       "strategy": "ma_cross",
       "interval": "5m",
-      "status": "validated",
+      "status": "evaluated",
       "data_source": "candle_cache",
-      "bars": 10557,
-      "verdict": "INSUFFICIENT_DATA",
+      "training_capital": 500000.0,
+      "evidence_kind": "UNDERLYING_PROXY",
+      "max_grid_combinations": 24,
+      "bars": 20324,
+      "verdict": "FAIL",
       "best_params": {
-        "fast_ma": 3,
+        "fast_ma": 12,
         "max_entry_atr_extension": 2.5,
-        "min_body_atr": 0.1,
-        "slow_ma": 26
+        "min_body_atr": 0.0,
+        "slow_ma": 100
       },
       "metrics": {
-        "validation_verdict": "INSUFFICIENT_DATA",
+        "validation_verdict": "FAIL",
         "paper_training_only": true,
-        "total_trades": 118,
+        "total_trades": 340,
         "num_trades": 0,
-        "sharpe": 0.4786,
-        "win_rate": 0.3389830508474576,
+        "sharpe": 0.467,
+        "win_rate": 0.33964561308394325,
         "deflated_sharpe": 0.0,
-        "parameter_stability_cv": 1.0,
+        "parameter_stability_cv": 0.8526,
         "holdout_pnl": null,
         "beats_benchmark": false
       },
+      "validation_errors": [],
       "evidence": {
-        "fingerprint": "23606d35039c82add78b210f2a7a1495d9b6326476ff2e8327300902ac735288",
-        "last_session": "2026-10-13",
-        "sessions": 138,
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
         "allowed": true,
-        "reason": "new_evidence",
+        "reason": "newly_backfilled_development_history",
         "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
       },
       "promotion_block_reason": "requires_independent_forward_validation",
-      "candidate_path": "parameter_candidates/23606d35039c82ad/symbol_params/NIFTY_ma_cross.json"
+      "candidate_path": "reports/combination_research_2026-10-14/failed_research_parameters/NIFTY_ma_cross.json",
+      "isolated_execution": true,
+      "runtime_parameters_changed": false,
+      "validation_details": {
+        "strategy": "ma_cross",
+        "symbol": "NIFTY",
+        "run_date": "2026-10-14",
+        "n_trials": 120,
+        "dev_windows": 5,
+        "dev_avg_sharpe": 0.467,
+        "dev_avg_pnl": 14876.44,
+        "dev_avg_trades": 68.0,
+        "dev_pct_profitable": 0.6,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": true,
+        "parameter_stability_cv": 0.8526,
+        "stability_ok": false,
+        "holdout_sharpe": null,
+        "holdout_pnl": null,
+        "holdout_trades": null,
+        "holdout_win_rate": null,
+        "verdict": "FAIL",
+        "dev_windows_detail": [
+          {
+            "window_idx": 0,
+            "test_start": "2025-12-04",
+            "test_end": "2026-01-19",
+            "pnl": -56141.53979789196,
+            "num_trades": 85,
+            "win_rate": 0.23529411764705882,
+            "sharpe": -5.478246213612124,
+            "max_drawdown": 75333.7304350721,
+            "best_params": {
+              "fast_ma": 9,
+              "slow_ma": 26,
+              "min_body_atr": 0.0,
+              "max_entry_atr_extension": 2.5
+            }
+          },
+          {
+            "window_idx": 1,
+            "test_start": "2026-01-19",
+            "test_end": "2026-03-02",
+            "pnl": 56169.93945738192,
+            "num_trades": 31,
+            "win_rate": 0.3548387096774194,
+            "sharpe": 3.0793266927521454,
+            "max_drawdown": 13312.442429629271,
+            "best_params": {
+              "fast_ma": 12,
+              "slow_ma": 100,
+              "min_body_atr": 0.0,
+              "max_entry_atr_extension": 2.5
+            }
+          },
+          {
+            "window_idx": 2,
+            "test_start": "2026-03-02",
+            "test_end": "2026-04-17",
+            "pnl": 28333.33620222091,
+            "num_trades": 15,
+            "win_rate": 0.4666666666666667,
+            "sharpe": 2.6630452426963096,
+            "max_drawdown": 10060.966238369816,
+            "best_params": {
+              "fast_ma": 12,
+              "slow_ma": 100,
+              "min_body_atr": 0.0,
+              "max_entry_atr_extension": 2.5
+            }
+          },
+          {
+            "window_idx": 3,
+            "test_start": "2026-04-17",
+            "test_end": "2026-06-02",
+            "pnl": 50319.011442629555,
+            "num_trades": 125,
+            "win_rate": 0.32,
+            "sharpe": 2.349084763252518,
+            "max_drawdown": 55854.33802076627,
+            "best_params": {
+              "fast_ma": 5,
+              "slow_ma": 20,
+              "min_body_atr": 0.0,
+              "max_entry_atr_extension": 2.5
+            }
+          },
+          {
+            "window_idx": 4,
+            "test_start": "2026-06-02",
+            "test_end": "2026-07-14",
+            "pnl": -4298.571564285032,
+            "num_trades": 84,
+            "win_rate": 0.32142857142857145,
+            "sharpe": -0.2782581537628488,
+            "max_drawdown": 32070.284958523465,
+            "best_params": {
+              "fast_ma": 5,
+              "slow_ma": 26,
+              "min_body_atr": 0.1,
+              "max_entry_atr_extension": 2.5
+            }
+          }
+        ],
+        "best_params": {
+          "fast_ma": 12,
+          "max_entry_atr_extension": 2.5,
+          "min_body_atr": 0.0,
+          "slow_ma": 100
+        },
+        "benchmark_buyhold_sharpe": null,
+        "beats_benchmark": false,
+        "backtest_errors": []
+      }
     },
     {
       "symbol": "NIFTY",
@@ -3120,73 +3128,295 @@
       "symbol": "NIFTY",
       "strategy": "supertrend_mtf",
       "interval": "5m",
-      "status": "validated",
+      "status": "evaluated",
       "data_source": "candle_cache",
-      "bars": 10557,
-      "verdict": "INSUFFICIENT_DATA",
+      "training_capital": 500000.0,
+      "evidence_kind": "UNDERLYING_PROXY",
+      "max_grid_combinations": 24,
+      "bars": 20324,
+      "verdict": "FAIL",
       "best_params": {
-        "st_mult": 3.0,
-        "st_period": 7
+        "st_mult": 3.5,
+        "st_period": 14
       },
       "metrics": {
-        "validation_verdict": "INSUFFICIENT_DATA",
+        "validation_verdict": "FAIL",
         "paper_training_only": true,
-        "total_trades": 19,
+        "total_trades": 99,
         "num_trades": 0,
-        "sharpe": -3.0071,
-        "win_rate": 0.4211,
+        "sharpe": -1.1542,
+        "win_rate": 0.33784000000000003,
         "deflated_sharpe": 0.0,
-        "parameter_stability_cv": 1.0,
+        "parameter_stability_cv": 0.2405,
         "holdout_pnl": null,
         "beats_benchmark": false
       },
+      "validation_errors": [],
       "evidence": {
-        "fingerprint": "23606d35039c82add78b210f2a7a1495d9b6326476ff2e8327300902ac735288",
-        "last_session": "2026-10-13",
-        "sessions": 138,
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
         "allowed": true,
-        "reason": "new_evidence",
+        "reason": "newly_backfilled_development_history",
         "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
       },
       "promotion_block_reason": "requires_independent_forward_validation",
-      "candidate_path": "parameter_candidates/23606d35039c82ad/symbol_params/NIFTY_supertrend_mtf.json"
+      "candidate_path": "reports/combination_research_2026-10-14/failed_research_parameters/NIFTY_supertrend_mtf.json",
+      "isolated_execution": true,
+      "runtime_parameters_changed": false,
+      "validation_details": {
+        "strategy": "supertrend_mtf",
+        "symbol": "NIFTY",
+        "run_date": "2026-10-14",
+        "n_trials": 60,
+        "dev_windows": 5,
+        "dev_avg_sharpe": -1.1542,
+        "dev_avg_pnl": -7423.18,
+        "dev_avg_trades": 19.8,
+        "dev_pct_profitable": 0.6,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "parameter_stability_cv": 0.2405,
+        "stability_ok": true,
+        "holdout_sharpe": null,
+        "holdout_pnl": null,
+        "holdout_trades": null,
+        "holdout_win_rate": null,
+        "verdict": "FAIL",
+        "dev_windows_detail": [
+          {
+            "window_idx": 0,
+            "test_start": "2025-12-04",
+            "test_end": "2026-01-19",
+            "pnl": 8683.35,
+            "num_trades": 16,
+            "win_rate": 0.3125,
+            "sharpe": 1.4372,
+            "max_drawdown": 15685.89,
+            "best_params": {
+              "st_period": 14,
+              "st_mult": 3.5
+            }
+          },
+          {
+            "window_idx": 1,
+            "test_start": "2026-01-19",
+            "test_end": "2026-03-02",
+            "pnl": -24796.88,
+            "num_trades": 17,
+            "win_rate": 0.3529,
+            "sharpe": -4.338,
+            "max_drawdown": 29017.48,
+            "best_params": {
+              "st_period": 14,
+              "st_mult": 3.5
+            }
+          },
+          {
+            "window_idx": 2,
+            "test_start": "2026-03-02",
+            "test_end": "2026-04-17",
+            "pnl": 6490.36,
+            "num_trades": 9,
+            "win_rate": 0.4444,
+            "sharpe": 1.0479,
+            "max_drawdown": 9302.32,
+            "best_params": {
+              "st_period": 14,
+              "st_mult": 3.5
+            }
+          },
+          {
+            "window_idx": 3,
+            "test_start": "2026-04-17",
+            "test_end": "2026-06-02",
+            "pnl": 3784.03,
+            "num_trades": 36,
+            "win_rate": 0.3889,
+            "sharpe": 0.3521,
+            "max_drawdown": 23785.16,
+            "best_params": {
+              "st_period": 10,
+              "st_mult": 2.0
+            }
+          },
+          {
+            "window_idx": 4,
+            "test_start": "2026-06-02",
+            "test_end": "2026-07-14",
+            "pnl": -31276.78,
+            "num_trades": 21,
+            "win_rate": 0.1905,
+            "sharpe": -4.2702,
+            "max_drawdown": 32116.78,
+            "best_params": {
+              "st_period": 7,
+              "st_mult": 3.0
+            }
+          }
+        ],
+        "best_params": {
+          "st_mult": 3.5,
+          "st_period": 14
+        },
+        "benchmark_buyhold_sharpe": null,
+        "beats_benchmark": false,
+        "backtest_errors": []
+      }
     },
     {
       "symbol": "NIFTY",
       "strategy": "fibonacci",
       "interval": "5m",
-      "status": "validated",
+      "status": "evaluated",
       "data_source": "candle_cache",
-      "bars": 10557,
-      "verdict": "INSUFFICIENT_DATA",
+      "training_capital": 500000.0,
+      "evidence_kind": "UNDERLYING_PROXY",
+      "max_grid_combinations": 24,
+      "bars": 20324,
+      "verdict": "FAIL",
       "best_params": {
-        "entry_level": "0.382",
+        "entry_level": "0.5",
         "rsi_min_long": 30,
         "stop_level": "1.0",
         "swing_lookback": 30
       },
       "metrics": {
-        "validation_verdict": "INSUFFICIENT_DATA",
+        "validation_verdict": "FAIL",
         "paper_training_only": true,
-        "total_trades": 47,
+        "total_trades": 237,
         "num_trades": 0,
-        "sharpe": -3.1576,
-        "win_rate": 0.4255,
+        "sharpe": -6.1386,
+        "win_rate": 0.3473,
         "deflated_sharpe": 0.0,
-        "parameter_stability_cv": 1.0,
+        "parameter_stability_cv": 0.0,
         "holdout_pnl": null,
         "beats_benchmark": false
       },
+      "validation_errors": [],
       "evidence": {
-        "fingerprint": "23606d35039c82add78b210f2a7a1495d9b6326476ff2e8327300902ac735288",
-        "last_session": "2026-10-13",
-        "sessions": 138,
+        "fingerprint": "e3e7ca911ab0a19313bbfd6ada031ac0f6fd33987f5b0a35443370e3bcd56741",
+        "last_session": "2026-10-14",
+        "sessions": 267,
         "allowed": true,
-        "reason": "new_evidence",
+        "reason": "newly_backfilled_development_history",
         "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
       },
       "promotion_block_reason": "requires_independent_forward_validation",
-      "candidate_path": "parameter_candidates/23606d35039c82ad/symbol_params/NIFTY_fibonacci.json"
+      "candidate_path": "reports/combination_research_2026-10-14/failed_research_parameters/NIFTY_fibonacci.json",
+      "isolated_execution": true,
+      "runtime_parameters_changed": false,
+      "validation_details": {
+        "strategy": "fibonacci",
+        "symbol": "NIFTY",
+        "run_date": "2026-10-14",
+        "n_trials": 120,
+        "dev_windows": 5,
+        "dev_avg_sharpe": -6.1386,
+        "dev_avg_pnl": -73530.35,
+        "dev_avg_trades": 47.4,
+        "dev_pct_profitable": 0.0,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": true,
+        "parameter_stability_cv": 0.0,
+        "stability_ok": true,
+        "holdout_sharpe": null,
+        "holdout_pnl": null,
+        "holdout_trades": null,
+        "holdout_win_rate": null,
+        "verdict": "FAIL",
+        "dev_windows_detail": [
+          {
+            "window_idx": 0,
+            "test_start": "2025-12-04",
+            "test_end": "2026-01-19",
+            "pnl": -87577.21,
+            "num_trades": 62,
+            "win_rate": 0.2419,
+            "sharpe": -8.6664,
+            "max_drawdown": 95818.34,
+            "best_params": {
+              "entry_level": "0.5",
+              "stop_level": "1.0",
+              "swing_lookback": 30,
+              "rsi_min_long": 30
+            }
+          },
+          {
+            "window_idx": 1,
+            "test_start": "2026-01-19",
+            "test_end": "2026-03-02",
+            "pnl": -106399.83,
+            "num_trades": 46,
+            "win_rate": 0.3043,
+            "sharpe": -8.6351,
+            "max_drawdown": 108145.36,
+            "best_params": {
+              "entry_level": "0.5",
+              "stop_level": "1.0",
+              "swing_lookback": 30,
+              "rsi_min_long": 30
+            }
+          },
+          {
+            "window_idx": 2,
+            "test_start": "2026-03-02",
+            "test_end": "2026-04-17",
+            "pnl": -7182.23,
+            "num_trades": 31,
+            "win_rate": 0.5161,
+            "sharpe": -0.6676,
+            "max_drawdown": 42723.58,
+            "best_params": {
+              "entry_level": "0.382",
+              "stop_level": "1.0",
+              "swing_lookback": 30,
+              "rsi_min_long": 30
+            }
+          },
+          {
+            "window_idx": 3,
+            "test_start": "2026-04-17",
+            "test_end": "2026-06-02",
+            "pnl": -86354.36,
+            "num_trades": 48,
+            "win_rate": 0.3542,
+            "sharpe": -5.3478,
+            "max_drawdown": 108752.38,
+            "best_params": {
+              "entry_level": "0.382",
+              "stop_level": "1.0",
+              "swing_lookback": 30,
+              "rsi_min_long": 30
+            }
+          },
+          {
+            "window_idx": 4,
+            "test_start": "2026-06-02",
+            "test_end": "2026-07-14",
+            "pnl": -80138.11,
+            "num_trades": 50,
+            "win_rate": 0.32,
+            "sharpe": -7.376,
+            "max_drawdown": 89202.63,
+            "best_params": {
+              "entry_level": "0.5",
+              "stop_level": "0.786",
+              "swing_lookback": 30,
+              "rsi_min_long": 30
+            }
+          }
+        ],
+        "best_params": {
+          "entry_level": "0.5",
+          "rsi_min_long": 30,
+          "stop_level": "1.0",
+          "swing_lookback": 30
+        },
+        "benchmark_buyhold_sharpe": null,
+        "beats_benchmark": false,
+        "backtest_errors": []
+      }
     },
     {
       "symbol": "BANKNIFTY",
@@ -4103,7 +4333,7 @@
     }
   },
   "income_research": {
-    "as_of": "2026-10-14",
+    "as_of": "2026-10-15",
     "mode": "RESEARCH_ONLY",
     "target": {
       "capital": 500000,
@@ -4163,11 +4393,11 @@
       "warning": "Risk-unit arithmetic, not a return forecast; stop orders do not cap gap losses."
     },
     "coverage": {
-      "raw_training_rows": 28441,
+      "raw_training_rows": 28617,
       "invalid_structural_rows": 0,
-      "distinct_setups": 19123,
-      "completed": 19117,
-      "pending_or_invalid_outcomes": 6,
+      "distinct_setups": 19277,
+      "completed": 19215,
+      "pending_or_invalid_outcomes": 62,
       "observed_dates": [
         "2026-06-29",
         "2026-06-30",
@@ -4211,15 +4441,16 @@
         "2026-09-22",
         "2026-09-23",
         "2026-10-12",
-        "2026-10-13"
+        "2026-10-13",
+        "2026-10-14"
       ],
-      "data_snapshot_sha256": "3632c38a6238c1e1e223317cc5b8fb0c40b1ca809b4a4aa7ae384e4a47b04d41"
+      "data_snapshot_sha256": "c1bbb3c70fe2b3574238e5e2a5c3ad9cdbafd213e12bd355727a8ec82e7332de"
     },
     "historical_search_is_exploratory": true,
     "historical_data_is_not_an_untouched_holdout": true,
     "scope": {
       "signal_strategies_with_clean_outcomes": 125,
-      "live_manifest_strategies": 112,
+      "live_manifest_strategies": 133,
       "live_ready_count": 0
     },
     "ranked_signal_strategies": [
@@ -4239,7 +4470,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4248,7 +4478,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 1.1721,
         "equal_day_mean_excluding_best_day": null,
@@ -4275,7 +4506,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4284,7 +4514,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 0.7059,
         "equal_day_mean_excluding_best_day": null,
@@ -4311,7 +4542,6 @@
           "positive_rate": 1.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4320,7 +4550,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 0.5773333333333334,
         "equal_day_mean_excluding_best_day": 0.27536000000000005,
@@ -4352,7 +4583,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4361,7 +4591,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 0.4001333333333333,
         "equal_day_mean_excluding_best_day": -0.03810000000000002,
@@ -4393,7 +4624,6 @@
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4402,7 +4632,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 0.58171875,
         "equal_day_mean_excluding_best_day": -0.005392857142857115,
@@ -4421,20 +4652,19 @@
       {
         "strategy": "chart_pattern_falling_wedge",
         "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
-        "n": 71,
-        "mean_net_r": 0.15801408450704224,
-        "profit_factor": 1.4949791754906112,
-        "positive_rate": 0.38028169014084506,
-        "active_days": 29,
-        "last_day": "2026-10-12",
+        "n": 74,
+        "mean_net_r": 0.15462702702702702,
+        "profit_factor": 1.479875862358196,
+        "positive_rate": 0.3783783783783784,
+        "active_days": 30,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 14,
-          "mean_net_r": -0.2170214285714286,
-          "profit_factor": 0.4925086438724548,
-          "positive_rate": 0.42857142857142855
+          "n": 17,
+          "mean_net_r": -0.16558235294117646,
+          "profit_factor": 0.6071757514862263,
+          "positive_rate": 0.4117647058823529
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4443,19 +4673,20 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": 0.2538204433497537,
-        "equal_day_mean_excluding_best_day": -0.04447704081632654,
+        "equal_active_day_mean_net_r": 0.2478419841269841,
+        "equal_day_mean_excluding_best_day": -0.04037553366174056,
         "day_bootstrap_ci95_descriptive": [
-          -0.19501921592775037,
-          0.9837750256568142
+          -0.1949877162698412,
+          0.9463512817460304
         ],
         "monthly_proxy_net_r": {
           "2026-07": 18.328,
           "2026-08": -0.9809999999999998,
           "2026-09": -5.2356,
-          "2026-10": -0.8924000000000001
+          "2026-10": -0.6689999999999998
         },
         "live_approved": false,
         "income_target_supported": false
@@ -4476,7 +4707,6 @@
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4485,7 +4715,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 0.10746666666666667,
         "equal_day_mean_excluding_best_day": -0.0947,
@@ -4517,7 +4748,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4526,53 +4756,14 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 0.1009,
         "equal_day_mean_excluding_best_day": null,
         "day_bootstrap_ci95_descriptive": null,
         "monthly_proxy_net_r": {
           "2026-09": 0.1009
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "chart_pattern_bull_flag",
-        "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
-        "n": 13,
-        "mean_net_r": 0.06294615384615386,
-        "profit_factor": 1.157820636451302,
-        "positive_rate": 0.38461538461538464,
-        "active_days": 8,
-        "last_day": "2026-09-18",
-        "recent": {
-          "n": 3,
-          "mean_net_r": -0.18903333333333333,
-          "profit_factor": 0.5794274695935924,
-          "positive_rate": 0.3333333333333333
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": 0.40863125,
-        "equal_day_mean_excluding_best_day": 0.14636428571428575,
-        "day_bootstrap_ci95_descriptive": [
-          -0.2926703124999999,
-          1.182485
-        ],
-        "monthly_proxy_net_r": {
-          "2026-07": 0.3077000000000001,
-          "2026-09": 0.5106
         },
         "live_approved": false,
         "income_target_supported": false
@@ -4593,7 +4784,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4602,13 +4792,55 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": 0.0606,
         "equal_day_mean_excluding_best_day": null,
         "day_bootstrap_ci95_descriptive": null,
         "monthly_proxy_net_r": {
           "2026-07": 0.0606
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "chart_pattern_bull_flag",
+        "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
+        "n": 14,
+        "mean_net_r": 0.05626428571428573,
+        "profit_factor": 1.1510276861722524,
+        "positive_rate": 0.35714285714285715,
+        "active_days": 9,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 4,
+          "mean_net_r": -0.149425,
+          "profit_factor": 0.5665699782451051,
+          "positive_rate": 0.25
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": 0.3598277777777778,
+        "equal_day_mean_excluding_best_day": 0.12424375000000004,
+        "day_bootstrap_ci95_descriptive": [
+          -0.2654122222222222,
+          1.0248830555555555
+        ],
+        "monthly_proxy_net_r": {
+          "2026-07": 0.3077000000000001,
+          "2026-09": 0.5106,
+          "2026-10": -0.0306
         },
         "live_approved": false,
         "income_target_supported": false
@@ -4623,13 +4855,12 @@
         "active_days": 9,
         "last_day": "2026-10-13",
         "recent": {
-          "n": 17,
-          "mean_net_r": 0.21421176470588235,
-          "profit_factor": 2.026902035982178,
-          "positive_rate": 0.7647058823529411
+          "n": 16,
+          "mean_net_r": 0.40104375000000003,
+          "profit_factor": 9.321488782259111,
+          "positive_rate": 0.8125
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4638,7 +4869,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.43133148148148154,
         "equal_day_mean_excluding_best_day": -0.5610354166666667,
@@ -4657,21 +4889,20 @@
       },
       {
         "strategy": "candlestick_bullish_marubozu",
-        "status": "REVIEW_ONLY_RECENT_OR_SAMPLE_GATE_FAILED",
-        "n": 75,
-        "mean_net_r": 0.0002546666666666721,
-        "profit_factor": 1.0006563348338546,
-        "positive_rate": 0.3466666666666667,
-        "active_days": 31,
-        "last_day": "2026-10-12",
+        "status": "NEGATIVE_AFTER_COST",
+        "n": 79,
+        "mean_net_r": -0.007406329113924047,
+        "profit_factor": 0.9812282637988784,
+        "positive_rate": 0.34177215189873417,
+        "active_days": 32,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 11,
-          "mean_net_r": 0.17402727272727272,
-          "profit_factor": 1.5347505447231686,
-          "positive_rate": 0.36363636363636365
+          "n": 15,
+          "mean_net_r": 0.08733999999999999,
+          "profit_factor": 1.2319582152974504,
+          "positive_rate": 0.3333333333333333
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4680,20 +4911,21 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": 0.1375530107526882,
-        "equal_day_mean_excluding_best_day": -0.047605222222222215,
+        "equal_active_day_mean_net_r": 0.12853416666666667,
+        "equal_day_mean_excluding_best_day": -0.0509421505376344,
         "day_bootstrap_ci95_descriptive": [
-          -0.3082059462365591,
-          0.6971799260752686
+          -0.29380062890624997,
+          0.67303056640625
         ],
         "monthly_proxy_net_r": {
           "2026-06": 2.1198,
           "2026-07": -6.535100000000001,
           "2026-08": 4.985,
           "2026-09": -0.14429999999999987,
-          "2026-10": -0.4063
+          "2026-10": -1.0105000000000002
         },
         "live_approved": false,
         "income_target_supported": false
@@ -4714,7 +4946,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4723,7 +4954,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.011133333333333348,
         "equal_day_mean_excluding_best_day": -0.29364999999999997,
@@ -4754,7 +4986,6 @@
           "positive_rate": 1.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4763,7 +4994,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.008765,
         "equal_day_mean_excluding_best_day": -0.10410555555555556,
@@ -4796,7 +5028,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4805,7 +5036,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.04215,
         "equal_day_mean_excluding_best_day": null,
@@ -4832,7 +5064,6 @@
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4841,7 +5072,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.04640000000000001,
         "equal_day_mean_excluding_best_day": -0.3756,
@@ -4866,13 +5098,12 @@
         "active_days": 9,
         "last_day": "2026-09-15",
         "recent": {
-          "n": 4,
-          "mean_net_r": 0.117575,
-          "profit_factor": 5.129060579455662,
-          "positive_rate": 0.75
+          "n": 3,
+          "mean_net_r": 0.05726666666666667,
+          "profit_factor": 2.508340649692713,
+          "positive_rate": 0.6666666666666666
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4881,7 +5112,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.010700000000000003,
         "equal_day_mean_excluding_best_day": -0.05360000000000001,
@@ -4907,13 +5139,12 @@
         "active_days": 17,
         "last_day": "2026-10-12",
         "recent": {
-          "n": 16,
-          "mean_net_r": -0.14303125,
-          "profit_factor": 0.6381760976458125,
+          "n": 12,
+          "mean_net_r": -0.24053333333333335,
+          "profit_factor": 0.42288159315391693,
           "positive_rate": 0.5
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4922,7 +5153,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.059043935574229704,
         "equal_day_mean_excluding_best_day": -0.12445918154761906,
@@ -4949,13 +5181,12 @@
         "active_days": 21,
         "last_day": "2026-10-12",
         "recent": {
-          "n": 6,
-          "mean_net_r": -0.21701666666666664,
-          "profit_factor": 0.34017431843518803,
-          "positive_rate": 0.3333333333333333
+          "n": 5,
+          "mean_net_r": -0.21267999999999998,
+          "profit_factor": 0.3869833400587998,
+          "positive_rate": 0.4
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -4964,7 +5195,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.17377222222222224,
         "equal_day_mean_excluding_best_day": -0.23702583333333335,
@@ -4983,108 +5215,21 @@
         "income_target_supported": false
       },
       {
-        "strategy": "candlestick_ladder_bottom",
-        "status": "INSUFFICIENT_EVIDENCE",
-        "n": 15,
-        "mean_net_r": -0.06938666666666667,
-        "profit_factor": 0.7963169533650365,
-        "positive_rate": 0.4,
-        "active_days": 12,
-        "last_day": "2026-10-12",
-        "recent": {
-          "n": 3,
-          "mean_net_r": -0.37066666666666664,
-          "profit_factor": 0.0,
-          "positive_rate": 0.0
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.025645833333333333,
-        "equal_day_mean_excluding_best_day": -0.16427727272727274,
-        "day_bootstrap_ci95_descriptive": [
-          -0.32449000000000006,
-          0.3373779166666666
-        ],
-        "monthly_proxy_net_r": {
-          "2026-06": -0.1827,
-          "2026-07": 2.0646,
-          "2026-08": -1.0945,
-          "2026-09": -1.6456,
-          "2026-10": -0.1826
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "candlestick_fred_tam_white_inside_out",
-        "status": "NEGATIVE_AFTER_COST",
-        "n": 96,
-        "mean_net_r": -0.08029375,
-        "profit_factor": 0.7372891176169865,
-        "positive_rate": 0.4166666666666667,
-        "active_days": 30,
-        "last_day": "2026-10-12",
-        "recent": {
-          "n": 19,
-          "mean_net_r": -0.10276315789473685,
-          "profit_factor": 0.6636346408944476,
-          "positive_rate": 0.42105263157894735
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.09604930555555556,
-        "equal_day_mean_excluding_best_day": -0.12358204022988506,
-        "day_bootstrap_ci95_descriptive": [
-          -0.2513977611111111,
-          0.056145529861111
-        ],
-        "monthly_proxy_net_r": {
-          "2026-06": 1.8250000000000002,
-          "2026-07": -7.8626,
-          "2026-08": 1.6890000000000003,
-          "2026-09": -2.2145,
-          "2026-10": -1.1451
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
         "strategy": "elder_triple_screen",
         "status": "NEGATIVE_AFTER_COST",
-        "n": 1259,
-        "mean_net_r": -0.080536298649722,
-        "profit_factor": 0.7538310341503989,
-        "positive_rate": 0.40428911834789516,
-        "active_days": 43,
-        "last_day": "2026-10-13",
+        "n": 1295,
+        "mean_net_r": -0.07507752895752895,
+        "profit_factor": 0.7675697204297786,
+        "positive_rate": 0.4061776061776062,
+        "active_days": 44,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 345,
-          "mean_net_r": -0.010486956521739128,
-          "profit_factor": 0.9673486037421858,
-          "positive_rate": 0.4
+          "n": 341,
+          "mean_net_r": 0.010565102639296189,
+          "profit_factor": 1.0339920008831296,
+          "positive_rate": 0.40762463343108507
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5093,20 +5238,21 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": 0.0594646921749258,
-        "equal_day_mean_excluding_best_day": -0.040434164360591836,
+        "equal_active_day_mean_net_r": 0.0682970347520358,
+        "equal_day_mean_excluding_best_day": -0.029073189245978875,
         "day_bootstrap_ci95_descriptive": [
-          -0.1368123690767725,
-          0.34740180006023014
+          -0.12515185854977331,
+          0.3462199069291407
         ],
         "monthly_proxy_net_r": {
           "2026-06": 1.5201000000000005,
           "2026-07": -64.3731,
           "2026-08": -25.367,
           "2026-09": -6.9018999999999995,
-          "2026-10": -6.2733
+          "2026-10": -2.1035
         },
         "live_approved": false,
         "income_target_supported": false
@@ -5114,20 +5260,19 @@
       {
         "strategy": "vwap_reversion",
         "status": "NEGATIVE_AFTER_COST",
-        "n": 78,
-        "mean_net_r": -0.08272179487179487,
-        "profit_factor": 0.8006401957664275,
-        "positive_rate": 0.41025641025641024,
-        "active_days": 28,
-        "last_day": "2026-09-22",
+        "n": 80,
+        "mean_net_r": -0.08577,
+        "profit_factor": 0.7906414762741653,
+        "positive_rate": 0.4,
+        "active_days": 29,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 16,
-          "mean_net_r": -0.027337500000000004,
-          "profit_factor": 0.8960773598802537,
-          "positive_rate": 0.4375
+          "n": 15,
+          "mean_net_r": -0.022660000000000007,
+          "profit_factor": 0.914537865835261,
+          "positive_rate": 0.4
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5136,18 +5281,20 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": 0.10171446428571428,
-        "equal_day_mean_excluding_best_day": 0.04855944444444445,
+        "equal_active_day_mean_net_r": 0.0911501724137931,
+        "equal_day_mean_excluding_best_day": 0.03951625,
         "day_bootstrap_ci95_descriptive": [
-          -0.14191663541666663,
-          0.3581089211309522
+          -0.13921915948275862,
+          0.3282540617816091
         ],
         "monthly_proxy_net_r": {
           "2026-07": -3.4934,
           "2026-08": -1.7181000000000002,
-          "2026-09": -1.2408000000000001
+          "2026-09": -1.2408000000000001,
+          "2026-10": -0.4093
         },
         "live_approved": false,
         "income_target_supported": false
@@ -5155,20 +5302,19 @@
       {
         "strategy": "candlestick_doji",
         "status": "NEGATIVE_AFTER_COST",
-        "n": 183,
-        "mean_net_r": -0.08330710382513662,
-        "profit_factor": 0.7292245390927499,
-        "positive_rate": 0.37158469945355194,
-        "active_days": 37,
-        "last_day": "2026-10-12",
+        "n": 185,
+        "mean_net_r": -0.08811189189189189,
+        "profit_factor": 0.7158052565052522,
+        "positive_rate": 0.3675675675675676,
+        "active_days": 38,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 64,
-          "mean_net_r": -0.03920625,
-          "profit_factor": 0.7983493124814156,
-          "positive_rate": 0.34375
+          "n": 63,
+          "mean_net_r": -0.0752920634920635,
+          "profit_factor": 0.6441373515488436,
+          "positive_rate": 0.31746031746031744
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5177,20 +5323,21 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": 0.026994760425054543,
-        "equal_day_mean_excluding_best_day": -0.08077760734091617,
+        "equal_active_day_mean_net_r": 0.012396214098079426,
+        "equal_day_mean_excluding_best_day": -0.09285794227764815,
         "day_bootstrap_ci95_descriptive": [
-          -0.17420571289848863,
-          0.3016847976672238
+          -0.184174404286954,
+          0.26845403545377483
         ],
         "monthly_proxy_net_r": {
           "2026-06": -2.1695,
           "2026-07": 4.4812,
           "2026-08": -8.7135,
           "2026-09": -6.5033,
-          "2026-10": -2.3401
+          "2026-10": -3.3956
         },
         "live_approved": false,
         "income_target_supported": false
@@ -5198,20 +5345,19 @@
       {
         "strategy": "candlestick_bearish_harami",
         "status": "NEGATIVE_AFTER_COST",
-        "n": 103,
-        "mean_net_r": -0.08389029126213593,
-        "profit_factor": 0.6878404936344851,
-        "positive_rate": 0.39805825242718446,
-        "active_days": 32,
-        "last_day": "2026-10-12",
+        "n": 107,
+        "mean_net_r": -0.09312336448598131,
+        "profit_factor": 0.6594285870534875,
+        "positive_rate": 0.3925233644859813,
+        "active_days": 33,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 44,
-          "mean_net_r": -0.11628409090909092,
-          "profit_factor": 0.5350453913470188,
-          "positive_rate": 0.38636363636363635
+          "n": 43,
+          "mean_net_r": -0.12238372093023256,
+          "profit_factor": 0.5238806105185065,
+          "positive_rate": 0.3953488372093023
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5220,63 +5366,21 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": -0.09122632417929293,
-        "equal_day_mean_excluding_best_day": -0.14288846366894753,
+        "equal_active_day_mean_net_r": -0.09848840526476889,
+        "equal_day_mean_excluding_best_day": -0.14876304292929293,
         "day_bootstrap_ci95_descriptive": [
-          -0.3299739621212121,
-          0.10709614488636301
+          -0.3284901804025099,
+          0.10047393380777443
         ],
         "monthly_proxy_net_r": {
           "2026-06": 0.8705999999999999,
           "2026-07": 0.9234999999999998,
           "2026-08": -4.6989,
           "2026-09": -7.3452,
-          "2026-10": 1.6093
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "candlestick_hammer",
-        "status": "NEGATIVE_AFTER_COST",
-        "n": 213,
-        "mean_net_r": -0.10073615023474178,
-        "profit_factor": 0.7056958943529351,
-        "positive_rate": 0.3192488262910798,
-        "active_days": 37,
-        "last_day": "2026-10-12",
-        "recent": {
-          "n": 44,
-          "mean_net_r": -0.22834545454545455,
-          "profit_factor": 0.33363841965286484,
-          "positive_rate": 0.29545454545454547
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.083382367009867,
-        "equal_day_mean_excluding_best_day": -0.13289391424162256,
-        "day_bootstrap_ci95_descriptive": [
-          -0.23916345919133417,
-          0.084334771530459
-        ],
-        "monthly_proxy_net_r": {
-          "2026-06": -1.4511,
-          "2026-07": -1.6321999999999994,
-          "2026-08": -7.4437,
-          "2026-09": -7.7565,
-          "2026-10": -3.1733000000000002
+          "2026-10": 0.28580000000000005
         },
         "live_approved": false,
         "income_target_supported": false
@@ -5297,7 +5401,6 @@
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5306,7 +5409,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.1009,
         "equal_day_mean_excluding_best_day": null,
@@ -5318,22 +5422,21 @@
         "income_target_supported": false
       },
       {
-        "strategy": "candlestick_tweezer_bottom",
+        "strategy": "candlestick_fred_tam_white_inside_out",
         "status": "NEGATIVE_AFTER_COST",
-        "n": 275,
-        "mean_net_r": -0.1172029090909091,
-        "profit_factor": 0.5906945321042198,
-        "positive_rate": 0.33090909090909093,
-        "active_days": 34,
-        "last_day": "2026-10-12",
+        "n": 101,
+        "mean_net_r": -0.10755445544554455,
+        "profit_factor": 0.6657106456834421,
+        "positive_rate": 0.39603960396039606,
+        "active_days": 31,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 104,
-          "mean_net_r": -0.07149326923076924,
-          "profit_factor": 0.6457576003011058,
-          "positive_rate": 0.3557692307692308
+          "n": 24,
+          "mean_net_r": -0.21280416666666668,
+          "profit_factor": 0.42995702885205644,
+          "positive_rate": 0.3333333333333333
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5342,106 +5445,21 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": -0.13914054834054834,
-        "equal_day_mean_excluding_best_day": -0.15653420132056498,
+        "equal_active_day_mean_net_r": -0.11330448924731183,
+        "equal_day_mean_excluding_best_day": -0.14049463888888888,
         "day_bootstrap_ci95_descriptive": [
-          -0.22966380980233003,
-          -0.04973898944539951
+          -0.26566923655913977,
+          0.03500040389784936
         ],
         "monthly_proxy_net_r": {
-          "2026-06": -6.0433,
-          "2026-07": -8.614400000000002,
-          "2026-08": -7.5419,
-          "2026-09": -9.9062,
-          "2026-10": -0.12500000000000008
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "chart_pattern_diamond_bottom",
-        "status": "NEGATIVE_AFTER_COST",
-        "n": 90,
-        "mean_net_r": -0.12639333333333333,
-        "profit_factor": 0.7345272768007168,
-        "positive_rate": 0.35555555555555557,
-        "active_days": 32,
-        "last_day": "2026-10-13",
-        "recent": {
-          "n": 19,
-          "mean_net_r": -0.3371157894736842,
-          "profit_factor": 0.15077428935086976,
-          "positive_rate": 0.3157894736842105
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.1575044568452381,
-        "equal_day_mean_excluding_best_day": -0.21587234254992319,
-        "day_bootstrap_ci95_descriptive": [
-          -0.41740679687499993,
-          0.11224070014880946
-        ],
-        "monthly_proxy_net_r": {
-          "2026-06": -4.1236,
-          "2026-07": 6.8304,
-          "2026-08": -5.8232,
-          "2026-09": -8.555299999999999,
-          "2026-10": 0.2963
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "candlestick_bullish_engulfing",
-        "status": "NEGATIVE_AFTER_COST",
-        "n": 371,
-        "mean_net_r": -0.12906280323450134,
-        "profit_factor": 0.6738529547993352,
-        "positive_rate": 0.3261455525606469,
-        "active_days": 37,
-        "last_day": "2026-10-12",
-        "recent": {
-          "n": 74,
-          "mean_net_r": -0.13541621621621622,
-          "profit_factor": 0.6000925859413038,
-          "positive_rate": 0.40540540540540543
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.15706588654522477,
-        "equal_day_mean_excluding_best_day": -0.18713808709740695,
-        "day_bootstrap_ci95_descriptive": [
-          -0.27109342977103823,
-          -0.038803187351086406
-        ],
-        "monthly_proxy_net_r": {
-          "2026-06": -1.9245999999999999,
-          "2026-07": -12.7804,
-          "2026-08": -12.694700000000001,
-          "2026-09": -16.43,
-          "2026-10": -4.0526
+          "2026-06": 1.8250000000000002,
+          "2026-07": -7.8626,
+          "2026-08": 1.6890000000000003,
+          "2026-09": -2.2145,
+          "2026-10": -4.2999
         },
         "live_approved": false,
         "income_target_supported": false
@@ -5449,20 +5467,19 @@
       {
         "strategy": "candlestick_homing_pigeon_bearish",
         "status": "INSUFFICIENT_EVIDENCE",
-        "n": 15,
-        "mean_net_r": -0.13826666666666668,
-        "profit_factor": 0.41344495036624335,
-        "positive_rate": 0.26666666666666666,
-        "active_days": 13,
-        "last_day": "2026-10-13",
+        "n": 16,
+        "mean_net_r": -0.10813125,
+        "profit_factor": 0.5107044882491021,
+        "positive_rate": 0.3125,
+        "active_days": 14,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 6,
-          "mean_net_r": -0.20168333333333333,
-          "profit_factor": 0.35354452695122596,
-          "positive_rate": 0.3333333333333333
+          "n": 5,
+          "mean_net_r": 0.007340000000000002,
+          "profit_factor": 1.037874097007224,
+          "positive_rate": 0.6
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5471,19 +5488,277 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": -0.13043076923076924,
-        "equal_day_mean_excluding_best_day": -0.19460833333333333,
+        "equal_active_day_mean_net_r": -0.09655,
+        "equal_day_mean_excluding_best_day": -0.1531846153846154,
         "day_bootstrap_ci95_descriptive": [
-          -0.3241555769230769,
-          0.06943624999999988
+          -0.28137321428571427,
+          0.0997683035714285
         ],
         "monthly_proxy_net_r": {
           "2026-07": -0.12129999999999999,
           "2026-08": -0.55,
           "2026-09": -1.2085,
-          "2026-10": -0.19419999999999998
+          "2026-10": 0.1497
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "candlestick_tweezer_bottom",
+        "status": "NEGATIVE_AFTER_COST",
+        "n": 283,
+        "mean_net_r": -0.10996395759717315,
+        "profit_factor": 0.6081064063428738,
+        "positive_rate": 0.3392226148409894,
+        "active_days": 35,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 103,
+          "mean_net_r": -0.059033009708737864,
+          "profit_factor": 0.6926172325238104,
+          "positive_rate": 0.3786407766990291
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.13119724695938983,
+        "equal_day_mean_excluding_best_day": -0.14784569539937187,
+        "day_bootstrap_ci95_descriptive": [
+          -0.2202455816893424,
+          -0.039993495057720076
+        ],
+        "monthly_proxy_net_r": {
+          "2026-06": -6.0433,
+          "2026-07": -8.614400000000002,
+          "2026-08": -7.5419,
+          "2026-09": -9.9062,
+          "2026-10": 0.9859999999999999
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "candlestick_hammer",
+        "status": "NEGATIVE_AFTER_COST",
+        "n": 217,
+        "mean_net_r": -0.11107511520737327,
+        "profit_factor": 0.6809766337451392,
+        "positive_rate": 0.31336405529953915,
+        "active_days": 38,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 41,
+          "mean_net_r": -0.1820170731707317,
+          "profit_factor": 0.39151527999739083,
+          "positive_rate": 0.2682926829268293
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.09859927840434418,
+        "equal_day_mean_excluding_best_day": -0.14718394358644357,
+        "day_bootstrap_ci95_descriptive": [
+          -0.2492242655336257,
+          0.07935622783521298
+        ],
+        "monthly_proxy_net_r": {
+          "2026-06": -1.4511,
+          "2026-07": -1.6321999999999994,
+          "2026-08": -7.4437,
+          "2026-09": -7.7565,
+          "2026-10": -5.8198
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "candlestick_ladder_bottom",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "n": 16,
+        "mean_net_r": -0.11515,
+        "profit_factor": 0.6883362936648904,
+        "positive_rate": 0.375,
+        "active_days": 13,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 4,
+          "mean_net_r": -0.4784,
+          "profit_factor": 0.0,
+          "positive_rate": 0.0
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.08533461538461538,
+        "equal_day_mean_excluding_best_day": -0.2173875,
+        "day_bootstrap_ci95_descriptive": [
+          -0.38766615384615377,
+          0.2843447115384614
+        ],
+        "monthly_proxy_net_r": {
+          "2026-06": -0.1827,
+          "2026-07": 2.0646,
+          "2026-08": -1.0945,
+          "2026-09": -1.6456,
+          "2026-10": -0.9842
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "chart_pattern_diamond_bottom",
+        "status": "NEGATIVE_AFTER_COST",
+        "n": 92,
+        "mean_net_r": -0.11848369565217391,
+        "profit_factor": 0.7457034011193203,
+        "positive_rate": 0.358695652173913,
+        "active_days": 33,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 19,
+          "mean_net_r": -0.18976315789473683,
+          "profit_factor": 0.3110465671755871,
+          "positive_rate": 0.3684210526315789
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.14553613997113996,
+        "equal_day_mean_excluding_best_day": -0.20170601934523807,
+        "day_bootstrap_ci95_descriptive": [
+          -0.38780930627705623,
+          0.12140731998556964
+        ],
+        "monthly_proxy_net_r": {
+          "2026-06": -4.1236,
+          "2026-07": 6.8304,
+          "2026-08": -5.8232,
+          "2026-09": -8.555299999999999,
+          "2026-10": 0.7712
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "candlestick_bullish_engulfing",
+        "status": "NEGATIVE_AFTER_COST",
+        "n": 384,
+        "mean_net_r": -0.13389557291666668,
+        "profit_factor": 0.6606484494317949,
+        "positive_rate": 0.3255208333333333,
+        "active_days": 38,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 77,
+          "mean_net_r": -0.15275974025974026,
+          "profit_factor": 0.548582327837647,
+          "positive_rate": 0.36363636363636365
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.16008561017865003,
+        "equal_day_mean_excluding_best_day": -0.18942666270600095,
+        "day_bootstrap_ci95_descriptive": [
+          -0.26949663657889233,
+          -0.04883251471271248
+        ],
+        "monthly_proxy_net_r": {
+          "2026-06": -1.9245999999999999,
+          "2026-07": -12.7804,
+          "2026-08": -12.694700000000001,
+          "2026-09": -16.43,
+          "2026-10": -7.5862
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "volatility_breakout",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "n": 17,
+        "mean_net_r": -0.14726470588235294,
+        "profit_factor": 0.5490976549836101,
+        "positive_rate": 0.29411764705882354,
+        "active_days": 15,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 2,
+          "mean_net_r": -0.09175,
+          "profit_factor": 0.7319211102994887,
+          "positive_rate": 0.5
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.22037666666666667,
+        "equal_day_mean_excluding_best_day": -0.28185714285714286,
+        "day_bootstrap_ci95_descriptive": [
+          -0.49314349999999996,
+          0.049396999999999996
+        ],
+        "monthly_proxy_net_r": {
+          "2026-07": -1.6435,
+          "2026-08": -1.9572,
+          "2026-09": 1.2807,
+          "2026-10": -0.1835
         },
         "live_approved": false,
         "income_target_supported": false
@@ -5498,13 +5773,12 @@
         "active_days": 34,
         "last_day": "2026-09-10",
         "recent": {
-          "n": 64,
-          "mean_net_r": -0.276478125,
-          "profit_factor": 0.3480682931861557,
-          "positive_rate": 0.328125
+          "n": 0,
+          "mean_net_r": null,
+          "profit_factor": null,
+          "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5513,7 +5787,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.12512409434084093,
         "equal_day_mean_excluding_best_day": -0.152846587557781,
@@ -5540,13 +5815,12 @@
         "active_days": 38,
         "last_day": "2026-10-12",
         "recent": {
-          "n": 55,
-          "mean_net_r": -0.1976272727272727,
-          "profit_factor": 0.4432207600616737,
-          "positive_rate": 0.2909090909090909
+          "n": 42,
+          "mean_net_r": -0.19899285714285714,
+          "profit_factor": 0.4824697198622842,
+          "positive_rate": 0.3333333333333333
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5555,7 +5829,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.2843220420763447,
         "equal_day_mean_excluding_best_day": -0.320280836006336,
@@ -5583,13 +5858,12 @@
         "active_days": 23,
         "last_day": "2026-09-17",
         "recent": {
-          "n": 7,
-          "mean_net_r": -0.2205,
-          "profit_factor": 0.48016300687053753,
-          "positive_rate": 0.2857142857142857
+          "n": 6,
+          "mean_net_r": -0.2506333333333334,
+          "profit_factor": 0.4866700802184673,
+          "positive_rate": 0.3333333333333333
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5598,7 +5872,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.14281731884057972,
         "equal_day_mean_excluding_best_day": -0.2356703787878788,
@@ -5631,7 +5906,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5640,7 +5914,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.06872077721661055,
         "equal_day_mean_excluding_best_day": -0.17057494058229353,
@@ -5671,7 +5946,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5680,7 +5954,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.009335763416477696,
         "equal_day_mean_excluding_best_day": -0.08905755158730158,
@@ -5712,7 +5987,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5721,7 +5995,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.12899748677248676,
         "equal_day_mean_excluding_best_day": -0.16546736111111113,
@@ -5752,7 +6027,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5761,7 +6035,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.12560909238902057,
         "equal_day_mean_excluding_best_day": -0.16949461432935467,
@@ -5788,13 +6063,12 @@
         "active_days": 35,
         "last_day": "2026-09-11",
         "recent": {
-          "n": 48,
-          "mean_net_r": -0.33736041666666666,
-          "profit_factor": 0.26876374457554947,
-          "positive_rate": 0.3333333333333333
+          "n": 23,
+          "mean_net_r": -0.14112608695652173,
+          "profit_factor": 0.5108060043404871,
+          "positive_rate": 0.43478260869565216
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5803,7 +6077,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.08109511967400977,
         "equal_day_mean_excluding_best_day": -0.16399424084089242,
@@ -5830,13 +6105,12 @@
         "active_days": 37,
         "last_day": "2026-10-12",
         "recent": {
-          "n": 54,
-          "mean_net_r": -0.2385611111111111,
-          "profit_factor": 0.3118429487179487,
-          "positive_rate": 0.3148148148148148
+          "n": 45,
+          "mean_net_r": -0.22882000000000002,
+          "profit_factor": 0.3330375360300547,
+          "positive_rate": 0.28888888888888886
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5845,7 +6119,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.13276982683982685,
         "equal_day_mean_excluding_best_day": -0.19486621091871092,
@@ -5859,6 +6134,48 @@
           "2026-08": -2.7026,
           "2026-09": -13.0381,
           "2026-10": -3.0235000000000003
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "uo_divergence",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "n": 18,
+        "mean_net_r": -0.15739444444444445,
+        "profit_factor": 0.49971746424156804,
+        "positive_rate": 0.3888888888888889,
+        "active_days": 11,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 7,
+          "mean_net_r": -0.13285714285714284,
+          "profit_factor": 0.5827725437415882,
+          "positive_rate": 0.42857142857142855
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.07165393939393938,
+        "equal_day_mean_excluding_best_day": -0.13323933333333332,
+        "day_bootstrap_ci95_descriptive": [
+          -0.30285660606060605,
+          0.1760515909090908
+        ],
+        "monthly_proxy_net_r": {
+          "2026-07": 0.4094,
+          "2026-08": -0.4337,
+          "2026-09": -3.8971999999999998,
+          "2026-10": 1.0884
         },
         "live_approved": false,
         "income_target_supported": false
@@ -5879,7 +6196,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5888,7 +6204,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.31579388571428574,
         "equal_day_mean_excluding_best_day": -0.3668144642857143,
@@ -5914,13 +6231,12 @@
         "active_days": 32,
         "last_day": "2026-09-11",
         "recent": {
-          "n": 116,
-          "mean_net_r": -0.3398793103448276,
-          "profit_factor": 0.1867372954776108,
-          "positive_rate": 0.21551724137931033
+          "n": 51,
+          "mean_net_r": -0.4616470588235294,
+          "profit_factor": 0.10172032918607712,
+          "positive_rate": 0.13725490196078433
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5929,7 +6245,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.14023405143229845,
         "equal_day_mean_excluding_best_day": -0.1567620315860285,
@@ -5962,7 +6279,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -5971,7 +6287,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.12431702038702039,
         "equal_day_mean_excluding_best_day": -0.16739412140637142,
@@ -6002,7 +6319,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6011,7 +6327,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.19433406755228463,
         "equal_day_mean_excluding_best_day": -0.2127232617813798,
@@ -6042,7 +6359,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6051,7 +6367,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.18000183127740066,
         "equal_day_mean_excluding_best_day": -0.21811875872424416,
@@ -6083,7 +6400,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6092,7 +6408,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.12662990929705215,
         "equal_day_mean_excluding_best_day": -0.19292390476190477,
@@ -6104,48 +6421,6 @@
           "2026-06": -0.2815,
           "2026-07": 0.8870000000000002,
           "2026-08": -9.7599
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "vsa",
-        "status": "INSUFFICIENT_EVIDENCE",
-        "n": 8,
-        "mean_net_r": -0.173125,
-        "profit_factor": 0.47798884366048544,
-        "positive_rate": 0.25,
-        "active_days": 6,
-        "last_day": "2026-10-12",
-        "recent": {
-          "n": 4,
-          "mean_net_r": -0.155675,
-          "profit_factor": 0.5209262963532851,
-          "positive_rate": 0.25
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.23748333333333335,
-        "equal_day_mean_excluding_best_day": -0.4032,
-        "day_bootstrap_ci95_descriptive": [
-          -0.72735,
-          0.2354333333333333
-        ],
-        "monthly_proxy_net_r": {
-          "2026-06": -0.9478,
-          "2026-08": 0.18549999999999994,
-          "2026-09": 0.43320000000000003,
-          "2026-10": -1.0559
         },
         "live_approved": false,
         "income_target_supported": false
@@ -6166,7 +6441,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6175,7 +6449,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.18246986635838908,
         "equal_day_mean_excluding_best_day": -0.25202081237545526,
@@ -6207,7 +6482,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6216,7 +6490,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.19239055555555554,
         "equal_day_mean_excluding_best_day": -0.25098988095238095,
@@ -6228,6 +6503,48 @@
           "2026-06": -0.5113,
           "2026-07": -4.1617,
           "2026-08": -1.0737
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "uo_oversold",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "n": 13,
+        "mean_net_r": -0.17497692307692309,
+        "profit_factor": 0.5743848816540368,
+        "positive_rate": 0.38461538461538464,
+        "active_days": 10,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 4,
+          "mean_net_r": -0.15335000000000001,
+          "profit_factor": 0.6273616426705547,
+          "positive_rate": 0.5
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.09459166666666668,
+        "equal_day_mean_excluding_best_day": -0.25050185185185186,
+        "day_bootstrap_ci95_descriptive": [
+          -0.6508433333333333,
+          0.4104027083333333
+        ],
+        "monthly_proxy_net_r": {
+          "2026-07": -1.54,
+          "2026-08": 0.6373,
+          "2026-09": -2.4047,
+          "2026-10": 1.0327000000000002
         },
         "live_approved": false,
         "income_target_supported": false
@@ -6248,7 +6565,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6257,7 +6573,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.22214703598245106,
         "equal_day_mean_excluding_best_day": -0.24120557501851314,
@@ -6288,7 +6605,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6297,7 +6613,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.1256043397540609,
         "equal_day_mean_excluding_best_day": -0.19675458085150874,
@@ -6308,6 +6625,48 @@
         "monthly_proxy_net_r": {
           "2026-06": -5.1419,
           "2026-07": -51.2611
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "vsa",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "n": 9,
+        "mean_net_r": -0.17682222222222224,
+        "profit_factor": 0.44348859980416844,
+        "positive_rate": 0.2222222222222222,
+        "active_days": 7,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 4,
+          "mean_net_r": -0.194225,
+          "profit_factor": 0.4656808803301238,
+          "positive_rate": 0.25
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.23304285714285716,
+        "equal_day_mean_excluding_best_day": -0.3704,
+        "day_bootstrap_ci95_descriptive": [
+          -0.6439699999999999,
+          0.1584428571428571
+        ],
+        "monthly_proxy_net_r": {
+          "2026-06": -0.9478,
+          "2026-08": 0.18549999999999994,
+          "2026-09": 0.43320000000000003,
+          "2026-10": -1.2623
         },
         "live_approved": false,
         "income_target_supported": false
@@ -6328,7 +6687,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6337,7 +6695,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.1825,
         "equal_day_mean_excluding_best_day": null,
@@ -6364,7 +6723,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6373,7 +6731,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.1833,
         "equal_day_mean_excluding_best_day": null,
@@ -6400,7 +6759,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6409,7 +6767,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.04274453745789387,
         "equal_day_mean_excluding_best_day": -0.227561826575925,
@@ -6420,48 +6779,6 @@
         "monthly_proxy_net_r": {
           "2026-06": -9.1081,
           "2026-07": -74.6344
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "volatility_breakout",
-        "status": "INSUFFICIENT_EVIDENCE",
-        "n": 16,
-        "mean_net_r": -0.18778125,
-        "profit_factor": 0.45886315334462013,
-        "positive_rate": 0.25,
-        "active_days": 14,
-        "last_day": "2026-10-12",
-        "recent": {
-          "n": 1,
-          "mean_net_r": -0.6845,
-          "profit_factor": 0.0,
-          "positive_rate": 0.0
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.2719035714285714,
-        "equal_day_mean_excluding_best_day": -0.34207692307692306,
-        "day_bootstrap_ci95_descriptive": [
-          -0.5402310714285714,
-          0.005791785714285579
-        ],
-        "monthly_proxy_net_r": {
-          "2026-07": -1.6435,
-          "2026-08": -1.9572,
-          "2026-09": 1.2807,
-          "2026-10": -0.6845
         },
         "live_approved": false,
         "income_target_supported": false
@@ -6482,7 +6799,6 @@
           "positive_rate": 0.28
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6491,7 +6807,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.31492089371980675,
         "equal_day_mean_excluding_best_day": -0.3936763888888889,
@@ -6525,7 +6842,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6534,7 +6850,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.1531007492997199,
         "equal_day_mean_excluding_best_day": -0.18954454613095237,
@@ -6565,7 +6882,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6574,7 +6890,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.16939698601258465,
         "equal_day_mean_excluding_best_day": -0.2411816787086022,
@@ -6592,20 +6909,19 @@
       {
         "strategy": "smc",
         "status": "NEGATIVE_AFTER_COST",
-        "n": 27,
-        "mean_net_r": -0.1970777777777778,
-        "profit_factor": 0.5940229955214429,
-        "positive_rate": 0.37037037037037035,
-        "active_days": 17,
-        "last_day": "2026-10-12",
+        "n": 29,
+        "mean_net_r": -0.1925793103448276,
+        "profit_factor": 0.583360687535436,
+        "positive_rate": 0.3793103448275862,
+        "active_days": 18,
+        "last_day": "2026-10-14",
         "recent": {
           "n": 9,
-          "mean_net_r": -0.29486666666666667,
-          "profit_factor": 0.3597587454764777,
-          "positive_rate": 0.1111111111111111
+          "mean_net_r": -0.18646666666666667,
+          "profit_factor": 0.47608641358641357,
+          "positive_rate": 0.2222222222222222
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6614,19 +6930,20 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": -0.04700343137254903,
-        "equal_day_mean_excluding_best_day": -0.19053489583333333,
+        "equal_active_day_mean_net_r": -0.05171712962962964,
+        "equal_day_mean_excluding_best_day": -0.1870828431372549,
         "day_bootstrap_ci95_descriptive": [
-          -0.3928313725490196,
-          0.3327115441176468
+          -0.37465276620370375,
+          0.3219692361111108
         ],
         "monthly_proxy_net_r": {
           "2026-07": 0.02230000000000002,
           "2026-08": 0.3264999999999998,
           "2026-09": -4.3586,
-          "2026-10": -1.3113000000000001
+          "2026-10": -1.575
         },
         "live_approved": false,
         "income_target_supported": false
@@ -6647,7 +6964,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6656,7 +6972,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.14463333333333334,
         "equal_day_mean_excluding_best_day": -0.24364358974358974,
@@ -6688,7 +7005,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6697,7 +7013,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.17257917403233886,
         "equal_day_mean_excluding_best_day": -0.20171801703413544,
@@ -6722,13 +7039,12 @@
         "active_days": 10,
         "last_day": "2026-09-17",
         "recent": {
-          "n": 4,
-          "mean_net_r": -0.1553,
-          "profit_factor": 0.31404593639575973,
-          "positive_rate": 0.25
+          "n": 3,
+          "mean_net_r": -0.1274,
+          "profit_factor": 0.42664266426642666,
+          "positive_rate": 0.3333333333333333
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6737,7 +7053,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.20651,
         "equal_day_mean_excluding_best_day": -0.2727555555555556,
@@ -6768,7 +7085,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6777,7 +7093,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.19439738260535475,
         "equal_day_mean_excluding_best_day": -0.2383654911627951,
@@ -6808,7 +7125,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6817,7 +7133,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.1959978677624848,
         "equal_day_mean_excluding_best_day": -0.24517860123279536,
@@ -6848,7 +7165,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6857,7 +7173,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.20520987254591655,
         "equal_day_mean_excluding_best_day": -0.22750217804272754,
@@ -6888,7 +7205,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6897,7 +7213,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3428372156182537,
         "equal_day_mean_excluding_best_day": -0.3734272461155641,
@@ -6928,7 +7245,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6937,7 +7253,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.2865050178571429,
         "equal_day_mean_excluding_best_day": -0.3414579135338346,
@@ -6962,13 +7279,12 @@
         "active_days": 17,
         "last_day": "2026-09-17",
         "recent": {
-          "n": 9,
-          "mean_net_r": -0.161,
-          "profit_factor": 0.3132050431320505,
+          "n": 6,
+          "mean_net_r": -0.23993333333333333,
+          "profit_factor": 0.2575171488988602,
           "positive_rate": 0.3333333333333333
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -6977,7 +7293,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.182448431372549,
         "equal_day_mean_excluding_best_day": -0.2631077083333333,
@@ -7010,7 +7327,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7019,7 +7335,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.2563219230769231,
         "equal_day_mean_excluding_best_day": -0.2700870833333333,
@@ -7050,7 +7367,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7059,7 +7375,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.18136410256410254,
         "equal_day_mean_excluding_best_day": -0.3365361111111111,
@@ -7090,7 +7407,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7099,7 +7415,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.40031923076923076,
         "equal_day_mean_excluding_best_day": -0.48682916666666665,
@@ -7111,6 +7428,49 @@
           "2026-06": 1.1901000000000002,
           "2026-07": -4.5023,
           "2026-08": -0.5234
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "candlestick_three_river_morning_star",
+        "status": "NEGATIVE_AFTER_COST",
+        "n": 29,
+        "mean_net_r": -0.22847241379310346,
+        "profit_factor": 0.28739056551012065,
+        "positive_rate": 0.20689655172413793,
+        "active_days": 21,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 9,
+          "mean_net_r": -0.14717777777777777,
+          "profit_factor": 0.3377,
+          "positive_rate": 0.2222222222222222
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.1945611111111111,
+        "equal_day_mean_excluding_best_day": -0.24087416666666667,
+        "day_bootstrap_ci95_descriptive": [
+          -0.35183632936507936,
+          -0.02628404761904787
+        ],
+        "monthly_proxy_net_r": {
+          "2026-06": -0.018,
+          "2026-07": -4.5394000000000005,
+          "2026-08": -0.161,
+          "2026-09": -0.8061999999999999,
+          "2026-10": -1.1011
         },
         "live_approved": false,
         "income_target_supported": false
@@ -7131,7 +7491,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7140,7 +7499,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.2977161031577035,
         "equal_day_mean_excluding_best_day": -0.36551537349394886,
@@ -7151,49 +7511,6 @@
         "monthly_proxy_net_r": {
           "2026-06": -11.2063,
           "2026-07": -24.622600000000002
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "candlestick_three_river_morning_star",
-        "status": "NEGATIVE_AFTER_COST",
-        "n": 28,
-        "mean_net_r": -0.23325714285714286,
-        "profit_factor": 0.2903415079373703,
-        "positive_rate": 0.21428571428571427,
-        "active_days": 20,
-        "last_day": "2026-10-12",
-        "recent": {
-          "n": 8,
-          "mean_net_r": -0.1537625,
-          "profit_factor": 0.35444765153503016,
-          "positive_rate": 0.25
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.19956416666666665,
-        "equal_day_mean_excluding_best_day": -0.2485780701754386,
-        "day_bootstrap_ci95_descriptive": [
-          -0.36262185416666676,
-          -0.030790187500000146
-        ],
-        "monthly_proxy_net_r": {
-          "2026-06": -0.018,
-          "2026-07": -4.5394000000000005,
-          "2026-08": -0.161,
-          "2026-09": -0.8061999999999999,
-          "2026-10": -1.0066
         },
         "live_approved": false,
         "income_target_supported": false
@@ -7214,7 +7531,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7223,7 +7539,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.2557525730360175,
         "equal_day_mean_excluding_best_day": -0.28952766318403816,
@@ -7254,7 +7571,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7263,7 +7579,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.21965249089261946,
         "equal_day_mean_excluding_best_day": -0.25605591210382556,
@@ -7294,7 +7611,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7303,7 +7619,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.24676089640963467,
         "equal_day_mean_excluding_best_day": -0.26598161329954867,
@@ -7328,13 +7645,12 @@
         "active_days": 20,
         "last_day": "2026-09-11",
         "recent": {
-          "n": 9,
-          "mean_net_r": -0.7336111111111111,
+          "n": 5,
+          "mean_net_r": -0.48434,
           "profit_factor": 0.0,
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7343,7 +7659,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.25453633333333336,
         "equal_day_mean_excluding_best_day": -0.30276456140350877,
@@ -7361,64 +7678,21 @@
         "income_target_supported": false
       },
       {
-        "strategy": "uo_oversold",
+        "strategy": "chart_pattern_symmetrical_triangle",
         "status": "INSUFFICIENT_EVIDENCE",
-        "n": 12,
-        "mean_net_r": -0.243625,
-        "profit_factor": 0.4529890541678361,
-        "positive_rate": 0.3333333333333333,
+        "n": 14,
+        "mean_net_r": -0.2460642857142857,
+        "profit_factor": 0.3514383613223887,
+        "positive_rate": 0.35714285714285715,
         "active_days": 9,
-        "last_day": "2026-10-13",
-        "recent": {
-          "n": 3,
-          "mean_net_r": -0.42073333333333335,
-          "profit_factor": 0.23321790899702327,
-          "positive_rate": 0.3333333333333333
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.17719074074074076,
-        "equal_day_mean_excluding_best_day": -0.3629145833333334,
-        "day_bootstrap_ci95_descriptive": [
-          -0.7507095833333334,
-          0.35200925925925874
-        ],
-        "monthly_proxy_net_r": {
-          "2026-07": -1.54,
-          "2026-08": 0.6373,
-          "2026-09": -2.4047,
-          "2026-10": 0.3839
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "uo_divergence",
-        "status": "INSUFFICIENT_EVIDENCE",
-        "n": 16,
-        "mean_net_r": -0.24509375,
-        "profit_factor": 0.30752251456825,
-        "positive_rate": 0.3125,
-        "active_days": 10,
-        "last_day": "2026-09-22",
+        "last_day": "2026-10-14",
         "recent": {
           "n": 5,
-          "mean_net_r": -0.40368,
-          "profit_factor": 0.09448183041722745,
+          "mean_net_r": -0.41376,
+          "profit_factor": 0.1382154461384654,
           "positive_rate": 0.2
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7427,18 +7701,19 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": -0.13323933333333332,
-        "equal_day_mean_excluding_best_day": -0.1928659259259259,
+        "equal_active_day_mean_net_r": -0.2428888888888889,
+        "equal_day_mean_excluding_best_day": -0.3912125,
         "day_bootstrap_ci95_descriptive": [
-          -0.34510176666666664,
-          0.08586394999999981
+          -0.6158645833333333,
+          0.15616666666666654
         ],
         "monthly_proxy_net_r": {
-          "2026-07": 0.4094,
-          "2026-08": -0.4337,
-          "2026-09": -3.8971999999999998
+          "2026-07": -0.6402000000000001,
+          "2026-09": -2.8018,
+          "2026-10": -0.0029000000000000137
         },
         "live_approved": false,
         "income_target_supported": false
@@ -7459,7 +7734,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7468,7 +7742,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3281197992530345,
         "equal_day_mean_excluding_best_day": -0.3765385367063492,
@@ -7499,7 +7774,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7508,7 +7782,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3221026636966843,
         "equal_day_mean_excluding_best_day": -0.3381444783465001,
@@ -7539,7 +7814,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7548,7 +7822,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.25276587682054785,
         "equal_day_mean_excluding_best_day": -0.2962324996068746,
@@ -7579,7 +7854,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7588,7 +7862,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.2577672328866163,
         "equal_day_mean_excluding_best_day": -0.2806862139205203,
@@ -7619,7 +7894,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7628,7 +7902,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.24320321672759979,
         "equal_day_mean_excluding_best_day": -0.3473471677730748,
@@ -7659,7 +7934,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7668,7 +7942,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.37887416284695696,
         "equal_day_mean_excluding_best_day": -0.41711629802489175,
@@ -7693,13 +7968,12 @@
         "active_days": 20,
         "last_day": "2026-09-11",
         "recent": {
-          "n": 7,
-          "mean_net_r": -0.039200000000000006,
-          "profit_factor": 0.7026118998591091,
-          "positive_rate": 0.2857142857142857
+          "n": 4,
+          "mean_net_r": -0.17675,
+          "profit_factor": 0.0,
+          "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7708,7 +7982,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.39085166666666665,
         "equal_day_mean_excluding_best_day": -0.4190122807017544,
@@ -7721,87 +7996,6 @@
           "2026-07": -6.9801,
           "2026-08": -0.4644,
           "2026-09": -0.7387
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "chart_pattern_symmetrical_triangle",
-        "status": "INSUFFICIENT_EVIDENCE",
-        "n": 12,
-        "mean_net_r": -0.28683333333333333,
-        "profit_factor": 0.3084048303160602,
-        "positive_rate": 0.3333333333333333,
-        "active_days": 8,
-        "last_day": "2026-09-15",
-        "recent": {
-          "n": 3,
-          "mean_net_r": -0.6886333333333333,
-          "profit_factor": 0.0,
-          "positive_rate": 0.0
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.27306875,
-        "equal_day_mean_excluding_best_day": -0.44689285714285715,
-        "day_bootstrap_ci95_descriptive": [
-          -0.68985078125,
-          0.1871009374999998
-        ],
-        "monthly_proxy_net_r": {
-          "2026-07": -0.6402000000000001,
-          "2026-09": -2.8018
-        },
-        "live_approved": false,
-        "income_target_supported": false
-      },
-      {
-        "strategy": "chart_pattern_cup_handle",
-        "status": "NEGATIVE_AFTER_COST",
-        "n": 24,
-        "mean_net_r": -0.28757083333333333,
-        "profit_factor": 0.3831268658050446,
-        "positive_rate": 0.3333333333333333,
-        "active_days": 12,
-        "last_day": "2026-09-08",
-        "recent": {
-          "n": 0,
-          "mean_net_r": null,
-          "profit_factor": null,
-          "positive_rate": null
-        },
-        "recent_system_days": [
-          "2026-09-10",
-          "2026-09-11",
-          "2026-09-15",
-          "2026-09-17",
-          "2026-09-18",
-          "2026-09-21",
-          "2026-09-22",
-          "2026-09-23",
-          "2026-10-12",
-          "2026-10-13"
-        ],
-        "equal_active_day_mean_net_r": -0.45838333333333336,
-        "equal_day_mean_excluding_best_day": -0.5270431818181819,
-        "day_bootstrap_ci95_descriptive": [
-          -0.7929359374999999,
-          -0.13656781250000014
-        ],
-        "monthly_proxy_net_r": {
-          "2026-07": -4.1631,
-          "2026-08": -1.3692,
-          "2026-09": -1.3694
         },
         "live_approved": false,
         "income_target_supported": false
@@ -7822,7 +8016,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7831,7 +8024,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3691187050498371,
         "equal_day_mean_excluding_best_day": -0.40595509946453345,
@@ -7842,6 +8036,48 @@
         "monthly_proxy_net_r": {
           "2026-06": -2.7268000000000003,
           "2026-07": -80.9815
+        },
+        "live_approved": false,
+        "income_target_supported": false
+      },
+      {
+        "strategy": "chart_pattern_cup_handle",
+        "status": "NEGATIVE_AFTER_COST",
+        "n": 25,
+        "mean_net_r": -0.294508,
+        "profit_factor": 0.3679651821584315,
+        "positive_rate": 0.32,
+        "active_days": 13,
+        "last_day": "2026-10-14",
+        "recent": {
+          "n": 1,
+          "mean_net_r": -0.461,
+          "profit_factor": 0.0,
+          "positive_rate": 0.0
+        },
+        "recent_system_days": [
+          "2026-09-11",
+          "2026-09-15",
+          "2026-09-17",
+          "2026-09-18",
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-23",
+          "2026-10-12",
+          "2026-10-13",
+          "2026-10-14"
+        ],
+        "equal_active_day_mean_net_r": -0.4585846153846154,
+        "equal_day_mean_excluding_best_day": -0.5215395833333334,
+        "day_bootstrap_ci95_descriptive": [
+          -0.7828981249999999,
+          -0.18367841346153857
+        ],
+        "monthly_proxy_net_r": {
+          "2026-07": -4.1631,
+          "2026-08": -1.3692,
+          "2026-09": -1.3694,
+          "2026-10": -0.461
         },
         "live_approved": false,
         "income_target_supported": false
@@ -7862,7 +8098,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7871,7 +8106,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.31387676889847443,
         "equal_day_mean_excluding_best_day": -0.3454234580797028,
@@ -7902,7 +8138,6 @@
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7911,7 +8146,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.30493333333333333,
         "equal_day_mean_excluding_best_day": -0.40055999999999997,
@@ -7943,7 +8179,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7952,7 +8187,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3178143126676306,
         "equal_day_mean_excluding_best_day": -0.34661407050108445,
@@ -7983,7 +8219,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -7992,7 +8227,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.1290549289891395,
         "equal_day_mean_excluding_best_day": -0.21526538800705466,
@@ -8023,7 +8259,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8032,7 +8267,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.260060524294419,
         "equal_day_mean_excluding_best_day": -0.3444138867552201,
@@ -8063,7 +8299,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8072,7 +8307,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.321675,
         "equal_day_mean_excluding_best_day": -0.7086,
@@ -8103,7 +8339,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8112,7 +8347,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.16281428571428572,
         "equal_day_mean_excluding_best_day": -0.30624285714285715,
@@ -8142,7 +8378,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8151,7 +8386,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.40541078431372546,
         "equal_day_mean_excluding_best_day": -0.44829270833333335,
@@ -8176,13 +8412,12 @@
         "active_days": 15,
         "last_day": "2026-10-12",
         "recent": {
-          "n": 7,
-          "mean_net_r": -0.5241142857142858,
-          "profit_factor": 0.01698729971598521,
-          "positive_rate": 0.14285714285714285
+          "n": 6,
+          "mean_net_r": -0.5736666666666667,
+          "profit_factor": 0.01808638101215268,
+          "positive_rate": 0.16666666666666666
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8191,7 +8426,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.28658,
         "equal_day_mean_excluding_best_day": -0.40365,
@@ -8224,7 +8460,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8233,7 +8468,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3390556770934307,
         "equal_day_mean_excluding_best_day": -0.37340513673010955,
@@ -8258,13 +8494,12 @@
         "active_days": 15,
         "last_day": "2026-09-22",
         "recent": {
-          "n": 6,
-          "mean_net_r": -0.33793333333333336,
-          "profit_factor": 0.21413898686097438,
-          "positive_rate": 0.3333333333333333
+          "n": 5,
+          "mean_net_r": -0.37174,
+          "profit_factor": 0.2291390179163902,
+          "positive_rate": 0.4
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8273,7 +8508,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.25622333333333336,
         "equal_day_mean_excluding_best_day": -0.32728214285714285,
@@ -8306,7 +8542,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8315,7 +8550,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3342000797448166,
         "equal_day_mean_excluding_best_day": -0.3790516714766715,
@@ -8346,7 +8582,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8355,7 +8590,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.4431313425925926,
         "equal_day_mean_excluding_best_day": -0.5253273039215687,
@@ -8386,7 +8622,6 @@
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8395,7 +8630,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3478,
         "equal_day_mean_excluding_best_day": null,
@@ -8422,7 +8658,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8431,7 +8666,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.30394095238095237,
         "equal_day_mean_excluding_best_day": -0.3432432275132275,
@@ -8462,7 +8698,6 @@
           "positive_rate": 0.4444444444444444
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8471,7 +8706,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.4044517543859649,
         "equal_day_mean_excluding_best_day": -0.4972824074074074,
@@ -8497,13 +8733,12 @@
         "active_days": 18,
         "last_day": "2026-09-11",
         "recent": {
-          "n": 3,
-          "mean_net_r": -0.9441333333333334,
+          "n": 1,
+          "mean_net_r": -0.429,
           "profit_factor": 0.0,
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8512,7 +8747,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.35310092592592596,
         "equal_day_mean_excluding_best_day": -0.4098009803921569,
@@ -8545,7 +8781,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8554,7 +8789,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3683,
         "equal_day_mean_excluding_best_day": null,
@@ -8581,7 +8817,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8590,7 +8825,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3370444444444445,
         "equal_day_mean_excluding_best_day": -0.5040166666666667,
@@ -8620,7 +8856,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8629,7 +8864,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.43201754385964913,
         "equal_day_mean_excluding_best_day": -0.47035462962962965,
@@ -8660,7 +8896,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8669,7 +8904,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.44292780163896417,
         "equal_day_mean_excluding_best_day": -0.47685667950779553,
@@ -8700,7 +8936,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8709,7 +8944,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.3487637088934457,
         "equal_day_mean_excluding_best_day": -0.40966724827641493,
@@ -8740,7 +8976,6 @@
           "positive_rate": 1.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8749,7 +8984,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.5014151515151515,
         "equal_day_mean_excluding_best_day": -0.7575066666666667,
@@ -8781,7 +9017,6 @@
           "positive_rate": 0.3333333333333333
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8790,7 +9025,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.23962142857142857,
         "equal_day_mean_excluding_best_day": -0.35795,
@@ -8822,7 +9058,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8831,7 +9066,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -1.2002853091060985,
         "equal_day_mean_excluding_best_day": -1.300951159611993,
@@ -8862,7 +9098,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8871,7 +9106,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.5529133333333334,
         "equal_day_mean_excluding_best_day": -0.6757391666666667,
@@ -8902,7 +9138,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8911,7 +9146,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.4315993055555556,
         "equal_day_mean_excluding_best_day": -0.531144696969697,
@@ -8942,7 +9178,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8951,7 +9186,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.36009679487179486,
         "equal_day_mean_excluding_best_day": -0.45541319444444445,
@@ -8983,7 +9219,6 @@
           "positive_rate": 1.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -8992,7 +9227,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.4995,
         "equal_day_mean_excluding_best_day": -0.7351,
@@ -9024,7 +9260,6 @@
           "positive_rate": 0.25
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -9033,7 +9268,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.7044,
         "equal_day_mean_excluding_best_day": -0.8576857142857143,
@@ -9066,7 +9302,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -9075,7 +9310,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.5757886666666666,
         "equal_day_mean_excluding_best_day": -0.6702735714285715,
@@ -9106,7 +9342,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -9115,7 +9350,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.6621328525641026,
         "equal_day_mean_excluding_best_day": -0.835919423076923,
@@ -9145,7 +9381,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -9154,7 +9389,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.92845,
         "equal_day_mean_excluding_best_day": -1.13522,
@@ -9172,20 +9408,19 @@
       {
         "strategy": "orb_2min",
         "status": "INSUFFICIENT_EVIDENCE",
-        "n": 9,
-        "mean_net_r": -0.9161777777777778,
-        "profit_factor": 0.14774160206718345,
-        "positive_rate": 0.3333333333333333,
-        "active_days": 5,
-        "last_day": "2026-09-15",
+        "n": 10,
+        "mean_net_r": -0.9424,
+        "profit_factor": 0.13170066522932905,
+        "positive_rate": 0.3,
+        "active_days": 6,
+        "last_day": "2026-10-14",
         "recent": {
-          "n": 2,
-          "mean_net_r": -4.0753,
+          "n": 3,
+          "mean_net_r": -3.1096666666666666,
           "profit_factor": 0.0,
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -9194,17 +9429,19 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
-        "equal_active_day_mean_net_r": -0.7159166666666668,
-        "equal_day_mean_excluding_best_day": -1.1403208333333335,
+        "equal_active_day_mean_net_r": -0.7929972222222222,
+        "equal_day_mean_excluding_best_day": -1.1479366666666668,
         "day_bootstrap_ci95_descriptive": [
-          -2.505856666666667,
-          0.4950333333333333
+          -2.129128819444445,
+          0.24388611111111116
         ],
         "monthly_proxy_net_r": {
           "2026-08": -0.862,
-          "2026-09": -7.3836
+          "2026-09": -7.3836,
+          "2026-10": -1.1784
         },
         "live_approved": false,
         "income_target_supported": false
@@ -9225,7 +9462,6 @@
           "positive_rate": 0.0
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -9234,7 +9470,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.97804,
         "equal_day_mean_excluding_best_day": -1.1026333333333334,
@@ -9266,7 +9503,6 @@
           "positive_rate": null
         },
         "recent_system_days": [
-          "2026-09-10",
           "2026-09-11",
           "2026-09-15",
           "2026-09-17",
@@ -9275,7 +9511,8 @@
           "2026-09-22",
           "2026-09-23",
           "2026-10-12",
-          "2026-10-13"
+          "2026-10-13",
+          "2026-10-14"
         ],
         "equal_active_day_mean_net_r": -0.7453277777777778,
         "equal_day_mean_excluding_best_day": -1.02683125,
@@ -9730,8 +9967,44 @@
   },
   "income_target_supported": false,
   "live_eligibility": {
-    "generated_at": "2026-10-13T20:13:42.747865+05:30",
+    "generated_at": "2026-10-14T20:11:21.005641+05:30",
     "strategies": {
+      "adx_dmi_crossover": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": 1.5068,
+        "dev_avg_pnl": 4017.87,
+        "dev_avg_trades": 14.6,
+        "deflated_sharpe": 0.0111,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.6,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "adx_long_straddle": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_insufficient_data",
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "edge_status": "",
+        "dev_avg_sharpe": 0.0,
+        "dev_avg_pnl": 0.0,
+        "dev_avg_trades": 0.0,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": false,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 0,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
       "alligator_ao": {
         "live_ready": false,
         "cohort_member": false,
@@ -9765,6 +10038,24 @@
         "stability_ok": null,
         "dev_pct_profitable": null,
         "dev_windows": null,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "aroon_crossover": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": 0.843,
+        "dev_avg_pnl": 3975.61,
+        "dev_avg_trades": 27.4,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.6,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -9804,6 +10095,42 @@
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
+      "bollinger_otm_momentum": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": 0.179,
+        "dev_avg_pnl": -396.91,
+        "dev_avg_trades": 29.2,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.6,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "bollinger_otm_reversal": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -0.0886,
+        "dev_avg_pnl": 3695.3,
+        "dev_avg_trades": 23.0,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.8,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
       "breakout": {
         "live_ready": false,
         "cohort_member": false,
@@ -9811,10 +10138,10 @@
         "block_reason": "validation_insufficient_data",
         "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "MARGINAL",
-        "dev_avg_sharpe": 2.0946,
-        "dev_avg_pnl": 29186.21,
-        "dev_avg_trades": 215.0,
-        "deflated_sharpe": 0.0,
+        "dev_avg_sharpe": 2.1447,
+        "dev_avg_pnl": 29911.18,
+        "dev_avg_trades": 216.0,
+        "deflated_sharpe": 0.9084,
         "min_trade_ok": true,
         "stability_ok": false,
         "dev_pct_profitable": 1.0,
@@ -10093,6 +10420,24 @@
         "failed_evidence_checks": []
       },
       "candlestick_hanging_man": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "edge_insufficient_data",
+        "validation_verdict": "",
+        "edge_status": "INSUFFICIENT_DATA",
+        "dev_avg_sharpe": null,
+        "dev_avg_pnl": null,
+        "dev_avg_trades": null,
+        "deflated_sharpe": null,
+        "min_trade_ok": null,
+        "stability_ok": null,
+        "dev_pct_profitable": null,
+        "dev_windows": null,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "candlestick_homing_pigeon_bearish": {
         "live_ready": false,
         "cohort_member": false,
         "paper_training_only": true,
@@ -10431,6 +10776,24 @@
         "stability_ok": null,
         "dev_pct_profitable": null,
         "dev_windows": null,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "carver_ewmac": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": 2.9243,
+        "dev_avg_pnl": 1765.85,
+        "dev_avg_trades": 0.0,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.6,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -10848,21 +11211,93 @@
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
+      "confluence_backtest": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -14.0804,
+        "dev_avg_pnl": -116125.57,
+        "dev_avg_trades": 130.2,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": true,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "contrarian_sell": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": 0.4909,
+        "dev_avg_pnl": 9597.49,
+        "dev_avg_trades": 28.6,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.2,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
       "cpr": {
         "live_ready": false,
         "cohort_member": true,
         "paper_training_only": true,
         "block_reason": "edge_negative_edge",
-        "validation_verdict": "FAIL",
+        "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "NEGATIVE_EDGE",
-        "dev_avg_sharpe": -2.9996,
-        "dev_avg_pnl": -15595.48,
-        "dev_avg_trades": 36.7,
+        "dev_avg_sharpe": -10.8313,
+        "dev_avg_pnl": -42473.55,
+        "dev_avg_trades": 45.0,
         "deflated_sharpe": 0.0,
         "min_trade_ok": true,
+        "stability_ok": false,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 1,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "delta_hedged_iron_butterfly": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -24.6182,
+        "dev_avg_pnl": -86319.68,
+        "dev_avg_trades": 29.2,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
         "stability_ok": true,
-        "dev_pct_profitable": 0.1667,
-        "dev_windows": 6,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "di_momentum_call": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -0.1128,
+        "dev_avg_pnl": 399.31,
+        "dev_avg_trades": 14.4,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.4,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -10871,16 +11306,16 @@
         "cohort_member": false,
         "paper_training_only": true,
         "block_reason": "edge_negative_edge",
-        "validation_verdict": "",
+        "validation_verdict": "FAIL",
         "edge_status": "NEGATIVE_EDGE",
-        "dev_avg_sharpe": null,
-        "dev_avg_pnl": null,
-        "dev_avg_trades": null,
-        "deflated_sharpe": null,
-        "min_trade_ok": null,
-        "stability_ok": null,
-        "dev_pct_profitable": null,
-        "dev_windows": null,
+        "dev_avg_sharpe": 1.8523,
+        "dev_avg_pnl": 8290.32,
+        "dev_avg_trades": 29.2,
+        "deflated_sharpe": 0.9788,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.6,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -10960,17 +11395,17 @@
         "live_ready": false,
         "cohort_member": false,
         "paper_training_only": true,
-        "block_reason": "validation_fail",
-        "validation_verdict": "FAIL",
+        "block_reason": "validation_insufficient_data",
+        "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "",
-        "dev_avg_sharpe": -8.8808,
-        "dev_avg_pnl": -34286.02,
-        "dev_avg_trades": 80.8,
+        "dev_avg_sharpe": -11.0186,
+        "dev_avg_pnl": -85462.47,
+        "dev_avg_trades": 76.0,
         "deflated_sharpe": 0.0,
         "min_trade_ok": true,
-        "stability_ok": true,
-        "dev_pct_profitable": 0.1061,
-        "dev_windows": 66,
+        "stability_ok": false,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 1,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11007,6 +11442,24 @@
         "stability_ok": null,
         "dev_pct_profitable": null,
         "dev_windows": null,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "ema_supertrend_confirm": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -2.4442,
+        "dev_avg_pnl": 6545.16,
+        "dev_avg_trades": 20.2,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.8,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11079,6 +11532,24 @@
         "stability_ok": null,
         "dev_pct_profitable": null,
         "dev_windows": null,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "fibonacci": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_insufficient_data",
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "edge_status": "",
+        "dev_avg_sharpe": -3.1576,
+        "dev_avg_pnl": -34332.08,
+        "dev_avg_trades": 47.0,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": true,
+        "stability_ok": false,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 1,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11208,21 +11679,57 @@
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
+      "legacy_mean_reversion": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -1.7587,
+        "dev_avg_pnl": 7793.21,
+        "dev_avg_trades": 15.8,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.6,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
       "ma_cross": {
         "live_ready": false,
         "cohort_member": false,
         "paper_training_only": true,
         "block_reason": "edge_negative_edge",
-        "validation_verdict": "FAIL",
+        "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "NEGATIVE_EDGE",
-        "dev_avg_sharpe": 2.0407,
-        "dev_avg_pnl": 23800.85,
-        "dev_avg_trades": 93.5,
+        "dev_avg_sharpe": 0.4786,
+        "dev_avg_pnl": 9201.87,
+        "dev_avg_trades": 118.0,
         "deflated_sharpe": 0.0,
         "min_trade_ok": true,
+        "stability_ok": false,
+        "dev_pct_profitable": 1.0,
+        "dev_windows": 1,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "macd_crossover": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -1.1877,
+        "dev_avg_pnl": -4154.31,
+        "dev_avg_trades": 28.6,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
         "stability_ok": true,
-        "dev_pct_profitable": 0.7879,
-        "dev_windows": 66,
+        "dev_pct_profitable": 0.2,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11233,9 +11740,9 @@
         "block_reason": "edge_negative_edge",
         "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "NEGATIVE_EDGE",
-        "dev_avg_sharpe": 5.3674,
-        "dev_avg_pnl": 57462.73,
-        "dev_avg_trades": 52.0,
+        "dev_avg_sharpe": 4.3841,
+        "dev_avg_pnl": 44306.43,
+        "dev_avg_trades": 48.0,
         "deflated_sharpe": 1.0,
         "min_trade_ok": true,
         "stability_ok": false,
@@ -11269,14 +11776,14 @@
         "block_reason": "edge_insufficient_data",
         "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "INSUFFICIENT_DATA",
-        "dev_avg_sharpe": 0.0,
-        "dev_avg_pnl": 0.0,
-        "dev_avg_trades": 0.0,
+        "dev_avg_sharpe": -8.4536,
+        "dev_avg_pnl": -82800.91,
+        "dev_avg_trades": 22.0,
         "deflated_sharpe": 0.0,
         "min_trade_ok": false,
         "stability_ok": false,
         "dev_pct_profitable": 0.0,
-        "dev_windows": 0,
+        "dev_windows": 1,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11352,6 +11859,24 @@
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
+      "premium_breakout": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -15.7913,
+        "dev_avg_pnl": -25899.96,
+        "dev_avg_trades": 29.4,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
       "price_structure": {
         "live_ready": false,
         "cohort_member": false,
@@ -11385,6 +11910,42 @@
         "stability_ok": null,
         "dev_pct_profitable": null,
         "dev_windows": null,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "real_option_translation": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": 0.7739,
+        "dev_avg_pnl": 30846.75,
+        "dev_avg_trades": 29.4,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.2,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "rolling_short_straddle": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": -6.3438,
+        "dev_avg_pnl": -39866.0,
+        "dev_avg_trades": 69.8,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": true,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11424,21 +11985,57 @@
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
+      "sahi_daily": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_insufficient_data",
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "edge_status": "",
+        "dev_avg_sharpe": 0.0,
+        "dev_avg_pnl": 0.0,
+        "dev_avg_trades": 0.0,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": false,
+        "stability_ok": false,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 0,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
       "scalping": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_insufficient_data",
+        "validation_verdict": "INSUFFICIENT_DATA",
+        "edge_status": "",
+        "dev_avg_sharpe": -75.0672,
+        "dev_avg_pnl": -388475.92,
+        "dev_avg_trades": 241.0,
+        "deflated_sharpe": 0.0,
+        "min_trade_ok": true,
+        "stability_ok": false,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 1,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
+      "sma20_atm_option": {
         "live_ready": false,
         "cohort_member": false,
         "paper_training_only": true,
         "block_reason": "validation_fail",
         "validation_verdict": "FAIL",
         "edge_status": "",
-        "dev_avg_sharpe": -42.3525,
-        "dev_avg_pnl": -163989.88,
-        "dev_avg_trades": 250.8,
+        "dev_avg_sharpe": 0.8171,
+        "dev_avg_pnl": 3689.43,
+        "dev_avg_trades": 29.2,
         "deflated_sharpe": 0.0,
-        "min_trade_ok": true,
+        "min_trade_ok": false,
         "stability_ok": true,
-        "dev_pct_profitable": 0.0,
-        "dev_windows": 66,
+        "dev_pct_profitable": 0.6,
+        "dev_windows": 5,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11460,21 +12057,39 @@
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
+      "stochastic_crossover": {
+        "live_ready": false,
+        "cohort_member": false,
+        "paper_training_only": true,
+        "block_reason": "validation_fail",
+        "validation_verdict": "FAIL",
+        "edge_status": "",
+        "dev_avg_sharpe": 1.8147,
+        "dev_avg_pnl": 10310.8,
+        "dev_avg_trades": 29.2,
+        "deflated_sharpe": 0.2621,
+        "min_trade_ok": false,
+        "stability_ok": true,
+        "dev_pct_profitable": 0.8,
+        "dev_windows": 5,
+        "evidence_checks": {},
+        "failed_evidence_checks": []
+      },
       "supertrend_mtf": {
         "live_ready": false,
         "cohort_member": false,
         "paper_training_only": true,
         "block_reason": "edge_negative_edge",
-        "validation_verdict": "FAIL",
+        "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "NEGATIVE_EDGE",
-        "dev_avg_sharpe": -1.3246,
-        "dev_avg_pnl": -1555.69,
-        "dev_avg_trades": 28.1,
+        "dev_avg_sharpe": -3.0071,
+        "dev_avg_pnl": -12621.41,
+        "dev_avg_trades": 19.0,
         "deflated_sharpe": 0.0,
         "min_trade_ok": false,
-        "stability_ok": true,
-        "dev_pct_profitable": 0.3182,
-        "dev_windows": 66,
+        "stability_ok": false,
+        "dev_pct_profitable": 0.0,
+        "dev_windows": 1,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11503,10 +12118,10 @@
         "block_reason": "edge_negative_edge",
         "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "NEGATIVE_EDGE",
-        "dev_avg_sharpe": 4.8082,
-        "dev_avg_pnl": 48353.46,
-        "dev_avg_trades": 68.0,
-        "deflated_sharpe": 0.9998,
+        "dev_avg_sharpe": 1.7055,
+        "dev_avg_pnl": 18374.14,
+        "dev_avg_trades": 112.0,
+        "deflated_sharpe": 0.0326,
         "min_trade_ok": true,
         "stability_ok": false,
         "dev_pct_profitable": 1.0,
@@ -11680,17 +12295,17 @@
         "live_ready": false,
         "cohort_member": false,
         "paper_training_only": true,
-        "block_reason": "validation_fail",
-        "validation_verdict": "FAIL",
+        "block_reason": "validation_insufficient_data",
+        "validation_verdict": "INSUFFICIENT_DATA",
         "edge_status": "MARGINAL",
         "dev_avg_sharpe": 0.0,
         "dev_avg_pnl": 0.0,
         "dev_avg_trades": 0.0,
         "deflated_sharpe": 0.0,
         "min_trade_ok": false,
-        "stability_ok": true,
+        "stability_ok": false,
         "dev_pct_profitable": 0.0,
-        "dev_windows": 6,
+        "dev_windows": 1,
         "evidence_checks": {},
         "failed_evidence_checks": []
       },
@@ -11761,7 +12376,7 @@
     "option_research_hypotheses": 39,
     "option_placeholders": 0,
     "observed_signal_strategies": 125,
-    "live_manifest_strategies": 112,
+    "live_manifest_strategies": 133,
     "paper_candidates": 0
   },
   "policy": "Test all compatible families within the existing daily budget; stage parameters; require independent forward evidence; do not raise risk to meet an income target."

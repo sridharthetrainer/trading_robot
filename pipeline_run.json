@@ -1,82 +1,265 @@
 {
-  "started_at": "2026-10-13T21:15:13.016498",
-  "finished_at": "2026-10-13T21:26:03.881862",
-  "total_elapsed": 650.9,
-  "steps_ok": 12,
+  "started_at": "2026-10-15T15:45:00.354675",
+  "finished_at": "2026-10-15T16:00:51.348729",
+  "total_elapsed": 951.0,
+  "steps_ok": 13,
   "steps_error": 0,
   "errors": [],
   "steps": [
     {
       "step": "strategy_validator",
       "status": "ok",
-      "elapsed": 4.78,
-      "error": null
+      "elapsed": 4.52,
+      "error": null,
+      "result": {
+        "edge_confirmed": [],
+        "negative_edge": [
+          "holy_grail",
+          "chart_pattern_descending_triangle",
+          "failed_bull_breakout",
+          "trend",
+          "rsi_divergence",
+          "price_structure",
+          "chart_pattern_range_expansion",
+          "chart_pattern_double_top",
+          "chart_pattern_head_and_shoulders",
+          "chart_pattern_inverse_head_shoulders",
+          "alligator_ao",
+          "vrvp_zone",
+          "chart_pattern_diamond_top",
+          "failed_bear_breakout",
+          "chart_pattern_ascending_triangle",
+          "ttm_squeeze",
+          "cpr",
+          "chart_pattern_diamond_bottom",
+          "candlestick_bullish_engulfing",
+          "chart_pattern_double_bottom",
+          "candlestick_morning_star",
+          "td_sequential",
+          "candlestick_spinning_top_white",
+          "elder_ray",
+          "donchian_breakout",
+          "candlestick_evening_star",
+          "candlestick_three_black_soldiers",
+          "ichimoku",
+          "candlestick_bearish_engulfing",
+          "vp_breakout",
+          "mean_reversion",
+          "candlestick_tweezer_bottom",
+          "candlestick_spinning_top_black",
+          "ma_cross",
+          "candlestick_shooting_star",
+          "candlestick_hammer",
+          "aroon_trend",
+          "heikin_ashi",
+          "rsi2_mr",
+          "candlestick_fred_tam_black_inside_out",
+          "cci_trend",
+          "candlestick_tweezer_top",
+          "supertrend_mtf",
+          "candlestick_three_white_soldiers",
+          "weinstein_stage",
+          "chart_pattern_rising_wedge",
+          "gap_fill",
+          "expiry_scalp",
+          "candlestick_bearish_marubozu",
+          "chart_pattern_rectangle"
+        ]
+      }
     },
     {
       "step": "alpha_decay_tracker",
       "status": "ok",
-      "elapsed": 0.02,
-      "error": null
+      "elapsed": 0.03,
+      "error": null,
+      "result": {
+        "decaying": [
+          "elder_triple_screen",
+          "failed_bear_breakout",
+          "alligator_ao",
+          "vrvp_zone",
+          "trend",
+          "chart_pattern_double_top",
+          "holy_grail",
+          "ttm_squeeze",
+          "chart_pattern_descending_triangle",
+          "failed_bull_breakout",
+          "chart_pattern_range_expansion",
+          "chart_pattern_head_and_shoulders",
+          "chart_pattern_ascending_triangle",
+          "rsi_divergence",
+          "chart_pattern_double_bottom",
+          "donchian_breakout",
+          "weinstein_stage",
+          "heikin_ashi",
+          "candlestick_bearish_engulfing",
+          "rsi2_mr",
+          "candlestick_shooting_star",
+          "candlestick_tweezer_bottom",
+          "candlestick_spinning_top_black",
+          "candlestick_three_black_soldiers"
+        ]
+      }
     },
     {
       "step": "daily_performance_report",
       "status": "ok",
-      "elapsed": 0.07,
-      "error": null
+      "elapsed": 0.1,
+      "error": null,
+      "result": {
+        "pause_candidates": [],
+        "promote_candidates": []
+      }
     },
     {
       "step": "executive_eod_report",
       "status": "ok",
-      "elapsed": 1.06,
-      "error": null
+      "elapsed": 1.03,
+      "error": null,
+      "result": {
+        "session_date": "2026-10-15",
+        "signals_400d": 37626,
+        "chart_path": "/tmp/executive_eod_2026-10-15.png"
+      }
     },
     {
       "step": "option_telegram_report",
       "status": "ok",
-      "elapsed": 0.01,
-      "error": null
+      "elapsed": 5.12,
+      "error": null,
+      "result": {
+        "ok": true,
+        "day": "2026-10-15",
+        "path": "reports/option_post_market_2026-10-15.png",
+        "evidence_digest_sent": false
+      }
     },
     {
       "step": "candle_coverage_plan",
       "status": "ok",
-      "elapsed": 23.97,
-      "error": null
+      "elapsed": 22.14,
+      "error": null,
+      "result": {
+        "intervals": [
+          "1m",
+          "1d"
+        ],
+        "next_actions": [
+          {
+            "interval": "1m",
+            "missing_symbols": 0,
+            "priority_missing": [],
+            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols MOTHERSON"
+          },
+          {
+            "interval": "1d",
+            "missing_symbols": 0,
+            "priority_missing": [],
+            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols NIFTY,BANKNIFTY,FINNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH"
+          }
+        ]
+      }
     },
     {
       "step": "candle_session_gap_audit",
       "status": "ok",
-      "elapsed": 2.09,
-      "error": null
+      "elapsed": 4.4,
+      "error": null,
+      "result": {
+        "missing_pairs": 0,
+        "missing_sessions": []
+      }
     },
     {
       "step": "correlation_matrix_update",
       "status": "ok",
-      "elapsed": 0.26,
-      "error": null
+      "elapsed": 5.28,
+      "error": null,
+      "result": {
+        "symbol_count": 46,
+        "high_corr_pairs": 20
+      }
     },
     {
       "step": "derive_daily_candles",
       "status": "ok",
-      "elapsed": 95.18,
-      "error": null
+      "elapsed": 120.21,
+      "error": null,
+      "result": {
+        "source_interval": "1m",
+        "symbols_ok": 198,
+        "symbols_skipped": 0,
+        "inserted_rows": 19722
+      }
+    },
+    {
+      "step": "system_strategy_research",
+      "status": "ok",
+      "elapsed": 1.49,
+      "error": null,
+      "result": {
+        "ok": true,
+        "totals": {
+          "backtest_modules": 42,
+          "declared_signal_functions": 65,
+          "tunable_families": 31,
+          "option_catalog_entries": 42,
+          "option_implemented": 42,
+          "option_research_hypotheses": 39,
+          "option_placeholders": 0,
+          "observed_signal_strategies": 125,
+          "live_manifest_strategies": 133,
+          "paper_candidates": 0
+        },
+        "income_target_supported": false
+      }
     },
     {
       "step": "autonomous_param_training",
       "status": "ok",
-      "elapsed": 0.0,
-      "error": null
+      "elapsed": 0.43,
+      "error": null,
+      "result": {
+        "ok": true,
+        "error": null,
+        "planned": 3,
+        "promoted": 0,
+        "paper_only": 0,
+        "skipped": 3
+      }
     },
     {
       "step": "system_readiness_report",
       "status": "ok",
-      "elapsed": 523.41,
-      "error": null
+      "elapsed": 139.87,
+      "error": null,
+      "result": {
+        "data_pipeline": 87.5,
+        "institutional": 59.0,
+        "option_bot": 59.0,
+        "blocks": [
+          "no_live_ready_strategy",
+          "no_source_attributed_selected_option_outcomes",
+          "no_executed_option_fill_evidence",
+          "no_after_cost_statistical_edge",
+          "paper_live_fill_comparisons_below_100",
+          "release_integrity_unverified",
+          "labelled_days_below_target",
+          "prospective_execution_evidence_pending"
+        ],
+        "warnings": [
+          "stored_data_catalog_has_integrity_issues"
+        ]
+      }
     },
     {
       "step": "post_market_ml",
       "status": "ok",
-      "elapsed": 0.01,
-      "error": null
+      "elapsed": 646.39,
+      "error": null,
+      "result": {
+        "cv_auc": 0.0
+      }
     },
     {
       "step": "walk_forward_backtest",

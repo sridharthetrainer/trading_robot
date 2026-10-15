@@ -2374,6 +2374,16 @@ class AutonomousTradingSystem:
                                 "  /signals — visual signal board + levels\n"
                                 "  /positions — open option positions\n"
                                 "  /edge — labelled option performance\n\n"
+                                "⚡ <b>SCALPING</b>\n"
+                                "  /scalp — status and recorded setups\n"
+                                "  /scalpstatus — scanner and bot status\n"
+                                "  /scalpsignals NIFTY — recorded scalp levels\n"
+                                "  /optscalp — scalp performance\n\n"
+                                "📝 <b>ORDER REVIEWS</b>\n"
+                                "  /prepare SYMBOL LOTS LIMIT — review, then confirm\n"
+                                "  /orderstatus — recent reviews and submission state\n"
+                                "  /probability — evidence and monthly target probability\n"
+                                "  Single-leg NFO buy-limit entries; no stop attached.\n\n"
                                 "📈 <b>OI &amp; MARKET</b>\n"
                                 "  /oisr — support/resistance image\n"
                                 "  /oichart — intraday OI line chart\n"
@@ -2422,7 +2432,8 @@ class AutonomousTradingSystem:
                             "optedge", "edge", "optpositions", "positions",
                             "controlroom", "readiness", "profitgate",
                             "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr",
-                            "spreads",
+                            "spreads", "prepare", "orderstatus", "probability",
+                            "scalp", "scalpstatus", "scalpsignals", "optscalp", "scalppnl",
                             "direction", "tradeview", "view", "nexttrade",
                             "pause", "resume",
                         }
@@ -2440,6 +2451,11 @@ class AutonomousTradingSystem:
                                 ("direction", "Combined option trade direction"),
                                 ("status", "Today's option bot summary"),
                                 ("signals", "All generated option signals"),
+                                ("scalp", "Scalping status and recorded setups"),
+                                ("prepare", "Prepare an option order for confirmation"),
+                                ("orderstatus", "Order review and submission status"),
+                                ("probability", "Evidence and monthly target probability"),
+                                ("scalpsignals", "Recorded scalping signals and levels"),
                                 ("positions", "Open option positions"),
                                 ("help", "Grouped option commands"),
                             ])

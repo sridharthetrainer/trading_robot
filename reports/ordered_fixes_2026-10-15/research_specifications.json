@@ -1,0 +1,57 @@
+{
+  "Q01": {
+    "version": "q01_daily_v1",
+    "timeframe": "1d",
+    "sma_periods": [
+      10,
+      20,
+      50,
+      100,
+      200
+    ],
+    "adx_period": 14,
+    "adx_min": 20,
+    "confirmation_bars": 5,
+    "entry": "Next observed daily open after first completed five-bar gate",
+    "stop": "Fifth gate bar low/high; skip if next open is already beyond stop",
+    "exit": "Fast SMA reversal at next open, or intraday fixed stop; gap uses worse open",
+    "rearm": "Gate must become false before a new five-bar gate",
+    "max_holding_bars": null,
+    "evidence_kind": "UNDERLYING_PROXY",
+    "risk_fraction": 0.005,
+    "notional_cap_fraction": 1.0,
+    "slippage_bps_each_side": 5.0,
+    "fee_bps_each_side": 10.0,
+    "max_positions": 1,
+    "sizing": "Integer proxy units, stop-based risk capped by gross notional; not NSE lots",
+    "end_of_window": "Liquidate at final close, explicitly tagged window_end",
+    "costs": "Declared proxy fee/slippage stress assumptions, not certified broker tax rates",
+    "overnight": "Daily proxy can hold overnight; options translation requires separate policy",
+    "options_translation": "UNIMPLEMENTED; exact contract, dated metadata and executable quotes required",
+    "live_approved": false
+  },
+  "Q06": {
+    "version": "q06_daily_v1",
+    "timeframe": "1d",
+    "lookbacks": [
+      30,
+      40
+    ],
+    "entry": "Daily close comparison, executed next observed daily open",
+    "stop": "Fixed 2 x Wilder ATR(14) from signal close, a project adaptation",
+    "exit": "Next-open flatten/reversal, fixed stop, or 20-bar time limit",
+    "max_holding_bars": 20,
+    "evidence_kind": "UNDERLYING_PROXY",
+    "risk_fraction": 0.005,
+    "notional_cap_fraction": 1.0,
+    "slippage_bps_each_side": 5.0,
+    "fee_bps_each_side": 10.0,
+    "max_positions": 1,
+    "sizing": "Integer proxy units, stop-based risk capped by gross notional; not NSE lots",
+    "end_of_window": "Liquidate at final close, explicitly tagged window_end",
+    "costs": "Declared proxy fee/slippage stress assumptions, not certified broker tax rates",
+    "overnight": "Daily proxy can hold overnight; options translation requires separate policy",
+    "options_translation": "UNIMPLEMENTED; exact contract, dated metadata and executable quotes required",
+    "live_approved": false
+  }
+}

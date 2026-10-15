@@ -16,6 +16,20 @@ from option_chain_intelligence import OptionChainIntelligence
 
 logger = logging.getLogger(__name__)
 
+def _angel_exchange_timestamp(value):
+    """SmartAPI's timezone-less exchange feed strings denote Indian exchange time."""
+    if not value:
+        return None
+    try:
+        from zoneinfo import ZoneInfo
+        stamp=datetime.fromisoformat(str(value))
+        if stamp.tzinfo is None:
+            stamp=stamp.replace(tzinfo=ZoneInfo('Asia/Kolkata'))
+        return stamp.isoformat()
+    except (TypeError,ValueError):
+        return None
+
+
 
 @dataclass
 class OptionChainFetchResult:
@@ -403,7 +417,9 @@ class NSEOptionChainFetcher:
                 data.append({
                     "strikePrice": float(r.get("strike") or 0),
                     "expiryDate": exp_str,
-                    "CE": {"openInterest": float(r.get("CE_OI") or 0),
+                    "CE": {"exchange_timestamp": _angel_exchange_timestamp(r.get("CE_exch_time")),
+                           "tradingsymbol": r.get("CE_symbol"),
+                           "openInterest": float(r.get("CE_OI") or 0),
                            "changeinOpenInterest": float(r.get("CE_CHG_OI") or 0),
                            "totalTradedVolume": float(r.get("CE_VOLUME") or 0),
                            "lastPrice": float(r.get("CE_LTP") or 0),
@@ -412,7 +428,9 @@ class NSEOptionChainFetcher:
                            "askPrice": float(r.get("CE_askPrice") or 0),
                            "askQty": float(r.get("CE_askQty") or 0),
                            "impliedVolatility": 0.0},
-                    "PE": {"openInterest": float(r.get("PE_OI") or 0),
+                    "PE": {"exchange_timestamp": _angel_exchange_timestamp(r.get("PE_exch_time")),
+                           "tradingsymbol": r.get("PE_symbol"),
+                           "openInterest": float(r.get("PE_OI") or 0),
                            "changeinOpenInterest": float(r.get("PE_CHG_OI") or 0),
                            "totalTradedVolume": float(r.get("PE_VOLUME") or 0),
                            "lastPrice": float(r.get("PE_LTP") or 0),
@@ -601,6 +619,7 @@ class NSEOptionChainFetcher:
             rows.append(
                 {
                     "expiryDate": item.get("expiryDate"),
+                    "quote_received_at": raw_data.get("_provider_fetched_at"),
                     "strikePrice": self._to_float(item.get("strikePrice")),
                     "CE_openInterest": self._to_float(ce.get("openInterest")),
                     "PE_openInterest": self._to_float(pe.get("openInterest")),
@@ -620,7 +639,11 @@ class NSEOptionChainFetcher:
                     "PE_askPrice": self._to_float(pe.get("askPrice")),
                     "CE_askQty": self._to_float(ce.get("askQty")),
                     "PE_askQty": self._to_float(pe.get("askQty")),
+                    "CE_exchange_timestamp": ce.get("exchange_timestamp"),
+                    "CE_symbol": ce.get("tradingsymbol"),
                     "CE_delta": self._to_float(ce.get("delta")),
+                    "PE_exchange_timestamp": pe.get("exchange_timestamp"),
+                    "PE_symbol": pe.get("tradingsymbol"),
                     "PE_delta": self._to_float(pe.get("delta")),
                     "CE_theta": self._to_float(ce.get("theta")),
                     "PE_theta": self._to_float(pe.get("theta")),

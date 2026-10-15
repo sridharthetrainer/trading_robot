@@ -1,0 +1,199 @@
+To equip your autonomous backtesting system with a complete inventory of quantitative models, here is the exhaustive catalog of **all 28 trading strategies** detailed across your sources, complete with their exact mathematical definitions, indicator parameters, signal generation rules, and risk management parameters.
+
+---
+
+### **1. Rule-Based Technical & Trend-Following Strategies**
+
+#### **1. The Perfect Order FX Strategy**
+* **Indicators:** Five Simple Moving Averages—`SMA(10)`, `SMA(20)`, `SMA(50)`, `SMA(100)`, `SMA(200)`—and `ADX(14)`.
+* **Entry Rules:**
+  * **Bullish Alignment:** `SMA(10) > SMA(20) > SMA(50) > SMA(100) > SMA(200)`.
+  * **Bearish Alignment:** `SMA(10) < SMA(20) < SMA(50) < SMA(100) < SMA(200)`.
+  * **Trend Strength:** `ADX(14) ≥ 20`.
+  * **5-Bar Confirmation Gate:** The moving average alignment and `ADX ≥ 20` must hold continuously for **5 consecutive daily candles**; trade executes on the opening of the 6th candle.
+* **Risk & Exit Rules:**
+  * **Stop-Loss:** Set to the Low of the 5th candle for long orders, or the High of the 5th candle for short orders.
+  * **Exit:** Position is liquidated immediately when the fast MAs cross back (`SMA(10) < SMA(20)` for longs, or `SMA(10) > SMA(20)` for shorts).
+
+#### **2. Enhanced Multi-Factor Technical & Sentiment Strategy**
+* **Indicators & Filters:** `MA(200)`, `EMA(50)`, `EMA(200)`, 63-day Momentum (`Momentum63`), 14-period Average True Range (`ATR(14)`), and FinBERT NLP sentiment scores.
+* **Entry Rules (Long):** Requires simultaneous confirmation across 5 layers:
+  1. **Macro Regime Filter:** `Price > MA(200)`.
+  2. **Trend Confirmation:** `EMA(50) > EMA(200)` AND `Price > EMA(50)`.
+  3. **Momentum Threshold:** `Momentum63 > 0`.
+  4. **Cross-Sectional Leadership:** Asset is ranked in the **Top 10** by 63-day return momentum across the universe.
+  5. **Fundamental Sentiment:** Latest earnings call transcript NLP sentiment score is non-negative.
+* **Exit Rules:** Exit if structural trend breaks (`Price < MA(200)`) OR if trailing volatility stop is triggered (`Price < HighestCloseSinceEntry - 3.5 × ATR(14)`).
+
+#### **3. Triple Technical Breakout (ASP Framework: ADX + Supertrend + Fibonacci Pivots)**
+* **Indicators:** `ADX(14)`, Supertrend, Average True Range (`ATR`), and Fibonacci Pivot Points (\\(P, R_1, R_2, R_3, S_1, S_2, S_3\\)).
+* **Entry Rules:**
+  * **Buy Signal:** `ADX > 20` + Price crosses above Supertrend line + Price is above Fibonacci Pivot Point support \\(S_1\\)/\\(P\\).
+  * **Sell Signal:** `ADX > 20` + Price crosses below Supertrend line + Price is below Fibonacci Pivot Point resistance \\(R_1\\)/\\(P\\).
+* **Execution Constraint:** Enforces a minimum **1:2 Risk-to-Reward ratio** based on ATR and Fibonacci targets before placing the order.
+
+#### **4. Dual & Triple Moving Average Crossover Systems**
+* **Dual Crossover:**
+  * **SMA Crossover:** Long when 20-day SMA crosses above 50-day SMA; short when 20-day SMA crosses below 50-day SMA. Risk sized at 2% portfolio equity per trade using ATR stops.
+  * **EMA Crossover:** Identical logic employing 20-day and 50-day EMAs to increase sensitivity to recent price moves.
+  * **Long-Term Dual SMA:** 100-day short window vs. 400-day long window.
+* **Triple SMA Trend System:** Evaluates 21-day (short), 55-day (medium), and 144-day (long) SMAs. Medium-term buy triggers when Price crosses 55-day SMA from below, confirmed when 21-day SMA crosses 55-day SMA while the 55-day SMA slopes upward.
+
+#### **5. MACD Momentum with Volume Surge Filter**
+* **Indicators:** MACD Line (`EMA(12) - EMA(26)`), Signal Line (`EMA(9)` of MACD), and 20-day Volume SMA.
+* **Entry Rules:** Buy when MACD Line crosses above Signal Line; Short when MACD Line crosses below Signal Line.
+* **Volume Filter:** Trade is confirmed only if execution day volume is **> 1.5× average volume** to prevent false breakouts.
+
+#### **6. Dual-Lookback Hybrid Momentum-Mean Reversion Strategy**
+* **Logic:** Evaluates intermediate momentum vs. long-term mean reversion on commodities/futures.
+* **Rules:** Buy at market close if `Price(t) < Price(t - 30)` AND `Price(t) > Price(t - 40)`. Short if `Price(t) > Price(t - 30)` AND `Price(t) < Price(t - 40)`. Flatten position if neither condition is satisfied.
+
+---
+
+### **2. Statistical Arbitrage & Mean-Reversion Strategies**
+
+#### **7. RSI Mean Reversion with Stationarity Filter**
+* **Indicators:** 14-period RSI and Augmented Dickey-Fuller (ADF) statistical test.
+* **Entry/Exit Rules:**
+  * **Long Entry:** `RSI(14) < 30` (oversold); Exit when `RSI(14) > 50`.
+  * **Short Entry:** `RSI(14) > 70` (overbought); Exit when `RSI(14) < 50`.
+* **Stationarity Constraint:** Applied strictly to instruments confirming stationary price behavior via ADF hypothesis testing (\\(p < 0.05\\)).
+
+#### **8. Cointegrated Pairs & Triples Trading (CADF & Johansen)**
+* **Model:** Constructs a stationary dollar-neutral linear portfolio \\(y_t = h_1 y_{1,t} + h_2 y_{2,t} + \dots + h_n y_{n,t}\\).
+* **Pair Selection:** Cointegrated Augmented Dickey-Fuller (CADF) test for 2-asset pairs; Johansen eigenvector test for 3+ assets (e.g., EWA-EWC-IGE triplet).
+* **Signal Logic:** Trades proportional capital relative to the negative \\(z\\)-score of the cointegrated spread.
+
+#### **9. Bollinger Band Spread Mean Reversion**
+* **Logic:** Formulates a rolling \\(z\\)-score of the spread/portfolio value: \\(z_t = \frac{y_t - \mu_{\text{lookback}}}{\sigma_{\text{lookback}}}\\).
+* **Rules:**
+  * **Long Entry:** `z_score < -entryZscore` (e.g., \\(-1.0\\) or \\(-2.0\\)).
+  * **Long Exit:** `z_score >= -exitZscore` (e.g., \\(0.0\\)).
+  * **Short Entry:** `z_score > entryZscore`; **Short Exit:** `z_score <= exitZscore`.
+  * **Scaling-In Variant:** Multiple entries at \\(z \in \{1, 2, 3\}\\) and exits at \\(z \in \{0, 1, 2\}\\).
+
+#### **10. Dynamic Kalman Filter Pairs Trading**
+* **Logic:** Estimates continuous, time-varying hedge ratios \\(\beta_t\\) and intercept \\(\alpha_t\\) between two assets using state-space equations updated via Kalman Filtering.
+* **Rules:** Computes real-time forecast error \\(e_t = y_t - (\alpha_t + \beta_t x_t)\\) and variance \\(Q_t\\). Long spread when \\(e_t < -\sqrt{Q_t}\\); Short spread when \\(e_t > \sqrt{Q_t}\\).
+
+#### **11. Intraday Rolling OLS Regression Pairs Engine**
+* **Model:** Performs rolling Ordinary Least Squares (OLS) regression over minutely data to extract dynamic hedge ratio \\(\beta\\) and residual \\(z\\)-score.
+* **Optimized Parameters (Grid Search):**
+  * OLS Lookback Window: \\(w_l \in \{50, 100, 200\}\\) bars.
+  * Entry \\(z\\)-Score Threshold: \\(z_h \in \{2.0, 3.0, 4.0\}\\).
+  * Exit \\(z\\)-Score Threshold: \\(z_l \in \{0.5, 1.0, 1.5\}\\).
+
+#### **12. Cross-Sectional Basket Mean Reversion**
+* **Logic:** Exploits relative return divergence in asset baskets.
+* **Rule:** Computes basket mean return \\(\bar{R}_t\\). Daily portfolio weights are rebalanced by taking long positions in assets underperforming \\(\bar{R}_t\\) and short positions in assets outperforming \\(\bar{R}_t\\), proportional to deviation magnitude.
+
+#### **13. Opening Gap-Down Intraday Strategy**
+* **Rules:**
+  1. Identify stocks at market open whose overnight return from previous day's low to today's open is **> 1 standard deviation below** (using 90-day daily close return std dev).
+  2. Filter: `Open Price > 20-day SMA`.
+  3. Enter long at open on Top 10 gap-down candidates; exit at market close or at target threshold.
+
+#### **14. Futures Calendar Spread & Roll Return Strategy**
+* **Logic:** Captures term-structure roll yields (backwardation/contango) between near and far futures contracts (e.g., VIX or Crude Oil CL).
+* **Rules:** Selects near and far contracts 1 year apart, rolling 10 days before near-contract expiration. Trades mean reversion when market value spread \\(y = \text{Far} - \beta \times \text{Near}\\) deviates > 1 std dev from rolling average.
+
+---
+
+### **3. Online Portfolio Selection (OPS) & Asset Allocation**
+
+#### **15. Follow-the-Winner (FTW) Momentum Portfolio Family**
+* **Universal Portfolios (Cover's Approximation):** Approximates Cover's log-optimal portfolio using Monte Carlo sampling of \\(M\\) portfolios, updating weights based on historical cumulative wealth \\(w_{t-1}^{(i)}\\).
+* **Exponential Gradient (EG):** Multiplicative weight updates: \\(b_{t+1,i} = b_{t,i} \exp\left(\eta \left(\frac{x_{t,i}}{b_t \cdot x_t} - 1\right)\right)\\) normalized over simplex \\(\Delta^N\\).
+* **Follow-The-Leader (FTL):** Allocates portfolio weight vector \\(b_t = \arg\max_b \sum_{\tau=1}^{t-1} \log(b \cdot x_\tau)\\).
+* **Follow-the-Regularized-Leader (FTRL):** Adds \\(L_2\\) ridge regularization: \\(b_t = \arg\max_b \left\{ \sum_{\tau=1}^{t-1} \log(b \cdot x_\tau) - \frac{\beta}{2} \|b\|^2_2 \right\}\\).
+* **Aggregation-Based FTW:** Exponentially updates weights over \\(N\\) base portfolios based on past performance with learning rate \\(\eta\\).
+
+#### **16. Follow-the-Loser (FTL-Reversion) Portfolio Family**
+* **Anti-Correlation (Anticor):** Calculates cross-correlation matrices \\(M_{\text{cov}}(i,j)\\) over rolling window \\(w\\); shifts capital from recent outperforming assets to negatively correlated underperforming assets.
+* **Passive Aggressive Mean Reversion (PAMR):** Penalizes portfolio updates when predicted return exceeds threshold \\(\epsilon\\): \\(\ell_\epsilon(b_t; x_t) = \max\{0, b_t \cdot x_t - \epsilon\}\\).
+* **Confidence-Weighted Mean Reversion (CWMR):** Models portfolio allocation as a Gaussian distribution \\((\mu_t, \Sigma_t)\\) over weights, updating distribution mean and variance dynamically based on mean reversion confidence.
+* **Online Moving Average Reversion (OLMAR):** Predicts next-period price relative vector \\(x_{t+1}\\) using moving averages, updating portfolio weights toward mean-reverting targets.
+* **Robust Median Reversion (RMR):** Replaces moving averages with spatial medians (\\(L_1\\) norm minimization) to estimate price relatives resistant to extreme outliers.
+
+#### **17. Nonparametric Pattern-Matching Portfolio Framework**
+* **Step 1: Sample Selection (Candidates \\(C_t\\)):**
+  * *Histogram-Based:* Discretizes historical price-relative vectors into bins; selects windows falling into the same bin as the current window.
+  * *Kernel-Based:* Euclidean distance similarity function with smooth kernel threshold.
+  * *Nearest Neighbor (\\(k\\)-NN):* Ranks windows by Euclidean distance, selecting \\(k\\) nearest neighbors.
+  * *Correlation-Based:* Pearson correlation coefficient \\(\ge \rho\\).
+* **Step 2: Portfolio Optimization:** Maximizes expected return over candidate set \\(C_t\\) using **Log-Optimal**, **Semi-Log-Optimal**, or **Markowitz Mean-Variance** optimization.
+
+#### **18. Meta-Learning & Ensemble Portfolio Frameworks**
+* **Online Gradient Update (OGU) & Online Newton Update (ONU):** Forms a master ensemble combining base experts (CWMR, PAMR, FTRL), updating portfolio weights using second-order Hessian loss matrices \\(A_t\\).
+* **Fast Universalization:** Meta-learning framework aggregating expert portfolio strategies.
+* **Follow-the-Leading-History (FTLH):** Instantiates new expert algorithms over time updated via Online Newton Step (ONS), combining expert outputs via Weighted Majority Algorithm (WMA) and pruning poor performers.
+
+---
+
+### **4. Machine Learning & Deep Learning Strategies**
+
+#### **19. Supervised Random Forest Classifier (Walk-Forward)**
+* **Architecture:** Ensemble of decision trees trained as a binary classifier (Long vs. Flat/Short).
+* **Feature Space:** 47 features including price technical indicators, volume metrics, volatility measures, and lagged returns.
+* **Validation:** 12-month rolling training window with a 3-month out-of-sample testing window (Walk-Forward Optimization).
+
+#### **20. ASP-LSTM Deep Learning Hybrid System**
+* **Architecture:** 3 sequential LSTM layers (50 units each) + 1 Dense output layer with linear activation function.
+* **Inputs:** Historical OHLCV price series concatenated with computed ASP indicators (`ADX`, `Supertrend`, `Fibonacci Pivots`).
+* **Execution Logic:** LSTM forecasts next-day price direction; buy/sell signals are generated only when the LSTM forecast aligns with the technical ASP entry rules.
+
+#### **21. Multi-Factor Supervised Classification Suite**
+* **Algorithms:** Logistic Regression, Support Vector Machines (SVM), and Gradient Boosting / Random Forest Classifiers.
+* **Pipeline:** Predicts forward 1-day or 21-day direction probabilities from technical indicators, volatility, and order flow metrics.
+
+#### **22. Multi-Modal Sentiment-Gated Execution**
+* **Logic:** Ingests alternative text data (earnings transcripts, news feeds) parsed through FinBERT to generate sentiment confidence scores. Technical buy/sell signals are executed only if fundamental sentiment is aligned.
+
+---
+
+### **5. Reinforcement Learning & Stochastic Control Strategies**
+
+#### **23. Advantage Actor-Critic (A2C) Deep RL Portfolio Agent**
+* **State Space (\\(s_t\\)):** Vector \\(s_t = [p_t, h_t, b_t, \text{indicators}]\\), where \\(p_t \in \mathbb{R}^D_+\\) are asset prices, \\(h_t \in \mathbb{Z}^D_+\\) are share holdings, \\(b_t \in \mathbb{R}_+\\) is cash balance, and indicators include MACD, RSI, CCI, ADX.
+* **Action Space (\\(a_t\\)):** Discrete/continuous action vector over \\(D\\) assets: Buy \\(k\\), Sell \\(k\\), or Hold \\(k\\) shares.
+* **Reward Function (\\(r_t\\)):** Change in total portfolio wealth minus transaction costs: \\(r_t = (b_{t+1} + p^T_{t+1} h_{t+1}) - (b_t + p^T_t h_t) - c_t\\).
+* **Loss Function:** Synchronized \\(n\\)-step Advantage loss optimizing Policy Head \\(\pi_\theta(a|s)\\) and Value Head \\(v_w(s)\\).
+
+#### **24. Turbulence Index Circuit Breaker**
+* **Metric:** Real-time Mahalanobis distance measuring return anomaly severity:
+  \\[\text{turbulence}_t = (y_t - \mu)^T \Sigma^{-1} (y_t - \mu) \in \mathbb{R}\\]
+  where \\(y_t\\) is current period return vector, \\(\mu\\) is historical average return vector, and \\(\Sigma\\) is historical return covariance matrix.
+* **Action:** When \\(\text{turbulence}_t > \text{threshold}\\), the system overrides RL/technical agents and liquidates 100% of holdings to cash until turbulence drops below threshold.
+
+#### **25. Gaussian Process Inverse Reinforcement Learning (GPIRL)**
+* **Model:** Models market actions across a 243-state MDP space using order book audit trail data (creation, cancellation, execution).
+* **Logic:** Applies Bayesian learning to infer underlying trader reward functions as a Gaussian Process over Action Preference Graphs. Used to cluster market participant strategies and simulate market impact under stress.
+
+---
+
+### **6. Evolutionary Computing & Parameter Tuning**
+
+#### **26. Genetic Algorithm (GA) Strategy Rule Discovery**
+* **Chromosome Representation:** Bit string or integer array representing sequential trading decisions (e.g., `[1, 0, -1, 1, -1, 0]`) or indicator parameter tuples.
+* **Evolutionary Operators:**
+  * **Selection:** Tournament selection or Roulette Wheel (fitness-proportional) selection.
+  * **Crossover:** Single-point crossover exchanging chromosome segments between parents at probability \\(p_c\\).
+  * **Mutation:** Random bit-flips (e.g., changing \\(1 \to 0\\) or \\(-1\\)) at mutation probability \\(p_m \approx 0.10\\).
+* **Multi-Objective Fitness Function:** Maximizes total ROI and Sharpe ratio while penalizing maximum drawdown, position turnover, and transaction fees over simulated path iterations.
+
+---
+
+### **7. High-Frequency Market Microstructure & Execution Algorithms**
+
+#### **27. Multivariate Hawkes Process High-Frequency Market Making**
+* **Model:** Models order arrival dynamics using self- and mutually-exciting point processes to distinguish between influential and non-influential market orders.
+* **Stochastic Control Optimization:** Solves continuous-time Hamilton-Jacobi-Bellman (HJB) equations to post dynamic bid/ask limit order spreads \\((\delta^b, \delta^a)\\).
+* **Inventory Control:** Maximize expected terminal wealth over horizon \\(T\\) while imposing inventory risk penalties \\(\gamma q^2\\) and adjusting quotes for short-term price drift ("short-term alpha").
+
+#### **28. Institutional Algorithmic Order Execution Suite**
+* **VWAP / TWAP Engine:** Slices large institutional parent orders into child orders matching historical volume profiles (VWAP) or uniform time intervals (TWAP) to minimize market impact.
+* **Implementation Shortfall & Sniper:** Dynamic execution algorithms that balance execution delay risk against price impact or sweep liquidity opportunistically when spreads narrow.
+
+---
+
+Would you like to generate a structured Python module template or backtesting config file to start integrating these strategy rules into your engine?

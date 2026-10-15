@@ -40,6 +40,7 @@ import json
 import math
 import sqlite3
 from collections import Counter
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -73,10 +74,11 @@ def _stat(rets: List[float]) -> Dict[str, Any]:
     else:
         sd = 0.0
     t = mean / (sd / math.sqrt(n)) if sd > 0 else 0.0
-    p = 2.0 * (1.0 - 0.5 * (1.0 + math.erf(abs(t) / math.sqrt(2))))
+    from scipy.stats import t as student_t
+    p = float(2 * student_t.sf(abs(t), n - 1)) if n > 1 else 1.0
     win = sum(1 for x in rets if x > 0) / n
     return {"n": n, "mean_net_r": round(mean, 5), "win_rate": round(win, 3),
-            "t": round(t, 2), "p": round(p, 5)}
+            "t": round(t, 2), "p": p}
 
 
 def _parse_row(raw: Optional[str]) -> Set[str]:
@@ -98,7 +100,9 @@ def _load(conn: sqlite3.Connection) -> List[Tuple[str, Set[str], float]]:
         strategies = _parse_row(agreeing_raw)
         if not strategies:
             continue
-        out.append((str(signal_date), strategies, float(net_r)))
+        value = float(net_r)
+        if math.isfinite(value):
+            out.append((str(signal_date), strategies, value))
     return out
 
 
@@ -129,7 +133,9 @@ def _index_by_strategy(rows: List[Tuple[Set[str], float]],
 def run(db_path: str = "signal_log.db",
         top_n: int = TOP_N_STRATEGIES,
         combo_size: int = 2) -> Dict[str, Any]:
-    with sqlite3.connect(db_path) as conn:
+    if combo_size < 2 or top_n < 1:
+        raise ValueError("combo_size must be at least 2 and top_n positive")
+    with closing(sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True)) as conn:
         loaded = _load(conn)
     if not loaded:
         return {"error": "no labelled, cost-scored signals found"}
@@ -140,7 +146,7 @@ def run(db_path: str = "signal_log.db",
     cut_idx = max(1, int(len(days) * TRAIN_FRAC) - 1)
     cutoff_day = days[cut_idx]
 
-    candidates = _top_strategies(loaded, top_n)
+    candidates = _top_strategies([row for row in loaded if row[0] <= cutoff_day], top_n)
     train_rows = [(strategies, net_r) for d, strategies, net_r in loaded if d <= cutoff_day]
     holdout_rows = [(strategies, net_r) for d, strategies, net_r in loaded if d > cutoff_day]
 

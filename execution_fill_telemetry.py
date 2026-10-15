@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sqlite3
 import time
+from contextlib import closing
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
@@ -22,7 +24,8 @@ TRADES_DB = "trades.db"
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
     try:
-        return float(value)
+        number = float(value)
+        return number if math.isfinite(number) else default
     except Exception:
         return default
 
@@ -49,7 +52,7 @@ def _first_present(*values: Any) -> Any:
 def _load_trades(db_path: str = TRADES_DB) -> List[Dict[str, Any]]:
     if not Path(db_path).exists():
         return []
-    with sqlite3.connect(db_path) as conn:
+    with closing(sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True)) as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
             """
@@ -73,7 +76,6 @@ def _enrich(row: Dict[str, Any]) -> Dict[str, Any]:
             sig_meta.get("expected_entry"),
             sig_meta.get("entry_price"),
             (meta.get("signal_data") or {}).get("price") if isinstance(meta.get("signal_data"), dict) else None,
-            row.get("entry_price"),
         )
     )
     fill_avg_price = _safe_float(
@@ -81,7 +83,6 @@ def _enrich(row: Dict[str, Any]) -> Dict[str, Any]:
             fill.get("fill_avg_price"),
             fill.get("avg_price"),
             fill.get("averageprice"),
-            row.get("entry_price"),
         )
     )
     entry_slippage_pct = None
@@ -90,6 +91,7 @@ def _enrich(row: Dict[str, Any]) -> Dict[str, Any]:
         if str(row.get("side") or "").upper() == "SELL":
             raw = -raw
         entry_slippage_pct = round(raw, 4)
+    latency = _safe_float(fill.get("fill_latency_sec"), float("nan"))
     return {
         **row,
         "_metadata": meta,
@@ -104,8 +106,7 @@ def _enrich(row: Dict[str, Any]) -> Dict[str, Any]:
         "fill_qty": int(_safe_float(fill.get("fill_qty"), 0)),
         "fill_avg_price": fill_avg_price,
         "fill_latency_sec": (
-            None if fill.get("fill_latency_sec") is None
-            else round(_safe_float(fill.get("fill_latency_sec")), 3)
+            round(latency, 3) if math.isfinite(latency) and latency >= 0 else None
         ),
         "fill_rejection_reason": str(fill.get("fill_rejection_reason", "")),
         "intended_entry_price": intended_price,

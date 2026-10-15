@@ -76,7 +76,7 @@ def test_caption_is_escaped_and_fits_telegram_photo_limit():
 
 def test_navigation_contains_only_existing_read_commands():
     actions = [button["callback_data"] for line in option_navigation()["inline_keyboard"] for button in line]
-    assert set(actions) == {"cmd:report", "cmd:signals", "cmd:oichart", "cmd:positions"}
+    assert set(actions) == {"cmd:report", "cmd:signals", "cmd:oichart", "cmd:positions", "menu:scalping"}
 
 
 def test_signal_and_empty_board_render_valid_portrait_pngs(tmp_path):

@@ -1,24 +1,24 @@
 {
-  "n_signals": 28435,
+  "n_signals": 28617,
   "corrupt_dropped": 0,
   "cost_pct": 0.12,
   "n_tests": 82,
   "alpha_corrected": 0.00061,
   "outcomes": {
-    "target": 1915,
-    "sl": 4027,
-    "timeout": 22493
+    "target": 1923,
+    "sl": 4051,
+    "timeout": 22643
   },
   "overall": {
-    "n": 28435,
-    "mean": -0.0154,
-    "std": 1.0205,
-    "win_rate": 0.4654,
-    "t_stat": -2.548,
-    "p_value": 0.01085,
+    "n": 28617,
+    "mean": -0.0151,
+    "std": 1.0192,
+    "win_rate": 0.4657,
+    "t_stat": -2.505,
+    "p_value": 0.01225,
     "significant": false,
-    "as_is_net": -0.1354,
-    "fade_net": -0.1046,
+    "as_is_net": -0.1351,
+    "fade_net": -0.1049,
     "verdict": "NO_EDGE"
   },
   "per_strategy": {
@@ -34,6 +34,18 @@
       "fade_net": -0.1086,
       "verdict": "NO_EDGE"
     },
+    "elder_triple_screen": {
+      "n": 1777,
+      "mean": 0.1079,
+      "std": 0.8715,
+      "win_rate": 0.5459,
+      "t_stat": 5.221,
+      "p_value": 0.0,
+      "significant": true,
+      "as_is_net": -0.0121,
+      "fade_net": -0.2279,
+      "verdict": "EDGE_BELOW_COST"
+    },
     "ma_cross": {
       "n": 1728,
       "mean": 0.0136,
@@ -45,18 +57,6 @@
       "as_is_net": -0.1064,
       "fade_net": -0.1336,
       "verdict": "NO_EDGE"
-    },
-    "elder_triple_screen": {
-      "n": 1705,
-      "mean": 0.1075,
-      "std": 0.8756,
-      "win_rate": 0.5431,
-      "t_stat": 5.071,
-      "p_value": 0.0,
-      "significant": true,
-      "as_is_net": -0.0125,
-      "fade_net": -0.2275,
-      "verdict": "EDGE_BELOW_COST"
     },
     "breakout": {
       "n": 1640,
@@ -199,6 +199,18 @@
       "fade_net": -0.1347,
       "verdict": "NO_EDGE"
     },
+    "candlestick_bullish_engulfing": {
+      "n": 464,
+      "mean": 0.0352,
+      "std": 1.2205,
+      "win_rate": 0.444,
+      "t_stat": 0.621,
+      "p_value": 0.53499,
+      "significant": false,
+      "as_is_net": -0.0848,
+      "fade_net": -0.1552,
+      "verdict": "NO_EDGE"
+    },
     "failed_bull_breakout": {
       "n": 463,
       "mean": -0.2003,
@@ -209,18 +221,6 @@
       "significant": false,
       "as_is_net": -0.3203,
       "fade_net": 0.0803,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_bullish_engulfing": {
-      "n": 442,
-      "mean": 0.0541,
-      "std": 1.2393,
-      "win_rate": 0.4525,
-      "t_stat": 0.917,
-      "p_value": 0.35944,
-      "significant": false,
-      "as_is_net": -0.0659,
-      "fade_net": -0.1741,
       "verdict": "NO_EDGE"
     },
     "chart_pattern_double_bottom": {
@@ -295,6 +295,18 @@
       "fade_net": -0.1737,
       "verdict": "NO_EDGE"
     },
+    "candlestick_tweezer_bottom": {
+      "n": 344,
+      "mean": 0.0495,
+      "std": 0.8391,
+      "win_rate": 0.4971,
+      "t_stat": 1.095,
+      "p_value": 0.27426,
+      "significant": false,
+      "as_is_net": -0.0705,
+      "fade_net": -0.1695,
+      "verdict": "NO_EDGE"
+    },
     "mean_reversion": {
       "n": 340,
       "mean": -0.0257,
@@ -329,18 +341,6 @@
       "significant": false,
       "as_is_net": -0.1158,
       "fade_net": -0.1242,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_tweezer_bottom": {
-      "n": 322,
-      "mean": 0.0491,
-      "std": 0.8549,
-      "win_rate": 0.4938,
-      "t_stat": 1.03,
-      "p_value": 0.30378,
-      "significant": false,
-      "as_is_net": -0.0709,
-      "fade_net": -0.1691,
       "verdict": "NO_EDGE"
     },
     "chart_pattern_inverse_head_shoulders": {
@@ -427,6 +427,18 @@
       "fade_net": -0.016,
       "verdict": "NO_EDGE"
     },
+    "candlestick_hammer": {
+      "n": 251,
+      "mean": 0.0808,
+      "std": 0.9587,
+      "win_rate": 0.4582,
+      "t_stat": 1.336,
+      "p_value": 0.18276,
+      "significant": false,
+      "as_is_net": -0.0392,
+      "fade_net": -0.2008,
+      "verdict": "NO_EDGE"
+    },
     "vp_breakout": {
       "n": 250,
       "mean": 0.0868,
@@ -437,18 +449,6 @@
       "significant": false,
       "as_is_net": -0.0332,
       "fade_net": -0.2068,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_hammer": {
-      "n": 246,
-      "mean": 0.0945,
-      "std": 0.9617,
-      "win_rate": 0.4675,
-      "t_stat": 1.542,
-      "p_value": 0.12447,
-      "significant": false,
-      "as_is_net": -0.0255,
-      "fade_net": -0.2145,
       "verdict": "NO_EDGE"
     },
     "candlestick_spinning_top_black": {
@@ -464,15 +464,15 @@
       "verdict": "NO_EDGE"
     },
     "candlestick_doji": {
-      "n": 210,
-      "mean": 0.0833,
-      "std": 0.8568,
-      "win_rate": 0.5238,
-      "t_stat": 1.409,
-      "p_value": 0.16028,
+      "n": 217,
+      "mean": 0.0831,
+      "std": 0.8739,
+      "win_rate": 0.5207,
+      "t_stat": 1.401,
+      "p_value": 0.16268,
       "significant": false,
-      "as_is_net": -0.0367,
-      "fade_net": -0.2033,
+      "as_is_net": -0.0369,
+      "fade_net": -0.2031,
       "verdict": "NO_EDGE"
     },
     "supertrend_mtf": {
@@ -580,28 +580,28 @@
       "fade_net": 0.0955,
       "verdict": "NO_EDGE"
     },
-    "chart_pattern_diamond_bottom": {
-      "n": 119,
-      "mean": 0.033,
-      "std": 1.1066,
-      "win_rate": 0.4286,
-      "t_stat": 0.325,
-      "p_value": 0.74571,
+    "candlestick_bearish_harami": {
+      "n": 125,
+      "mean": 0.0638,
+      "std": 0.644,
+      "win_rate": 0.56,
+      "t_stat": 1.108,
+      "p_value": 0.27008,
       "significant": false,
-      "as_is_net": -0.087,
-      "fade_net": -0.153,
+      "as_is_net": -0.0562,
+      "fade_net": -0.1838,
       "verdict": "NO_EDGE"
     },
-    "candlestick_bearish_harami": {
-      "n": 119,
-      "mean": 0.0715,
-      "std": 0.6498,
-      "win_rate": 0.5546,
-      "t_stat": 1.2,
-      "p_value": 0.23242,
+    "chart_pattern_diamond_bottom": {
+      "n": 121,
+      "mean": 0.0394,
+      "std": 1.0989,
+      "win_rate": 0.438,
+      "t_stat": 0.394,
+      "p_value": 0.69416,
       "significant": false,
-      "as_is_net": -0.0485,
-      "fade_net": -0.1915,
+      "as_is_net": -0.0806,
+      "fade_net": -0.1594,
       "verdict": "NO_EDGE"
     },
     "candlestick_bearish_marubozu": {
@@ -640,6 +640,18 @@
       "fade_net": -0.1372,
       "verdict": "NO_EDGE"
     },
+    "candlestick_fred_tam_white_inside_out": {
+      "n": 113,
+      "mean": 0.0735,
+      "std": 0.6995,
+      "win_rate": 0.5044,
+      "t_stat": 1.117,
+      "p_value": 0.26629,
+      "significant": false,
+      "as_is_net": -0.0465,
+      "fade_net": -0.1935,
+      "verdict": "NO_EDGE"
+    },
     "candlestick_fred_tam_black_inside_out": {
       "n": 112,
       "mean": -0.0284,
@@ -650,18 +662,6 @@
       "significant": false,
       "as_is_net": -0.1484,
       "fade_net": -0.0916,
-      "verdict": "NO_EDGE"
-    },
-    "candlestick_fred_tam_white_inside_out": {
-      "n": 108,
-      "mean": 0.0977,
-      "std": 0.698,
-      "win_rate": 0.5185,
-      "t_stat": 1.454,
-      "p_value": 0.14878,
-      "significant": false,
-      "as_is_net": -0.0223,
-      "fade_net": -0.2177,
       "verdict": "NO_EDGE"
     },
     "candlestick_spinning_top_white": {
@@ -676,40 +676,40 @@
       "fade_net": 0.1224,
       "verdict": "NO_EDGE"
     },
-    "vwap_reversion": {
-      "n": 93,
-      "mean": 0.1332,
-      "std": 1.0327,
-      "win_rate": 0.5806,
-      "t_stat": 1.244,
-      "p_value": 0.2167,
+    "candlestick_bullish_marubozu": {
+      "n": 96,
+      "mean": 0.207,
+      "std": 1.1465,
+      "win_rate": 0.4271,
+      "t_stat": 1.769,
+      "p_value": 0.08016,
       "significant": false,
-      "as_is_net": 0.0132,
-      "fade_net": -0.2532,
+      "as_is_net": 0.087,
+      "fade_net": -0.327,
       "verdict": "NO_EDGE"
     },
-    "candlestick_bullish_marubozu": {
-      "n": 87,
-      "mean": 0.2042,
-      "std": 1.1622,
-      "win_rate": 0.4253,
-      "t_stat": 1.639,
-      "p_value": 0.10485,
+    "vwap_reversion": {
+      "n": 95,
+      "mean": 0.1299,
+      "std": 1.0222,
+      "win_rate": 0.5789,
+      "t_stat": 1.239,
+      "p_value": 0.21843,
       "significant": false,
-      "as_is_net": 0.0842,
-      "fade_net": -0.3242,
+      "as_is_net": 0.0099,
+      "fade_net": -0.2499,
       "verdict": "NO_EDGE"
     },
     "chart_pattern_falling_wedge": {
-      "n": 87,
-      "mean": 0.2964,
-      "std": 2.0507,
-      "win_rate": 0.4828,
-      "t_stat": 1.348,
-      "p_value": 0.18115,
+      "n": 93,
+      "mean": 0.3141,
+      "std": 2.0245,
+      "win_rate": 0.4839,
+      "t_stat": 1.496,
+      "p_value": 0.13803,
       "significant": false,
-      "as_is_net": 0.1764,
-      "fade_net": -0.4164,
+      "as_is_net": 0.1941,
+      "fade_net": -0.4341,
       "verdict": "NO_EDGE"
     },
     "elliott_wave": {
@@ -892,6 +892,18 @@
       "fade_net": 0.1513,
       "verdict": "NO_EDGE"
     },
+    "chart_pattern_cup_handle": {
+      "n": 41,
+      "mean": -0.081,
+      "std": 0.7619,
+      "win_rate": 0.4634,
+      "t_stat": -0.68,
+      "p_value": 0.50011,
+      "significant": false,
+      "as_is_net": -0.201,
+      "fade_net": -0.039,
+      "verdict": "NO_EDGE"
+    },
     "candlestick_bullish_harami": {
       "n": 40,
       "mean": -0.1869,
@@ -964,18 +976,6 @@
       "fade_net": 0.3201,
       "verdict": "NO_EDGE"
     },
-    "chart_pattern_cup_handle": {
-      "n": 37,
-      "mean": -0.0927,
-      "std": 0.7911,
-      "win_rate": 0.4595,
-      "t_stat": -0.713,
-      "p_value": 0.48043,
-      "significant": false,
-      "as_is_net": -0.2127,
-      "fade_net": -0.0273,
-      "verdict": "NO_EDGE"
-    },
     "ehlers_fisher": {
       "n": 36,
       "mean": -0.205,
@@ -1012,6 +1012,18 @@
       "fade_net": 0.4576,
       "verdict": "NO_EDGE"
     },
+    "smc": {
+      "n": 33,
+      "mean": 0.0816,
+      "std": 1.0472,
+      "win_rate": 0.6364,
+      "t_stat": 0.448,
+      "p_value": 0.65753,
+      "significant": false,
+      "as_is_net": -0.0384,
+      "fade_net": -0.2016,
+      "verdict": "NO_EDGE"
+    },
     "candlestick_inverted_hammer": {
       "n": 32,
       "mean": -0.1091,
@@ -1023,21 +1035,9 @@
       "as_is_net": -0.2291,
       "fade_net": -0.0109,
       "verdict": "NO_EDGE"
-    },
-    "smc": {
-      "n": 31,
-      "mean": 0.0836,
-      "std": 1.0807,
-      "win_rate": 0.6452,
-      "t_stat": 0.431,
-      "p_value": 0.6699,
-      "significant": false,
-      "as_is_net": -0.0364,
-      "fade_net": -0.2036,
-      "verdict": "NO_EDGE"
     }
   },
   "candidates": {},
   "conclusion": "NO significant edge survives cost + multiple-testing \u2014 explore further, promote nothing.",
-  "timestamp": "2026-10-13T16:46:20.205241"
+  "timestamp": "2026-10-15T16:47:07.868259"
 }

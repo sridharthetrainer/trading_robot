@@ -60,16 +60,75 @@ def _local_modules() -> set[str]:
 
 
 def _guarded_linenos(tree: ast.AST) -> set[int]:
-    """Line numbers inside any `try:` body — imports there are optional
-    (the code handles ImportError), so they need not be in requirements.txt."""
+    """Imports are optional only when a handler actually catches ImportError."""
     guarded: set[int] = set()
+
+    def catches_import_error(handler):
+        if handler.type is None:
+            return True
+        types = handler.type.elts if isinstance(handler.type, ast.Tuple) else [handler.type]
+        return any(isinstance(kind, ast.Name) and kind.id in {
+            "ImportError", "ModuleNotFoundError", "Exception", "BaseException"
+        } for kind in types)
+
     for node in ast.walk(tree):
-        if isinstance(node, ast.Try):
+        if isinstance(node, ast.Try) and any(catches_import_error(handler) for handler in node.handlers):
             for stmt in node.body:
                 for sub in ast.walk(stmt):
                     if hasattr(sub, "lineno"):
                         guarded.add(sub.lineno)
     return guarded
+
+
+def _script_import_roots(tree: ast.AST, path: pathlib.Path) -> set[pathlib.Path]:
+    """Resolve literal Path-based sys.path additions without executing code."""
+    values = {"__file__": path}
+    roots = {ROOT, path.parent}
+
+    def resolve(node):
+        if isinstance(node, ast.Name):
+            return values.get(node.id)
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id in {"Path", "str"} and len(node.args) == 1:
+                return resolve(node.args[0])
+            if isinstance(node.func, ast.Attribute) and node.func.attr in {"resolve", "absolute"} and not node.args:
+                value = resolve(node.func.value)
+                return pathlib.Path(value).resolve() if value is not None else None
+        if isinstance(node, ast.Attribute) and node.attr == "parent":
+            value = resolve(node.value)
+            return pathlib.Path(value).parent if value is not None else None
+        if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Attribute) and node.value.attr == "parents":
+            value, index = resolve(node.value.value), resolve(node.slice)
+            if value is not None and isinstance(index, int) and index >= 0:
+                return pathlib.Path(value).parents[index]
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            left, right = resolve(node.left), resolve(node.right)
+            if left is not None and isinstance(right, str):
+                return pathlib.Path(left) / right
+        return None
+
+    for statement in tree.body:
+        try:
+            if isinstance(statement, ast.Assign):
+                value = resolve(statement.value)
+                for target in statement.targets:
+                    if isinstance(target, ast.Name):
+                        values[target.id] = value
+            if isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
+                call = statement.value
+                if (isinstance(call.func, ast.Attribute)
+                        and ast.unparse(call.func.value) == "sys.path"
+                        and call.func.attr in {"insert", "append"} and call.args):
+                    value = resolve(call.args[-1])
+                    if isinstance(value, (str, pathlib.Path)):
+                        directory = pathlib.Path(value).resolve()
+                        if directory.is_relative_to(ROOT):
+                            roots.add(directory)
+        except (TypeError, ValueError, IndexError):
+            continue  # Dynamic paths remain unresolved; never run repository code.
+    return roots
 
 
 def _top_imports() -> dict[str, str]:
@@ -85,15 +144,21 @@ def _top_imports() -> dict[str, str]:
         except Exception:
             continue
         guarded = _guarded_linenos(tree)
+        roots = _script_import_roots(tree, path)
+
+        def record(name):
+            if not any((root / f"{name}.py").is_file() or (root / name).is_dir() for root in roots):
+                found.setdefault(name, str(path.relative_to(ROOT)))
+
         for node in ast.walk(tree):
             if getattr(node, "lineno", None) in guarded:
                 continue  # optional (try/except-guarded) import
             if isinstance(node, ast.Import):
                 for a in node.names:
-                    found.setdefault(a.name.split(".")[0], str(path.relative_to(ROOT)))
+                    record(a.name.split(".")[0])
             elif isinstance(node, ast.ImportFrom):
                 if node.level == 0 and node.module:
-                    found.setdefault(node.module.split(".")[0], str(path.relative_to(ROOT)))
+                    record(node.module.split(".")[0])
     return found
 
 

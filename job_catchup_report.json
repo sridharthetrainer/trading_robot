@@ -1,91 +1,4 @@
 {
-  "2026-09-15": {
-    "mtf_backtest": {
-      "scheduled": "07:00",
-      "ran_at": "2026-09-15T07:09:25",
-      "mode": "on_time"
-    },
-    "nse_hub_am": {
-      "scheduled": "08:50",
-      "ran_at": "2026-09-15T09:11:44",
-      "mode": "on_time"
-    },
-    "intraday_candles": {
-      "scheduled": "15:25",
-      "ran_at": "2026-09-15T15:29:50",
-      "mode": "on_time"
-    },
-    "nse_hub_pm": {
-      "scheduled": "15:45",
-      "ran_at": "2026-09-15T15:46:11",
-      "mode": "on_time"
-    },
-    "pipeline_audit": {
-      "scheduled": "16:10",
-      "ran_at": "2026-09-15T16:11:08",
-      "mode": "on_time"
-    },
-    "option_bot_audit": {
-      "scheduled": "16:20",
-      "ran_at": "2026-09-15T16:20:33",
-      "mode": "on_time"
-    },
-    "tb_labels": {
-      "scheduled": "16:45",
-      "ran_at": "2026-09-15T16:46:29",
-      "mode": "on_time"
-    },
-    "post_market_ml": {
-      "scheduled": "16:30",
-      "ran_at": "2026-09-15T21:02:46",
-      "mode": "catch_up_timeout"
-    },
-    "walk_forward": {
-      "scheduled": "17:15",
-      "ran_at": "2026-09-15T19:17:55",
-      "mode": "on_time"
-    },
-    "alt_data": {
-      "scheduled": "17:35",
-      "ran_at": "2026-09-15T19:18:13",
-      "mode": "on_time"
-    },
-    "correlation": {
-      "scheduled": "17:55",
-      "ran_at": "2026-09-15T21:04:04",
-      "mode": "on_time"
-    },
-    "track_record": {
-      "scheduled": "18:15",
-      "ran_at": "2026-09-15T21:04:06",
-      "mode": "on_time"
-    },
-    "calibrator": {
-      "scheduled": "18:35",
-      "ran_at": "2026-09-15T21:04:07",
-      "mode": "on_time"
-    },
-    "eod_weights": {
-      "scheduled": "18:55",
-      "ran_at": "2026-09-15T21:04:09",
-      "mode": "on_time"
-    },
-    "events": {
-      "scheduled": "19:15",
-      "ran_at": "2026-09-15T21:04:09",
-      "mode": "on_time"
-    },
-    "edge_report": {
-      "scheduled": "19:35",
-      "ran_at": "2026-09-15T21:04:11",
-      "mode": "on_time"
-    },
-    "autolearn": {
-      "scheduled": "19:55",
-      "ran_at": "2026-09-15T22:36:16",
-      "mode": "on_time"
-    }
-  },
   "2026-09-16": {
     "mtf_backtest": {
       "scheduled": "07:00",
@@ -1029,6 +942,158 @@
     "nse_hub_am": {
       "scheduled": "08:50",
       "ran_at": "2026-10-14T08:51:01",
+      "mode": "on_time"
+    },
+    "intraday_candles": {
+      "scheduled": "15:25",
+      "ran_at": "2026-10-14T15:30:28",
+      "mode": "on_time"
+    },
+    "nse_hub_pm": {
+      "scheduled": "15:45",
+      "ran_at": "2026-10-14T15:45:50",
+      "mode": "on_time"
+    },
+    "pipeline_audit": {
+      "scheduled": "16:10",
+      "ran_at": "2026-10-14T16:11:16",
+      "mode": "on_time"
+    },
+    "option_bot_audit": {
+      "scheduled": "16:20",
+      "ran_at": "2026-10-14T16:20:40",
+      "mode": "on_time"
+    },
+    "tb_labels": {
+      "scheduled": "16:45",
+      "ran_at": "2026-10-14T16:46:37",
+      "mode": "on_time"
+    },
+    "post_market_ml": {
+      "scheduled": "16:30",
+      "ran_at": "2026-10-14T16:58:07",
+      "mode": "caught_up"
+    },
+    "walk_forward": {
+      "scheduled": "17:15",
+      "ran_at": "2026-10-14T18:45:25",
+      "mode": "on_time"
+    },
+    "alt_data": {
+      "scheduled": "17:35",
+      "ran_at": "2026-10-14T18:46:44",
+      "mode": "on_time"
+    },
+    "correlation": {
+      "scheduled": "17:55",
+      "ran_at": "2026-10-14T18:46:46",
+      "mode": "on_time"
+    },
+    "track_record": {
+      "scheduled": "18:15",
+      "ran_at": "2026-10-14T18:46:48",
+      "mode": "on_time"
+    },
+    "calibrator": {
+      "scheduled": "18:35",
+      "ran_at": "2026-10-14T18:46:50",
+      "mode": "on_time"
+    },
+    "eod_weights": {
+      "scheduled": "18:55",
+      "ran_at": "2026-10-14T18:56:09",
+      "mode": "on_time"
+    },
+    "events": {
+      "scheduled": "19:15",
+      "ran_at": "2026-10-14T19:15:27",
+      "mode": "on_time"
+    },
+    "edge_report": {
+      "scheduled": "19:35",
+      "ran_at": "2026-10-14T19:35:50",
+      "mode": "on_time"
+    },
+    "autolearn": {
+      "scheduled": "19:55",
+      "ran_at": "2026-10-14T20:11:45",
+      "mode": "on_time"
+    },
+    "edge_monitor": {
+      "scheduled": "20:35",
+      "ran_at": "2026-10-14T20:36:31",
+      "mode": "on_time"
+    }
+  },
+  "2026-10-15": {
+    "mtf_backtest": {
+      "scheduled": "07:00",
+      "ran_at": "2026-10-15T07:00:49",
+      "mode": "on_time"
+    },
+    "nse_hub_am": {
+      "scheduled": "08:50",
+      "ran_at": "2026-10-15T08:51:11",
+      "mode": "on_time"
+    },
+    "intraday_candles": {
+      "scheduled": "15:25",
+      "ran_at": "2026-10-15T15:32:25",
+      "mode": "on_time"
+    },
+    "nse_hub_pm": {
+      "scheduled": "15:45",
+      "ran_at": "2026-10-15T15:45:46",
+      "mode": "on_time"
+    },
+    "pipeline_audit": {
+      "scheduled": "16:10",
+      "ran_at": "2026-10-15T16:11:51",
+      "mode": "on_time"
+    },
+    "option_bot_audit": {
+      "scheduled": "16:20",
+      "ran_at": "2026-10-15T16:21:21",
+      "mode": "on_time"
+    },
+    "tb_labels": {
+      "scheduled": "16:45",
+      "ran_at": "2026-10-15T16:47:06",
+      "mode": "on_time"
+    },
+    "post_market_ml": {
+      "scheduled": "16:30",
+      "ran_at": "2026-10-15T17:04:49",
+      "mode": "caught_up"
+    },
+    "walk_forward": {
+      "scheduled": "17:15",
+      "ran_at": "2026-10-15T18:46:26",
+      "mode": "on_time"
+    },
+    "alt_data": {
+      "scheduled": "17:35",
+      "ran_at": "2026-10-15T18:47:45",
+      "mode": "on_time"
+    },
+    "correlation": {
+      "scheduled": "17:55",
+      "ran_at": "2026-10-15T18:47:47",
+      "mode": "on_time"
+    },
+    "track_record": {
+      "scheduled": "18:15",
+      "ran_at": "2026-10-15T18:47:49",
+      "mode": "on_time"
+    },
+    "calibrator": {
+      "scheduled": "18:35",
+      "ran_at": "2026-10-15T18:47:51",
+      "mode": "on_time"
+    },
+    "eod_weights": {
+      "scheduled": "18:55",
+      "ran_at": "2026-10-15T18:56:15",
       "mode": "on_time"
     }
   }

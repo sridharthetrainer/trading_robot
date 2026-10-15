@@ -1,19 +1,19 @@
 # Data Pipeline Audit
 
-- Generated: `2026-10-13T16:10:36+0530`
+- Generated: `2026-10-15T16:11:29+0530`
 - Status: `PASS`
 - Fetch sample: `3`
 - Internet probe: `True`
-- Audit score: `96.0/100` grade `A` readiness `LIVE_READY`
-- Institutional readiness: `83.0/100` grade `A` state `BUILDING`
+- Audit score: `91.5/100` grade `A` readiness `LIVE_READY`
+- Institutional readiness: `75.0/100` grade `B` state `BUILDING`
 
 ## Score
 
 - `source_coverage` `20.0/20` - 18/18 source domains covered
 - `broker_runtime` `15/15` - brokers=AngelOne
 - `fetcher_universe` `15/15` - ordered=194, full=194, learning=194
-- `storage_capture` `15/15` - candles=8856246, 1m_symbols=198, 1d_symbols=199, signals=37588, option_snaps=13948, historical_options=3270853, confluence=37570, coverage_plan=yes
-- `learning_readiness` `7.0/10` - live_ready=0/112, selected=1040, shadow=8320, param_promoted=0, param_paper=3, fill_trades=12, derived_daily_symbols=198, bad_candle_groups=0/970, experiments=53
+- `storage_capture` `11.0/15` - candles=0, 1m_symbols=0, 1d_symbols=0, signals=37764, option_snaps=14377, historical_options=3274579, confluence=37764, coverage_plan=yes
+- `learning_readiness` `6.5/10` - live_ready=0/133, selected=1200, shadow=9600, param_promoted=0, param_paper=0, fill_trades=12, derived_daily_symbols=198, bad_candle_groups=0/970, experiments=80
 - `sample_fetch` `15.0/15` - 3/3 sample fetches OK
 - `freshness_reachability` `9.0/10` - market-hours freshness plus official-source reachability
 
@@ -25,13 +25,13 @@
 
 ## Institutional Readiness
 
-- `tick_or_1sec_data` `8/10` - tick modules=True, candles=8856246
-- `all_strike_option_history` `14/15` - option_snapshots=13948, historical_options=3270853
+- `tick_or_1sec_data` `0/10` - tick modules=True, candles=0
+- `all_strike_option_history` `14/15` - option_snapshots=14377, historical_options=3274579
 - `market_depth_spread` `8/10` - depth modules present; live depth depends on broker entitlement
 - `execution_fill_quality` `8/12` - trades=12, fill_report_trades=12, matched_slippage=3, order_id_coverage=100.0%
-- `labelled_learning_dataset` `10/18` - labelled=28334/5000, days=42/45
+- `labelled_learning_dataset` `10/18` - labelled=28546/5000, days=44/45
 - `participant_fii_flows` `10/10` - participant OI plus FII/DII flow coverage
-- `market_profile_history` `8/8` - profile_snapshots=588450
+- `market_profile_history` `8/8` - profile_snapshots=604984
 - `sector_news_events` `7/7` - sector breadth, news and corporate event coverage
 - `vol_surface_skew` `6/6` - IV/skew modules require all-strike snapshots for full edge
 - `broker_latency_health` `4/4` - health monitor modules present; live latency history depends on runtime
@@ -79,11 +79,11 @@
   - ordered symbols `194`, full tier `194`, angel attached `False`
 - `PASS` `option_fetchers`
 - `PASS` `storage`
-  - trades `12`, signals `37588`, candles `8856246`, candle meta `993`, option snaps `13948`, profile snaps `588450`, historical options `3270853`, market snaps `1018`, confluence `37570`, nse hub `10/10`, journal exists `True`
+  - trades `12`, signals `37764`, candles `None`, candle meta `993`, option snaps `14377`, profile snaps `604984`, historical options `3274579`, market snaps `1038`, confluence `37764`, nse hub `10/10`, journal exists `True`
 - `PASS` `learning_files`
-  - live-ready `0/112`, autotune selected `1040`, shadow `8320`
+  - live-ready `0/133`, autotune selected `1200`, shadow `9600`
 - `PASS` `labelled_dataset`
-  - labelled `28334/37588`, days `42`, executed `3`
+  - labelled `28546/37764`, days `44`, executed `3`
 - `PASS` `fetch_sample`
   - ok `3/3`
 - `PASS` `market_hours_freshness` - outside_market_hours

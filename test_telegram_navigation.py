@@ -18,12 +18,13 @@ def test_option_navigation_contains_only_curated_routes():
         "help", "menu", "status", "report", "signals", "all", "edge",
         "positions", "controlroom", "optionhealth", "optlots", "oisr",
         "oichart", "strikeflow", "pcr", "spreads", "direction",
-        "nexttrade", "pause", "resume",
+        "nexttrade", "pause", "resume", "prepare", "orderstatus", "probability",
+        "scalp", "scalpstatus", "scalpsignals", "optscalp", "scalppnl",
     }
     handler.restrict_to(allowed)
     handler.set_navigation_profile("option")
 
-    sections = ("home", "monitor", "signals", "options", "control")
+    sections = ("home", "monitor", "signals", "options", "control", "scalping")
     callbacks = set().union(*(
         _callbacks(handler._menu_keyboard(section, "option"))
         for section in sections
@@ -36,6 +37,9 @@ def test_option_navigation_contains_only_curated_routes():
     assert routed_commands <= set(handler._handlers)
     assert "cmd:dashboard" not in callbacks
     assert "prompt:optlots" in callbacks
+    assert "cmd:scalpstatus" in callbacks
+    assert "cmd:scalpsignals NIFTY" in callbacks
+    assert "cmd:optscalp" in callbacks
 
 
 def test_prompt_reply_continues_with_pending_command(monkeypatch):

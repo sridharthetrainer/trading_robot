@@ -37,13 +37,16 @@ def build_volume_profile(
     n_bins: int = 100,
 ) -> Dict:
     """
-    Build full Volume Profile from OHLCV data.
+    Build an approximate profile by uniformly allocating OHLCV bar volume.
+    This is not observed trade-by-price volume or a time-based TPO profile.
     Returns POC, Value Area, HVN, LVN, and raw profile.
 
     n_bins = 100 mimics TradingView VRVP row_size=100.
     """
     try:
         df_c = df.copy(); df_c.columns = [c.lower() for c in df_c.columns]
+        if isinstance(n_bins,bool) or not isinstance(n_bins,int) or not 1<=n_bins<=10000:
+            return {}
         if len(df_c) < 5 or "volume" not in df_c.columns:
             return {}
 
@@ -52,6 +55,8 @@ def build_volume_profile(
         c = df_c["close"].values
         v = df_c["volume"].values
 
+        if not all(np.isfinite(a).all() for a in (h,l,c,v)) or (v<0).any() or (l<=0).any() or (h<l).any():
+            return {}
         price_min = float(np.min(l))
         price_max = float(np.max(h))
         if price_max <= price_min: return {}
@@ -63,7 +68,11 @@ def build_volume_profile(
         # Distribute each bar's volume across price bins it touched
         for i in range(len(c)):
             bar_lo = float(l[i]); bar_hi = float(h[i]); bar_vol = float(v[i])
-            if bar_hi <= bar_lo or bar_vol <= 0: continue
+            if bar_vol <= 0: continue
+            if bar_hi == bar_lo:
+                point=min(n_bins-1,max(0,int((bar_lo-price_min)/bin_size)))
+                vol_profile[point]+=bar_vol
+                continue
             bar_range = bar_hi - bar_lo
             for b in range(n_bins):
                 bin_lo = bins[b]; bin_hi = bins[b+1]
@@ -104,6 +113,8 @@ def build_volume_profile(
         lvn_prices  = [float(bins[i] + bin_size/2) for i in lvn_indices]
 
         return {
+            "profile_kind": "OHLCV_UNIFORM_VOLUME_PROXY",
+            "observed_volume_at_price": False,
             "poc":         poc_price,
             "vah":         vah,
             "val":         val,

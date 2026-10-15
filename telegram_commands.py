@@ -121,138 +121,8 @@ def _spread_short_symbol(symbol: str):
 
 
 def _quick_execute_option(symbol: str) -> str:
-    """One-tap execute: BUY 1-2 lots of `symbol` at MARKET, sized by
-    available capital, no confirmation step (per explicit operator choice).
-    Places via the SAME place_order() every other order in this system uses
-    — that function already respects paper_trade/PAPER_ORDERS_ONLY/
-    block_real_orders, so this button adds no separate safety gate of its
-    own; it reuses the existing, already-tested execution path rather than
-    a new unaudited one. manual_trade_tracker.py's poll_order_book() will
-    pick the resulting fill up as a manual trade (distinct tag, see above)
-    within its next ~30s cycle and apply the same GTT protection as any
-    other manual fill.
-    """
-    # Day-level kill-switch: refuse new one-tap entries after the daily
-    # realized-loss cap, regardless of per-trade sizing.
-    try:
-        from manual_trade_tracker import todays_manual_stats
-        _day = todays_manual_stats()
-        if _day.get("realized", 0) <= -QUICK_EXEC_DAILY_LOSS_LOCK_RS:
-            return (f"🛑 <b>Daily-loss lockout</b> — realized "
-                    f"₹{_day['realized']:+,.0f} today (cap −₹{QUICK_EXEC_DAILY_LOSS_LOCK_RS:,.0f}).\n"
-                    f"  No more one-tap entries today. The audited drawdowns "
-                    f"came from continuing exactly here.")
-    except Exception as e:
-        logger.debug("daily lockout check: %s", e)
-
-    try:
-        from angel import AngelOne, get_fo_lot_size
-        ang = AngelOne(
-            api_key=os.getenv("API_KEY", ""), client_id=os.getenv("CLIENT_ID", ""),
-            password=os.getenv("PASSWORD", ""), totp_secret=os.getenv("TOTP_SECRET", ""))
-    except Exception as e:
-        return f"❌ Could not connect to broker for {symbol}: {str(e)[:100]}"
-
-    lot = get_fo_lot_size(symbol)
-    if not lot or lot <= 0:
-        return f"⚠️ Could not resolve lot size for {symbol} — not executed."
-
-    ltp = ang.get_ltp(symbol, "NFO")
-    if not ltp or ltp <= 0:
-        return f"⚠️ Could not fetch live price for {symbol} — not executed."
-
-    capital = ang.get_balance(force_real=True)
-    if capital <= 0:
-        return f"⚠️ Could not fetch available capital — not executed."
-
-    one_lot_cost = lot * ltp
-    if one_lot_cost <= 0:
-        return f"⚠️ Invalid cost calculation for {symbol} — not executed."
-
-    # ── Defined-risk spread mode (default) ─────────────────────────────────
-    if QUICK_EXEC_MODE == "spread":
-        short_symbol, step = _spread_short_symbol(symbol)
-        short_ltp = ang.get_ltp(short_symbol, "NFO") if short_symbol else None
-        if short_symbol and short_ltp and short_ltp > 0:
-            debit_unit = max(0.05, float(ltp) - float(short_ltp))
-            # A vertical whose debit approaches the strike width can't pay:
-            # max profit = width - debit. Refuse rather than open a spread
-            # that needs a beyond-max move just to break even.
-            if debit_unit >= step * 0.90:
-                return (f"🛑 Spread not viable: est. debit ₹{debit_unit:.2f} vs "
-                        f"width {step} — max profit would be "
-                        f"₹{max(0.0, step - debit_unit) * lot:,.0f}/lot. Not executed.")
-            debit_lot = debit_unit * lot
-            # Kill-switch on the SPREAD's true max loss (the net debit) —
-            # structurally capped, no stop dependence.
-            risk_per_lot = debit_lot + 2 * QUICK_EXEC_FRICTION_PER_LOT
-            budget = capital * QUICK_EXEC_CAPITAL_FRACTION
-            max_risk = capital * QUICK_EXEC_MAX_RISK_FRAC
-            budget_lots = int(budget // max(debit_lot, 1))
-            risk_lots = int(max_risk // risk_per_lot) if risk_per_lot > 0 else 0
-            lots = min(QUICK_EXEC_MAX_LOTS, budget_lots, risk_lots)
-            if lots < 1:
-                return (f"🛑 Kill-switch (spread): 1 lot risks ≈ ₹{risk_per_lot:,.0f} "
-                        f"(net debit) — over the {QUICK_EXEC_MAX_RISK_FRAC:.0%} cap "
-                        f"(₹{max_risk:,.0f} of ₹{capital:,.0f}). Not executed.")
-            qty = lots * lot
-            from spread_strategy import enter_debit_vertical
-            r = enter_debit_vertical(ang, symbol, short_symbol, qty,
-                                     width_pts=step)
-            if not r.get("ok"):
-                return f"❌ Spread failed: {r.get('error', 'unknown')}"
-            sp = r["spread"]
-            return (
-                f"✅ <b>DEBIT SPREAD OPENED</b> — {sp['spread_id']}\n"
-                f"  +BUY {qty} {symbol} @ ₹{sp['long']['fill']:.2f}\n"
-                f"  −SELL {qty} {short_symbol} @ ₹{sp['short']['fill']:.2f}\n"
-                f"  Net debit ₹{sp['net_debit_unit']:.2f}/unit\n"
-                f"  Max loss ₹{sp['max_loss']:,.0f} ({sp['max_loss'] / capital:.1%} of capital, capped) | "
-                f"Max profit ₹{sp['max_profit']:,.0f}\n"
-                f"  Manage/close: /spreads")
-        # Short leg unresolvable/unpriced: fall through to the naked path
-        # BELOW with an explicit note — never silently change instruments.
-        naked_note = ("\n  ⚠️ Spread mode requested but the short leg "
-                      f"({short_symbol or 'unparseable symbol'}) has no live "
-                      "price — executed as NAKED long instead.")
-    else:
-        naked_note = ""
-
-    budget = capital * QUICK_EXEC_CAPITAL_FRACTION
-    budget_lots = int(budget // one_lot_cost)
-    # Kill-switch: expected loss per lot if the catastrophe stop fires.
-    risk_per_lot = one_lot_cost * QUICK_EXEC_SL_PCT + QUICK_EXEC_FRICTION_PER_LOT
-    max_risk = capital * QUICK_EXEC_MAX_RISK_FRAC
-    risk_lots = int(max_risk // risk_per_lot) if risk_per_lot > 0 else 0
-    lots = min(QUICK_EXEC_MAX_LOTS, budget_lots, risk_lots)
-    if lots < 1:
-        if budget_lots < 1:
-            return (f"⚠️ Insufficient funds for even 1 lot of {symbol}\n"
-                    f"  1 lot ≈ ₹{one_lot_cost:,.0f} | budget ≈ ₹{budget:,.0f} "
-                    f"({QUICK_EXEC_CAPITAL_FRACTION:.0%} of ₹{capital:,.0f} available)")
-        return (f"🛑 Kill-switch: 1 lot of {symbol} risks ≈ ₹{risk_per_lot:,.0f} "
-                f"at the {QUICK_EXEC_SL_PCT:.0%} stop — over the "
-                f"{QUICK_EXEC_MAX_RISK_FRAC:.0%} cap (₹{max_risk:,.0f} of "
-                f"₹{capital:,.0f}). Not executed.")
-
-    qty = lots * lot
-    try:
-        res = ang.place_order(symbol, qty, "BUY", order_type="MARKET",
-                               producttype="CARRYFORWARD", exchange="NFO",
-                               order_tag=QUICK_EXEC_TAG)
-    except Exception as e:
-        return f"❌ Order placement error for {symbol}: {str(e)[:100]}"
-    if not res or not res[0]:
-        return f"❌ Order failed for {symbol} — check broker app for details."
-
-    order_id, fill_price = res
-    est_risk = risk_per_lot * lots
-    return (
-        f"✅ <b>EXECUTED</b> — BUY {qty} ({lots} lot{'s' if lots > 1 else ''}) {symbol}\n"
-        f"  Fill ≈ ₹{float(fill_price or ltp):.2f} | Order ID {order_id}\n"
-        f"  Est. risk at stop ≈ ₹{est_risk:,.0f} ({est_risk / capital:.1%} of capital)\n"
-        f"  Manual tracker will detect + protect within ~30s."
-        + naked_note)
+    """Legacy API retained without any order side effects."""
+    return "Immediate execution is disabled. Use /prepare SYMBOL LOTS LIMIT and confirm the review."
 
 
 class TelegramCommandHandler:
@@ -664,6 +534,9 @@ class TelegramCommandHandler:
         # Extract command
         cmd = text.split()[0].lower().lstrip("/").split("@")[0]
         logger.info("CMD RECEIVED: /%s from chat=%s user=%s", cmd, chat_id, from_id)
+        if cmd in {"prepare", "orderstatus"} and not self._order_owner(from_id):
+            self.send("Order review requires the configured owner's Telegram user ID.", chat_id=chat_id)
+            return
         handler = self._handlers.get(cmd)
         if handler:
             try:
@@ -719,6 +592,7 @@ class TelegramCommandHandler:
         }
         option_sections = {
             "home": [[("📊 Today", "menu:monitor"), ("🎯 Signals", "menu:signals")],
+                     [("⚡ Scalping", "menu:scalping")],
                      [("📈 OI & Market", "menu:options"), ("⚙️ Control", "menu:control")],
                      [("❓ Help", "cmd:help")]],
             "monitor": [[("Status", "cmd:status"), ("Positions", "cmd:positions")],
@@ -727,6 +601,11 @@ class TelegramCommandHandler:
             "signals": [[("Generated", "cmd:signals"), ("Direction", "cmd:direction")],
                         [("Next Trade", "cmd:nexttrade"), ("Chain Health", "cmd:optionhealth")],
                         [("⬅️ Back", "menu:home")]],
+            "scalping": [[("⚡ Scalp Status", "cmd:scalpstatus"), ("🎯 Scalp Setups", "cmd:scalpsignals")],
+                         [("NIFTY", "cmd:scalpsignals NIFTY"), ("BANKNIFTY", "cmd:scalpsignals BANKNIFTY")],
+                         [("Prepare Order", "cmd:prepare"), ("Order Reviews", "cmd:orderstatus")],
+                         [("Probability", "cmd:probability")],
+                         [("Performance", "cmd:optscalp"), ("⬅️ Back", "menu:home")]],
             "options": [[("OI S/R", "cmd:oisr"), ("OI Chart", "cmd:oichart")],
                         [("Strike Flow", "cmd:strikeflow"), ("PCR", "cmd:pcr")],
                         [("Spreads", "cmd:spreads"), ("⬅️ Back", "menu:home")]],
@@ -755,11 +634,22 @@ class TelegramCommandHandler:
             logger.warning("REJECTED callback: chat=%s from=%s owner=%s",
                            chat_id, from_id, self.chat_id)
             return
+        order_route = data.startswith(("exec:", "orderconfirm:", "ordercancel:", "spreadclose:")) or (
+            data.startswith("cmd:") and data[4:].split(" ", 1)[0].lower() in {"prepare", "orderstatus"})
+        if order_route and not self._order_owner(from_id):
+            self.send("Order review requires the configured owner's Telegram user ID.", chat_id=chat_id)
+            return
+        if data.startswith(("orderconfirm:", "ordercancel:")):
+            from html import escape
+            result = self._order_reviews().act(self._order_scope(), data.split(":", 1)[1],
+                                                cancel=data.startswith("ordercancel:"))
+            self.send(escape(result), chat_id=chat_id)
+            return
         if data.startswith("menu:"):
             section = data.split(":", 1)[1]
             labels = {"home":"Trading Bot Menu", "monitor":"Monitor", "options":"Options",
                       "signals":"Signals & Direction", "direction":"Trade Direction",
-                      "reports":"Reports", "control":"Control"}
+                      "reports":"Reports", "control":"Control", "scalping":"Option Scalping"}
             if self._navigation_profile == "option" and section == "home":
                 labels["home"] = "Option Bot Menu"
             text = f"📱 <b>{labels.get(section, 'Menu')}</b>\nChoose an action:"
@@ -820,28 +710,63 @@ class TelegramCommandHandler:
                 self.send(f"⚠️ /{command} error: {str(exc)[:100]}", chat_id=chat_id)
             return
         if data.startswith("exec:"):
-            symbol = data.split(":", 1)[1]
-            try:
-                result = _quick_execute_option(symbol)
-            except Exception as exc:
-                result = f"❌ Execution error for {symbol}: {str(exc)[:100]}"
-            self.send(result, chat_id=chat_id)
+            from html import escape
+            symbol = escape(data.split(":", 1)[1])
+            self.send(f"Prepare a single-leg BUY LIMIT review with:\n<code>/prepare {symbol} 1 LIMIT_PRICE</code>\n"
+                      "Choose your limit price. This button submits no order.", chat_id=chat_id)
             return
         if data.startswith("spreadclose:"):
-            spread_id = data.split(":", 1)[1]
-            try:
-                from angel import AngelOne
-                from spread_strategy import close_spread_by_id
-                ang = AngelOne(
-                    api_key=os.getenv("API_KEY", ""), client_id=os.getenv("CLIENT_ID", ""),
-                    password=os.getenv("PASSWORD", ""), totp_secret=os.getenv("TOTP_SECRET", ""))
-                r = close_spread_by_id(ang, spread_id)
-                result = (f"✅ <b>SPREAD CLOSED</b> {spread_id} | P&L ₹{r['pnl']:+,.0f}"
-                          if r.get("ok") else f"❌ {r.get('error', 'close failed')}")
-            except Exception as exc:
-                result = f"❌ Spread close error: {str(exc)[:100]}"
-            self.send(result, chat_id=chat_id)
+            self.send("Legacy immediate spread submission is disabled. Manage existing spread exits in your broker terminal. Automatic protective exits remain separate.", chat_id=chat_id)
             return
+
+    def _order_owner_id(self):
+        configured = os.getenv("OPTION_ORDER_OWNER_ID", "").strip()
+        if not configured:
+            configured = str(self.chat_id).strip()
+        return configured if configured.isdigit() and int(configured) > 0 else ""
+
+    def _order_owner(self, sender):
+        return bool(self._order_owner_id()) and str(sender) == self._order_owner_id()
+
+    def _order_scope(self):
+        return f"{self._media_spool_identity}:{self._order_owner_id()}"
+
+    def _order_reviews(self):
+        if not hasattr(self, "_review_service"):
+            from confirmed_option_orders import OrderReviews, AngelReviewGateway
+            self._review_service = OrderReviews(PROJECT_DIR / "telegram_order_drafts.db", AngelReviewGateway(self.bot_ref))
+        return self._review_service
+
+    def _cmd_probability(self, _=""):
+        from strategy_probability_report import render_probability_status
+        return render_probability_status()
+
+    def _cmd_orderstatus(self, _=""):
+        from html import escape
+        return escape(self._order_reviews().status(self._order_scope()))
+
+    def _cmd_prepare(self, text=""):
+        from html import escape
+        parts = text.split()
+        if len(parts) != 4:
+            return ("Use <code>/prepare EXACT_OPTION_SYMBOL LOTS LIMIT_PRICE</code>\n"
+                    "Example syntax: /prepare SYMBOL 1 100.05\n"
+                    "Supports 1–2 lots, NFO BUY LIMIT intraday only. No stop is attached. "
+                    "Review expires in 60 seconds; confirm to submit in the displayed mode.")
+        try:
+            ident, plan = self._order_reviews().prepare(self._order_scope(), parts[1].upper(), int(parts[2]), float(parts[3]))
+        except Exception as exc:
+            return f"Order preparation blocked: {escape(str(exc))}"
+        review = (f"<b>{plan['mode']} ORDER REVIEW — expires in 60 seconds</b>\n"
+                  f"BUY {escape(plan['symbol'])} · NFO · INTRADAY\n"
+                  f"{plan['lots']} lot(s) / {plan['quantity']} units · LIMIT ₹{plan['limit']:.2f}\n"
+                  f"Ask ₹{plan['ask']:.2f} · quote age {plan['quote_age_seconds']:.2f}s\n"
+                  f"Full premium at risk: ₹{plan['premium']:,.2f} + charges\n"
+                  "No stop order is attached. Win probability is uncalibrated.\n"
+                  "Confirmation rechecks price, mode, contract and risk gates. Acknowledgement does not mean filled.")
+        return review, {"inline_keyboard": [[
+            {"text": f"Confirm {plan['mode']} BUY", "callback_data": f"orderconfirm:{ident}"},
+            {"text": "Cancel draft", "callback_data": f"ordercancel:{ident}"}]]}
 
 
     # ── Handler registration ──────────────────────────────────────────────────
@@ -876,6 +801,9 @@ class TelegramCommandHandler:
         )
 
     def _register_defaults(self) -> None:
+        self.register("prepare", self._cmd_prepare)
+        self.register("orderstatus", self._cmd_orderstatus)
+        self.register("probability", self._cmd_probability)
         # ── Core ─────────────────────────────────────────────────────────────
         self.register("help",        self._cmd_help)
         self.register("menu",        self._cmd_menu)
@@ -913,6 +841,9 @@ class TelegramCommandHandler:
         self.register("ocdiag",      self._cmd_optdata)
         self.register("optscalp",    self._cmd_optscalp)
         self.register("scalppnl",    self._cmd_optscalp)
+        self.register("scalp",      self._cmd_scalp)
+        self.register("scalpstatus", self._cmd_scalp)
+        self.register("scalpsignals", self._cmd_scalp)
         self.register("heat",        self._cmd_heat)
         self.register("symbols",     self._cmd_symbols)
         self.register("scanner",     self._cmd_scanner_view)
@@ -2351,23 +2282,14 @@ class TelegramCommandHandler:
                 top_n=top_n,
                 prefer_live=prefer_live,
             )
-            # One-tap execute buttons: top-2 rows by the report's own ordering
-            # (tradable first, then score) regardless of the tradable flag.
-            # 2026-07-10 operator decision after seeing the data: the original
-            # ACTIONABLE-only gating meant the button never appeared — 0 of
-            # 1,120 signals passed tradable=1 that day (0 the day before), and
-            # historically that gate's picks LOST (-0.22R, 14% win rate, n=35),
-            # so it was both nearly-always-empty and anti-predictive when not.
-            # Each label carries the row's status + score so a WATCH tap is a
-            # visibly informed choice, and the kill-switch in
-            # _quick_execute_option still sizes/blocks the actual order.
+            # Review buttons never submit orders. Scores are not win probabilities.
             rows_with_symbol = [r for r in (result.actionable or []) if r.get("symbol")]
             buttons = []
             for row in rows_with_symbol[:2]:
                 status = "ACTIONABLE" if row.get("tradable") else "WATCH"
                 score = float(row.get("score") or 0)
                 buttons.append([{
-                    "text": f"🚀 BUY {row['symbol']} ({status} {score:.0f})",
+                    "text": f"Review {row['symbol']} ({status} score {score:.0f})",
                     "callback_data": f"exec:{row['symbol']}",
                 }])
             if buttons:
@@ -3164,6 +3086,16 @@ class TelegramCommandHandler:
             return get_todays_signals()
         except Exception as e:
             return f"❌ Today's signals: {e}"
+
+    def _cmd_scalp(self, args=""):
+        from option_scalp_views import SYMBOLS, render_scalp_view, scalp_navigation
+        parts = str(args or "").strip().split()
+        command = parts[0].lstrip("/").split("@")[0].lower() if parts else "scalp"
+        symbol = parts[1].upper() if len(parts) > 1 else None
+        if symbol and symbol not in SYMBOLS:
+            return "Usage: /scalpsignals NIFTY|BANKNIFTY|FINNIFTY|MIDCPNIFTY|SENSEX|BANKEX"
+        mode = {"scalpstatus": "status", "scalpsignals": "signals"}.get(command, "overview")
+        return render_scalp_view(mode=mode, symbol=symbol), scalp_navigation(symbol)
 
     def _cmd_optscalp(self, args="") -> str:
         """Option SCALPING P&L from labelled outcomes — per strategy + today/live.

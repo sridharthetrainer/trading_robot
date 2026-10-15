@@ -435,6 +435,10 @@ class AngelOne:
                 now < self._rate_limited_until or
                 (now - self._last_connect_ts) < RECONNECT_MIN_INTERVAL):
             return True
+        if not all(str(getattr(self, name, "") or "").strip() for name in (
+                "api_key", "client_id", "password", "totp_secret")):
+            logger.warning("Angel login skipped: required credentials are missing")
+            return False
         self._last_connect_ts = now
 
         for attempt in range(1, MAX_CONNECT_RETRIES + 1):

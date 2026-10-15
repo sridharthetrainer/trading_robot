@@ -1,0 +1,414 @@
+{
+  "source": {
+    "path": "quant_specs/pivot_boss_source_request_2026-10-15.txt",
+    "sha256": "98fb76566fa957bee963d0f7c92ed6303a5027b9e63880a94c63f1f506012a57",
+    "attribution": "User-supplied summary attributed to Frank Ochoa; full-book coverage and exact wording not verified",
+    "author_reference": "https://www.pivotboss.com/wp-content/uploads/2017/09/Secrets-of-a-Pivot-Boss-by-Frank-Ochoa.pdf",
+    "exhaustive_claim_verified": false
+  },
+  "entry_count": 25,
+  "policy": {
+    "research_only": true,
+    "auto_schedule": false,
+    "live_approved": false,
+    "probability_claims_validated": false
+  },
+  "corrections": [
+    "Normalize CPR bounds with min/max of raw BC and TC; raw TC may be below raw BC.",
+    "Outside reversals require indexed bars; literal Low < Low and High > High cannot be executable definitions.",
+    "Time-based POC and volume-based POC are distinct; VPOC is also used ambiguously for virgin versus volume POC.",
+    "A virgin profile level is untested in subsequent sessions, not untouched in its formation session.",
+    "Reported touch rates do not establish trade win rates or monthly income probability.",
+    "Narrow/wide CPR thresholds, average-range lookbacks, equality tolerances and tie policies require explicit specifications.",
+    "Current-period and future daily bars cannot supply prior completed higher-timeframe pivots.",
+    "OHLCV-uniform volume profiles are modeled approximations, not observed executed volume by price."
+  ],
+  "entries": [
+    {
+      "id": "PB01",
+      "category": "Candles",
+      "name": "Wick reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Exact pivot/value zone context",
+        "Risk sizing and stop/exit rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB02",
+      "category": "Candles",
+      "name": "Extreme reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Average-range lookback absent in paste; 20 is a project feature choice",
+        "Exact trend/context and exit rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB03",
+      "category": "Candles",
+      "name": "Outside reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Unindexed comparisons are ambiguous; project uses previous-bar extremes",
+        "Stop, sizing and pivot-context rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB04",
+      "category": "Candles",
+      "name": "Doji reversal",
+      "research_feature": "pivot_boss_research.action_triggers",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Risk/exit rules and instrument/timeframe",
+        "Execution only after the first confirming close"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB05",
+      "category": "CPR",
+      "name": "CPR and floor levels",
+      "research_feature": "pivot_boss.calc_cpr",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Completed prior-session OHLC",
+        "Levels alone do not specify entries"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB06",
+      "category": "CPR",
+      "name": "Seven two-day CPR relationships",
+      "research_feature": "pivot_boss_research.cpr_relationship",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Tick/tolerance definition",
+        "Opening confirmation and execution rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB07",
+      "category": "CPR",
+      "name": "Pivot width hypotheses",
+      "research_feature": "pivot_boss.classify_cpr_width",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Relative width threshold or training-only quantiles",
+        "Prospective validation of day-type association"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB08",
+      "category": "CPR",
+      "name": "Pivot range trend",
+      "research_feature": "pivot_boss.analyse_cpr_trend",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Trend persistence and session definition",
+        "Existing local trend rule is an adaptation"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB09",
+      "category": "CPR",
+      "name": "Magnet trade",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Gap threshold, entry, stop and time horizon",
+        "Independent touch statistics and net option outcomes"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null,
+      "reported_touch_claim": {
+        "reported_value": 0.63,
+        "validated_in_this_system": false,
+        "trade_win_probability": null
+      }
+    },
+    {
+      "id": "PB10",
+      "category": "Camarilla",
+      "name": "Camarilla levels H1-H5/L1-L5",
+      "research_feature": "pivot_boss.calc_camarilla_pivots",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Prior completed session OHLC",
+        "No execution from a level alone"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB11",
+      "category": "Camarilla",
+      "name": "H3 reversal",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Quantify momentum stalls/confirmation",
+        "Fill timing, sizing, time exit and fees"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB12",
+      "category": "Camarilla",
+      "name": "L3 reversal",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Quantify price strength/confirmation",
+        "Fill timing, sizing, time exit and fees"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB13",
+      "category": "Camarilla",
+      "name": "H4 breakout",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Close-based crossing and next-observable entry",
+        "Gap/target reachability, quantity and expiry selection"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB14",
+      "category": "Camarilla",
+      "name": "L4 breakout",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Close-based crossing and next-observable entry",
+        "Gap/target reachability, quantity and expiry selection"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB15",
+      "category": "Camarilla",
+      "name": "Trend pullback entries",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Trend classifier and opening relation",
+        "Trigger, invalidation and maximum holding period"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB16",
+      "category": "Camarilla",
+      "name": "Hidden H1/H2/L1/L2 reversals",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Prior wide-range threshold",
+        "Exact rejection trigger, stop and exit"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB17",
+      "category": "Money Zone",
+      "name": "Time-based POC and value area",
+      "research_feature": "pivot_boss_research.profile_from_price_counts",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Observed TPO counts and session boundaries",
+        "Row size/tie/expansion conventions"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB18",
+      "category": "Money Zone",
+      "name": "Volume-at-price POC and value area",
+      "research_feature": "pivot_boss_research.profile_from_price_counts",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Observed executed volume by price",
+        "Do not replace with uniformly distributed OHLCV volume"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB19",
+      "category": "Money Zone",
+      "name": "Value-area trend entries",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Completed prior-session profile and trend rules",
+        "Pullback trigger, stop/exit and risk rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB20",
+      "category": "Money Zone",
+      "name": "Virgin time/volume POC",
+      "research_feature": "pivot_boss_research.virgin_level_status",
+      "implementation_scope": "FEATURE_OR_EXISTING_HELPER_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Origin-session identifier and complete subsequent-session history",
+        "Define touch/fade timing without a universal win rate"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null,
+      "reported_touch_claim": {
+        "reported_value_at_least": 0.8,
+        "reported_horizon": "one week",
+        "validated_in_this_system": false,
+        "trade_win_probability": null
+      }
+    },
+    {
+      "id": "PB21",
+      "category": "Money Zone",
+      "name": "Volume POC escalator",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Observed volume POC and causal trend sequence",
+        "Entry tolerance, protection and net-cost evidence"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB22",
+      "category": "Money Zone",
+      "name": "Unchanged volume POC",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Tick-based equality and consecutive-session count",
+        "Breakout/exit rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB23",
+      "category": "Confluence",
+      "name": "Double pivot hot zone",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Independent level origins and proximity tolerance",
+        "Avoid duplicate labels of the same level; define execution and risk"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB24",
+      "category": "Confluence",
+      "name": "Golden pivot zone",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Normalized CPR and independently sourced Camarilla/Money Zone levels",
+        "Trigger, directional conflict and stop/target rules"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    },
+    {
+      "id": "PB25",
+      "category": "Confluence",
+      "name": "Multiple-timeframe hot zones",
+      "research_feature": null,
+      "implementation_scope": "CATALOG_ONLY",
+      "live_approved": false,
+      "backtest_registered": false,
+      "missing_rules": [
+        "Completed daily/weekly/monthly/yearly periods",
+        "Proximity, independent origins and execution timing"
+      ],
+      "option_contract_rules_complete": false,
+      "win_probability": null
+    }
+  ]
+}

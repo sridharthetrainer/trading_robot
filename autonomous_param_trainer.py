@@ -431,6 +431,8 @@ def render_summary(report: Dict[str, Any]) -> str:
 
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--quant-inventory", action="store_true",
+                        help="Describe the 28 supplied quant model groups without training or execution")
     parser.add_argument("--strategies", default="")
     parser.add_argument("--symbols", default="")
     parser.add_argument("--interval", default=None)
@@ -439,6 +441,10 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--no-write", action="store_true")
     args = parser.parse_args(list(argv) if argv is not None else None)
+    if args.quant_inventory:
+        from quant_model_catalog import load_catalog, build_integration_plan
+        print(json.dumps(build_integration_plan(load_catalog()), indent=2))
+        return 0
     strategies = [s.strip() for s in args.strategies.split(",") if s.strip()] or None
     symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()] or None
     report = run_autonomous_param_training(

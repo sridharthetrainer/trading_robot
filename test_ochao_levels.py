@@ -35,20 +35,18 @@ def test_ochao_pack_contains_cpr_floor_camarilla_hlc():
 
 
 def test_build_ochao_levels_daily_weekly_monthly():
-    idx = pd.date_range("2026-01-01 09:15", periods=160, freq="5min")
-    df = pd.DataFrame({
-        "open": range(160),
-        "high": [100 + i * 0.1 for i in range(160)],
-        "low": [99 + i * 0.1 for i in range(160)],
-        "close": [99.5 + i * 0.1 for i in range(160)],
-        "volume": [1000] * 160,
-    }, index=idx)
-    daily = df.resample("D").agg({"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}).dropna()
-    levels = build_ochao_levels(df, daily)
-    assert "daily" in levels
-    assert "weekly" in levels
-    assert "monthly" in levels
+    # Two actual 75-bar session windows; a single unfinished day cannot supply prior pivots.
+    idx = pd.date_range("2026-10-12 09:15", periods=75, freq="5min").append(
+        pd.date_range("2026-10-13 09:15", periods=75, freq="5min"))
+    close = [99.5 + i * .1 for i in range(len(idx))]
+    df = pd.DataFrame({"open":close, "high":[x+.5 for x in close],
+                       "low":[x-.5 for x in close], "close":close,
+                       "volume":[1000]*len(idx)}, index=idx)
+    daily = df.resample("D").agg({"open":"first","high":"max","low":"min","close":"last","volume":"sum"}).dropna()
+    levels = build_ochao_levels(df,daily)
     assert "TC" in levels["daily"]
+    assert levels["daily"]["H"] == round(df.high.iloc[:75].max(),2)
+    assert levels["weekly"] == {} and levels["monthly"] == {}
 
 
 def test_mtf_ema_alignment_returns_bias():

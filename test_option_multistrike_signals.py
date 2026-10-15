@@ -354,6 +354,8 @@ def test_generated_strike_signals_receive_after_cost_outcomes(tmp_path):
 
 def test_lifecycle_marks_target_and_moves_stop_to_entry(tmp_path, monkeypatch):
     monkeypatch.setenv("OPTION_EDGE_POLICY_REQUIRE_PROMISING", "false")
+    # Exercise lifecycle transitions independently of entry admission policy.
+    monkeypatch.setenv("OPTION_FOCUSED_PAPER_ENABLED", "false")
     db = tmp_path / "snapshots.db"
     first = [_row(25000, 100, 1000, 1000)]
     second = [_row(25000, 110, 1200, 1500)]

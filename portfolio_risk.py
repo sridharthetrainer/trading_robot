@@ -137,6 +137,29 @@ class PortfolioRiskManager:
         """
         open_positions = open_positions or []
 
+        # Invalid evidence must not pass comparisons with NaN or be coerced to zero.
+        try:
+            numeric=[self.capital,entry_price,current_daily_pnl,self.max_portfolio_risk_pct,
+                     self.max_symbol_exposure_pct,self.max_total_exposure_pct,
+                     self.max_premium_per_trade_pct,self.fallback_option_loss_fraction]
+            if stop_loss is not None:numeric.append(stop_loss)
+            if daily_loss_limit is not None:numeric.append(daily_loss_limit)
+            if not all(math.isfinite(float(v)) for v in numeric) or float(entry_price)<=0:
+                return self._deny("Invalid nonfinite risk evidence", [], symbol)
+            if isinstance(lot_size,bool) or int(lot_size)!=lot_size or lot_size<=0:
+                return self._deny("Invalid lot size", [], symbol)
+            if isinstance(requested_quantity,bool) or int(requested_quantity)!=requested_quantity:
+                return self._deny("Invalid quantity", [], symbol)
+            for position in open_positions:
+                if not all(math.isfinite(float(position[k])) for k in ('entry_price','qty')):
+                    return self._deny("Invalid existing exposure evidence", [], symbol)
+                if float(position['entry_price'])<=0 or float(position['qty'])<=0:
+                    return self._deny("Invalid existing exposure evidence", [], symbol)
+                if position.get('stop_loss') is not None and not math.isfinite(float(position['stop_loss'])):
+                    return self._deny("Invalid existing stop evidence", [], symbol)
+        except (TypeError,ValueError,KeyError,OverflowError):
+            return self._deny("Missing or invalid risk evidence", [], symbol)
+
         # ---- Basic guards -------------------------------------------
         if self.capital <= 0:
             return self._deny("Invalid capital", open_positions, symbol)
@@ -174,7 +197,7 @@ class PortfolioRiskManager:
                     logger.info("VaR size reduction: %s → %d units (%s)",
                                 symbol, requested_quantity, _var_check["reason"])
             except Exception as _ve:
-                logger.debug("VaR check skipped: %s", _ve)
+                return self._deny("VaR evidence unavailable", [], symbol)
 
 
         if daily_loss_limit is not None and current_daily_pnl <= -abs(float(daily_loss_limit)):
@@ -387,7 +410,7 @@ class PortfolioRiskManager:
         target = str(correlation_group).upper()
         return sum(
             1 for p in open_positions
-            if str(p.get("correlation_group", "")).upper() == target
+            if not p.get("correlation_group") or str(p.get("correlation_group", "")).upper() == target
         )
 
     def _approved_quantity_by_exposure_and_risk(

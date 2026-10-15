@@ -133,6 +133,7 @@ def option_navigation() -> dict:
          {"text": "🎯 Signals", "callback_data": "cmd:signals"}],
         [{"text": "📈 OI chart", "callback_data": "cmd:oichart"},
          {"text": "📌 Positions", "callback_data": "cmd:positions"}],
+        [{"text": "⚡ Scalping", "callback_data": "menu:scalping"}],
     ]}
 
 

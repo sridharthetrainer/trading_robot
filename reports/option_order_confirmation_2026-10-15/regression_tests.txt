@@ -1,0 +1,38 @@
+........................................................................ [  6%]
+........................................................................ [ 12%]
+........................................................................ [ 18%]
+........................................................................ [ 24%]
+........................................................................ [ 30%]
+........................................................................ [ 36%]
+........................................................................ [ 42%]
+........................................................................ [ 48%]
+........................................................................ [ 54%]
+........................................................................ [ 60%]
+........................................................................ [ 66%]
+........................................................................ [ 72%]
+........................................................................ [ 78%]
+........................................................................ [ 84%]
+........................................................................ [ 90%]
+........................................................................ [ 96%]
+............................................                             [100%]
+=============================== warnings summary ===============================
+test_ml_trainer_parallel.py::test_train_all_parallel_matches_serial_semantics_end_to_end
+test_ml_trainer_parallel.py::test_train_all_parallel_matches_serial_semantics_end_to_end
+test_ml_trainer_parallel.py::test_train_all_one_bad_symbol_does_not_lose_the_others
+test_ml_trainer_parallel.py::test_train_all_one_bad_symbol_does_not_lose_the_others
+test_ml_trainer_parallel.py::test_train_all_cross_symbol_failure_does_not_abort_pipeline
+test_ml_trainer_parallel.py::test_train_all_cross_symbol_failure_does_not_abort_pipeline
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=360359) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+test_momentum_paper_tracker.py::test_tracker_matches_backtest_selection_and_settlement
+  /tmp/trading-audit-adygtr9f/reports/research_2026-10-14/run_test7_momentum.py:54: RuntimeWarning: All-NaN slice encountered
+    liq = np.nanmedian(TVv[p - LIQ_WINDOW + 1:p + 1], axis=0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1196 passed, 12 warnings in 88.36s (0:01:28)

@@ -19,7 +19,8 @@ class OptionQuote:
 
     @property
     def valid(self) -> bool:
-        return self.ts > 0 and self.bid > 0 and self.ask >= self.bid
+        return (all(math.isfinite(v) for v in (self.ts,self.bid,self.ask))
+                and self.ts > 0 and self.bid > 0 and self.ask >= self.bid)
 
 
 @dataclass(frozen=True)
@@ -71,7 +72,9 @@ def simulate_limit_fill(
         if not marketable:
             continue
         available = quote.ask_qty if side == "BUY" else quote.bid_qty
-        filled_qty = min(quantity, available) if available > 0 else quantity
+        if available <= 0 or not math.isfinite(available):
+            continue  # Missing depth is unknown liquidity, never a full fill.
+        filled_qty = min(quantity, int(available))
         price = quote.ask if side == "BUY" else quote.bid
         decision_mid = (quote.bid + quote.ask) / 2.0
         shortfall = (price - decision_mid) * filled_qty * (1 if side == "BUY" else -1)

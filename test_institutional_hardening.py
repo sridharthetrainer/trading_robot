@@ -18,7 +18,10 @@ def test_calendar_freshness_uses_sessions_not_weekend_age(tmp_path):
 
 def test_option_recorder_persists_live_provenance(tmp_path, monkeypatch):
     import option_chain_fetcher
+    import option_chain_recorder
     from option_chain_recorder import record_option_chain_snapshot
+
+    monkeypatch.setattr(option_chain_recorder, "_direction_context", lambda _: ("UNKNOWN", "UNKNOWN"))
 
     class Result:
         spot = 25000.0

@@ -1834,9 +1834,15 @@ class TradeManager:
                                         signal_generated_at=float(_sig.get("generated_at", 0) or 0),
                                     )
                                     _option_exec_report = _report.to_dict()
+                                    if _report.reconciliation_required:
+                                        self.lock_trading(
+                                            f"Option order needs reconciliation: {symbol} "
+                                            f"order_id={_report.order_id} reason={_report.reason}"
+                                        )
                                     if _report.ok:
                                         _live_broker_name = _report.broker_name
                                         _live_order_id = _report.order_id
+                                        _live_qty = int(_report.filled_qty)
                                         if _report.fill_price > 0:
                                             entry_price = float(_report.fill_price)
                                             _entry_price_is_real_fill = True

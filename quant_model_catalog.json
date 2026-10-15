@@ -1,0 +1,1426 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-15",
+  "source": {
+    "path": "quant_specs/source_request_2026-10-15.txt",
+    "sha256": "6338433af38cc1abc2090f769e4d8e96d74f2f9d57e0c7c9f25f4e9cb522c871",
+    "attribution": "User-provided pasted inventory; original research citations absent",
+    "exhaustive_claim_verified": false
+  },
+  "policy": {
+    "research_only": true,
+    "auto_schedule": false,
+    "auto_promote": false,
+    "live_enabled": false,
+    "require_user_order_confirmation": true,
+    "source_claims_are_validation_evidence": false,
+    "income_target_is_optimization_objective": false
+  },
+  "capital_context": {
+    "capital": 500000,
+    "monthly_target": 30000,
+    "currency": "INR",
+    "validated_probability": null
+  },
+  "common_requirements": [
+    "Versioned causal specification and source provenance",
+    "Point-in-time universe, timestamps and instrument metadata",
+    "Explicit execution timing, costs, financing and risk limits",
+    "Chronological validation, trial accounting and independent forward evidence",
+    "Existing research admission requirements apply before historical evaluation"
+  ],
+  "options_requirements": [
+    "Exact underlying/contract/expiry/strike selection",
+    "Dated lot sizes, tick sizes, settlement and margin rules",
+    "Synchronized exchange-timestamped executable quotes and conservative missing-path treatment",
+    "Partial-fill, protection and reconciliation model"
+  ],
+  "definitions_notes": [
+    "The 28 headings include algorithm families, risk controls, model training and order execution; they are not 28 complete alpha systems.",
+    "Examples and approximate values are preserved as examples, not automatically optimized defaults.",
+    "Cointegration does not by itself impose dollar neutrality; define exposure separately.",
+    "A daily close/volume signal cannot be executed earlier at the same day open.",
+    "A2C wealth already net of costs must not subtract the same fees a second time.",
+    "Training, inference and online updates must not access future labels or fit preprocessing on a holdout.",
+    "Inventory is additive metadata; existing strategy registries and Telegram confirmation gates are not changed."
+  ],
+  "models": [
+    {
+      "id": "Q01",
+      "number": 1,
+      "name": "The Perfect Order FX Strategy",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **1. The Perfect Order FX Strategy**\n* **Indicators:** Five Simple Moving Averages—`SMA(10)`, `SMA(20)`, `SMA(50)`, `SMA(100)`, `SMA(200)`—and `ADX(14)`.\n* **Entry Rules:**\n  * **Bullish Alignment:** `SMA(10) > SMA(20) > SMA(50) > SMA(100) > SMA(200)`.\n  * **Bearish Alignment:** `SMA(10) < SMA(20) < SMA(50) < SMA(100) < SMA(200)`.\n  * **Trend Strength:** `ADX(14) ≥ 20`.\n  * **5-Bar Confirmation Gate:** The moving average alignment and `ADX ≥ 20` must hold continuously for **5 consecutive daily candles**; trade executes on the opening of the 6th candle.\n* **Risk & Exit Rules:**\n  * **Stop-Loss:** Set to the Low of the 5th candle for long orders, or the High of the 5th candle for short orders.\n  * **Exit:** Position is liquidated immediately when the fast MAs cross back (`SMA(10) < SMA(20)` for longs, or `SMA(10) > SMA(20)` for shorts).",
+      "parameters": {
+        "sma_periods": [
+          10,
+          20,
+          50,
+          100,
+          200
+        ],
+        "adx_period": 14,
+        "adx_min": 20,
+        "confirmation_bars": 5,
+        "timeframe": "1d"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "ADX initialization convention",
+        "Position sizing and leverage",
+        "Stop trigger and gap-through fill semantics",
+        "Whether the five-bar gate resets after exit",
+        "End-of-day crossing exit execution timing"
+      ],
+      "data_requirements": [
+        "daily_ohlc",
+        "dated_costs"
+      ],
+      "related_local_files": [
+        "backtest_ma_cross.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q02",
+      "number": 2,
+      "name": "Enhanced Multi-Factor Technical & Sentiment Strategy",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **2. Enhanced Multi-Factor Technical & Sentiment Strategy**\n* **Indicators & Filters:** `MA(200)`, `EMA(50)`, `EMA(200)`, 63-day Momentum (`Momentum63`), 14-period Average True Range (`ATR(14)`), and FinBERT NLP sentiment scores.\n* **Entry Rules (Long):** Requires simultaneous confirmation across 5 layers:\n  1. **Macro Regime Filter:** `Price > MA(200)`.\n  2. **Trend Confirmation:** `EMA(50) > EMA(200)` AND `Price > EMA(50)`.\n  3. **Momentum Threshold:** `Momentum63 > 0`.\n  4. **Cross-Sectional Leadership:** Asset is ranked in the **Top 10** by 63-day return momentum across the universe.\n  5. **Fundamental Sentiment:** Latest earnings call transcript NLP sentiment score is non-negative.\n* **Exit Rules:** Exit if structural trend breaks (`Price < MA(200)`) OR if trailing volatility stop is triggered (`Price < HighestCloseSinceEntry - 3.5 × ATR(14)`).",
+      "parameters": {
+        "ma_period": 200,
+        "ema_periods": [
+          50,
+          200
+        ],
+        "momentum_days": 63,
+        "top_n": 10,
+        "atr_period": 14,
+        "trailing_atr_multiple": 3.5,
+        "sentiment_min": 0
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Momentum return definition and MA type",
+        "Point-in-time investable universe and rank tie rules",
+        "Transcript publication timestamps and model version",
+        "Portfolio weight and rebalance rules",
+        "Trailing ATR update and execution timing"
+      ],
+      "data_requirements": [
+        "daily_adjusted_ohlcv",
+        "point_in_time_universe",
+        "publication_time_transcripts"
+      ],
+      "related_local_files": [
+        "strategies_new.py",
+        "news_sentiment_engine.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q03",
+      "number": 3,
+      "name": "Triple Technical Breakout (ASP Framework: ADX + Supertrend + Fibonacci Pivots)",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **3. Triple Technical Breakout (ASP Framework: ADX + Supertrend + Fibonacci Pivots)**\n* **Indicators:** `ADX(14)`, Supertrend, Average True Range (`ATR`), and Fibonacci Pivot Points (\\\\(P, R_1, R_2, R_3, S_1, S_2, S_3\\\\)).\n* **Entry Rules:**\n  * **Buy Signal:** `ADX > 20` + Price crosses above Supertrend line + Price is above Fibonacci Pivot Point support \\\\(S_1\\\\)/\\\\(P\\\\).\n  * **Sell Signal:** `ADX > 20` + Price crosses below Supertrend line + Price is below Fibonacci Pivot Point resistance \\\\(R_1\\\\)/\\\\(P\\\\).\n* **Execution Constraint:** Enforces a minimum **1:2 Risk-to-Reward ratio** based on ATR and Fibonacci targets before placing the order.",
+      "parameters": {
+        "adx_period": 14,
+        "adx_min_exclusive": 20,
+        "minimum_reward_risk": 2
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Supertrend ATR period and multiplier",
+        "ATR period and stop distance",
+        "Prior-session pivot formula and S1/P/R1 ambiguity",
+        "Exact Fibonacci target selection and execution timeframe"
+      ],
+      "data_requirements": [
+        "ohlc",
+        "prior_session_pivots"
+      ],
+      "related_local_files": [
+        "backtest_fibonacci.py",
+        "indicators.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q04",
+      "number": 4,
+      "name": "Dual & Triple Moving Average Crossover Systems",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **4. Dual & Triple Moving Average Crossover Systems**\n* **Dual Crossover:**\n  * **SMA Crossover:** Long when 20-day SMA crosses above 50-day SMA; short when 20-day SMA crosses below 50-day SMA. Risk sized at 2% portfolio equity per trade using ATR stops.\n  * **EMA Crossover:** Identical logic employing 20-day and 50-day EMAs to increase sensitivity to recent price moves.\n  * **Long-Term Dual SMA:** 100-day short window vs. 400-day long window.\n* **Triple SMA Trend System:** Evaluates 21-day (short), 55-day (medium), and 144-day (long) SMAs. Medium-term buy triggers when Price crosses 55-day SMA from below, confirmed when 21-day SMA crosses 55-day SMA while the 55-day SMA slopes upward.",
+      "parameters": {
+        "risk_fraction": 0.02
+      },
+      "variants": [
+        {
+          "id": "sma_20_50",
+          "parameters": {
+            "fast": 20,
+            "slow": 50
+          }
+        },
+        {
+          "id": "ema_20_50",
+          "parameters": {
+            "fast": 20,
+            "slow": 50
+          }
+        },
+        {
+          "id": "sma_100_400",
+          "parameters": {
+            "fast": 100,
+            "slow": 400
+          }
+        },
+        {
+          "id": "triple_sma_21_55_144",
+          "parameters": {
+            "periods": [
+              21,
+              55,
+              144
+            ]
+          }
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "ATR period and stop multiple",
+        "Which variants inherit the 2% sizing rule",
+        "Triple-system confirmation sequencing and slope period",
+        "Exit and reversal rules per variant"
+      ],
+      "data_requirements": [
+        "ohlc",
+        "portfolio_equity",
+        "dated_costs"
+      ],
+      "related_local_files": [
+        "backtest_ma_cross.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q05",
+      "number": 5,
+      "name": "MACD Momentum with Volume Surge Filter",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **5. MACD Momentum with Volume Surge Filter**\n* **Indicators:** MACD Line (`EMA(12) - EMA(26)`), Signal Line (`EMA(9)` of MACD), and 20-day Volume SMA.\n* **Entry Rules:** Buy when MACD Line crosses above Signal Line; Short when MACD Line crosses below Signal Line.\n* **Volume Filter:** Trade is confirmed only if execution day volume is **> 1.5× average volume** to prevent false breakouts.",
+      "parameters": {
+        "macd_fast": 12,
+        "macd_slow": 26,
+        "macd_signal": 9,
+        "volume_sma": 20,
+        "volume_multiple_exclusive": 1.5
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Signal timeframe",
+        "Volume SMA includes current bar or only prior bars",
+        "Entry timing after complete volume is known",
+        "Stops, exits and sizing"
+      ],
+      "data_requirements": [
+        "ohlcv"
+      ],
+      "related_local_files": [
+        "backtest_macd_crossover.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q06",
+      "number": 6,
+      "name": "Dual-Lookback Hybrid Momentum-Mean Reversion Strategy",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **6. Dual-Lookback Hybrid Momentum-Mean Reversion Strategy**\n* **Logic:** Evaluates intermediate momentum vs. long-term mean reversion on commodities/futures.\n* **Rules:** Buy at market close if `Price(t) < Price(t - 30)` AND `Price(t) > Price(t - 40)`. Short if `Price(t) > Price(t - 30)` AND `Price(t) < Price(t - 40)`. Flatten position if neither condition is satisfied.\n\n---\n\n### **2. Statistical Arbitrage & Mean-Reversion Strategies**",
+      "parameters": {
+        "short_lookback": 30,
+        "long_lookback": 40
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Signal timeframe and permitted instruments",
+        "Close auction order cutoff or next-open adaptation",
+        "Costs, sizing, stops and reversal fills"
+      ],
+      "data_requirements": [
+        "ohlc"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q07",
+      "number": 7,
+      "name": "RSI Mean Reversion with Stationarity Filter",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **7. RSI Mean Reversion with Stationarity Filter**\n* **Indicators:** 14-period RSI and Augmented Dickey-Fuller (ADF) statistical test.\n* **Entry/Exit Rules:**\n  * **Long Entry:** `RSI(14) < 30` (oversold); Exit when `RSI(14) > 50`.\n  * **Short Entry:** `RSI(14) > 70` (overbought); Exit when `RSI(14) < 50`.\n* **Stationarity Constraint:** Applied strictly to instruments confirming stationary price behavior via ADF hypothesis testing (\\\\(p < 0.05\\\\)).",
+      "parameters": {
+        "rsi_period": 14,
+        "long_entry_below": 30,
+        "long_exit_above": 50,
+        "short_entry_above": 70,
+        "short_exit_below": 50,
+        "adf_p_below": 0.05
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "ADF window, deterministic terms and lag selection",
+        "Test refit timing and multiple-testing control",
+        "Position sizing, stop and time exits",
+        "Execution timeframe"
+      ],
+      "data_requirements": [
+        "ohlc",
+        "rolling_stationarity_training"
+      ],
+      "related_local_files": [
+        "backtest_mean_reversion.py",
+        "indicators.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q08",
+      "number": 8,
+      "name": "Cointegrated Pairs & Triples Trading (CADF & Johansen)",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **8. Cointegrated Pairs & Triples Trading (CADF & Johansen)**\n* **Model:** Constructs a stationary dollar-neutral linear portfolio \\\\(y_t = h_1 y_{1,t} + h_2 y_{2,t} + \\dots + h_n y_{n,t}\\\\).\n* **Pair Selection:** Cointegrated Augmented Dickey-Fuller (CADF) test for 2-asset pairs; Johansen eigenvector test for 3+ assets (e.g., EWA-EWC-IGE triplet).\n* **Signal Logic:** Trades proportional capital relative to the negative \\\\(z\\\\)-score of the cointegrated spread.",
+      "parameters": {
+        "pair_test": "CADF",
+        "basket_test": "Johansen",
+        "position_rule": "proportional to negative spread z-score"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Point-in-time asset universe and formation window",
+        "CADF/Johansen deterministic terms and lags",
+        "Spread normalization and hedge-ratio refit rules",
+        "Entry/exit/stop thresholds and leverage",
+        "Separate dollar-neutral exposure constraint"
+      ],
+      "data_requirements": [
+        "synchronized_multi_asset_prices",
+        "borrow_and_margin"
+      ],
+      "related_local_files": [
+        "pairs_stat_arb_validation.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q09",
+      "number": 9,
+      "name": "Bollinger Band Spread Mean Reversion",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **9. Bollinger Band Spread Mean Reversion**\n* **Logic:** Formulates a rolling \\\\(z\\\\)-score of the spread/portfolio value: \\\\(z_t = \\frac{y_t - \\mu_{\\text{lookback}}}{\\sigma_{\\text{lookback}}}\\\\).\n* **Rules:**\n  * **Long Entry:** `z_score < -entryZscore` (e.g., \\\\(-1.0\\\\) or \\\\(-2.0\\\\)).\n  * **Long Exit:** `z_score >= -exitZscore` (e.g., \\\\(0.0\\\\)).\n  * **Short Entry:** `z_score > entryZscore`; **Short Exit:** `z_score <= exitZscore`.\n  * **Scaling-In Variant:** Multiple entries at \\\\(z \\in \\{1, 2, 3\\}\\\\) and exits at \\\\(z \\in \\{0, 1, 2\\}\\\\).",
+      "parameters": {
+        "entry_threshold_examples": [
+          1.0,
+          2.0
+        ],
+        "exit_threshold_example": 0.0,
+        "scale_entry_examples": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "scale_exit_examples": [
+          0.0,
+          1.0,
+          2.0
+        ]
+      },
+      "variants": [
+        {
+          "id": "single_entry",
+          "parameters": {}
+        },
+        {
+          "id": "scaling_example",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Spread definition and hedge weights",
+        "Lookback and standard-deviation estimator",
+        "Select one threshold example or count each variant as a trial",
+        "Maximum scaling inventory and hard loss limit",
+        "Execution timeframe and financing"
+      ],
+      "data_requirements": [
+        "synchronized_multi_asset_prices",
+        "borrow_and_margin"
+      ],
+      "related_local_files": [
+        "pairs_stat_arb_validation.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q10",
+      "number": 10,
+      "name": "Dynamic Kalman Filter Pairs Trading",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **10. Dynamic Kalman Filter Pairs Trading**\n* **Logic:** Estimates continuous, time-varying hedge ratios \\\\(\\beta_t\\\\) and intercept \\\\(\\alpha_t\\\\) between two assets using state-space equations updated via Kalman Filtering.\n* **Rules:** Computes real-time forecast error \\\\(e_t = y_t - (\\alpha_t + \\beta_t x_t)\\\\) and variance \\\\(Q_t\\\\). Long spread when \\\\(e_t < -\\sqrt{Q_t}\\\\); Short spread when \\\\(e_t > \\sqrt{Q_t}\\\\).",
+      "parameters": {
+        "long_error_sigma": -1.0,
+        "short_error_sigma": 1.0
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "State transition and observation matrices",
+        "Process/measurement noise and initial covariance",
+        "Predict-before-update ordering",
+        "Exit, sizing, stop and beta-refit constraints"
+      ],
+      "data_requirements": [
+        "synchronized_multi_asset_prices",
+        "borrow_and_margin"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q11",
+      "number": 11,
+      "name": "Intraday Rolling OLS Regression Pairs Engine",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **11. Intraday Rolling OLS Regression Pairs Engine**\n* **Model:** Performs rolling Ordinary Least Squares (OLS) regression over minutely data to extract dynamic hedge ratio \\\\(\\beta\\\\) and residual \\\\(z\\\\)-score.\n* **Optimized Parameters (Grid Search):**\n  * OLS Lookback Window: \\\\(w_l \\in \\{50, 100, 200\\}\\\\) bars.\n  * Entry \\\\(z\\\\)-Score Threshold: \\\\(z_h \\in \\{2.0, 3.0, 4.0\\}\\\\).\n  * Exit \\\\(z\\\\)-Score Threshold: \\\\(z_l \\in \\{0.5, 1.0, 1.5\\}\\\\).",
+      "parameters": {
+        "timeframe": "1m"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {
+        "ols_window": [
+          50,
+          100,
+          200
+        ],
+        "entry_z": [
+          2.0,
+          3.0,
+          4.0
+        ],
+        "exit_z": [
+          0.5,
+          1.0,
+          1.5
+        ]
+      },
+      "missing_definitions": [
+        "Asset universe and prior training selection",
+        "Spread normalization, regression intercept and stop",
+        "Maximum holding period and hedge rebalancing",
+        "Borrow/margin constraints and synchronized executable leg quotes"
+      ],
+      "data_requirements": [
+        "synchronized_minute_prices",
+        "executable_multi_leg_quotes",
+        "borrow_and_margin"
+      ],
+      "related_local_files": [
+        "pairs_stat_arb_validation.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q12",
+      "number": 12,
+      "name": "Cross-Sectional Basket Mean Reversion",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **12. Cross-Sectional Basket Mean Reversion**\n* **Logic:** Exploits relative return divergence in asset baskets.\n* **Rule:** Computes basket mean return \\\\(\\bar{R}_t\\\\). Daily portfolio weights are rebalanced by taking long positions in assets underperforming \\\\(\\bar{R}_t\\\\) and short positions in assets outperforming \\\\(\\bar{R}_t\\\\), proportional to deviation magnitude.",
+      "parameters": {
+        "weight_direction": "negative deviation from cross-sectional basket mean return",
+        "rebalance": "daily"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Return measurement window",
+        "Weight normalization and gross leverage",
+        "Point-in-time universe and rebalance auction timing",
+        "Short availability, financing and costs"
+      ],
+      "data_requirements": [
+        "point_in_time_universe",
+        "daily_adjusted_prices",
+        "borrow_and_margin"
+      ],
+      "related_local_files": [
+        "quant_models.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q13",
+      "number": 13,
+      "name": "Opening Gap-Down Intraday Strategy",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **13. Opening Gap-Down Intraday Strategy**\n* **Rules:**\n  1. Identify stocks at market open whose overnight return from previous day's low to today's open is **> 1 standard deviation below** (using 90-day daily close return std dev).\n  2. Filter: `Open Price > 20-day SMA`.\n  3. Enter long at open on Top 10 gap-down candidates; exit at market close or at target threshold.",
+      "parameters": {
+        "return_std_lookback": 90,
+        "gap_sigma_below": -1.0,
+        "sma_period": 20,
+        "top_n": 10
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Gap return denominator and standard-deviation ddof",
+        "Point-in-time top-10 ranking tie rule",
+        "How auction opening prices become observable before fills",
+        "Target alternative, sizing and loss limit"
+      ],
+      "data_requirements": [
+        "daily_adjusted_ohlcv",
+        "point_in_time_universe",
+        "auction_executable_quotes"
+      ],
+      "related_local_files": [
+        "strategies_new.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q14",
+      "number": 14,
+      "name": "Futures Calendar Spread & Roll Return Strategy",
+      "kind": "signal_strategy",
+      "supplied_definition": "#### **14. Futures Calendar Spread & Roll Return Strategy**\n* **Logic:** Captures term-structure roll yields (backwardation/contango) between near and far futures contracts (e.g., VIX or Crude Oil CL).\n* **Rules:** Selects near and far contracts 1 year apart, rolling 10 days before near-contract expiration. Trades mean reversion when market value spread \\\\(y = \\text{Far} - \\beta \\times \\text{Near}\\\\) deviates > 1 std dev from rolling average.\n\n---\n\n### **3. Online Portfolio Selection (OPS) & Asset Allocation**",
+      "parameters": {
+        "contract_separation_years": 1,
+        "roll_days_before_expiry": 10,
+        "entry_std_multiple": 1
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Eligible futures and synchronized contract prices",
+        "Beta and rolling mean/std lookback",
+        "Exit threshold, roll price and position sizing",
+        "Carry/financing and expiry settlement convention"
+      ],
+      "data_requirements": [
+        "dated_futures_contracts",
+        "synchronized_multi_leg_prices",
+        "historical_roll_and_margin"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q15",
+      "number": 15,
+      "name": "Follow-the-Winner (FTW) Momentum Portfolio Family",
+      "kind": "portfolio_allocator",
+      "supplied_definition": "#### **15. Follow-the-Winner (FTW) Momentum Portfolio Family**\n* **Universal Portfolios (Cover's Approximation):** Approximates Cover's log-optimal portfolio using Monte Carlo sampling of \\\\(M\\\\) portfolios, updating weights based on historical cumulative wealth \\\\(w_{t-1}^{(i)}\\\\).\n* **Exponential Gradient (EG):** Multiplicative weight updates: \\\\(b_{t+1,i} = b_{t,i} \\exp\\left(\\eta \\left(\\frac{x_{t,i}}{b_t \\cdot x_t} - 1\\right)\\right)\\\\) normalized over simplex \\\\(\\Delta^N\\\\).\n* **Follow-The-Leader (FTL):** Allocates portfolio weight vector \\\\(b_t = \\arg\\max_b \\sum_{\\tau=1}^{t-1} \\log(b \\cdot x_\\tau)\\\\).\n* **Follow-the-Regularized-Leader (FTRL):** Adds \\\\(L_2\\\\) ridge regularization: \\\\(b_t = \\arg\\max_b \\left\\{ \\sum_{\\tau=1}^{t-1} \\log(b \\cdot x_\\tau) - \\frac{\\beta}{2} \\|b\\|^2_2 \\right\\}\\\\).\n* **Aggregation-Based FTW:** Exponentially updates weights over \\\\(N\\\\) base portfolios based on past performance with learning rate \\\\(\\eta\\\\).",
+      "parameters": {
+        "constraint": "simplex",
+        "ftrl_regularizer": "L2"
+      },
+      "variants": [
+        {
+          "id": "universal_monte_carlo",
+          "parameters": {}
+        },
+        {
+          "id": "eg",
+          "parameters": {}
+        },
+        {
+          "id": "ftl",
+          "parameters": {}
+        },
+        {
+          "id": "ftrl",
+          "parameters": {}
+        },
+        {
+          "id": "exponential_aggregation",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Per-family learning rates, ridge beta and Monte Carlo budget/seed",
+        "Initial portfolio and cash treatment",
+        "Rebalance timing, turnover constraints and transaction costs"
+      ],
+      "data_requirements": [
+        "point_in_time_universe",
+        "adjusted_price_relatives",
+        "dated_costs"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q16",
+      "number": 16,
+      "name": "Follow-the-Loser (FTL-Reversion) Portfolio Family",
+      "kind": "portfolio_allocator",
+      "supplied_definition": "#### **16. Follow-the-Loser (FTL-Reversion) Portfolio Family**\n* **Anti-Correlation (Anticor):** Calculates cross-correlation matrices \\\\(M_{\\text{cov}}(i,j)\\\\) over rolling window \\\\(w\\\\); shifts capital from recent outperforming assets to negatively correlated underperforming assets.\n* **Passive Aggressive Mean Reversion (PAMR):** Penalizes portfolio updates when predicted return exceeds threshold \\\\(\\epsilon\\\\): \\\\(\\ell_\\epsilon(b_t; x_t) = \\max\\{0, b_t \\cdot x_t - \\epsilon\\}\\\\).\n* **Confidence-Weighted Mean Reversion (CWMR):** Models portfolio allocation as a Gaussian distribution \\\\((\\mu_t, \\Sigma_t)\\\\) over weights, updating distribution mean and variance dynamically based on mean reversion confidence.\n* **Online Moving Average Reversion (OLMAR):** Predicts next-period price relative vector \\\\(x_{t+1}\\\\) using moving averages, updating portfolio weights toward mean-reverting targets.\n* **Robust Median Reversion (RMR):** Replaces moving averages with spatial medians (\\\\(L_1\\\\) norm minimization) to estimate price relatives resistant to extreme outliers.",
+      "parameters": {
+        "families": [
+          "Anticor",
+          "PAMR",
+          "CWMR",
+          "OLMAR",
+          "RMR"
+        ]
+      },
+      "variants": [
+        {
+          "id": "anticor",
+          "parameters": {}
+        },
+        {
+          "id": "pamr",
+          "parameters": {}
+        },
+        {
+          "id": "cwmr",
+          "parameters": {}
+        },
+        {
+          "id": "olmar",
+          "parameters": {}
+        },
+        {
+          "id": "rmr",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Anticor window and exact capital transfer rules",
+        "PAMR epsilon/variant and aggressiveness parameter",
+        "CWMR mean/variance update and confidence parameter",
+        "OLMAR window/epsilon and RMR spatial-median convergence rules",
+        "Simplex projection, cash, costs and turnover limits"
+      ],
+      "data_requirements": [
+        "point_in_time_universe",
+        "adjusted_price_relatives",
+        "dated_costs"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q17",
+      "number": 17,
+      "name": "Nonparametric Pattern-Matching Portfolio Framework",
+      "kind": "portfolio_allocator",
+      "supplied_definition": "#### **17. Nonparametric Pattern-Matching Portfolio Framework**\n* **Step 1: Sample Selection (Candidates \\\\(C_t\\\\)):**\n  * *Histogram-Based:* Discretizes historical price-relative vectors into bins; selects windows falling into the same bin as the current window.\n  * *Kernel-Based:* Euclidean distance similarity function with smooth kernel threshold.\n  * *Nearest Neighbor (\\\\(k\\\\)-NN):* Ranks windows by Euclidean distance, selecting \\\\(k\\\\) nearest neighbors.\n  * *Correlation-Based:* Pearson correlation coefficient \\\\(\\ge \\rho\\\\).\n* **Step 2: Portfolio Optimization:** Maximizes expected return over candidate set \\\\(C_t\\\\) using **Log-Optimal**, **Semi-Log-Optimal**, or **Markowitz Mean-Variance** optimization.",
+      "parameters": {
+        "selection_methods": [
+          "histogram",
+          "kernel",
+          "knn",
+          "correlation"
+        ],
+        "objectives": [
+          "log_optimal",
+          "semi_log_optimal",
+          "mean_variance"
+        ]
+      },
+      "variants": [
+        {
+          "id": "histogram_log_optimal",
+          "parameters": {
+            "selection": "histogram",
+            "objective": "log_optimal"
+          }
+        },
+        {
+          "id": "histogram_semi_log_optimal",
+          "parameters": {
+            "selection": "histogram",
+            "objective": "semi_log_optimal"
+          }
+        },
+        {
+          "id": "histogram_mean_variance",
+          "parameters": {
+            "selection": "histogram",
+            "objective": "mean_variance"
+          }
+        },
+        {
+          "id": "kernel_log_optimal",
+          "parameters": {
+            "selection": "kernel",
+            "objective": "log_optimal"
+          }
+        },
+        {
+          "id": "kernel_semi_log_optimal",
+          "parameters": {
+            "selection": "kernel",
+            "objective": "semi_log_optimal"
+          }
+        },
+        {
+          "id": "kernel_mean_variance",
+          "parameters": {
+            "selection": "kernel",
+            "objective": "mean_variance"
+          }
+        },
+        {
+          "id": "knn_log_optimal",
+          "parameters": {
+            "selection": "knn",
+            "objective": "log_optimal"
+          }
+        },
+        {
+          "id": "knn_semi_log_optimal",
+          "parameters": {
+            "selection": "knn",
+            "objective": "semi_log_optimal"
+          }
+        },
+        {
+          "id": "knn_mean_variance",
+          "parameters": {
+            "selection": "knn",
+            "objective": "mean_variance"
+          }
+        },
+        {
+          "id": "correlation_log_optimal",
+          "parameters": {
+            "selection": "correlation",
+            "objective": "log_optimal"
+          }
+        },
+        {
+          "id": "correlation_semi_log_optimal",
+          "parameters": {
+            "selection": "correlation",
+            "objective": "semi_log_optimal"
+          }
+        },
+        {
+          "id": "correlation_mean_variance",
+          "parameters": {
+            "selection": "correlation",
+            "objective": "mean_variance"
+          }
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Window lengths, histogram bins and kernel bandwidth",
+        "kNN k and correlation cutoff",
+        "Candidate-label timing and minimum sample count",
+        "Optimizer constraints, covariance estimator and costs"
+      ],
+      "data_requirements": [
+        "point_in_time_universe",
+        "adjusted_price_relatives",
+        "dated_costs"
+      ],
+      "related_local_files": [
+        "quant_models.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q18",
+      "number": 18,
+      "name": "Meta-Learning & Ensemble Portfolio Frameworks",
+      "kind": "portfolio_allocator",
+      "supplied_definition": "#### **18. Meta-Learning & Ensemble Portfolio Frameworks**\n* **Online Gradient Update (OGU) & Online Newton Update (ONU):** Forms a master ensemble combining base experts (CWMR, PAMR, FTRL), updating portfolio weights using second-order Hessian loss matrices \\\\(A_t\\\\).\n* **Fast Universalization:** Meta-learning framework aggregating expert portfolio strategies.\n* **Follow-the-Leading-History (FTLH):** Instantiates new expert algorithms over time updated via Online Newton Step (ONS), combining expert outputs via Weighted Majority Algorithm (WMA) and pruning poor performers.\n\n---\n\n### **4. Machine Learning & Deep Learning Strategies**",
+      "parameters": {
+        "families": [
+          "OGU",
+          "ONU",
+          "Fast Universalization",
+          "FTLH",
+          "ONS/WMA"
+        ]
+      },
+      "variants": [
+        {
+          "id": "ogu",
+          "parameters": {}
+        },
+        {
+          "id": "onu",
+          "parameters": {}
+        },
+        {
+          "id": "fast_universalization",
+          "parameters": {}
+        },
+        {
+          "id": "ftlh",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Precise gradient/Newton updates and regularization",
+        "Expert initialization, birth/pruning schedule and random seeds",
+        "Expert returns must be causal and net of implementation costs",
+        "Turnover budget and comparator definition"
+      ],
+      "data_requirements": [
+        "causal_expert_returns",
+        "dated_costs"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q19",
+      "number": 19,
+      "name": "Supervised Random Forest Classifier (Walk-Forward)",
+      "kind": "predictive_model",
+      "supplied_definition": "#### **19. Supervised Random Forest Classifier (Walk-Forward)**\n* **Architecture:** Ensemble of decision trees trained as a binary classifier (Long vs. Flat/Short).\n* **Feature Space:** 47 features including price technical indicators, volume metrics, volatility measures, and lagged returns.\n* **Validation:** 12-month rolling training window with a 3-month out-of-sample testing window (Walk-Forward Optimization).",
+      "parameters": {
+        "feature_count_claim": 47,
+        "training_months": 12,
+        "test_months": 3
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Names and causal availability of all 47 features",
+        "Labels, entry/exit rules, costs and threshold calibration",
+        "Forest hyperparameters, seeds and missing-data policy",
+        "Purging/embargo and minimum rolling training coverage"
+      ],
+      "data_requirements": [
+        "causal_feature_table",
+        "purged_forward_labels",
+        "sufficient_walk_forward_history"
+      ],
+      "related_local_files": [
+        "ml_trainer.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q20",
+      "number": 20,
+      "name": "ASP-LSTM Deep Learning Hybrid System",
+      "kind": "predictive_model",
+      "supplied_definition": "#### **20. ASP-LSTM Deep Learning Hybrid System**\n* **Architecture:** 3 sequential LSTM layers (50 units each) + 1 Dense output layer with linear activation function.\n* **Inputs:** Historical OHLCV price series concatenated with computed ASP indicators (`ADX`, `Supertrend`, `Fibonacci Pivots`).\n* **Execution Logic:** LSTM forecasts next-day price direction; buy/sell signals are generated only when the LSTM forecast aligns with the technical ASP entry rules.",
+      "parameters": {
+        "lstm_units": [
+          50,
+          50,
+          50
+        ],
+        "dense_units": 1,
+        "output_activation": "linear"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Sequence length, normalization and full ASP parameters",
+        "Loss, optimizer, learning rate, epochs and seeds",
+        "Exact prediction target and sign/threshold mapping",
+        "Temporal validation, leakage control and risk rules"
+      ],
+      "data_requirements": [
+        "ohlcv",
+        "causal_asp_features",
+        "purged_forward_labels"
+      ],
+      "related_local_files": [
+        "lstm_model.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null,
+      "overlap_note": "Existing LSTM has two 64-unit layers and a different target; it is not the supplied three-layer 50-unit ASP-LSTM."
+    },
+    {
+      "id": "Q21",
+      "number": 21,
+      "name": "Multi-Factor Supervised Classification Suite",
+      "kind": "predictive_model",
+      "supplied_definition": "#### **21. Multi-Factor Supervised Classification Suite**\n* **Algorithms:** Logistic Regression, Support Vector Machines (SVM), and Gradient Boosting / Random Forest Classifiers.\n* **Pipeline:** Predicts forward 1-day or 21-day direction probabilities from technical indicators, volatility, and order flow metrics.",
+      "parameters": {
+        "forward_horizon_days": [
+          1,
+          21
+        ],
+        "algorithms": [
+          "logistic_regression",
+          "svm",
+          "gradient_boosting",
+          "random_forest"
+        ]
+      },
+      "variants": [
+        {
+          "id": "logistic_regression",
+          "parameters": {}
+        },
+        {
+          "id": "svm",
+          "parameters": {}
+        },
+        {
+          "id": "gradient_boosting",
+          "parameters": {}
+        },
+        {
+          "id": "random_forest",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Full feature definitions and label availability",
+        "Per-algorithm hyperparameters and calibration",
+        "Purging/embargo for overlapping 21-day labels",
+        "Execution, risk and missing-data rules"
+      ],
+      "data_requirements": [
+        "causal_feature_table",
+        "purged_forward_labels"
+      ],
+      "related_local_files": [
+        "ml_trainer.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q22",
+      "number": 22,
+      "name": "Multi-Modal Sentiment-Gated Execution",
+      "kind": "predictive_model",
+      "supplied_definition": "#### **22. Multi-Modal Sentiment-Gated Execution**\n* **Logic:** Ingests alternative text data (earnings transcripts, news feeds) parsed through FinBERT to generate sentiment confidence scores. Technical buy/sell signals are executed only if fundamental sentiment is aligned.\n\n---\n\n### **5. Reinforcement Learning & Stochastic Control Strategies**",
+      "parameters": {
+        "text_model": "FinBERT",
+        "text_inputs": [
+          "earnings_transcripts",
+          "news"
+        ]
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Publication-time data, revisions and deduplication",
+        "FinBERT checkpoint/version and score aggregation",
+        "Sentiment cutoff, expiration window and conflict policy",
+        "Underlying technical strategy and execution timing"
+      ],
+      "data_requirements": [
+        "publication_time_text",
+        "versioned_sentiment_model"
+      ],
+      "related_local_files": [
+        "news_sentiment_engine.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null,
+      "overlap_note": "A news sentiment module does not establish versioned FinBERT transcript scoring or publication-time history."
+    },
+    {
+      "id": "Q23",
+      "number": 23,
+      "name": "Advantage Actor-Critic (A2C) Deep RL Portfolio Agent",
+      "kind": "rl_agent",
+      "supplied_definition": "#### **23. Advantage Actor-Critic (A2C) Deep RL Portfolio Agent**\n* **State Space (\\\\(s_t\\\\)):** Vector \\\\(s_t = [p_t, h_t, b_t, \\text{indicators}]\\\\), where \\\\(p_t \\in \\mathbb{R}^D_+\\\\) are asset prices, \\\\(h_t \\in \\mathbb{Z}^D_+\\\\) are share holdings, \\\\(b_t \\in \\mathbb{R}_+\\\\) is cash balance, and indicators include MACD, RSI, CCI, ADX.\n* **Action Space (\\\\(a_t\\\\)):** Discrete/continuous action vector over \\\\(D\\\\) assets: Buy \\\\(k\\\\), Sell \\\\(k\\\\), or Hold \\\\(k\\\\) shares.\n* **Reward Function (\\\\(r_t\\\\)):** Change in total portfolio wealth minus transaction costs: \\\\(r_t = (b_{t+1} + p^T_{t+1} h_{t+1}) - (b_t + p^T_t h_t) - c_t\\\\).\n* **Loss Function:** Synchronized \\\\(n\\\\)-step Advantage loss optimizing Policy Head \\\\(\\pi_\\theta(a|s)\\\\) and Value Head \\\\(v_w(s)\\\\).",
+      "parameters": {
+        "algorithm": "A2C",
+        "reward": "change in portfolio wealth less transaction costs, with cost accounting to be resolved"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Concrete state normalization, action bounds and lot constraints",
+        "Reward scaling and transaction-cost accounting without double counting",
+        "Discount, n-step horizon, networks and training budgets",
+        "Point-in-time environment, train/evaluation separation and seeds"
+      ],
+      "data_requirements": [
+        "point_in_time_prices",
+        "realistic_portfolio_simulator"
+      ],
+      "related_local_files": [
+        "rl_agent.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null,
+      "overlap_note": "Existing rl_agent.py is tabular Q-learning for score multipliers, not the specified A2C holdings agent."
+    },
+    {
+      "id": "Q24",
+      "number": 24,
+      "name": "Turbulence Index Circuit Breaker",
+      "kind": "risk_overlay",
+      "supplied_definition": "#### **24. Turbulence Index Circuit Breaker**\n* **Metric:** Real-time Mahalanobis distance measuring return anomaly severity:\n  \\\\[\\text{turbulence}_t = (y_t - \\mu)^T \\Sigma^{-1} (y_t - \\mu) \\in \\mathbb{R}\\\\]\n  where \\\\(y_t\\\\) is current period return vector, \\\\(\\mu\\\\) is historical average return vector, and \\\\(\\Sigma\\\\) is historical return covariance matrix.\n* **Action:** When \\\\(\\text{turbulence}_t > \\text{threshold}\\\\), the system overrides RL/technical agents and liquidates 100% of holdings to cash until turbulence drops below threshold.",
+      "parameters": {
+        "metric": "(return_vector - historical_mean)^T covariance_inverse (return_vector - historical_mean)",
+        "liquidation_fraction": 1.0
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Historical mean/covariance window and shrinkage",
+        "Threshold fitting on training data only",
+        "Trigger observability, next executable exit and re-entry rule",
+        "Instrument-specific exit costs and liquidity constraints"
+      ],
+      "data_requirements": [
+        "synchronized_asset_returns",
+        "executable_quotes"
+      ],
+      "related_local_files": [
+        "portfolio_risk.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": false,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q25",
+      "number": 25,
+      "name": "Gaussian Process Inverse Reinforcement Learning (GPIRL)",
+      "kind": "microstructure_inference",
+      "supplied_definition": "#### **25. Gaussian Process Inverse Reinforcement Learning (GPIRL)**\n* **Model:** Models market actions across a 243-state MDP space using order book audit trail data (creation, cancellation, execution).\n* **Logic:** Applies Bayesian learning to infer underlying trader reward functions as a Gaussian Process over Action Preference Graphs. Used to cluster market participant strategies and simulate market impact under stress.\n\n---\n\n### **6. Evolutionary Computing & Parameter Tuning**",
+      "parameters": {
+        "state_count_claim": 243,
+        "reward_model": "Gaussian Process on Action Preference Graphs"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "243-state encoding and full MDP transitions",
+        "Order-level create/cancel/execute audit-trail dataset",
+        "GP kernel/prior, likelihood and inference algorithm",
+        "Identification assumptions and evaluation objective"
+      ],
+      "data_requirements": [
+        "order_level_audit_trail"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": false,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q26",
+      "number": 26,
+      "name": "Genetic Algorithm (GA) Strategy Rule Discovery",
+      "kind": "optimizer",
+      "supplied_definition": "#### **26. Genetic Algorithm (GA) Strategy Rule Discovery**\n* **Chromosome Representation:** Bit string or integer array representing sequential trading decisions (e.g., `[1, 0, -1, 1, -1, 0]`) or indicator parameter tuples.\n* **Evolutionary Operators:**\n  * **Selection:** Tournament selection or Roulette Wheel (fitness-proportional) selection.\n  * **Crossover:** Single-point crossover exchanging chromosome segments between parents at probability \\\\(p_c\\\\).\n  * **Mutation:** Random bit-flips (e.g., changing \\\\(1 \\to 0\\\\) or \\\\(-1\\\\)) at mutation probability \\\\(p_m \\approx 0.10\\\\).\n* **Multi-Objective Fitness Function:** Maximizes total ROI and Sharpe ratio while penalizing maximum drawdown, position turnover, and transaction fees over simulated path iterations.\n\n---\n\n### **7. High-Frequency Market Microstructure & Execution Algorithms**",
+      "parameters": {
+        "mutation_probability_example": 0.1,
+        "fitness_objectives": [
+          "ROI",
+          "Sharpe",
+          "max_drawdown",
+          "turnover",
+          "fees"
+        ]
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Causal indicator-policy genome; avoid timestamp-specific action memorization",
+        "Population, generations, crossover/mutation distributions and seeds",
+        "Fitness penalty coefficients and separate locked validation",
+        "Count every evaluated genome and impose runtime/compute budgets"
+      ],
+      "data_requirements": [
+        "causal_policy_simulator",
+        "locked_validation_windows"
+      ],
+      "related_local_files": [
+        "strategy_evolution.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": false,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q27",
+      "number": 27,
+      "name": "Multivariate Hawkes Process High-Frequency Market Making",
+      "kind": "market_making",
+      "supplied_definition": "#### **27. Multivariate Hawkes Process High-Frequency Market Making**\n* **Model:** Models order arrival dynamics using self- and mutually-exciting point processes to distinguish between influential and non-influential market orders.\n* **Stochastic Control Optimization:** Solves continuous-time Hamilton-Jacobi-Bellman (HJB) equations to post dynamic bid/ask limit order spreads \\\\((\\delta^b, \\delta^a)\\\\).\n* **Inventory Control:** Maximize expected terminal wealth over horizon \\\\(T\\\\) while imposing inventory risk penalties \\\\(\\gamma q^2\\\\) and adjusting quotes for short-term price drift (\"short-term alpha\").",
+      "parameters": {
+        "model": "multivariate Hawkes process",
+        "control": "HJB",
+        "inventory_penalty": "gamma * q^2"
+      },
+      "variants": [
+        {
+          "id": "base",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Event definitions, kernel/decay and stability constraints",
+        "Timestamped order-level feed and exchange queue rules",
+        "HJB boundary conditions, inventory bounds and gamma",
+        "Latency, adverse selection, fill model and fee/rebate calibration"
+      ],
+      "data_requirements": [
+        "order_level_audit_trail",
+        "exchange_queue_events",
+        "calibrated_latency_and_fills"
+      ],
+      "related_local_files": [],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": true,
+      "options_contract_spec": null,
+      "adapter": null
+    },
+    {
+      "id": "Q28",
+      "number": 28,
+      "name": "Institutional Algorithmic Order Execution Suite",
+      "kind": "execution_algorithm",
+      "supplied_definition": "#### **28. Institutional Algorithmic Order Execution Suite**\n* **VWAP / TWAP Engine:** Slices large institutional parent orders into child orders matching historical volume profiles (VWAP) or uniform time intervals (TWAP) to minimize market impact.\n* **Implementation Shortfall & Sniper:** Dynamic execution algorithms that balance execution delay risk against price impact or sweep liquidity opportunistically when spreads narrow.\n\n---",
+      "parameters": {
+        "algorithms": [
+          "VWAP",
+          "TWAP",
+          "implementation_shortfall",
+          "sniper"
+        ]
+      },
+      "variants": [
+        {
+          "id": "vwap",
+          "parameters": {}
+        },
+        {
+          "id": "twap",
+          "parameters": {}
+        },
+        {
+          "id": "implementation_shortfall",
+          "parameters": {}
+        },
+        {
+          "id": "sniper",
+          "parameters": {}
+        }
+      ],
+      "parameter_grid": {},
+      "missing_definitions": [
+        "Parent-order side/size/limit and participation constraints",
+        "Schedules, horizon and point-in-time volume forecast",
+        "Venue rules, partial fills, cancellation and reconciliation",
+        "Counterfactual benchmark, impact model and latency budget"
+      ],
+      "data_requirements": [
+        "parent_order_intents",
+        "timestamped_depth",
+        "execution_benchmark"
+      ],
+      "related_local_files": [
+        "execution_algo.py"
+      ],
+      "related_files_are_exact_implementations": false,
+      "source_verification": "USER_SUPPLIED_UNVERIFIED",
+      "implementation_status": "SPECIFICATION_ONLY",
+      "enabled": false,
+      "live_approved": false,
+      "options_translation_required": false,
+      "options_contract_spec": null,
+      "adapter": null
+    }
+  ]
+}

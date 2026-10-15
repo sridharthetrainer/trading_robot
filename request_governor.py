@@ -12,6 +12,7 @@ per-provider lockfile so every process observes the same last-call time.
 from __future__ import annotations
 
 import fcntl
+import math
 import threading
 import time
 from pathlib import Path
@@ -29,6 +30,9 @@ def acquire(provider: str, min_interval_sec: float) -> float:
     I/O for the common single-threaded case) AND across processes (flock on
     a per-provider state file).
     """
+    interval = float(min_interval_sec)
+    if not math.isfinite(interval) or interval < 0:
+        raise ValueError("min_interval_sec must be finite and nonnegative")
     name = str(provider or "default").lower()
     with _MASTER:
         thread_lock = _LOCKS.setdefault(name, threading.Lock())
@@ -40,8 +44,17 @@ def acquire(provider: str, min_interval_sec: float) -> float:
             try:
                 handle.seek(0)
                 raw = handle.read().strip()
-                last = float(raw) if raw else 0.0
-                wait = max(0.0, float(min_interval_sec) - (time.time() - last))
+                now = time.time()
+                try:
+                    last = float(raw) if raw else 0.0
+                except ValueError:
+                    last = now
+                if not math.isfinite(last):
+                    last = now
+                # A clock rollback or damaged state must never stall a broker
+                # worker for hours. Retain one full pacing interval instead.
+                elapsed = max(0.0, now - last)
+                wait = max(0.0, interval - elapsed)
                 if wait:
                     time.sleep(wait)
                 handle.seek(0)

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14T07:09:52+0530",
+  "generated_at": "2026-10-15T15:47:44+0530",
   "dry_run": false,
   "interval": "5m",
   "days": 400,
@@ -7,121 +7,62 @@
   "max_grid_combinations": 24,
   "planned": [
     {
-      "symbol": "NIFTY",
-      "strategy": "adx_long_straddle",
-      "interval": "1m"
-    },
-    {
-      "symbol": "NIFTY",
-      "strategy": "confluence_backtest",
+      "symbol": "BANKNIFTY",
+      "strategy": "trend",
       "interval": "5m"
     },
     {
-      "symbol": "NIFTY",
-      "strategy": "legacy_mean_reversion",
+      "symbol": "BANKNIFTY",
+      "strategy": "mean_reversion",
       "interval": "5m"
     },
     {
-      "symbol": "NIFTY",
-      "strategy": "sahi_daily",
-      "interval": "1d"
-    },
-    {
-      "symbol": "NIFTY",
-      "strategy": "carver_ewmac",
-      "interval": "1d"
+      "symbol": "BANKNIFTY",
+      "strategy": "breakout",
+      "interval": "5m"
     }
   ],
   "results": [
     {
-      "symbol": "NIFTY",
-      "strategy": "adx_long_straddle",
-      "interval": "1m",
-      "status": "evaluated",
-      "data_source": "candle_cache",
-      "training_capital": 500000.0,
-      "evidence_kind": "MODELED_OPTION_RESEARCH",
-      "max_grid_combinations": 24,
-      "bars": 36441,
-      "verdict": "INSUFFICIENT_DATA",
-      "best_params": {},
-      "metrics": {
-        "validation_verdict": "INSUFFICIENT_DATA",
-        "paper_training_only": true,
-        "total_trades": 0,
-        "num_trades": 0,
-        "sharpe": 0.0,
-        "win_rate": 0.0,
-        "deflated_sharpe": 0.0,
-        "parameter_stability_cv": 1.0,
-        "holdout_pnl": null,
-        "beats_benchmark": false
-      },
-      "validation_errors": [],
-      "evidence": {
-        "fingerprint": "45b7fa984a610b03adfdbde5880c34ae6290c2e36abe23a74d912ef3a298ec21",
-        "last_session": "2026-10-13",
-        "sessions": 97,
-        "allowed": true,
-        "reason": "new_evidence",
-        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
-      },
-      "promotion_block_reason": "requires_independent_forward_validation"
-    },
-    {
-      "symbol": "NIFTY",
-      "strategy": "confluence_backtest",
+      "symbol": "BANKNIFTY",
+      "strategy": "trend",
       "interval": "5m",
       "status": "waiting",
-      "reason": "already_tested_data",
+      "reason": "waiting_for_new_sessions",
       "evidence": {
-        "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-        "last_session": "2026-10-13",
-        "sessions": 266,
+        "fingerprint": "90acb86ed136f84cdf301200d83a6495acfaae6dc694b30462620c0f66e7ba5f",
+        "last_session": "2026-10-15",
+        "sessions": 94,
         "allowed": false,
-        "reason": "already_tested_data"
+        "reason": "waiting_for_new_sessions"
       }
     },
     {
-      "symbol": "NIFTY",
-      "strategy": "legacy_mean_reversion",
+      "symbol": "BANKNIFTY",
+      "strategy": "mean_reversion",
       "interval": "5m",
       "status": "waiting",
-      "reason": "already_tested_data",
+      "reason": "waiting_for_new_sessions",
       "evidence": {
-        "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-        "last_session": "2026-10-13",
-        "sessions": 266,
+        "fingerprint": "90acb86ed136f84cdf301200d83a6495acfaae6dc694b30462620c0f66e7ba5f",
+        "last_session": "2026-10-15",
+        "sessions": 94,
         "allowed": false,
-        "reason": "already_tested_data"
+        "reason": "waiting_for_new_sessions"
       }
     },
     {
-      "symbol": "NIFTY",
-      "strategy": "sahi_daily",
-      "interval": "1d",
+      "symbol": "BANKNIFTY",
+      "strategy": "breakout",
+      "interval": "5m",
       "status": "waiting",
-      "reason": "already_tested_data",
+      "reason": "waiting_for_new_sessions",
       "evidence": {
-        "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-        "last_session": "2026-10-13",
-        "sessions": 266,
+        "fingerprint": "90acb86ed136f84cdf301200d83a6495acfaae6dc694b30462620c0f66e7ba5f",
+        "last_session": "2026-10-15",
+        "sessions": 94,
         "allowed": false,
-        "reason": "already_tested_data"
-      }
-    },
-    {
-      "symbol": "NIFTY",
-      "strategy": "carver_ewmac",
-      "interval": "1d",
-      "status": "waiting",
-      "reason": "already_tested_data",
-      "evidence": {
-        "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-        "last_session": "2026-10-13",
-        "sessions": 266,
-        "allowed": false,
-        "reason": "already_tested_data"
+        "reason": "waiting_for_new_sessions"
       }
     }
   ],
@@ -129,95 +70,45 @@
   "paper_only": [],
   "skipped": [
     {
-      "symbol": "NIFTY",
-      "strategy": "adx_long_straddle",
-      "interval": "1m",
-      "status": "evaluated",
-      "data_source": "candle_cache",
-      "training_capital": 500000.0,
-      "evidence_kind": "MODELED_OPTION_RESEARCH",
-      "max_grid_combinations": 24,
-      "bars": 36441,
-      "verdict": "INSUFFICIENT_DATA",
-      "best_params": {},
-      "metrics": {
-        "validation_verdict": "INSUFFICIENT_DATA",
-        "paper_training_only": true,
-        "total_trades": 0,
-        "num_trades": 0,
-        "sharpe": 0.0,
-        "win_rate": 0.0,
-        "deflated_sharpe": 0.0,
-        "parameter_stability_cv": 1.0,
-        "holdout_pnl": null,
-        "beats_benchmark": false
-      },
-      "validation_errors": [],
-      "evidence": {
-        "fingerprint": "45b7fa984a610b03adfdbde5880c34ae6290c2e36abe23a74d912ef3a298ec21",
-        "last_session": "2026-10-13",
-        "sessions": 97,
-        "allowed": true,
-        "reason": "new_evidence",
-        "evaluation_kind": "rolling_exploratory_not_fresh_holdout"
-      },
-      "promotion_block_reason": "requires_independent_forward_validation",
-      "reason": "no_best_params"
-    },
-    {
-      "symbol": "NIFTY",
-      "strategy": "confluence_backtest",
+      "symbol": "BANKNIFTY",
+      "strategy": "trend",
       "interval": "5m",
       "status": "waiting",
-      "reason": "already_tested_data",
+      "reason": "waiting_for_new_sessions",
       "evidence": {
-        "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-        "last_session": "2026-10-13",
-        "sessions": 266,
+        "fingerprint": "90acb86ed136f84cdf301200d83a6495acfaae6dc694b30462620c0f66e7ba5f",
+        "last_session": "2026-10-15",
+        "sessions": 94,
         "allowed": false,
-        "reason": "already_tested_data"
+        "reason": "waiting_for_new_sessions"
       }
     },
     {
-      "symbol": "NIFTY",
-      "strategy": "legacy_mean_reversion",
+      "symbol": "BANKNIFTY",
+      "strategy": "mean_reversion",
       "interval": "5m",
       "status": "waiting",
-      "reason": "already_tested_data",
+      "reason": "waiting_for_new_sessions",
       "evidence": {
-        "fingerprint": "dedaea3c1b3a3fb5aae9c6576398d30b10afacb046fcfefb989ccf5d231561b5",
-        "last_session": "2026-10-13",
-        "sessions": 266,
+        "fingerprint": "90acb86ed136f84cdf301200d83a6495acfaae6dc694b30462620c0f66e7ba5f",
+        "last_session": "2026-10-15",
+        "sessions": 94,
         "allowed": false,
-        "reason": "already_tested_data"
+        "reason": "waiting_for_new_sessions"
       }
     },
     {
-      "symbol": "NIFTY",
-      "strategy": "sahi_daily",
-      "interval": "1d",
+      "symbol": "BANKNIFTY",
+      "strategy": "breakout",
+      "interval": "5m",
       "status": "waiting",
-      "reason": "already_tested_data",
+      "reason": "waiting_for_new_sessions",
       "evidence": {
-        "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-        "last_session": "2026-10-13",
-        "sessions": 266,
+        "fingerprint": "90acb86ed136f84cdf301200d83a6495acfaae6dc694b30462620c0f66e7ba5f",
+        "last_session": "2026-10-15",
+        "sessions": 94,
         "allowed": false,
-        "reason": "already_tested_data"
-      }
-    },
-    {
-      "symbol": "NIFTY",
-      "strategy": "carver_ewmac",
-      "interval": "1d",
-      "status": "waiting",
-      "reason": "already_tested_data",
-      "evidence": {
-        "fingerprint": "427a9003fff238f167a1acb670a9e9af24c3d5cae26611f698c2b9cdc7a02daf",
-        "last_session": "2026-10-13",
-        "sessions": 266,
-        "allowed": false,
-        "reason": "already_tested_data"
+        "reason": "waiting_for_new_sessions"
       }
     }
   ],
