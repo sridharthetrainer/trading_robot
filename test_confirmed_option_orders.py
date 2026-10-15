@@ -182,7 +182,7 @@ def gateway(tmp_path, monkeypatch):
     monkeypatch.setattr(module, 'ROOT', tmp_path)
     monkeypatch.setattr(request_governor, 'acquire', lambda *a: 0)
     monkeypatch.setattr(trading_calendar, 'is_trading_day', lambda *a: True)
-    (tmp_path / 'MasterContract_ALL.csv').write_text(
+    (tmp_path / 'MasterContract_NFO.csv').write_text(
         'token,symbol,expiry,lotsize,instrumenttype,exch_seg,tick_size,freeze_qty\n'
         '123,TEST29OCT26CE,29OCT2026,65,OPTIDX,NFO,5,1801\n')
     with sqlite3.connect(tmp_path / 'manual_trades.db') as db:

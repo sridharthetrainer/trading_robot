@@ -2,6 +2,7 @@
 import csv
 import hashlib
 import json
+import logging
 import math
 import secrets
 import sqlite3
@@ -11,6 +12,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent
+logger = logging.getLogger(__name__)
 
 
 def broker_review_tag(review_id):
@@ -73,6 +75,8 @@ class OrderReviews:
             if not result:
                 raise RuntimeError('No unambiguous broker acknowledgement')
         except Exception:
+            # Keep the reason for later diagnosis; the review stays non-retryable.
+            logger.warning("Order review %s submission uncertain", ident, exc_info=True)
             self.finish(ident, 'UNCERTAIN', 'Check broker order book; do not retry.')
             return 'Submission outcome uncertain. Check the broker order book; automatic retry is blocked.'
         self.finish(ident, 'ACKNOWLEDGED' if plan.get('mode')=='LIVE' else 'SUBMITTED', result)
@@ -108,7 +112,8 @@ class OrderReviews:
                     try:
                         changed=self.reconcile(owner,ident) or changed
                     except Exception:
-                        pass  # Failure retains the durable lock.
+                        # Failure retains the durable lock; record why.
+                        logger.debug("Order review %s reconcile failed", ident, exc_info=True)
             if changed:
                 with self.connect() as db:
                     rows=db.execute('SELECT id,status,result FROM reviews WHERE owner=? ORDER BY rowid DESC LIMIT 5',(owner,)).fetchall()
@@ -167,7 +172,11 @@ class AngelReviewGateway:
         from trading_calendar import is_trading_day
         if not is_trading_day(now.date()) or not (915 <= now.hour * 100 + now.minute < 1530):
             raise ValueError('Market is closed')
-        with (ROOT / 'MasterContract_ALL.csv').open() as handle:
+        # The configured master (MasterContract_NFO.csv) is refreshed daily;
+        # MasterContract_ALL.csv was last written 2026-07-30 and lacks every
+        # contract listed since (e.g. 612 vs 1,158 Oct-2026 NIFTY contracts).
+        import config
+        with (ROOT / getattr(config, 'MASTER_CONTRACT_FILE', 'MasterContract_NFO.csv')).open() as handle:
             contract = next((r for r in csv.DictReader(line for line in handle if line.strip())
                              if r.get('symbol') == symbol and r.get('exch_seg') == 'NFO'), None)
         if not contract or contract['instrumenttype'] not in ('OPTIDX', 'OPTSTK'):
