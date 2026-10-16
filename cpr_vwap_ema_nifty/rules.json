@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "conditions": [
+    {
+      "id": "C001",
+      "date": "2026-10-15",
+      "added": "2026-10-16",
+      "instrument": "NIFTY",
+      "timeframe": "5m",
+      "bias": "LONG",
+      "setup": {
+        "cpr_width": "narrow",
+        "cpr_vs_prior_day": "overlapping_higher",
+        "cpr_vs_weekly": "above",
+        "cpr_vs_monthly": "below",
+        "open_vs_cpr": "above",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "below"
+      },
+      "open_location_text": "Above CPR, between CPR and daily H3, below weekly H3. Verified from spot data (open 22671.3; TC 22658.5; daily H3 22677.4; weekly H3 22684.4). The original 'above daily H3 and weekly H3' was an unconfirmed assumption.",
+      "context": {
+        "above_vwap": true,
+        "above_ema20_5m": true,
+        "above_ema50_5m": true,
+        "above_ema200_5m": true,
+        "above_ema200_1m": true
+      },
+      "vwap_behavior": "above_vwap_at_entry",
+      "entry": {"type": "close_vs_vwap", "timeframe": "5m", "fill": "next_bar_open"},
+      "exit": {"type": "close_vs_ema", "timeframe": "5m", "period": 20, "wick_counts": false, "fill": "next_bar_open"},
+      "optional_filters": ["ema200_30m", "r1_pdh_break", "pwh_break", "target_r4_mh3"],
+      "observations": [
+        "Price was below the 30m 200 EMA until 09:45, then the first 30m bar closed above it (22747.0 vs EMA 22744.1, only 3 points).",
+        "Rally extended after R1 and PDH were crossed.",
+        "Rally continued after PWH was crossed.",
+        "Rally ran to R4 (Traditional 23020.7) / monthly H3 (23053.2); day high 23056.4 at 13:35."
+      ],
+      "outcome": "Rallied R1, H4, PDH, PWH, WR1, H5, WH4, R2, R3, R4/MH3, then reversed; first 5m close below the 5m 20 EMA at 14:20 (23015.05 vs 23019.0).",
+      "outcome_class": "win"
+    }
+  ]
+}
