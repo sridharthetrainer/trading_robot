@@ -88,5 +88,42 @@
         "open_vs_weekly_h3"
       ]
     }
+  },
+  "predeclared_tests": {
+    "declared": "2026-10-16 by the user (pasted task: re-verify C001 under the priority focus). One run each, no tuning, no combinations, report win or lose.",
+    "primary_levels": [
+      "futures VWAP",
+      "1m 200 EMA",
+      "5m 200 EMA",
+      "daily CPR",
+      "PDH/R1 zone",
+      "PDL/S1 zone"
+    ],
+    "secondary": [
+      "golden_pivot_zone",
+      "Camarilla H3-H4 / L3-L4 zones",
+      "30m 200 EMA"
+    ],
+    "not_used": [
+      "1m 20 MA",
+      "daily MA",
+      "15m 200 EMA"
+    ],
+    "H-A": {
+      "status": "run",
+      "definition": "golden_pivot_zone bullish (daily L3 inside daily CPR) / bearish (H3 inside) / none: day direction and the base-rule result per group"
+    },
+    "H-B": {
+      "status": "run",
+      "definition": "base rule with the signal-bar close inside daily Camarilla [H3,H4] or [L4,L3] vs outside"
+    },
+    "H-C": {
+      "status": "awaiting_definition",
+      "definition": "late-day close above the 1m 200 EMA (last 30 minutes) vs a bullish next-day open -- exact definition requested from the user before running"
+    },
+    "H-D": {
+      "status": "run",
+      "definition": "short mirror of R001 (ATM put): close < min(PDL, S1), below futures VWAP and below 5m 20/50/200 and 1m 200 EMAs; next-open entry; exit on a 5m close above the 5m 20 EMA; force exit 15:20; one trade per day"
+    }
   }
 }

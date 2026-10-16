@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-16T11:19:09",
+  "generated_at": "2026-10-16T22:15:41",
   "window": {
     "start": "2020-07-01",
     "end": "2026-10-15",
@@ -4906,9 +4906,654 @@
       }
     }
   },
+  "priority_run": {
+    "c001": {
+      "duplicate_check": {
+        "status": "duplicate",
+        "of": "C001"
+      },
+      "fields": {
+        "cpr_width": {
+          "stored": "narrow",
+          "data": "narrow",
+          "match": true
+        },
+        "cpr_vs_prior_day": {
+          "stored": "overlapping_higher",
+          "data": "overlapping_higher",
+          "match": true
+        },
+        "cpr_vs_weekly": {
+          "stored": "above",
+          "data": "above",
+          "match": true
+        },
+        "cpr_vs_monthly": {
+          "stored": "below",
+          "data": "below",
+          "match": true
+        },
+        "open_vs_cpr": {
+          "stored": "above",
+          "data": "above",
+          "match": true
+        },
+        "open_vs_daily_h3": {
+          "stored": "below",
+          "data": "below",
+          "match": true
+        },
+        "open_vs_weekly_h3": {
+          "stored": "below",
+          "data": "below",
+          "match": true
+        },
+        "golden_pivot_zone": {
+          "stored": "(not a stored C001 field)",
+          "data": "none",
+          "match": null
+        }
+      },
+      "context": {
+        "signal_bar": "09:15",
+        "above_vwap": true,
+        "above_ema20_5m": true,
+        "above_ema50_5m": true,
+        "above_ema200_5m": true,
+        "above_ema200_1m": true,
+        "30m_200ema_at_open_bar": "below",
+        "30m_200ema_first_above_bar_close": "09:45",
+        "30m_close_minus_ema_at_first_above": 2.94
+      },
+      "reproduction": {
+        "entry_time": "2026-10-15 09:20",
+        "entry_px": 22724.85,
+        "exit_time": "2026-10-15 14:25",
+        "exit_px": 23014.4,
+        "exit_reason": "close_vs_ema",
+        "points": 289.55,
+        "strike": 22700.0,
+        "B_entry": 136.71,
+        "B_exit": 347.36,
+        "B_net": 13467.78,
+        "C_entry": 139.35,
+        "C_exit": 332.65,
+        "C_net": 12341.79
+      }
+    },
+    "c001_counts": {
+      "sessions": 1555,
+      "exact_match_sessions": 1,
+      "one_field_at_a_time": {
+        "cpr_width": {
+          "value": "narrow",
+          "sessions_matching_this_field_alone": 712,
+          "sessions_matching_all_other_fields": 1
+        },
+        "cpr_vs_prior_day": {
+          "value": "overlapping_higher",
+          "sessions_matching_this_field_alone": 93,
+          "sessions_matching_all_other_fields": 3
+        },
+        "cpr_vs_weekly": {
+          "value": "above",
+          "sessions_matching_this_field_alone": 755,
+          "sessions_matching_all_other_fields": 1
+        },
+        "cpr_vs_monthly": {
+          "value": "below",
+          "sessions_matching_this_field_alone": 413,
+          "sessions_matching_all_other_fields": 2
+        },
+        "open_vs_cpr": {
+          "value": "above",
+          "sessions_matching_this_field_alone": 859,
+          "sessions_matching_all_other_fields": 2
+        },
+        "open_vs_daily_h3": {
+          "value": "below",
+          "sessions_matching_this_field_alone": 1008,
+          "sessions_matching_all_other_fields": 1
+        },
+        "open_vs_weekly_h3": {
+          "value": "below",
+          "sessions_matching_this_field_alone": 1043,
+          "sessions_matching_all_other_fields": 1
+        }
+      }
+    },
+    "priority_focus": {
+      "vwap": {
+        "above": {
+          "trades": 1160,
+          "win_rate": 37.8,
+          "pf_points": 0.99,
+          "exp_points": -0.23,
+          "B_net_rs": -94088.29,
+          "B_trades": 1155,
+          "IS": {
+            "trades": 762,
+            "win_rate": 38.7,
+            "pf_points": 0.99,
+            "B_net_rs": -62928.76
+          },
+          "OOS": {
+            "trades": 398,
+            "win_rate": 36.2,
+            "pf_points": 0.98,
+            "B_net_rs": -31159.53
+          }
+        },
+        "note": "one-sided by construction: being above this level is an entry condition of the base rule"
+      },
+      "ema200_1m": {
+        "above": {
+          "trades": 1160,
+          "win_rate": 37.8,
+          "pf_points": 0.99,
+          "exp_points": -0.23,
+          "B_net_rs": -94088.29,
+          "B_trades": 1155,
+          "IS": {
+            "trades": 762,
+            "win_rate": 38.7,
+            "pf_points": 0.99,
+            "B_net_rs": -62928.76
+          },
+          "OOS": {
+            "trades": 398,
+            "win_rate": 36.2,
+            "pf_points": 0.98,
+            "B_net_rs": -31159.53
+          }
+        },
+        "note": "one-sided by construction: being above this level is an entry condition of the base rule"
+      },
+      "ema200_5m": {
+        "above": {
+          "trades": 1160,
+          "win_rate": 37.8,
+          "pf_points": 0.99,
+          "exp_points": -0.23,
+          "B_net_rs": -94088.29,
+          "B_trades": 1155,
+          "IS": {
+            "trades": 762,
+            "win_rate": 38.7,
+            "pf_points": 0.99,
+            "B_net_rs": -62928.76
+          },
+          "OOS": {
+            "trades": 398,
+            "win_rate": 36.2,
+            "pf_points": 0.98,
+            "B_net_rs": -31159.53
+          }
+        },
+        "note": "one-sided by construction: being above this level is an entry condition of the base rule"
+      },
+      "cpr": {
+        "above": {
+          "trades": 923,
+          "win_rate": 38.6,
+          "pf_points": 0.99,
+          "exp_points": -0.21,
+          "B_net_rs": -73462.87,
+          "B_trades": 920,
+          "IS": {
+            "trades": 619,
+            "win_rate": 38.1,
+            "pf_points": 0.92,
+            "B_net_rs": -84225.09
+          },
+          "OOS": {
+            "trades": 304,
+            "win_rate": 39.5,
+            "pf_points": 1.11,
+            "B_net_rs": 10762.22
+          }
+        },
+        "inside": {
+          "trades": 119,
+          "win_rate": 35.3,
+          "pf_points": 0.83,
+          "exp_points": -3.17,
+          "B_net_rs": -22156.54,
+          "B_trades": 119,
+          "IS": {
+            "trades": 70,
+            "win_rate": 41.4,
+            "pf_points": 1.42,
+            "B_net_rs": 13058.81
+          },
+          "OOS": {
+            "trades": 49,
+            "win_rate": 26.5,
+            "pf_points": 0.37,
+            "B_net_rs": -35215.35
+          }
+        },
+        "below": {
+          "trades": 118,
+          "win_rate": 34.7,
+          "pf_points": 1.17,
+          "exp_points": 2.54,
+          "B_net_rs": 1531.12,
+          "B_trades": 116,
+          "IS": {
+            "trades": 73,
+            "win_rate": 41.1,
+            "pf_points": 1.56,
+            "B_net_rs": 8237.52
+          },
+          "OOS": {
+            "trades": 45,
+            "win_rate": 24.4,
+            "pf_points": 0.82,
+            "B_net_rs": -6706.4
+          }
+        }
+      },
+      "pdh_r1_zone": {
+        "above": {
+          "trades": 314,
+          "win_rate": 48.4,
+          "pf_points": 1.3,
+          "exp_points": 6.16,
+          "B_net_rs": 47607.16,
+          "B_trades": 312,
+          "IS": {
+            "trades": 234,
+            "win_rate": 48.3,
+            "pf_points": 1.36,
+            "B_net_rs": 39494.06
+          },
+          "OOS": {
+            "trades": 80,
+            "win_rate": 48.8,
+            "pf_points": 1.18,
+            "B_net_rs": 8113.1
+          }
+        },
+        "inside": {
+          "trades": 182,
+          "win_rate": 36.8,
+          "pf_points": 0.76,
+          "exp_points": -5.82,
+          "B_net_rs": -53627.31,
+          "B_trades": 182,
+          "IS": {
+            "trades": 122,
+            "win_rate": 32.8,
+            "pf_points": 0.43,
+            "B_net_rs": -79489.68
+          },
+          "OOS": {
+            "trades": 60,
+            "win_rate": 45.0,
+            "pf_points": 1.65,
+            "B_net_rs": 25862.37
+          }
+        },
+        "below": {
+          "trades": 664,
+          "win_rate": 33.1,
+          "pf_points": 0.91,
+          "exp_points": -1.72,
+          "B_net_rs": -88068.14,
+          "B_trades": 661,
+          "IS": {
+            "trades": 406,
+            "win_rate": 35.0,
+            "pf_points": 1.03,
+            "B_net_rs": -22933.14
+          },
+          "OOS": {
+            "trades": 258,
+            "win_rate": 30.2,
+            "pf_points": 0.77,
+            "B_net_rs": -65135.0
+          }
+        }
+      },
+      "pdl_s1_zone": {
+        "above": {
+          "trades": 1131,
+          "win_rate": 37.9,
+          "pf_points": 0.99,
+          "exp_points": -0.24,
+          "B_net_rs": -93742.75,
+          "B_trades": 1126,
+          "IS": {
+            "trades": 742,
+            "win_rate": 38.8,
+            "pf_points": 0.99,
+            "B_net_rs": -66357.87
+          },
+          "OOS": {
+            "trades": 389,
+            "win_rate": 36.2,
+            "pf_points": 0.99,
+            "B_net_rs": -27384.88
+          }
+        },
+        "inside": {
+          "trades": 11,
+          "win_rate": 36.4,
+          "pf_points": 1.51,
+          "exp_points": 9.25,
+          "B_net_rs": 5227.85,
+          "B_trades": 11,
+          "IS": {
+            "trades": 7,
+            "win_rate": 28.6,
+            "pf_points": 1.06,
+            "B_net_rs": 2654.99
+          },
+          "OOS": {
+            "trades": 4,
+            "win_rate": 50.0,
+            "pf_points": 2.54,
+            "B_net_rs": 2572.86
+          }
+        },
+        "below": {
+          "trades": 18,
+          "win_rate": 33.3,
+          "pf_points": 0.71,
+          "exp_points": -5.28,
+          "B_net_rs": -5573.39,
+          "B_trades": 18,
+          "IS": {
+            "trades": 13,
+            "win_rate": 38.5,
+            "pf_points": 1.32,
+            "B_net_rs": 774.12
+          },
+          "OOS": {
+            "trades": 5,
+            "win_rate": 20.0,
+            "pf_points": 0.12,
+            "B_net_rs": -6347.51
+          }
+        }
+      }
+    },
+    "tests": {
+      "H-A": {
+        "definition": "bullish: daily Camarilla L3 inside daily CPR; bearish: H3 inside; none otherwise. Day direction = session close vs session open (and vs prior close).",
+        "groups": {
+          "bullish": {
+            "sessions": 484,
+            "close_above_open_pct": 48.1,
+            "avg_close_minus_open_pts": -12.42,
+            "close_above_prior_close_pct": 56.8,
+            "base_rule": {
+              "trades": 448,
+              "win_rate": 35.7,
+              "pf_points": 0.75,
+              "exp_points": -5.53,
+              "B_net_rs": -127328.49,
+              "B_trades": 446,
+              "IS": {
+                "trades": 312,
+                "win_rate": 36.9,
+                "pf_points": 0.71,
+                "B_net_rs": -96766.29
+              },
+              "OOS": {
+                "trades": 136,
+                "win_rate": 33.1,
+                "pf_points": 0.83,
+                "B_net_rs": -30562.2
+              }
+            },
+            "bootstrap_points": {
+              "n": 448,
+              "mean": -5.53,
+              "ci95": [
+                -10.17,
+                -0.4
+              ],
+              "p_mean_le_0": 0.9828
+            }
+          },
+          "bearish": {
+            "sessions": 345,
+            "close_above_open_pct": 53.3,
+            "avg_close_minus_open_pts": 2.19,
+            "close_above_prior_close_pct": 52.5,
+            "base_rule": {
+              "trades": 164,
+              "win_rate": 40.9,
+              "pf_points": 1.15,
+              "exp_points": 2.79,
+              "B_net_rs": 315.43,
+              "B_trades": 164,
+              "IS": {
+                "trades": 96,
+                "win_rate": 47.9,
+                "pf_points": 1.63,
+                "B_net_rs": 27645.48
+              },
+              "OOS": {
+                "trades": 68,
+                "win_rate": 30.9,
+                "pf_points": 0.67,
+                "B_net_rs": -27330.05
+              }
+            },
+            "bootstrap_points": {
+              "n": 164,
+              "mean": 2.79,
+              "ci95": [
+                -4.92,
+                11.41
+              ],
+              "p_mean_le_0": 0.2552
+            }
+          },
+          "none": {
+            "sessions": 726,
+            "close_above_open_pct": 48.2,
+            "avg_close_minus_open_pts": -11.25,
+            "close_above_prior_close_pct": 51.9,
+            "base_rule": {
+              "trades": 548,
+              "win_rate": 38.7,
+              "pf_points": 1.17,
+              "exp_points": 3.2,
+              "B_net_rs": 32924.77,
+              "B_trades": 545,
+              "IS": {
+                "trades": 354,
+                "win_rate": 37.9,
+                "pf_points": 1.14,
+                "B_net_rs": 6192.05
+              },
+              "OOS": {
+                "trades": 194,
+                "win_rate": 40.2,
+                "pf_points": 1.2,
+                "B_net_rs": 26732.72
+              }
+            },
+            "bootstrap_points": {
+              "n": 548,
+              "mean": 3.2,
+              "ci95": [
+                -2.06,
+                7.7
+              ],
+              "p_mean_le_0": 0.1316
+            }
+          }
+        }
+      },
+      "H-B": {
+        "definition": "signal-bar close inside daily Camarilla [H3,H4] or [L4,L3] = inside; otherwise outside.",
+        "inside_either": {
+          "trades": 365,
+          "win_rate": 36.7,
+          "pf_points": 0.92,
+          "exp_points": -1.7,
+          "B_net_rs": -42814.41,
+          "B_trades": 364,
+          "IS": {
+            "trades": 236,
+            "win_rate": 36.9,
+            "pf_points": 0.92,
+            "B_net_rs": -27154.43
+          },
+          "OOS": {
+            "trades": 129,
+            "win_rate": 36.4,
+            "pf_points": 0.93,
+            "B_net_rs": -15659.98
+          }
+        },
+        "outside": {
+          "trades": 795,
+          "win_rate": 38.4,
+          "pf_points": 1.02,
+          "exp_points": 0.44,
+          "B_net_rs": -51273.88,
+          "B_trades": 791,
+          "IS": {
+            "trades": 526,
+            "win_rate": 39.5,
+            "pf_points": 1.03,
+            "B_net_rs": -35774.33
+          },
+          "OOS": {
+            "trades": 269,
+            "win_rate": 36.1,
+            "pf_points": 1.01,
+            "B_net_rs": -15499.55
+          }
+        },
+        "inside_h3_h4_only_count": 321,
+        "inside_l3_l4_only_count": 44,
+        "inside_minus_outside_points": {
+          "diff_mean": -2.14,
+          "ci95": [
+            -9.51,
+            5.39
+          ],
+          "p_diff_ge_0": 0.2916
+        },
+        "answer": "inside worse than outside"
+      },
+      "H-C": {
+        "status": "awaiting_definition",
+        "note": "Not run: definition ambiguous (which closes in the last 30 minutes; what counts as a bullish next-day open). Runs once the user defines it; counted then."
+      },
+      "H-D": {
+        "definition": "Short mirror of R001, run once: close < min(PDL, S1), below futures VWAP and below\n    5m 20/50/200 + 1m 200 EMAs; next-open entry; exit on a 5m close above the 5m 20 EMA;\n    force 15:20; one trade per day; ATM put.",
+        "option": "PE",
+        "A_points": {
+          "trades": 514,
+          "win_rate": 42.2,
+          "pf_points": 1.2,
+          "exp_points": 5.21,
+          "B_net_rs": 127337.21,
+          "B_trades": 514,
+          "IS": {
+            "trades": 311,
+            "win_rate": 41.5,
+            "pf_points": 1.22,
+            "B_net_rs": 87431.02
+          },
+          "OOS": {
+            "trades": 203,
+            "win_rate": 43.3,
+            "pf_points": 1.18,
+            "B_net_rs": 39906.19
+          }
+        },
+        "B_modelled_rs": {
+          "trades": 514,
+          "total": 127337.21,
+          "pf": 1.28
+        },
+        "C_real_rs": {
+          "trades": 11,
+          "total": 2821.57,
+          "pf": 1.41
+        },
+        "by_year": {
+          "2020": {
+            "trades": 33,
+            "pf_points": 1.47,
+            "exp_points": 12.27,
+            "B_net_rs": 26512.53
+          },
+          "2021": {
+            "trades": 75,
+            "pf_points": 1.06,
+            "exp_points": 1.58,
+            "B_net_rs": 5611.68
+          },
+          "2022": {
+            "trades": 91,
+            "pf_points": 0.81,
+            "exp_points": -5.25,
+            "B_net_rs": -17426.69
+          },
+          "2023": {
+            "trades": 76,
+            "pf_points": 1.5,
+            "exp_points": 8.16,
+            "B_net_rs": 21804.95
+          },
+          "2024": {
+            "trades": 79,
+            "pf_points": 1.59,
+            "exp_points": 18.37,
+            "B_net_rs": 76720.82
+          },
+          "2025": {
+            "trades": 79,
+            "pf_points": 0.96,
+            "exp_points": -0.81,
+            "B_net_rs": -15645.11
+          },
+          "2026": {
+            "trades": 81,
+            "pf_points": 1.28,
+            "exp_points": 7.74,
+            "B_net_rs": 29759.03
+          }
+        },
+        "bootstrap_points": {
+          "n": 514,
+          "mean": 5.21,
+          "ci95": [
+            -1.54,
+            11.74
+          ],
+          "p_mean_le_0": 0.0708
+        },
+        "bootstrap_B_rs": {
+          "n": 514,
+          "mean": 247.74,
+          "ci95": [
+            -32.59,
+            526.28
+          ],
+          "p_mean_le_0": 0.043
+        }
+      }
+    }
+  },
   "test_ledger": {
-    "total": 20,
-    "new_this_run": []
+    "total": 23,
+    "new_this_run": [
+      "predeclared:H-A",
+      "predeclared:H-B",
+      "predeclared:H-D"
+    ],
+    "descriptive_looks": 6
   },
   "registry": {
     "hypotheses_not_counted": [

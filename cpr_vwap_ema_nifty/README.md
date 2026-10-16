@@ -126,3 +126,17 @@ Until approval it returns `not_approved` and counts nothing.
 `config.json` -> `"field_tests"`: one-at-a-time filters (values from the
 condition's setup) applied to a base variant; reported under "Field tests" in
 `summary.md`. Combinations are deliberately not generated.
+
+## Priority focus and pre-declared tests (hypothesis_tests.py)
+
+Primary levels: futures VWAP, 1m 200 EMA, 5m 200 EMA, daily CPR, the PDH/R1
+zone and the PDL/S1 zone (zones = the band between the two levels). Each
+backtest re-verifies C001 (duplicate check, field-by-field from data incl.
+`golden_pivot_zone`, mechanical reproduction), reports the base rule split by
+position at the signal bar for each primary level (descriptive), the C001
+exact-match and one-field-at-a-time counts, and the pre-declared tests declared
+in `config.json` -> `"predeclared_tests"` (H-A golden pivot zone, H-B Camarilla
+sideways zones, H-C awaiting definition, H-D short mirror of R001 with ATM
+puts; trades in `results/latest/h_d_short_trades.csv`). Pre-declared tests are
+added to `test_ledger.json`; the priority-focus splits are recorded as
+descriptive looks. None of this touches R001's frozen definition.

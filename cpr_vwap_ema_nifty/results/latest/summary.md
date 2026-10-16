@@ -1,10 +1,10 @@
-# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T11:19:09
+# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T22:15:41
 
 Window 2020-07-01 to 2026-10-15; out-of-sample from 2024-07-01.
 Sessions: 1555; missing futures volume (skipped in 'futures' set, spot-TWAP in 'with_missing' set): 3.
 Spot data source per session: {'angel': 1614, 'insufficient': 4}.
 
-**Tests run on this dataset so far: 20** (new this run: 0; ledger: test_ledger.json). Hypotheses and forward paper trades are not counted.
+**Tests run on this dataset so far: 23** (new this run: 3; ledger: test_ledger.json). Hypotheses and forward paper trades are not counted.
 Conditions logged (observations): [{'id': 'C001', 'date': '2026-10-15', 'role': 'observation'}]
 Hypotheses (observation only, not tested, not counted): [{'id': 'H001', 'date': '2026-10-16', 'status': 'observation_only'}]
 Pre-registered rules: [{'id': 'R001', 'status': 'approved', 'approved_on': '2026-10-16', 'frozen_ok': True}] (forward status: results/forward/<id>_status.json)
@@ -247,7 +247,93 @@ Each row loosens the setup; many looks at one dataset, so a single good row is w
 - 2025: matched 0 trades || non-matched 179 trades | win 41.3% | avg win 64.52 / loss -36.41 pts | PF 1.25 | exp 5.32 pts | total 951.45 | maxDD -531.6 | hold 89.4m | MFE 60.1 / MAE 34.8 pts
 - 2026: matched 1 trades | win 100.0% | avg win 289.55 / loss 0.0 pts | PF n/a | exp 289.55 pts | total 289.55 | maxDD 0.0 | hold 305.0m | MFE 331.6 / MAE 44.4 pts || non-matched 129 trades | win 33.3% | avg win 54.91 / loss -38.08 pts | PF 0.72 | exp -7.08 pts | total -913.25 | maxDD -1026.9 | hold 79.4m | MFE 50.1 / MAE 37.5 pts
 
+## C001 re-verification (priority focus run)
+
+Duplicate/conflict check vs existing rules: {'status': 'duplicate', 'of': 'C001'}
+
+| Field | Stored | Data (2026-10-15) | Match |
+|---|---|---|---|
+| cpr_width | narrow | narrow | yes |
+| cpr_vs_prior_day | overlapping_higher | overlapping_higher | yes |
+| cpr_vs_weekly | above | above | yes |
+| cpr_vs_monthly | below | below | yes |
+| open_vs_cpr | above | above | yes |
+| open_vs_daily_h3 | below | below | yes |
+| open_vs_weekly_h3 | below | below | yes |
+| golden_pivot_zone | (not a stored C001 field) | none |  |
+
+Context at signal bar: {'signal_bar': '09:15', 'above_vwap': True, 'above_ema20_5m': True, 'above_ema50_5m': True, 'above_ema200_5m': True, 'above_ema200_1m': True, '30m_200ema_at_open_bar': 'below', '30m_200ema_first_above_bar_close': '09:45', '30m_close_minus_ema_at_first_above': 2.94}
+
+Reproduction: {'entry_time': '2026-10-15 09:20', 'entry_px': np.float64(22724.85), 'exit_time': '2026-10-15 14:25', 'exit_px': np.float64(23014.4), 'exit_reason': 'close_vs_ema', 'points': np.float64(289.55), 'strike': np.float64(22700.0), 'B_entry': np.float64(136.71), 'B_exit': np.float64(347.36), 'B_net': np.float64(13467.78), 'C_entry': np.float64(139.35), 'C_exit': np.float64(332.65), 'C_net': np.float64(12341.79)}
+
+C001 exact-match sessions: 1 of 1555
+
+| Field (value) | Sessions matching this field alone | Sessions matching all OTHER fields |
+|---|---|---|
+| cpr_width (narrow) | 712 | 1 |
+| cpr_vs_prior_day (overlapping_higher) | 93 | 3 |
+| cpr_vs_weekly (above) | 755 | 1 |
+| cpr_vs_monthly (below) | 413 | 2 |
+| open_vs_cpr (above) | 859 | 2 |
+| open_vs_daily_h3 (below) | 1008 | 1 |
+| open_vs_weekly_h3 (below) | 1043 | 1 |
+
+## Priority focus: base rule by position at the signal bar (descriptive, not tuned)
+
+- **vwap** (one-sided by construction: being above this level is an entry condition of the base rule)
+  - above: 1160 tr | win 37.8% | PF 0.99 | exp -0.23 pts | B -94,088 | IS PF 0.99 (n=762, B -62,929) | OOS PF 0.98 (n=398, B -31,160)
+- **ema200_1m** (one-sided by construction: being above this level is an entry condition of the base rule)
+  - above: 1160 tr | win 37.8% | PF 0.99 | exp -0.23 pts | B -94,088 | IS PF 0.99 (n=762, B -62,929) | OOS PF 0.98 (n=398, B -31,160)
+- **ema200_5m** (one-sided by construction: being above this level is an entry condition of the base rule)
+  - above: 1160 tr | win 37.8% | PF 0.99 | exp -0.23 pts | B -94,088 | IS PF 0.99 (n=762, B -62,929) | OOS PF 0.98 (n=398, B -31,160)
+- **cpr**
+  - above: 923 tr | win 38.6% | PF 0.99 | exp -0.21 pts | B -73,463 | IS PF 0.92 (n=619, B -84,225) | OOS PF 1.11 (n=304, B +10,762)
+  - inside: 119 tr | win 35.3% | PF 0.83 | exp -3.17 pts | B -22,157 | IS PF 1.42 (n=70, B +13,059) | OOS PF 0.37 (n=49, B -35,215)
+  - below: 118 tr | win 34.7% | PF 1.17 | exp 2.54 pts | B +1,531 | IS PF 1.56 (n=73, B +8,238) | OOS PF 0.82 (n=45, B -6,706)
+- **pdh_r1_zone**
+  - above: 314 tr | win 48.4% | PF 1.3 | exp 6.16 pts | B +47,607 | IS PF 1.36 (n=234, B +39,494) | OOS PF 1.18 (n=80, B +8,113)
+  - inside: 182 tr | win 36.8% | PF 0.76 | exp -5.82 pts | B -53,627 | IS PF 0.43 (n=122, B -79,490) | OOS PF 1.65 (n=60, B +25,862)
+  - below: 664 tr | win 33.1% | PF 0.91 | exp -1.72 pts | B -88,068 | IS PF 1.03 (n=406, B -22,933) | OOS PF 0.77 (n=258, B -65,135)
+- **pdl_s1_zone**
+  - above: 1131 tr | win 37.9% | PF 0.99 | exp -0.24 pts | B -93,743 | IS PF 0.99 (n=742, B -66,358) | OOS PF 0.99 (n=389, B -27,385)
+  - inside: 11 tr | win 36.4% | PF 1.51 | exp 9.25 pts | B +5,228 | IS PF 1.06 (n=7, B +2,655) | OOS PF 2.54 (n=4, B +2,573)
+  - below: 18 tr | win 33.3% | PF 0.71 | exp -5.28 pts | B -5,573 | IS PF 1.32 (n=13, B +774) | OOS PF 0.12 (n=5, B -6,348)
+
+## Pre-declared tests (exploratory; Bonferroni threshold for 23 tests: p < 0.00217)
+
+### H-A golden pivot zone — bullish: daily Camarilla L3 inside daily CPR; bearish: H3 inside; none otherwise. Day direction = session close vs session open (and vs prior close).
+- bullish: 484 sessions | close>open 48.1% | avg C-O -12.42 pts | close>prior close 56.8%
+  - base rule: 448 tr | win 35.7% | PF 0.75 | exp -5.53 pts | B -127,328 | IS PF 0.71 (n=312, B -96,766) | OOS PF 0.83 (n=136, B -30,562); bootstrap {'n': 448, 'mean': -5.53, 'ci95': [-10.17, -0.4], 'p_mean_le_0': 0.9828}
+- bearish: 345 sessions | close>open 53.3% | avg C-O 2.19 pts | close>prior close 52.5%
+  - base rule: 164 tr | win 40.9% | PF 1.15 | exp 2.79 pts | B +315 | IS PF 1.63 (n=96, B +27,645) | OOS PF 0.67 (n=68, B -27,330); bootstrap {'n': 164, 'mean': 2.79, 'ci95': [-4.92, 11.41], 'p_mean_le_0': 0.2552}
+- none: 726 sessions | close>open 48.2% | avg C-O -11.25 pts | close>prior close 51.9%
+  - base rule: 548 tr | win 38.7% | PF 1.17 | exp 3.2 pts | B +32,925 | IS PF 1.14 (n=354, B +6,192) | OOS PF 1.2 (n=194, B +26,733); bootstrap {'n': 548, 'mean': 3.2, 'ci95': [-2.06, 7.7], 'p_mean_le_0': 0.1316}
+
+### H-B Camarilla sideways zones — signal-bar close inside daily Camarilla [H3,H4] or [L4,L3] = inside; otherwise outside.
+- inside: 365 tr | win 36.7% | PF 0.92 | exp -1.7 pts | B -42,814 | IS PF 0.92 (n=236, B -27,154) | OOS PF 0.93 (n=129, B -15,660) (H3-H4: 321, L3-L4: 44)
+- outside: 795 tr | win 38.4% | PF 1.02 | exp 0.44 pts | B -51,274 | IS PF 1.03 (n=526, B -35,774) | OOS PF 1.01 (n=269, B -15,500)
+- inside minus outside (pts/trade): {'diff_mean': -2.14, 'ci95': [-9.51, 5.39], 'p_diff_ge_0': 0.2916} -> inside worse than outside
+
+### H-C — awaiting_definition: Not run: definition ambiguous (which closes in the last 30 minutes; what counts as a bullish next-day open). Runs once the user defines it; counted then.
+
+### H-D short mirror of R001 (ATM put) — run once
+- A: 514 tr | win 42.2% | PF 1.2 | exp 5.21 pts | B +127,337 | IS PF 1.22 (n=311, B +87,431) | OOS PF 1.18 (n=203, B +39,906)
+- B modelled: {'trades': 514, 'total': 127337.21, 'pf': 1.28}
+- C real: {'trades': 11, 'total': 2821.57, 'pf': 1.41}
+- bootstrap points: {'n': 514, 'mean': 5.21, 'ci95': [-1.54, 11.74], 'p_mean_le_0': 0.0708}
+- bootstrap B: {'n': 514, 'mean': 247.74, 'ci95': [-32.59, 526.28], 'p_mean_le_0': 0.043}
+- by year: 2020: n=33 PF=1.47 exp=12.27 B=+26,513; 2021: n=75 PF=1.06 exp=1.58 B=+5,612; 2022: n=91 PF=0.81 exp=-5.25 B=-17,427; 2023: n=76 PF=1.5 exp=8.16 B=+21,805; 2024: n=79 PF=1.59 exp=18.37 B=+76,721; 2025: n=79 PF=0.96 exp=-0.81 B=-15,645; 2026: n=81 PF=1.28 exp=7.74 B=+29,759
+
+
+Descriptive looks (priority-focus splits, not counted as tests): 6. Everything in this report is EXPLORATORY; only R001's forward paper result is confirmatory.
+
+## R001 forward status (paper)
+- IN_PROGRESS: 0/150 trades (evaluated 2026-10-16T16:00:09)
+- Snapshot coverage: 0/0 sessions full, 0 partial, 0 with no snapshots; trade price coverage n/a (need >= 80%). OK
+
 ## Change vs previous run
-Previous run: 2026-10-16T11:15:11
+Previous run: 2026-10-16T11:19:09
+- NEW this run: golden_pivot_zone field, C001 re-verification, priority-focus splits, pre-declared tests H-A, H-B, H-D (H-C awaiting definition)
+- tests on dataset: 20 -> 23
 - C001 base|futures matched: trades 1 -> 1, expectancy 289.55 -> 289.55, PF None -> None
 - C001 base|futures non_matched: trades 1159 -> 1159, expectancy -0.48 -> -0.48, PF 0.98 -> 0.98

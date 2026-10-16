@@ -408,3 +408,96 @@ def test_forward_report_never_writes_rules_and_notify_text(tmp_path, monkeypatch
     monkeypatch.setattr(alerts, "AlertManager", FakeAM)
     assert fw.notify(st) is True
     assert "R001 forward (paper)" in sent[0] and "Snapshot coverage" in sent[0] and "Tests run" in sent[0]
+
+
+# ── priority-focus run (2026-10-16): golden pivot zone, zones, short side ────
+
+def test_golden_pivot_zone_definition():
+    cpr_ = {"BC": 100.0, "TC": 101.0, "P": 100.5}
+    assert lv.golden_pivot_zone(cpr_, {"L3": 100.5, "H3": 103.0}) == "bullish"
+    assert lv.golden_pivot_zone(cpr_, {"L3": 98.0, "H3": 100.2}) == "bearish"
+    assert lv.golden_pivot_zone(cpr_, {"L3": 98.0, "H3": 103.0}) == "none"
+    assert lv.golden_pivot_zone(cpr_, {"L3": 100.0, "H3": 103.0}) == "bullish"      # boundary counts as inside
+    # 15-Oct-2026 from the 14-Oct HLC: L3 below the CPR, H3 above it -> none
+    assert lv.golden_pivot_zone(lv.cpr(H, L, C), lv.camarilla(H, L, C)) == "none"
+
+
+def test_golden_pivot_zone_never_both():
+    rng = np.random.default_rng(5)
+    for _ in range(2000):
+        lo = rng.uniform(100, 200); hi = lo + rng.uniform(0.1, 20); c = rng.uniform(lo, hi)
+        cp, cam = lv.cpr(hi, lo, c), lv.camarilla(hi, lo, c)
+        assert not (cp["BC"] <= cam["L3"] <= cp["TC"] and cp["BC"] <= cam["H3"] <= cp["TC"])
+
+
+def test_zone_definitions():
+    from cpr_vwap_ema_nifty.hypothesis_tests import in_camarilla_sideways_zone, primary_positions, zone_position
+    assert zone_position(105, 100, 110) == "inside" and zone_position(105, 110, 100) == "inside"   # band, either order
+    assert zone_position(111, 100, 110) == "above" and zone_position(99, 100, 110) == "below"
+    lev = pd.Series({"BC": 100.0, "TC": 101.0, "PDH": 110.0, "R1": 112.0, "PDL": 90.0, "S1": 88.0,
+                     "H3": 105.0, "H4": 108.0, "L3": 95.0, "L4": 92.0})
+    bar = pd.Series({"close": 111.0, "fut_close": 111.5, "fut_vwap": 111.0, "ema200_1m": 112.0, "ema200_5m": 100.0})
+    pos = primary_positions(bar, lev)
+    assert pos == {"vwap": "above", "ema200_1m": "below", "ema200_5m": "above", "cpr": "above",
+                   "pdh_r1_zone": "inside", "pdl_s1_zone": "above"}
+    assert in_camarilla_sideways_zone(106.0, lev) == {"inside_h3_h4": True, "inside_l3_l4": False, "inside_either": True}
+    assert in_camarilla_sideways_zone(93.0, lev)["inside_l3_l4"] is True
+    assert in_camarilla_sideways_zone(100.5, lev)["inside_either"] is False
+
+
+def test_short_side_mechanics_mirror_r001():
+    closes = [99, 97, 95, 94, 93, 101, 102]
+    df = _day(closes)
+    df["ema20_5m"] = 100.0
+    for k in ("ema50_5m", "ema200_5m", "ema200_1m"):
+        df[k] = 150.0
+    df["fut_vwap"] = 98.0
+    lev = pd.Series({"R1": 1e9, "PDH": 1e9, "PWH": 1e9, "R4": 1e9, "MH3": 1e9, "S1": 96.0, "PDL": 96.5,
+                     "PWL": 0, "S4": 0, "ML3": 0})
+    cond = {"bias": "SHORT", "context": {"above_vwap": True, "above_ema20_5m": True, "above_ema50_5m": True,
+                                         "above_ema200_5m": True, "above_ema200_1m": True},
+            "exit": {"type": "close_vs_ema", "timeframe": "5m", "period": 20}}
+    t = en.simulate_day(df, lev, cond, ["r1_pdh_break"], load_config(), "futures")
+    assert t.side == "SHORT"
+    assert t.entry_time.endswith("09:30") and t.entry_px == 94           # 09:25 close 95 < min(S1, PDL)=96 -> 09:30 open 94
+    assert t.exit_time.endswith("09:45") and t.exit_reason == "close_vs_ema"   # 09:40 close 101 > EMA20 100
+    assert t.points == 94 - 102                                           # short P&L = entry - exit
+
+
+def test_short_trades_price_puts(monkeypatch):
+    from datetime import datetime
+    from cpr_vwap_ema_nifty import backtest as bt
+    seen = {}
+
+    class FakeMod:
+        con = True
+
+        def expiry_for(self, d):
+            return "2026-10-20"
+
+        def price(self, d, k, opt, when, spot, expiry=None):
+            seen["opt"] = opt
+            return 100.0 if when.hour == 9 else 130.0
+
+    t = en.Trade(date="2026-10-19", side="SHORT", entry_time="2026-10-19 09:30", entry_px=25010.0,
+                 exit_time="2026-10-19 11:00", exit_px=24950.0, exit_reason="close_vs_ema", points=60.0,
+                 mfe=70.0, mae=5.0, hold_min=90.0, vwap_source="futures_vwap")
+    out = bt._option_layers(t, load_config(), FakeMod(), None, set())
+    assert seen["opt"] == "PE" and out["opt_type"] == "PE" and out["strike"] == 25000.0
+    assert out["B_net"] > 0                                               # put gained 30 pts premium
+
+
+def test_r001_fingerprint_and_bar_unchanged():
+    r = json.loads((PKG / "rules.json").read_text())["preregistered"][0]
+    assert r["fingerprint"] == "3c3daa6c033b15b43c0952d39e3f93544bb1afe0ca3c911d1ada5a7df5809ddf"
+    assert rl.fingerprint(r) == r["fingerprint"] and rl.frozen_ok(r)
+
+
+def test_storage_rule_rejects_golden_field_and_results_in_rules():
+    bad = {**_c001(), "id": "C012", "setup": {**_c001()["setup"], "golden_pivot_zone": "none"}}
+    assert any("setup.golden_pivot_zone unknown" in e for e in rl.validate(bad))
+    bad2 = {**_c001(), "id": "C013", "verification": {"open": 22671.3}}
+    assert any("verification" in e for e in rl.validate(bad2))
+    raw = (PKG / "rules.json").read_text()
+    for banned in ("golden_pivot_zone", "H-A", "H-D", "priority_focus"):
+        assert banned not in raw, banned

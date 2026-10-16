@@ -94,6 +94,17 @@ def open_location(open_px: float, d_cpr: Dict[str, float], d_h3: float, w_h3: fl
     }
 
 
+def golden_pivot_zone(d_cpr: Dict[str, float], d_cam: Dict[str, float]) -> str:
+    """'bullish' if daily Camarilla L3 lies inside the daily CPR [BC, TC];
+    'bearish' if daily H3 lies inside it; else 'none'. Both cannot hold at once:
+    CPR width |2C-(H+L)|/3 <= (H-L)/3 is always smaller than H3-L3 = 0.55(H-L)."""
+    if d_cpr["BC"] <= d_cam["L3"] <= d_cpr["TC"]:
+        return "bullish"
+    if d_cpr["BC"] <= d_cam["H3"] <= d_cpr["TC"]:
+        return "bearish"
+    return "none"
+
+
 def session_ohlc(spot_1m: pd.DataFrame) -> pd.DataFrame:
     """Daily OHLC from 09:15-15:29 1m bars. Index: normalized date."""
     s = spot_1m.between_time("09:15", "15:29")
@@ -151,5 +162,6 @@ def build_day_levels(daily: pd.DataFrame, narrow_below: float, wide_above: float
             **d_cam, **{f"W{k}": v for k, v in w_cam.items()}, **{f"M{k}": v for k, v in m_cam.items()},
         }
         row.update(open_location(o, d_cpr, d_cam["H3"], w_cam["H3"]))
+        row["golden_pivot_zone"] = golden_pivot_zone(d_cpr, d_cam)
         rows.append(row)
     return pd.DataFrame(rows).set_index("date")

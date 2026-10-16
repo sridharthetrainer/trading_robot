@@ -67,8 +67,20 @@ def update_ledger(summary: Dict, run_id: str) -> Dict:
             if k not in led["tests"]:
                 led["tests"][k] = {"first_run": run_id[:10], "run_id": run_id}
                 new.append(k)
+    pr = summary.get("priority_run", {})
+    for name, t in pr.get("tests", {}).items():
+        if t.get("status") == "awaiting_definition":
+            continue
+        k = f"predeclared:{name}"
+        if k not in led["tests"]:
+            led["tests"][k] = {"first_run": run_id[:10], "run_id": run_id}
+            new.append(k)
+    looks = led.setdefault("descriptive_looks", {})
+    for lvl in pr.get("priority_focus", {}):
+        looks.setdefault(f"priority_focus:{lvl}", {"first_run": run_id[:10],
+                                                     "note": "descriptive split, not a pre-declared test"})
     LEDGER_FILE.write_text(json.dumps(led, indent=2) + "\n")
-    return {"total": len(led["tests"]), "new_this_run": new}
+    return {"total": len(led["tests"]), "new_this_run": new, "descriptive_looks": len(looks)}
 
 
 def load_config(path: Path = CONFIG_FILE) -> dict:
@@ -449,8 +461,27 @@ def to_markdown(s: Dict, prev: Optional[Dict]) -> str:
         for yr, v in c["walk_forward"].items():
             L.append(f"- {yr}: matched {_fmt(v['matched'])} || non-matched {_fmt(v['non_matched'])}")
         L.append("")
+    pr = s.get("priority_run")
+    if pr:
+        from . import hypothesis_tests as ht
+        tl = s.get("test_ledger", {})
+        total = int(tl.get("total") or 0)
+        L.append(ht.to_markdown(pr, total, 0.05 / total if total else 0.05))
+        L.append(f"Descriptive looks (priority-focus splits, not counted as tests): {tl.get('descriptive_looks')}. "
+                 "Everything in this report is EXPLORATORY; only R001's forward paper result is confirmatory.")
+    fwd = RESULTS_DIR / "forward" / "R001_status.json"
+    if fwd.exists():
+        st = json.loads(fwd.read_text())
+        L += ["", "## R001 forward status (paper)",
+              f"- {st.get('verdict', st.get('status'))}: {st.get('reason', '')} (evaluated {st.get('evaluated_at')})",
+              f"- {st.get('snapshot_coverage', {}).get('line', 'Snapshot coverage: n/a')}", ""]
     if prev:
         L += ["## Change vs previous run", f"Previous run: {prev.get('generated_at')}"]
+        if pr and not prev.get("priority_run"):
+            L.append("- NEW this run: golden_pivot_zone field, C001 re-verification, priority-focus splits, "
+                     "pre-declared tests H-A, H-B, H-D (H-C awaiting definition)")
+        ptl = prev.get("test_ledger", {})
+        L.append(f"- tests on dataset: {ptl.get('total')} -> {s.get('test_ledger', {}).get('total')}")
         for cid, c in s["conditions"].items():
             pc = prev.get("conditions", {}).get(cid)
             if not pc:
@@ -509,6 +540,10 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
         prep = prepare(cfg)
         trades = run(cfg, conditions, prep, with_options=with_options)
         summary = summarize(trades, prep, cfg, conditions)
+        from . import hypothesis_tests as ht
+        priority = ht.run_all(trades, prep, cfg, conditions)
+        hd_trades = priority.pop("_hd_trades", None)
+        summary["priority_run"] = priority
         summary["test_ledger"] = update_ledger(summary, summary["generated_at"])
         doc = rl.load()
         summary["registry"] = {
@@ -529,6 +564,8 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
                 shutil.copy2(f, hist / f.name)
         latest.mkdir(parents=True, exist_ok=True)
         trades.to_csv(latest / "trades.csv", index=False)
+        if hd_trades is not None:
+            hd_trades.to_csv(latest / "h_d_short_trades.csv", index=False)
         (latest / "summary.json").write_text(json.dumps(summary, indent=2, default=str))
         (latest / "summary.md").write_text(to_markdown(summary, prev))
         if not trades.empty:
