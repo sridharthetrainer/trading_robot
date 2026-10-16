@@ -178,7 +178,7 @@ def test_duplicate_conflict_and_new(tmp_path):
     path.write_text((PKG / "rules.json").read_text())
     dup = {**_c001(), "id": "C002", "date": "2026-10-20"}
     assert rl.add_condition(dup, path)["status"] == "duplicate"
-    conf = {**_c001(), "id": "C003", "outcome": "Faded", "outcome_class": "loss"}
+    conf = {**_c001(), "id": "C003", "outcome_class": "loss"}
     res = rl.add_condition(conf, path)
     assert res["status"] == "conflict" and res["with"] == "C001"
     new = {**_c001(), "id": "C004", "setup": {**_c001()["setup"], "cpr_width": "wide"}}
@@ -219,7 +219,7 @@ def test_live_flag_off_and_not_registered():
 def test_package_imports_existing_code_read_only():
     """Only these existing modules may be imported, and only for read-only calls."""
     allowed = {"angel", "request_governor", "nse_cost_model", "option_intraday_pricer", "dotenv"}
-    stdlib_or_third = {"argparse", "copy", "csv", "json", "logging", "os", "sqlite3", "sys", "time", "shutil", "datetime",
+    stdlib_or_third = {"argparse", "copy", "csv", "hashlib", "json", "logging", "os", "sqlite3", "sys", "time", "shutil", "datetime",
                        "pathlib", "typing", "functools", "dataclasses", "__future__", "numpy", "pandas",
                        "matplotlib"}
     for py in PKG.glob("*.py"):
@@ -261,13 +261,93 @@ def test_field_tests_are_one_field_subsets_of_base_variant():
     assert set(out["cpr_width"]["by_year"]) == {2023, 2025}
 
 
-def test_r001_is_proposed_frozen_and_not_counted():
-    from cpr_vwap_ema_nifty.forward import evaluate
+def test_r001_approved_frozen_and_bar_exactly_as_approved():
     r = json.loads((PKG / "rules.json").read_text())["preregistered"][0]
     assert r["id"] == "R001" and r["mode"] == "paper_only"
+    assert r["status"] == "approved" and r["approved_on"] == "2026-10-16" and r["date"] == "2026-10-16"
+    assert rl.frozen_ok(r)
     assert r["engine_mapping"]["filters"] == ["r1_pdh_break"]
-    if r["status"] != "approved":
-        assert evaluate("R001", fetch=False)["status"] == "not_approved"
+    b = r["forward_bar"]
+    assert b["evaluation_trades"] == 150 and b["kill_check_at_trades"] == 40
+    assert b["kill_if_any"] == {"pf_points_below": 0.9, "real_option_net_below_rs": -20000}
+    assert b["fail_immediately_if"] == {"real_option_drawdown_beyond_rs": 40000}
+    assert b["pass_if_all_at_150"] == {"pf_points_min": 1.15, "t_stat_points_min": 1.65, "real_option_net_min_rs": 0,
+                                       "real_option_drawdown_max_rs": 40000, "real_price_coverage_min_pct": 80}
+
+
+def test_modified_frozen_rule_is_refused(monkeypatch):
+    import copy
+    from cpr_vwap_ema_nifty import forward as fw
+    doc = copy.deepcopy(rl.load())
+    doc["preregistered"][0]["forward_bar"]["pass_if_all_at_150"]["pf_points_min"] = 1.0
+    monkeypatch.setattr(rl, "load", lambda path=None: doc)
+    assert fw.evaluate("R001", fetch=False)["status"] == "frozen_rule_modified"
+
+
+def test_unapproved_rule_counts_nothing(monkeypatch):
+    import copy
+    from cpr_vwap_ema_nifty import forward as fw
+    doc = copy.deepcopy(rl.load())
+    doc["preregistered"][0].update(status="proposed", approved_on=None)
+    monkeypatch.setattr(rl, "load", lambda path=None: doc)
+    assert fw.evaluate("R001", fetch=False)["status"] == "not_approved"
+
+
+def test_rules_json_obeys_storage_rule():
+    doc = json.loads((PKG / "rules.json").read_text())
+    for c in doc["conditions"]:
+        assert rl.validate(c) == [], c["id"]
+    for item in doc["conditions"] + doc["preregistered"] + doc["hypotheses"]:
+        assert rl._iso_date_ok(item["date"]), item["id"]
+    h = doc["hypotheses"][0]
+    assert h["id"] == "H001" and h["counts_toward_test_total"] is False and h["forward_trades_counted"] is False
+    raw = (PKG / "rules.json").read_text()
+    for banned in ("outcome\"", "observations", "result_at_logging", "simulated_from_backtest_trades", "22671", "23056"):
+        assert banned not in raw, banned
+
+
+def test_storage_rule_rejects_prices_and_unknown_fields():
+    bad = {**_c001(), "id": "C009", "entry_price": 22724.85}
+    assert any("entry_price" in e for e in rl.validate(bad))
+    bad2 = {**_c001(), "id": "C010", "setup": {**_c001()["setup"]}, "exit": {**_c001()["exit"], "level": 23020.7}}
+    assert any("exit.level" in e for e in rl.validate(bad2))
+    bad3 = {**_c001(), "id": "C011", "notes": "crossed R1 22734"}
+    assert any("notes" in e for e in rl.validate(bad3))
+
+
+def test_test_ledger_counts_distinct_tests_only(tmp_path, monkeypatch):
+    from cpr_vwap_ema_nifty import backtest as bt
+    monkeypatch.setattr(bt, "LEDGER_FILE", tmp_path / "ledger.json")
+    summary = {"conditions": {"C001": {
+        "variants": {"base|futures": {}, "base|with_missing": {}, "+r1_pdh_break|futures": {}},
+        "setup_sensitivity": {"drop cpr_width": {}},
+        "field_tests": {"base_variant": "+r1_pdh_break", "tests_run": 2, "reference_no_field_filter": {},
+                        "cpr_width": {}, "open_location": {}}}}}
+    first = bt.update_ledger(summary, "2026-10-16T10:00:00")
+    assert first["total"] == 5 and len(first["new_this_run"]) == 5
+    again = bt.update_ledger(summary, "2026-10-17T10:00:00")
+    assert again["total"] == 5 and again["new_this_run"] == []
+
+
+def test_snapshot_coverage_flags_risk(tmp_path, monkeypatch):
+    import sqlite3
+    from datetime import date
+    from cpr_vwap_ema_nifty import options_layers as ol
+    from cpr_vwap_ema_nifty.forward import snapshot_coverage
+    db = tmp_path / "snap.db"
+    con = sqlite3.connect(db)
+    con.execute("CREATE TABLE option_chain_snapshots (snapshot_time TEXT, underlying TEXT, ok INTEGER)")
+    full = [(f"2026-10-19T{9 + i // 12:02d}:{(i % 12) * 5:02d}:00+0530", "NIFTY", 1) for i in range(3, 75)]
+    part = [(f"2026-10-20T10:{m:02d}:00+0530", "NIFTY", 1) for m in range(0, 50, 5)]
+    con.executemany("INSERT INTO option_chain_snapshots VALUES (?,?,?)", full + part)
+    con.commit(); con.close()
+    monkeypatch.setattr(ol, "SNAPSHOT_DB", db)
+    sessions = [date(2026, 10, 19), date(2026, 10, 20), date(2026, 10, 21)]
+    cov = snapshot_coverage(sessions, load_config(), None, 80)
+    assert cov["full"] == 1 and cov["partial_days"] == ["2026-10-20"] and cov["no_snapshot_days"] == ["2026-10-21"]
+    assert cov["at_risk"] is True and "AT RISK" in cov["line"]
+    ok = snapshot_coverage(sessions[:1], load_config(), 100.0, 80)
+    assert ok["at_risk"] is False and ok["line"].endswith("OK")
 
 
 def _fwd(points, c_net):
@@ -275,7 +355,7 @@ def _fwd(points, c_net):
                          "entry_time": pd.date_range("2026-11-02 09:30", periods=len(points), freq="D").astype(str)})
 
 
-BAR = json.loads((PKG / "rules.json").read_text())["preregistered"][0]["forward_bar_proposed"]
+BAR = json.loads((PKG / "rules.json").read_text())["preregistered"][0]["forward_bar"]
 
 
 def test_forward_verdict_in_progress_kill_fail_pass():

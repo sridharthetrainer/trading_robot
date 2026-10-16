@@ -38,6 +38,39 @@ LOG_DIR = PKG_DIR / "logs"
 logger = logging.getLogger("cpr_vwap_ema_nifty.backtest")
 
 
+LEDGER_FILE = PKG_DIR / "test_ledger.json"
+
+
+def _ledger() -> Dict:
+    if LEDGER_FILE.exists():
+        return json.loads(LEDGER_FILE.read_text())
+    return {"dataset": "NIFTY spot 1m + futures 5m (Angel), sessions 2020-07-01..2026-10-15",
+            "counting": "one entry per distinct test looked at on this dataset (variant, sensitivity row, "
+                        "field test); re-runs of the same test do not add. Hypotheses and forward paper "
+                        "trades are not counted.",
+            "tests": {}}
+
+
+def ledger_total() -> int:
+    return len(_ledger()["tests"])
+
+
+def update_ledger(summary: Dict, run_id: str) -> Dict:
+    led = _ledger()
+    new = []
+    for cid, c in summary.get("conditions", {}).items():
+        keys = [f"{cid}|variant:{k.split('|')[0]}" for k in c.get("variants", {}) if k.endswith("|futures")]
+        keys += [f"{cid}|sensitivity:{k}" for k in c.get("setup_sensitivity", {})]
+        ft = c.get("field_tests", {})
+        keys += [f"{cid}|field:{k}" for k in ft if k not in ("base_variant", "tests_run", "reference_no_field_filter")]
+        for k in keys:
+            if k not in led["tests"]:
+                led["tests"][k] = {"first_run": run_id[:10], "run_id": run_id}
+                new.append(k)
+    LEDGER_FILE.write_text(json.dumps(led, indent=2) + "\n")
+    return {"total": len(led["tests"]), "new_this_run": new}
+
+
 def load_config(path: Path = CONFIG_FILE) -> dict:
     return json.loads(Path(path).read_text())
 
@@ -342,6 +375,13 @@ def to_markdown(s: Dict, prev: Optional[Dict]) -> str:
          f"Sessions: {s['data']['sessions_in_window']}; missing futures volume (skipped in 'futures' set, "
          f"spot-TWAP in 'with_missing' set): {s['data']['sessions_missing_futures_volume']}.",
          f"Spot data source per session: {s['data']['spot_source_counts']}.", "",
+         f"**Tests run on this dataset so far: {s.get('test_ledger', {}).get('total', '?')}** "
+         f"(new this run: {len(s.get('test_ledger', {}).get('new_this_run', []))}; ledger: test_ledger.json). "
+         "Hypotheses and forward paper trades are not counted.",
+         f"Conditions logged (observations): {s.get('registry', {}).get('conditions_logged')}",
+         f"Hypotheses (observation only, not tested, not counted): {s.get('registry', {}).get('hypotheses_not_counted')}",
+         f"Pre-registered rules: {s.get('registry', {}).get('preregistered')} "
+         "(forward status: results/forward/<id>_status.json)", "",
          "Layer A = NIFTY index points, no costs. B = modelled 1-lot ATM option, net of costs and 1pt/side "
          "slippage (prior-session IV held constant). C = real option prices from 5-min chain snapshots "
          "(2026-06-19 onward only).", ""]
@@ -469,6 +509,16 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
         prep = prepare(cfg)
         trades = run(cfg, conditions, prep, with_options=with_options)
         summary = summarize(trades, prep, cfg, conditions)
+        summary["test_ledger"] = update_ledger(summary, summary["generated_at"])
+        doc = rl.load()
+        summary["registry"] = {
+            "hypotheses_not_counted": [{"id": h["id"], "date": h["date"], "status": h.get("status")}
+                                       for h in doc.get("hypotheses", [])],
+            "preregistered": [{"id": r["id"], "status": r.get("status"), "approved_on": r.get("approved_on"),
+                               "frozen_ok": rl.frozen_ok(r)} for r in doc.get("preregistered", [])],
+            "conditions_logged": [{"id": c["id"], "date": c["date"], "role": c.get("role")}
+                                  for c in doc.get("conditions", [])],
+        }
         latest = RESULTS_DIR / "latest"
         prev = None
         if (latest / "summary.json").exists():

@@ -1,0 +1,86 @@
+{
+  "dataset": "NIFTY spot 1m + futures 5m (Angel), sessions 2020-07-01..2026-10-15",
+  "counting": "one entry per distinct test looked at on this dataset (variant, sensitivity row, field test); re-runs of the same test do not add. Hypotheses and forward paper trades are not counted.",
+  "tests": {
+    "C001|variant:+all_filters": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|variant:+ema200_30m": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|variant:+pwh_break": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|variant:+r1_pdh_break": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|variant:+target_r4_mh3": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|variant:base": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:drop cpr_width": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:drop cpr_vs_prior_day": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:drop cpr_vs_weekly": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:drop cpr_vs_monthly": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:drop open_vs_cpr": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:drop open_vs_daily_h3": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:drop open_vs_weekly_h3": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:CPR fields only": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|sensitivity:CPR width only": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|field:cpr_width": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|field:cpr_vs_prior_day": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|field:cpr_vs_weekly": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|field:cpr_vs_monthly": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    },
+    "C001|field:open_location": {
+      "first_run": "2026-10-16",
+      "run_id": "2026-10-16T11:15:11"
+    }
+  }
+}

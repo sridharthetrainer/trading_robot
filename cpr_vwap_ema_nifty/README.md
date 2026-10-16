@@ -43,18 +43,39 @@ call this package until it is explicitly registered in `signal_engine.py`
 .venv/bin/python -m cpr_vwap_ema_nifty add-condition new.json
 ```
 
+## Storage rule (rules.json)
+
+`rules.json` stores ONLY rule fields plus dates: `date` is the trade date the
+item describes (so that session can be revisited and backtested later);
+`added` / `proposed_on` / `approved_on` record when it was logged. No prices,
+candles, indicator values, levels-crossed lists, trade logs or backtest
+results. Everything else is pulled from the date at run time; outputs go only
+to `results/` and `results/history/`. `rules.validate()` enforces this with a
+field whitelist and rejects numbers other than `exit.period`.
+
+Sections: `conditions` (observations, e.g. C001), `preregistered` (frozen
+forward rules, e.g. R001, fingerprinted), `hypotheses` (observation only, not
+tested, not counted, e.g. H001).
+
+## Test count
+
+`test_ledger.json` lists every distinct test looked at on the backtest dataset
+(variant, sensitivity row, field test) with the date first run. Every
+backtest report and forward report prints the total. Hypotheses and forward
+paper trades do not add to it.
+
 ## Adding a condition
 
 Write a JSON object with the same fields as C001 in `rules.json` (new `id`,
-`date`, `setup`, `context`, `vwap_behavior`, `entry`, `exit`,
-`observations`, `outcome`, optional `outcome_class`), then run
-`add-condition`. It:
+`date` = the trade date, `instrument`, `timeframe`, `bias`, `setup`,
+`context`, `vwap_behavior`, `entry`, `exit`, `outcome_class` = win / loss /
+flat / unknown, optional `optional_filters`), then run `add-condition`. It:
 
 1. validates field values (allowed values are listed in `rules.py`),
 2. checks duplicates: same timeframe + CPR relations + CPR width + open
-   location + MA context + VWAP behaviour **and** same outcome -> skipped and
-   reported; same everything but a different outcome -> added with
-   `conflict_with` set and reported as a CONFLICT,
+   location + MA context + VWAP behaviour **and** same outcome class ->
+   skipped and reported; same everything but a different outcome class ->
+   added with `conflict_with` set and reported as a CONFLICT,
 3. re-runs the full backtest and writes "Change vs previous run" into
    `results/latest/summary.md` (previous run archived in `results/history/`).
 
@@ -77,9 +98,18 @@ Write a JSON object with the same fields as C001 in `rules.json` (new `id`,
 
 `rules.json` -> `"preregistered"` holds frozen rules (R001 = R1/PDH breakout).
 A rule stays `"status": "proposed"` until the user approves its forward bar;
-approval = set `"status": "approved"` and `"approved_on"`. Counting starts the
-first session AFTER `approved_on`. Any later change to the definition, costs
-or bar needs a new rule id with a fresh forward window.
+approval = set `"status": "approved"` and `"approved_on"`, then `frozen` and a
+`fingerprint` of definition + engine_mapping + forward_bar. Counting starts the
+first session AFTER `approved_on`. If the frozen parts change, `forward-report`
+returns `frozen_rule_modified` and counts nothing; a changed rule needs a new
+id with a fresh forward window. R001 was approved 2026-10-16 (counting from
+2026-10-19). The bar's simulation rationale is in
+`results/preregistration/R001_bar_rationale.json`.
+
+The forward report includes a snapshot-coverage line (sessions with full /
+partial / no option-chain snapshots and the share of trades priced from real
+snapshots). It turns `AT RISK` when either falls within 5 points of the 80%
+requirement, before the requirement itself fails.
 
 ```
 .venv/bin/python -m cpr_vwap_ema_nifty forward-report R001

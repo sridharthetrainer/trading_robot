@@ -53,7 +53,9 @@
     "strike_step": 50,
     "slippage_points_per_side": 1.0,
     "cost_model": "nse_cost_model.NseCostModel (read-only call; include_slippage=False; trade_date-aware STT)",
-    "real_price_max_lag_minutes": 10
+    "real_price_max_lag_minutes": 10,
+    "snapshot_expected_per_session": 66,
+    "snapshot_partial_below_pct": 50
   },
   "angel": {
     "spot_token": "99926000",

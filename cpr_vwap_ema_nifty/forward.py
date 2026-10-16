@@ -85,6 +85,35 @@ def verdict_final(trades: pd.DataFrame, bar: Dict) -> Dict:
             "failed: " + ", ".join(k for k, v in checks.items() if not v)}
 
 
+def snapshot_coverage(sessions, cfg: dict, trade_cov_pct: Optional[float], need_pct: float) -> Dict:
+    """Option-chain snapshot recorder coverage for counted sessions, so the
+    real-price coverage requirement can be seen at risk before it fails."""
+    o = cfg["options"]
+    expected = int(o.get("snapshot_expected_per_session", 66))
+    partial_below = expected * float(o.get("snapshot_partial_below_pct", 50)) / 100
+    counts: Dict[str, int] = {}
+    con = RealLayer(cfg).con
+    if con is not None and sessions:
+        days = [d.isoformat() for d in sessions]
+        marks = ",".join("?" * len(days))
+        counts = dict(con.execute(
+            "SELECT substr(snapshot_time,1,10), COUNT(*) FROM option_chain_snapshots WHERE ok=1 AND "
+            f"underlying='NIFTY' AND substr(snapshot_time,12,5) BETWEEN '09:15' AND '15:30' "
+            f"AND substr(snapshot_time,1,10) IN ({marks}) GROUP BY 1", days).fetchall())
+    none = [d.isoformat() for d in sessions if counts.get(d.isoformat(), 0) == 0]
+    partial = [d.isoformat() for d in sessions if 0 < counts.get(d.isoformat(), 0) < partial_below]
+    n = len(sessions)
+    gap_pct = round((len(none) + len(partial)) / n * 100, 1) if n else 0.0
+    buffer_pct = need_pct + 5
+    at_risk = bool(n) and (gap_pct > 100 - buffer_pct or (trade_cov_pct is not None and trade_cov_pct < buffer_pct))
+    line = (f"Snapshot coverage: {n - len(none) - len(partial)}/{n} sessions full, {len(partial)} partial, "
+            f"{len(none)} with no snapshots; trade price coverage "
+            f"{'n/a' if trade_cov_pct is None else f'{trade_cov_pct}%'} (need >= {need_pct}%). "
+            f"{'AT RISK' if at_risk else 'OK'}")
+    return {"sessions": n, "full": n - len(none) - len(partial), "partial_days": partial,
+            "no_snapshot_days": none, "gap_pct": gap_pct, "at_risk": at_risk, "line": line}
+
+
 def evaluate(rule_id: str = "R001", fetch: bool = True, today: Optional[date] = None) -> Dict:
     today = today or date.today()
     rule = next((r for r in rl.load().get("preregistered", []) if r["id"] == rule_id), None)
@@ -93,7 +122,11 @@ def evaluate(rule_id: str = "R001", fetch: bool = True, today: Optional[date] = 
     if rule.get("status") != "approved" or not rule.get("approved_on"):
         return {"rule": rule_id, "status": "not_approved", "counted_trades": 0,
                 "note": "Nothing is counted until the user approves the bar (status=approved, approved_on set)."}
-    bar = rule.get("forward_bar") or rule.get("forward_bar_proposed")
+    if not rl.frozen_ok(rule):
+        return {"rule": rule_id, "status": "frozen_rule_modified", "counted_trades": 0,
+                "note": "definition / engine_mapping / forward_bar no longer match the approved fingerprint; "
+                        "a changed rule needs a new id and a fresh forward window."}
+    bar = rule["forward_bar"]
     approved = date.fromisoformat(rule["approved_on"])
     cfg = copy.deepcopy(bt.load_config())
     if fetch:
@@ -127,8 +160,13 @@ def evaluate(rule_id: str = "R001", fetch: bool = True, today: Optional[date] = 
     if "C_net" not in trades:
         trades["C_net"] = np.nan
     v = verdict(trades.sort_values("entry_time") if len(trades) else trades, bar)
+    sessions = [d.date() for d in prep["days"] if d.date() > approved]
+    cov = snapshot_coverage(sessions, cfg, v.get("real_price_coverage_pct"),
+                            bar["pass_if_all_at_150"]["real_price_coverage_min_pct"])
     status = {"rule": rule_id, "evaluated_at": datetime.now().isoformat(timespec="seconds"),
-              "approved_on": rule["approved_on"], **v}
+              "approved_on": rule["approved_on"], **v, "snapshot_coverage": cov,
+              "tests_on_backtest_dataset": bt.ledger_total(),
+              "note": "Forward paper trades are not backtest tests and do not add to the test count."}
     FORWARD_DIR.mkdir(parents=True, exist_ok=True)
     trades.to_csv(FORWARD_DIR / f"{rule_id}_trades.csv", index=False)
     (FORWARD_DIR / f"{rule_id}_status.json").write_text(json.dumps(status, indent=2, default=str))

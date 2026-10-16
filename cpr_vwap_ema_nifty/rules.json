@@ -17,7 +17,6 @@
         "open_vs_daily_h3": "below",
         "open_vs_weekly_h3": "below"
       },
-      "open_location_text": "Above CPR, between CPR and daily H3, below weekly H3. Verified from spot data (open 22671.3; TC 22658.5; daily H3 22677.4; weekly H3 22684.4). The original 'above daily H3 and weekly H3' was an unconfirmed assumption.",
       "context": {
         "above_vwap": true,
         "above_ema20_5m": true,
@@ -44,26 +43,20 @@
         "pwh_break",
         "target_r4_mh3"
       ],
-      "observations": [
-        "Price was below the 30m 200 EMA until 09:45, then the first 30m bar closed above it (22747.0 vs EMA 22744.1, only 3 points).",
-        "Rally extended after R1 and PDH were crossed.",
-        "Rally continued after PWH was crossed.",
-        "Rally ran to R4 (Traditional 23020.7) / monthly H3 (23053.2); day high 23056.4 at 13:35."
-      ],
-      "outcome": "Rallied R1, H4, PDH, PWH, WR1, H5, WH4, R2, R3, R4/MH3, then reversed; first 5m close below the 5m 20 EMA at 14:20 (23015.05 vs 23019.0).",
-      "outcome_class": "win"
+      "outcome_class": "win",
+      "role": "observation"
     }
   ],
   "preregistered": [
     {
       "id": "R001",
       "name": "R1/PDH breakout with VWAP + EMA context",
-      "status": "proposed",
+      "status": "approved",
       "proposed_on": "2026-10-16",
-      "approved_on": null,
-      "counting_starts": "first NSE session after approved_on; nothing before approval is counted",
+      "approved_on": "2026-10-16",
+      "counting_starts": "first NSE session after 2026-10-16 (2026-10-19); nothing before is counted",
       "mode": "paper_only",
-      "derived_from": "C001 '+r1_pdh_break' variant, selected post-hoc (1 of 5 filter variants) in the 2026-10-16 backtest: all-days PF 1.42 points (IS 1.41 / OOS 1.44), modelled 1-lot ATM CE +Rs 141,963 over 612 trades, 10 real-price trades +Rs 5,050.",
+      "derived_from": "C001 optional filter r1_pdh_break, applied to all sessions",
       "definition": {
         "instrument": "NIFTY",
         "timeframe": "5m",
@@ -96,7 +89,10 @@
           "period": 20
         }
       },
-      "forward_bar_proposed": {
+      "frozen_after_approval": "definition, costs and bar may not change once approved; any change = a new rule id with its own fresh forward window",
+      "approval": "User approved 2026-10-16: forward pass/fail bar exactly as proposed; definition frozen; paper mode only; research_only stays true; signal_engine.py untouched.",
+      "frozen": true,
+      "forward_bar": {
         "evaluation_trades": 150,
         "kill_check_at_trades": 40,
         "kill_if_any": {
@@ -113,17 +109,30 @@
           "real_option_drawdown_max_rs": 40000,
           "real_price_coverage_min_pct": 80
         },
-        "otherwise": "FAIL",
-        "simulated_from_backtest_trades": {
-          "method": "5-trade block bootstrap of the 612 backtest trades, 20k reps; 'no edge' = same trades de-meaned",
-          "pass_probability_if_backtest_edge_is_real": 0.35,
-          "pass_probability_if_no_edge": 0.016,
-          "killed_at_40_if_edge_real": 0.15,
-          "killed_at_40_if_no_edge": 0.43
-        },
-        "expected_duration": "about 22 months at the out-of-sample rate of 6.9 trades/month"
+        "otherwise": "FAIL"
       },
-      "frozen_after_approval": "definition, costs and bar may not change once approved; any change = a new rule id with its own fresh forward window"
+      "date": "2026-10-16",
+      "fingerprint": "3c3daa6c033b15b43c0952d39e3f93544bb1afe0ca3c911d1ada5a7df5809ddf",
+      "fingerprint_note": "Re-fingerprinted 2026-10-16 when backtest statistics were moved out of forward_bar under the storage rule; definition, engine_mapping and every pass/fail threshold are unchanged."
     }
-  ]
+  ],
+  "hypotheses": [
+    {
+      "id": "H001",
+      "date": "2026-10-16",
+      "added": "2026-10-16",
+      "status": "observation_only",
+      "counts_toward_test_total": false,
+      "forward_trades_counted": false,
+      "description": "Open-location filter on R001's signal: session open above daily CPR, below daily Camarilla H3, below weekly Camarilla H3.",
+      "instruction": "Do NOT promote. No forward trades counted, no further tests run on it. Revisit only with the user's explicit decision.",
+      "base_rule": "C001 optional filter r1_pdh_break",
+      "filter": {
+        "open_vs_cpr": "above",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "below"
+      }
+    }
+  ],
+  "storage_policy": "rules.json stores ONLY rule fields plus dates: 'date' = the trade date the item describes (revisit that session later), 'added' / 'proposed_on' / 'approved_on' = when it was logged. No prices, candles, indicator values, levels-crossed lists, trade logs or backtest results; those are pulled from the date at run time or written only to results/ and results/history/."
 }

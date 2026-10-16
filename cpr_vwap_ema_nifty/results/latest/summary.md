@@ -1,8 +1,13 @@
-# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T10:20:40
+# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T11:19:09
 
 Window 2020-07-01 to 2026-10-15; out-of-sample from 2024-07-01.
 Sessions: 1555; missing futures volume (skipped in 'futures' set, spot-TWAP in 'with_missing' set): 3.
 Spot data source per session: {'angel': 1614, 'insufficient': 4}.
+
+**Tests run on this dataset so far: 20** (new this run: 0; ledger: test_ledger.json). Hypotheses and forward paper trades are not counted.
+Conditions logged (observations): [{'id': 'C001', 'date': '2026-10-15', 'role': 'observation'}]
+Hypotheses (observation only, not tested, not counted): [{'id': 'H001', 'date': '2026-10-16', 'status': 'observation_only'}]
+Pre-registered rules: [{'id': 'R001', 'status': 'approved', 'approved_on': '2026-10-16', 'frozen_ok': True}] (forward status: results/forward/<id>_status.json)
 
 Layer A = NIFTY index points, no costs. B = modelled 1-lot ATM option, net of costs and 1pt/side slippage (prior-session IV held constant). C = real option prices from 5-min chain snapshots (2026-06-19 onward only).
 
@@ -243,6 +248,6 @@ Each row loosens the setup; many looks at one dataset, so a single good row is w
 - 2026: matched 1 trades | win 100.0% | avg win 289.55 / loss 0.0 pts | PF n/a | exp 289.55 pts | total 289.55 | maxDD 0.0 | hold 305.0m | MFE 331.6 / MAE 44.4 pts || non-matched 129 trades | win 33.3% | avg win 54.91 / loss -38.08 pts | PF 0.72 | exp -7.08 pts | total -913.25 | maxDD -1026.9 | hold 79.4m | MFE 50.1 / MAE 37.5 pts
 
 ## Change vs previous run
-Previous run: 2026-10-16T08:59:58
+Previous run: 2026-10-16T11:15:11
 - C001 base|futures matched: trades 1 -> 1, expectancy 289.55 -> 289.55, PF None -> None
 - C001 base|futures non_matched: trades 1159 -> 1159, expectancy -0.48 -> -0.48, PF 0.98 -> 0.98

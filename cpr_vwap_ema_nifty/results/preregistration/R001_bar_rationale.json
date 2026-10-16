@@ -1,0 +1,13 @@
+{
+  "rule": "R001",
+  "computed_on": "2026-10-16",
+  "simulated_from_backtest_trades": {
+    "method": "5-trade block bootstrap of the 612 backtest trades, 20k reps; 'no edge' = same trades de-meaned",
+    "pass_probability_if_backtest_edge_is_real": 0.35,
+    "pass_probability_if_no_edge": 0.016,
+    "killed_at_40_if_edge_real": 0.15,
+    "killed_at_40_if_no_edge": 0.43
+  },
+  "expected_duration": "about 22 months at the out-of-sample rate of 6.9 trades/month",
+  "backtest_basis": "C001 '+r1_pdh_break' variant, selected post-hoc (1 of 5 filter variants) in the 2026-10-16 backtest: all-days PF 1.42 points (IS 1.41 / OOS 1.44), modelled 1-lot ATM CE +Rs 141,963 over 612 trades, 10 real-price trades +Rs 5,050."
+}

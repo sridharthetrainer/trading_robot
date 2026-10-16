@@ -1,0 +1,32 @@
+{
+  "moved_on": "2026-10-16",
+  "reason": "User storage rule: rules.json holds only rule fields and the trade date; data and results are recomputed from the date at run time or live in results/.",
+  "items": {
+    "C001": {
+      "open_location_text": "Above CPR, between CPR and daily H3, below weekly H3. Verified from spot data (open 22671.3; TC 22658.5; daily H3 22677.4; weekly H3 22684.4). The original 'above daily H3 and weekly H3' was an unconfirmed assumption.",
+      "observations": [
+        "Price was below the 30m 200 EMA until 09:45, then the first 30m bar closed above it (22747.0 vs EMA 22744.1, only 3 points).",
+        "Rally extended after R1 and PDH were crossed.",
+        "Rally continued after PWH was crossed.",
+        "Rally ran to R4 (Traditional 23020.7) / monthly H3 (23053.2); day high 23056.4 at 13:35."
+      ],
+      "outcome": "Rallied R1, H4, PDH, PWH, WR1, H5, WH4, R2, R3, R4/MH3, then reversed; first 5m close below the 5m 20 EMA at 14:20 (23015.05 vs 23019.0)."
+    },
+    "R001": {
+      "derived_from": "C001 '+r1_pdh_break' variant, selected post-hoc (1 of 5 filter variants) in the 2026-10-16 backtest: all-days PF 1.42 points (IS 1.41 / OOS 1.44), modelled 1-lot ATM CE +Rs 141,963 over 612 trades, 10 real-price trades +Rs 5,050.",
+      "forward_bar.simulated_from_backtest_trades": {
+        "method": "5-trade block bootstrap of the 612 backtest trades, 20k reps; 'no edge' = same trades de-meaned",
+        "pass_probability_if_backtest_edge_is_real": 0.35,
+        "pass_probability_if_no_edge": 0.016,
+        "killed_at_40_if_edge_real": 0.15,
+        "killed_at_40_if_no_edge": 0.43
+      },
+      "forward_bar.expected_duration": "about 22 months at the out-of-sample rate of 6.9 trades/month",
+      "previous_fingerprint": "a141b6eff236da52a8d0973cc3a476352223fe7ad60fb95cc4ce4052decc85d8"
+    },
+    "H001": {
+      "result_at_logging": "81 trades, PF 2.29 points (IS 1.79 / OOS 2.87), modelled B +Rs 67,872, bootstrap CI +5.5..+37.4 pts/trade (p=0.0034, does not clear the ~20-look Bonferroni bar of 0.0025); losing years 2020, 2021, 2023.",
+      "source": "Field test 'open_location' (one of 5 user-declared field tests on +r1_pdh_break, backtest 2026-10-16T10:20:40)."
+    }
+  }
+}

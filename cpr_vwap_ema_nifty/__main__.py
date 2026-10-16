@@ -31,6 +31,8 @@ def _short(summary: dict) -> str:
         out.append(f"{cid}: setup-matched sessions {c['setup_matched_sessions']}")
         for s in ("matched", "non_matched"):
             out.append(f"  {s:12s} {bt._fmt(base.get(s, {}))}")
+    tl = summary.get("test_ledger", {})
+    out.append(f"Tests run on this dataset so far: {tl.get('total')} (new this run: {len(tl.get('new_this_run', []))})")
     out.append("Full report: cpr_vwap_ema_nifty/results/latest/summary.md")
     return "\n".join(out)
 
