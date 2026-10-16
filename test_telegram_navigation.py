@@ -20,6 +20,7 @@ def test_option_navigation_contains_only_curated_routes():
         "oichart", "strikeflow", "pcr", "spreads", "direction",
         "nexttrade", "pause", "resume", "prepare", "orderstatus", "probability",
         "scalp", "scalpstatus", "scalpsignals", "optscalp", "scalppnl",
+        "straddle", "participants", "trendoi",
     }
     handler.restrict_to(allowed)
     handler.set_navigation_profile("option")
