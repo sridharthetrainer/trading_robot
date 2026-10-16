@@ -129,9 +129,12 @@ def capture_sectors() -> Dict[str, Any]:
         return {"saved": False, "error": str(exc)}
 
 
-def capture_participant_oi(days: int = 7) -> Dict[str, Any]:
+def capture_participant_oi(days: int = 45) -> Dict[str, Any]:
     """Refresh participant_oi.db from the NSE archive for the last `days`
-    (idempotent — days already stored are skipped). Keeps participant_oi's
+    (idempotent — days already stored are skipped without a request). 45, not 7:
+    this only runs when the bot is up at 19:00, and a 7-day window left
+    permanent holes after longer outages (2026-08-20..25, 09-22..10-01 were
+    missing until backfilled 2026-10-16). Keeps participant_oi's
     get_participant_data() reading fresh FII/DII/PRO/CLIENT positioning, since
     the live NSE JSON endpoints it tried first return nothing."""
     try:

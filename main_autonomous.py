@@ -2389,6 +2389,7 @@ class AutonomousTradingSystem:
                                 "  /oichart — intraday OI line chart\n"
                                 "  /strikeflow — active CE/PE strikes\n"
                                 "  /straddle [BANKNIFTY] — ATM straddle + IV chart\n"
+                                "  /participants [days] — FII/DII/Pro/Client trend\n"
                                 "  /pcr — put/call ratio\n\n"
                                 "🎚️ <b>CONTROL</b>\n"
                                 "  /optlots 1|2|3 — today's lot ceiling\n"
@@ -2432,7 +2433,7 @@ class AutonomousTradingSystem:
                             "help", "menu", "start", "status", "report", "signals", "all", "optionall", "eodall",
                             "optedge", "edge", "optpositions", "positions",
                             "controlroom", "readiness", "profitgate",
-                            "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr", "straddle",
+                            "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr", "straddle", "participants",
                             "spreads", "prepare", "orderstatus", "probability",
                             "scalp", "scalpstatus", "scalpsignals", "optscalp", "scalppnl",
                             "direction", "tradeview", "view", "nexttrade",
@@ -2458,6 +2459,7 @@ class AutonomousTradingSystem:
                                 ("probability", "Evidence and monthly target probability"),
                                 ("scalpsignals", "Recorded scalping signals and levels"),
                                 ("straddle", "ATM straddle premium and IV chart"),
+                                ("participants", "FII/DII/Pro/Client positioning trend"),
                                 ("positions", "Open option positions"),
                                 ("help", "Grouped option commands"),
                             ])

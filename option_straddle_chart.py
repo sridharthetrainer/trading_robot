@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import tempfile
 from datetime import date, datetime
 from pathlib import Path
@@ -32,6 +33,8 @@ from typing import Any, Dict, List, Optional
 import chart_theme as ct
 from option_intraday_pricer import RISK_FREE_RATE, implied_vol, year_fraction
 from option_oi_chart import DB_PATH, OIChartResult, _load_snapshot_rows, _parse_time, _safe_float
+
+logger = logging.getLogger(__name__)
 
 
 def _rows_by_strike(snap: Dict[str, Any]) -> Dict[float, Dict[str, Any]]:
@@ -75,7 +78,7 @@ def straddle_series(snapshots: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             expiry = date.fromisoformat(str(row.get("expiryDate") or "")[:10])
             iv = _atm_iv(row, spot, atm, year_fraction(ts, expiry))
         except ValueError:
-            pass
+            logger.debug("straddle IV skipped: bad expiryDate %r", row.get("expiryDate"))
         open_row = rows.get(open_strike)
         out.append({
             "time": ts,

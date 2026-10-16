@@ -609,6 +609,7 @@ class TelegramCommandHandler:
             "options": [[("OI S/R", "cmd:oisr"), ("OI Chart", "cmd:oichart")],
                         [("Strike Flow", "cmd:strikeflow"), ("PCR", "cmd:pcr")],
                         [("Straddle", "cmd:straddle"), ("BN Straddle", "cmd:straddle BANKNIFTY")],
+                        [("FII/DII/Pro/Client", "cmd:participants")],
                         [("Spreads", "cmd:spreads"), ("⬅️ Back", "menu:home")]],
             "control": [[("Set Lots", "prompt:optlots"), ("Readiness", "cmd:controlroom")],
                         [("⏸ Pause", "confirm:pause"), ("▶️ Resume", "confirm:resume")],
@@ -891,6 +892,7 @@ class TelegramCommandHandler:
         self.register("cepe",        self._cmd_strikeflow)
         self.register("oisr",        self._cmd_oi_sr)
         self.register("straddle",    self._cmd_straddle)
+        self.register("participants", self._cmd_participants)
         self.register("sr",          self._cmd_oi_sr)
         self.register("oiprofile",   self._cmd_oi_sr)
         self.register("chainsignals", self._cmd_chain_signals)
@@ -2170,6 +2172,22 @@ class TelegramCommandHandler:
             return f"⚠️ Straddle: {getattr(res, 'reason', 'unavailable')}"
         except Exception as e:
             return f"/straddle error: {e}"
+
+    def _cmd_participants(self, args: str = "") -> str:
+        """FII/DII/Pro/Client index F&O positioning trend chart (EOD, context only).
+          /participants        (last 20 sessions)
+          /participants 60"""
+        try:
+            toks = [t for t in str(args or "").split() if t.isdigit()]
+            days = max(5, min(250, int(toks[0]))) if toks else 20
+            from participant_oi_chart import generate_participant_chart
+            res = generate_participant_chart(days=days)
+            if getattr(res, "ok", False) and res.path:
+                self.send_photo(res.path, caption=res.caption)
+                return ""
+            return f"⚠️ Participants: {getattr(res, 'reason', 'unavailable')}"
+        except Exception as e:
+            return f"/participants error: {e}"
 
     def _cmd_oi_chart(self, args: str = "") -> str:
         """

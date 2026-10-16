@@ -38,8 +38,15 @@ def _fill_nifty_daily(start: date, end: date) -> Dict[str, Any]:
         conn.close()
 
 
+def _fill_participant_oi(start: date, end: date) -> Dict[str, Any]:
+    import participant_oi_backfill
+    return participant_oi_backfill.backfill(start, end)
+
+
 # (store name, db file, last-date query, fill callable(start, end))
 SOURCES = [
+    {"name": "participant_oi", "db": "participant_oi.db",
+     "q": "SELECT MAX(date) FROM participant_oi", "fill": _fill_participant_oi},
     {"name": "nifty_daily", "db": "participant_oi.db",
      "q": "SELECT MAX(date) FROM nifty_daily", "fill": _fill_nifty_daily},
     {"name": "options_eod (premia)", "db": "options_nifty.db",
