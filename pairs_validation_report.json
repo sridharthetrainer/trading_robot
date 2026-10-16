@@ -10,13 +10,13 @@
       "common_days": 1019,
       "dev_days": 713,
       "holdout_days": 306,
-      "hedge_beta": 0.6527,
+      "hedge_beta": 0.6528,
       "cointegration": {
-        "adf_tstat": -3.279,
+        "adf_tstat": -3.314,
         "adf_crit_5pct": -3.34,
         "test": "engle_granger_residual_adf0_conservative",
         "stationary": false,
-        "half_life_days": 22.6,
+        "half_life_days": 22.4,
         "corr": 0.933,
         "cointegrated": false
       },
@@ -27,16 +27,16 @@
         "net": 0.3139,
         "avg_ret": 0.01163,
         "mean_lcb95": 0.00219,
-        "positive_mean_p_one_sided": 0.021392
+        "positive_mean_p_one_sided": 0.02139
       },
       "oos_backtest": {
-        "trades": 11,
-        "sharpe": 5.014,
-        "win_rate": 72.7,
-        "net": 0.1364,
-        "avg_ret": 0.0124,
-        "mean_lcb95": 0.00327,
-        "positive_mean_p_one_sided": 0.012763
+        "trades": 12,
+        "sharpe": 5.633,
+        "win_rate": 75.0,
+        "net": 0.1673,
+        "avg_ret": 0.01394,
+        "mean_lcb95": 0.00523,
+        "positive_mean_p_one_sided": 0.00425
       },
       "gate": {
         "min_oos_trades": 20,
@@ -52,33 +52,33 @@
       "common_days": 1019,
       "dev_days": 713,
       "holdout_days": 306,
-      "hedge_beta": 0.9152,
+      "hedge_beta": 0.9164,
       "cointegration": {
-        "adf_tstat": -3.041,
+        "adf_tstat": -2.917,
         "adf_crit_5pct": -3.34,
         "test": "engle_granger_residual_adf0_conservative",
         "stationary": false,
-        "half_life_days": 29.9,
-        "corr": 0.954,
+        "half_life_days": 31.2,
+        "corr": 0.955,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 26,
-        "sharpe": 1.001,
+        "sharpe": 1.002,
         "win_rate": 57.7,
         "net": 0.0872,
         "avg_ret": 0.00335,
         "mean_lcb95": -0.00447,
-        "positive_mean_p_one_sided": 0.240308
+        "positive_mean_p_one_sided": 0.240288
       },
       "oos_backtest": {
         "trades": 10,
-        "sharpe": -0.669,
+        "sharpe": -0.674,
         "win_rate": 50.0,
-        "net": -0.0383,
-        "avg_ret": -0.00383,
-        "mean_lcb95": -0.02611,
-        "positive_mean_p_one_sided": 0.611277
+        "net": -0.0386,
+        "avg_ret": -0.00386,
+        "mean_lcb95": -0.02614,
+        "positive_mean_p_one_sided": 0.612034
       },
       "gate": {
         "min_oos_trades": 20,
@@ -94,9 +94,9 @@
       "common_days": 1019,
       "dev_days": 713,
       "holdout_days": 306,
-      "hedge_beta": 0.5571,
+      "hedge_beta": 0.5567,
       "cointegration": {
-        "adf_tstat": -2.418,
+        "adf_tstat": -2.422,
         "adf_crit_5pct": -3.34,
         "test": "engle_granger_residual_adf0_conservative",
         "stationary": false,
@@ -108,19 +108,19 @@
         "trades": 25,
         "sharpe": -0.991,
         "win_rate": 60.0,
-        "net": -0.1265,
-        "avg_ret": -0.00506,
+        "net": -0.1264,
+        "avg_ret": -0.00505,
         "mean_lcb95": -0.01722,
-        "positive_mean_p_one_sided": 0.753066
+        "positive_mean_p_one_sided": 0.752915
       },
       "oos_backtest": {
         "trades": 16,
-        "sharpe": 3.979,
+        "sharpe": 3.98,
         "win_rate": 81.2,
         "net": 0.3105,
-        "avg_ret": 0.01941,
+        "avg_ret": 0.0194,
         "mean_lcb95": 0.0047,
-        "positive_mean_p_one_sided": 0.01497
+        "positive_mean_p_one_sided": 0.01496
       },
       "gate": {
         "min_oos_trades": 20,
@@ -136,33 +136,33 @@
       "common_days": 1019,
       "dev_days": 713,
       "holdout_days": 306,
-      "hedge_beta": 2.2462,
+      "hedge_beta": 2.2481,
       "cointegration": {
-        "adf_tstat": -2.222,
+        "adf_tstat": -2.195,
         "adf_crit_5pct": -3.34,
         "test": "engle_granger_residual_adf0_conservative",
         "stationary": false,
-        "half_life_days": 47.5,
+        "half_life_days": 48.0,
         "corr": 0.908,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 33,
-        "sharpe": 1.627,
+        "sharpe": 1.628,
         "win_rate": 66.7,
-        "net": 0.4754,
-        "avg_ret": 0.0144,
+        "net": 0.4759,
+        "avg_ret": 0.01442,
         "mean_lcb95": -0.00387,
-        "positive_mean_p_one_sided": 0.097374
+        "positive_mean_p_one_sided": 0.097303
       },
       "oos_backtest": {
         "trades": 9,
-        "sharpe": -2.875,
+        "sharpe": -3.015,
         "win_rate": 33.3,
-        "net": -0.2729,
-        "avg_ret": -0.03032,
-        "mean_lcb95": -0.07387,
-        "positive_mean_p_one_sided": 0.873963
+        "net": -0.2901,
+        "avg_ret": -0.03223,
+        "mean_lcb95": -0.07638,
+        "positive_mean_p_one_sided": 0.885165
       },
       "gate": {
         "min_oos_trades": 20,
@@ -178,33 +178,33 @@
       "common_days": 1019,
       "dev_days": 713,
       "holdout_days": 306,
-      "hedge_beta": 1.0659,
+      "hedge_beta": 1.0644,
       "cointegration": {
-        "adf_tstat": -1.644,
+        "adf_tstat": -1.694,
         "adf_crit_5pct": -3.34,
         "test": "engle_granger_residual_adf0_conservative",
         "stationary": false,
-        "half_life_days": 79.8,
+        "half_life_days": 77.6,
         "corr": 0.965,
         "cointegrated": false
       },
       "dev_backtest": {
-        "trades": 29,
-        "sharpe": 0.799,
-        "win_rate": 65.5,
-        "net": 0.093,
-        "avg_ret": 0.00321,
-        "mean_lcb95": -0.00565,
-        "positive_mean_p_one_sided": 0.275759
+        "trades": 31,
+        "sharpe": 1.049,
+        "win_rate": 67.7,
+        "net": 0.1273,
+        "avg_ret": 0.00411,
+        "mean_lcb95": -0.00424,
+        "positive_mean_p_one_sided": 0.209183
       },
       "oos_backtest": {
         "trades": 11,
-        "sharpe": 0.902,
+        "sharpe": 0.911,
         "win_rate": 72.7,
-        "net": 0.0394,
-        "avg_ret": 0.00358,
-        "mean_lcb95": -0.01108,
-        "positive_mean_p_one_sided": 0.343887
+        "net": 0.0396,
+        "avg_ret": 0.0036,
+        "mean_lcb95": -0.01099,
+        "positive_mean_p_one_sided": 0.342504
       },
       "gate": {
         "min_oos_trades": 20,
@@ -220,32 +220,32 @@
       "common_days": 1019,
       "dev_days": 713,
       "holdout_days": 306,
-      "hedge_beta": 0.8915,
+      "hedge_beta": 0.8902,
       "cointegration": {
-        "adf_tstat": -1.624,
+        "adf_tstat": -1.557,
         "adf_crit_5pct": -3.34,
         "test": "engle_granger_residual_adf0_conservative",
         "stationary": false,
-        "half_life_days": 77.4,
-        "corr": 0.799,
+        "half_life_days": 80.9,
+        "corr": 0.797,
         "cointegrated": false
       },
       "dev_backtest": {
         "trades": 25,
         "sharpe": -1.169,
         "win_rate": 52.0,
-        "net": -0.1487,
+        "net": -0.1488,
         "avg_ret": -0.00595,
-        "mean_lcb95": -0.01808,
-        "positive_mean_p_one_sided": 0.790007
+        "mean_lcb95": -0.01809,
+        "positive_mean_p_one_sided": 0.790152
       },
       "oos_backtest": {
         "trades": 14,
-        "sharpe": 7.814,
+        "sharpe": 7.81,
         "win_rate": 85.7,
         "net": 0.2163,
         "avg_ret": 0.01545,
-        "mean_lcb95": 0.00905,
+        "mean_lcb95": 0.00904,
         "positive_mean_p_one_sided": 3.6e-05
       },
       "gate": {

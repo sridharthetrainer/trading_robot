@@ -7,6 +7,10 @@ tunable parameters. Weekly, the GA tests variations and promotes winners.
 
 HOW IT WORKS:
   1. Each strategy has a genome: {stop_atr, target_atr, min_score, ...}
+     Recorded-signal tuning changes min_score only. Stops, targets and
+     confirmation bars require candle replay through validation_harness.
+     Scoring uses finite recorded net R, including timeouts, and aggregates
+     by trading day before computing Sharpe.
   2. Weekly: generate 5 variants per strategy (mutated genomes)
   3. Day-split the last 30 days 70/30 into train/holdout (NOT row-split —
      avoids leaking a correlated same-day batch across the split)
@@ -44,6 +48,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import random
 from datetime import date, datetime
 from pathlib import Path
@@ -92,9 +97,9 @@ def _split_by_day(signals: List[Dict], frac: float = TRAIN_FRAC) -> Tuple[List[D
     holdout, n_distinct_days)."""
     days = sorted({str(s.get("signal_date", "")) for s in signals if s.get("signal_date")})
     if len(days) < 2:
-        return signals, [], len(days)
+        return [s for s in signals if s.get("signal_date")], [], len(days)
     cut = days[max(0, int(len(days) * frac) - 1)]
-    train = [s for s in signals if str(s.get("signal_date", "")) <= cut]
+    train = [s for s in signals if s.get("signal_date") and str(s["signal_date"]) <= cut]
     holdout = [s for s in signals if str(s.get("signal_date", "")) > cut]
     return train, holdout, len(days)
 
@@ -141,7 +146,8 @@ class StrategyEvolution:
         """Randomly mutate a genome within bounds."""
         mutated = dict(genome)
         for param, (lo, hi, step) in PARAM_BOUNDS.items():
-            if param in mutated and random.random() < mutation_rate:
+            # Only score filters can be evaluated without replaying candles.
+            if param == "min_score" and param in mutated and random.random() < mutation_rate:
                 delta = random.choice([-2, -1, 1, 2]) * step
                 new_val = round(min(hi, max(lo, mutated[param] + delta)), 2)
                 mutated[param] = new_val
@@ -151,45 +157,42 @@ class StrategyEvolution:
                          min_n: int = 3) -> Dict:
         """
         Evaluate a genome on historical signal data.
-        Returns Sharpe, win_rate, avg_rr, n_trades.
+        Uses recorded net R, including timeouts; exit parameters require candle replay.
         """
         try:
-            strat_signals = [s for s in signals if s.get("strategy") == strategy
-                             and s.get("tb_label") in (1, -1, 0)]
-            if len(strat_signals) < min_n:
-                return {"sharpe": 0.0, "win_rate": 0.0, "n": 0}
-
-            # Apply genome filters
-            min_score = genome.get("min_score", 5.0)
-            filtered  = [s for s in strat_signals if float(s.get("score", 0)) >= min_score]
-
-            if len(filtered) < min_n:
-                return {"sharpe": 0.0, "win_rate": 0.0, "n": 0}
-
-            wins   = sum(1 for s in filtered if s.get("tb_label") == 1)
-            losses = sum(1 for s in filtered if s.get("tb_label") == -1)
-            total  = wins + losses
-
-            if total < min_n:
-                return {"sharpe": 0.0, "win_rate": 0.0, "n": 0}
-
-            win_rate = wins / total
-            avg_rr   = genome.get("target_atr", 2.0) / genome.get("stop_atr", 1.5)
-
-            # Simplified Sharpe: (expected return) / std of binary outcomes
             import numpy as np
-            outcomes = [avg_rr if s.get("tb_label") == 1 else -1.0 for s in filtered]
-            mean_r   = float(np.mean(outcomes))
-            std_r    = float(np.std(outcomes)) + 1e-6
-            sharpe   = round(mean_r / std_r * (252 ** 0.5), 3)
 
-            return {
-                "sharpe":   sharpe,
-                "win_rate": round(win_rate, 3),
-                "avg_rr":   round(avg_rr, 2),
-                "n":        len(filtered),
-                "genome":   genome,
-            }
+            empty = {"sharpe": 0.0, "win_rate": 0.0, "n": 0, "days": 0,
+                     "mean_net_r": 0.0, "evaluation_basis": "recorded_net_r"}
+            filtered = []
+            min_score = float(genome.get("min_score", 5.0))
+            if not math.isfinite(min_score):
+                return empty
+            for row in signals:
+                if row.get("strategy") != strategy or row.get("tb_label") not in (-1, 0, 1):
+                    continue
+                try:
+                    score = float(row.get("score", 0))
+                    net_r = float(row["tb_r_multiple_net"])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                if (math.isfinite(score) and math.isfinite(net_r)
+                        and score >= min_score and row.get("signal_date")):
+                    filtered.append((str(row["signal_date"]), net_r))
+            if len(filtered) < min_n:
+                return empty
+            daily = {}
+            for day, net_r in filtered:
+                daily.setdefault(day, []).append(net_r)
+            outcomes = [value for _, value in filtered]
+            daily_returns = [float(np.mean(values)) for values in daily.values()]
+            std_r = float(np.std(daily_returns, ddof=1)) if len(daily_returns) > 1 else 0.0
+            sharpe = float(np.mean(daily_returns)) / std_r * (252 ** 0.5) if std_r > 1e-12 else 0.0
+            return {"sharpe": round(sharpe, 3),
+                    "win_rate": round(sum(r > 0 for r in outcomes) / len(outcomes), 3),
+                    "mean_net_r": float(np.mean(outcomes)), "days": len(daily),
+                    "n": len(outcomes), "genome": genome,
+                    "evaluation_basis": "recorded_net_r"}
         except Exception as e:
             logger.debug("evaluate_genome %s: %s", strategy, e)
             return {"sharpe": 0.0, "win_rate": 0.0, "n": 0}
@@ -223,10 +226,12 @@ class StrategyEvolution:
             unconfirmed = []
 
             for strategy, current_genome in list(self.genomes.items()):
-                if n_days < MIN_DISTINCT_DAYS:
+                strategy_rows = [row for row in signals if row.get("strategy") == strategy]
+                train, holdout, strategy_days = _split_by_day(strategy_rows)
+                if strategy_days < MIN_DISTINCT_DAYS:
                     self.perf[strategy] = {
                         "sharpe": self.perf.get(strategy, {}).get("sharpe", 0.0),
-                        "status": "insufficient_days", "days": n_days,
+                        "status": "insufficient_days", "days": strategy_days,
                         "updated": date.today().isoformat(),
                     }
                     continue
@@ -254,8 +259,16 @@ class StrategyEvolution:
                     # picked this variant as the train-best guarantees
                     # nothing about days it has never seen.
                     holdout_confirms = (
-                        best_holdout.get("n", 0) >= MIN_HOLDOUT_N
-                        and best_holdout.get("sharpe", -999) > current_holdout.get("sharpe", 0.0)
+                        best_train_sharpe > 0
+                        and self._evaluate_genome(strategy, best_variant, train, MIN_TRAIN_N).get("mean_net_r", 0.0) > 0
+                        and best_holdout.get("n", 0) >= MIN_HOLDOUT_N
+                        and current_holdout.get("n", 0) >= MIN_HOLDOUT_N
+                        and best_holdout.get("days", 0) >= 3
+                        and current_holdout.get("days", 0) >= 3
+                        and best_holdout.get("mean_net_r", 0.0) > 0
+                        and best_holdout.get("sharpe", -999) > max(0.0, current_holdout.get("sharpe", 0.0))
+                        and all(best_variant.get(k) == current_genome.get(k)
+                                for k in set(best_variant) | set(current_genome) if k != "min_score")
                     )
                     if holdout_confirms:
                         promoted = True
@@ -341,7 +354,7 @@ class StrategyEvolution:
         if degraded:
             lines.append("━━━━━━━ DEGRADED (confirmed) ━━━━━━━")
             for deg in degraded[:3]:
-                lines.append(f"  ⚠️ {deg['strategy']}: Sharpe={deg['sharpe']} (weight reduced)")
+                lines.append(f"  ⚠️ {deg['strategy']}: Sharpe={deg['sharpe']} (review recommended)")
         lines.append(f"🕐 {datetime.now().strftime('%H:%M')}")
         try:
             self.alerts.send("\n".join(lines))

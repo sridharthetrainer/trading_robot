@@ -1,20 +1,20 @@
 {
   "report_date": "2026-10-14",
-  "generated_at": "2026-10-15T15:45:04.925781",
+  "generated_at": "2026-10-15T20:22:44.839473",
   "n_days_in_window": 5,
   "lookback_days": 5,
-  "total_signals": 64,
-  "active_strategies": 16,
+  "total_signals": 83,
+  "active_strategies": 18,
   "pause_candidates": [],
   "promote_candidates": [],
   "strategies": {
     "elder_triple_screen": {
       "strategy": "elder_triple_screen",
-      "n_total": 37,
-      "n_today": 2,
-      "today_wr": 0.5,
-      "roll_wr": 0.4865,
-      "trend": "\u2191",
+      "n_total": 43,
+      "n_today": 8,
+      "today_wr": 0.125,
+      "roll_wr": 0.4186,
+      "trend": "\u2193",
       "day_wrs": [
         [
           "2026-09-22",
@@ -38,8 +38,8 @@
         ],
         [
           "2026-10-14",
-          0.5,
-          2
+          0.125,
+          8
         ]
       ],
       "n_days": 5
@@ -78,10 +78,10 @@
     },
     "chart_pattern_falling_wedge": {
       "strategy": "chart_pattern_falling_wedge",
-      "n_total": 3,
-      "n_today": 1,
+      "n_total": 4,
+      "n_today": 2,
       "today_wr": 1.0,
-      "roll_wr": 0.3333,
+      "roll_wr": 0.5,
       "trend": "\u2191",
       "day_wrs": [
         [
@@ -97,7 +97,7 @@
         [
           "2026-10-14",
           1.0,
-          1
+          2
         ]
       ],
       "n_days": 3
@@ -178,10 +178,10 @@
     },
     "candlestick_bullish_engulfing": {
       "strategy": "candlestick_bullish_engulfing",
-      "n_total": 4,
-      "n_today": 1,
+      "n_total": 9,
+      "n_today": 6,
       "today_wr": 0.0,
-      "roll_wr": 0.25,
+      "roll_wr": 0.1111,
       "trend": "\u2193",
       "day_wrs": [
         [
@@ -192,7 +192,7 @@
         [
           "2026-10-14",
           0.0,
-          1
+          6
         ]
       ],
       "n_days": 2
@@ -215,9 +215,9 @@
     },
     "candlestick_tweezer_bottom": {
       "strategy": "candlestick_tweezer_bottom",
-      "n_total": 3,
-      "n_today": 0,
-      "today_wr": null,
+      "n_total": 6,
+      "n_today": 3,
+      "today_wr": 0.0,
       "roll_wr": 0.0,
       "trend": "\u2192",
       "day_wrs": [
@@ -225,9 +225,14 @@
           "2026-10-12",
           0.0,
           3
+        ],
+        [
+          "2026-10-14",
+          0.0,
+          3
         ]
       ],
-      "n_days": 1
+      "n_days": 2
     },
     "candlestick_homing_pigeon_bearish": {
       "strategy": "candlestick_homing_pigeon_bearish",
@@ -263,16 +268,16 @@
     },
     "candlestick_bullish_marubozu": {
       "strategy": "candlestick_bullish_marubozu",
-      "n_total": 2,
-      "n_today": 2,
-      "today_wr": 0.5,
-      "roll_wr": 0.5,
+      "n_total": 3,
+      "n_today": 3,
+      "today_wr": 0.6667,
+      "roll_wr": 0.6667,
       "trend": "\u2192",
       "day_wrs": [
         [
           "2026-10-14",
-          0.5,
-          2
+          0.6667,
+          3
         ]
       ],
       "n_days": 1
@@ -295,6 +300,38 @@
     },
     "candlestick_bearish_harami": {
       "strategy": "candlestick_bearish_harami",
+      "n_total": 1,
+      "n_today": 1,
+      "today_wr": 0.0,
+      "roll_wr": 0.0,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-10-14",
+          0.0,
+          1
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_doji": {
+      "strategy": "candlestick_doji",
+      "n_total": 2,
+      "n_today": 2,
+      "today_wr": 0.5,
+      "roll_wr": 0.5,
+      "trend": "\u2192",
+      "day_wrs": [
+        [
+          "2026-10-14",
+          0.5,
+          2
+        ]
+      ],
+      "n_days": 1
+    },
+    "candlestick_hammer": {
+      "strategy": "candlestick_hammer",
       "n_total": 1,
       "n_today": 1,
       "today_wr": 0.0,

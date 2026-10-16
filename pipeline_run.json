@@ -1,7 +1,7 @@
 {
-  "started_at": "2026-10-15T15:45:00.354675",
-  "finished_at": "2026-10-15T16:00:51.348729",
-  "total_elapsed": 951.0,
+  "started_at": "2026-10-15T20:22:39.724475",
+  "finished_at": "2026-10-15T20:32:41.642377",
+  "total_elapsed": 601.9,
   "steps_ok": 13,
   "steps_error": 0,
   "errors": [],
@@ -9,7 +9,7 @@
     {
       "step": "strategy_validator",
       "status": "ok",
-      "elapsed": 4.52,
+      "elapsed": 5.06,
       "error": null,
       "result": {
         "edge_confirmed": [],
@@ -91,11 +91,11 @@
           "chart_pattern_double_bottom",
           "donchian_breakout",
           "weinstein_stage",
+          "candlestick_doji",
           "heikin_ashi",
           "candlestick_bearish_engulfing",
           "rsi2_mr",
           "candlestick_shooting_star",
-          "candlestick_tweezer_bottom",
           "candlestick_spinning_top_black",
           "candlestick_three_black_soldiers"
         ]
@@ -104,7 +104,7 @@
     {
       "step": "daily_performance_report",
       "status": "ok",
-      "elapsed": 0.1,
+      "elapsed": 0.09,
       "error": null,
       "result": {
         "pause_candidates": [],
@@ -114,56 +114,42 @@
     {
       "step": "executive_eod_report",
       "status": "ok",
-      "elapsed": 1.03,
+      "elapsed": 1.11,
       "error": null,
       "result": {
         "session_date": "2026-10-15",
-        "signals_400d": 37626,
+        "signals_400d": 37697,
         "chart_path": "/tmp/executive_eod_2026-10-15.png"
       }
     },
     {
       "step": "option_telegram_report",
       "status": "ok",
-      "elapsed": 5.12,
+      "elapsed": 0.01,
       "error": null,
       "result": {
         "ok": true,
-        "day": "2026-10-15",
-        "path": "reports/option_post_market_2026-10-15.png",
-        "evidence_digest_sent": false
+        "skipped": "already_sent",
+        "day": "2026-10-15"
       }
     },
     {
       "step": "candle_coverage_plan",
       "status": "ok",
-      "elapsed": 22.14,
+      "elapsed": 24.37,
       "error": null,
       "result": {
         "intervals": [
           "1m",
           "1d"
         ],
-        "next_actions": [
-          {
-            "interval": "1m",
-            "missing_symbols": 0,
-            "priority_missing": [],
-            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1m --symbols MOTHERSON"
-          },
-          {
-            "interval": "1d",
-            "missing_symbols": 0,
-            "priority_missing": [],
-            "command": ".venv/bin/python3 candle_coverage_backfill.py --intervals 1d --symbols NIFTY,BANKNIFTY,FINNIFTY,SENSEX,NIFTYNEXT50,RELIANCE,TCS,HDFCBANK,INFY,ICICIBANK,HINDUNILVR,SBIN,BAJFINANCE,BHARTIARTL,ITC,KOTAKBANK,LT,AXISBANK,ASIANPAINT,MARUTI,SUNPHARMA,TITAN,ULTRACEMCO,WIPRO,HCLTECH"
-          }
-        ]
+        "next_actions": []
       }
     },
     {
       "step": "candle_session_gap_audit",
       "status": "ok",
-      "elapsed": 4.4,
+      "elapsed": 2.24,
       "error": null,
       "result": {
         "missing_pairs": 0,
@@ -173,7 +159,7 @@
     {
       "step": "correlation_matrix_update",
       "status": "ok",
-      "elapsed": 5.28,
+      "elapsed": 0.25,
       "error": null,
       "result": {
         "symbol_count": 46,
@@ -183,19 +169,19 @@
     {
       "step": "derive_daily_candles",
       "status": "ok",
-      "elapsed": 120.21,
+      "elapsed": 96.21,
       "error": null,
       "result": {
         "source_interval": "1m",
         "symbols_ok": 198,
         "symbols_skipped": 0,
-        "inserted_rows": 19722
+        "inserted_rows": 19723
       }
     },
     {
       "step": "system_strategy_research",
       "status": "ok",
-      "elapsed": 1.49,
+      "elapsed": 1.12,
       "error": null,
       "result": {
         "ok": true,
@@ -217,7 +203,7 @@
     {
       "step": "autonomous_param_training",
       "status": "ok",
-      "elapsed": 0.43,
+      "elapsed": 0.46,
       "error": null,
       "result": {
         "ok": true,
@@ -231,10 +217,10 @@
     {
       "step": "system_readiness_report",
       "status": "ok",
-      "elapsed": 139.87,
+      "elapsed": 107.18,
       "error": null,
       "result": {
-        "data_pipeline": 87.5,
+        "data_pipeline": 91.5,
         "institutional": 59.0,
         "option_bot": 59.0,
         "blocks": [
@@ -255,7 +241,7 @@
     {
       "step": "post_market_ml",
       "status": "ok",
-      "elapsed": 646.39,
+      "elapsed": 363.8,
       "error": null,
       "result": {
         "cv_auc": 0.0
