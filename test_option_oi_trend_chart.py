@@ -49,3 +49,45 @@ def test_auto_pick_balances_sides_and_explicit_legs(tmp_path):
     res = generate_oi_trend_chart(day="2026-10-15", legs=[(25000.0, "PE")], db_path=str(db), output_dir=str(tmp_path))
     assert res.ok and "PE 25000: +0.0L" in res.caption and "CE" not in res.caption.split("\n")[1]
     assert not generate_oi_trend_chart(day="2026-10-15", legs=[(1.0, "CE")], db_path=str(db)).ok
+
+
+class _FakeAlerts:
+    def __init__(self):
+        self.photos = []
+
+    def send_photo(self, path, caption=""):
+        self.photos.append(caption)
+        return True
+
+
+def _sched_env(tmp_path, monkeypatch):
+    import option_oi_trend_chart as m
+    db = tmp_path / "s.db"
+    _db(db)
+    real = m.generate_oi_trend_chart
+    monkeypatch.setattr(m, "generate_oi_trend_chart",
+                        lambda **kw: real(db_path=str(db), output_dir=str(tmp_path), **{**kw, "day": "2026-10-15"}))
+    monkeypatch.setattr(m, "_POST_STATE", tmp_path / "state.json")
+    monkeypatch.setenv("OPTION_TRENDOI_UNDERLYINGS", "NIFTY")
+    monkeypatch.delenv("OPTION_TRENDOI_TIMES", raising=False)
+    monkeypatch.delenv("OPTION_TRENDOI_ENABLED", raising=False)
+    return m
+
+
+def test_posts_once_per_slot_and_only_near_slot(tmp_path, monkeypatch):
+    from datetime import datetime
+    m = _sched_env(tmp_path, monkeypatch)
+    am = _FakeAlerts()
+    assert m.post_trending_oi_if_due(datetime(2026, 10, 15, 9, 55), alerts=am) == []        # before first slot
+    assert m.post_trending_oi_if_due(datetime(2026, 10, 15, 10, 3), alerts=am) == ["10:00:NIFTY"]
+    assert m.post_trending_oi_if_due(datetime(2026, 10, 15, 10, 8), alerts=am) == []        # already sent
+    assert m.post_trending_oi_if_due(datetime(2026, 10, 15, 10, 40), alerts=am) == []       # stale slot
+    assert m.post_trending_oi_if_due(datetime(2026, 10, 15, 11, 1), alerts=am) == ["11:00:NIFTY"]
+    assert len(am.photos) == 2 and am.photos[0].startswith("🕒 10:00 NIFTY trending OI")
+
+
+def test_disabled_by_env(tmp_path, monkeypatch):
+    from datetime import datetime
+    m = _sched_env(tmp_path, monkeypatch)
+    monkeypatch.setenv("OPTION_TRENDOI_ENABLED", "false")
+    assert m.post_trending_oi_if_due(datetime(2026, 10, 15, 10, 3), alerts=_FakeAlerts()) == []

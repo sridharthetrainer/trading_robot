@@ -15,6 +15,9 @@ Strikes are picked automatically (largest OI build/unwind today) or given:
 from __future__ import annotations
 
 import argparse
+import json
+import logging
+import os
 import re
 import tempfile
 from datetime import datetime
@@ -23,6 +26,8 @@ from typing import Dict, List, Optional, Tuple
 
 import chart_theme as ct
 from option_oi_chart import DB_PATH, OIChartResult, _load_snapshot_rows, _parse_time, _row_strike, _safe_float, _snapshot_rows
+
+logger = logging.getLogger(__name__)
 
 Leg = Tuple[float, str]  # (strike, "CE" | "PE")
 # 10 distinct colors: chart_theme's categorical palette has 5 and cycles, which
@@ -159,6 +164,61 @@ def generate_oi_trend_chart(
     lines.append("Solid = CE, dashed = PE. Context only: OI bias was tested (Test 23) "
                  "and showed no trading edge.")
     return OIChartResult(True, path=str(out_path), caption="\n".join(lines), points=len(labels))
+
+
+_POST_STATE = Path(os.getenv("OPTION_TRENDOI_STATE", "option_trendoi_state.json"))
+
+
+def _post_slots() -> List[str]:
+    raw = os.getenv("OPTION_TRENDOI_TIMES", "10:00,11:00,12:00,13:00,14:00,15:00,15:30")
+    return sorted(t.strip() for t in raw.split(",") if re.match(r"^\d{2}:\d{2}$", t.strip()))
+
+
+def post_trending_oi_if_due(now: Optional[datetime] = None, alerts=None) -> List[str]:
+    """Post the trending-OI chart to the option channel at each scheduled slot
+    (called after every snapshot round). A slot is posted once per day, and
+    only within 25 min of its time so a restart does not replay old slots.
+    OPTION_TRENDOI_ENABLED=false turns it off."""
+    if os.getenv("OPTION_TRENDOI_ENABLED", "true").strip().lower() in {"0", "false", "no", "off"}:
+        return []
+    now = now or datetime.now()
+    day = now.strftime("%Y-%m-%d")
+    due = [t for t in _post_slots()
+           if 0 <= (now - datetime.strptime(f"{day} {t}", "%Y-%m-%d %H:%M")).total_seconds() < 25 * 60]
+    if not due:
+        return []
+    slot = due[-1]
+    try:
+        state = json.loads(_POST_STATE.read_text()) if _POST_STATE.exists() else {}
+    except (OSError, ValueError):
+        state = {}
+    sent = state.get("sent", []) if state.get("day") == day else []
+    syms = [x.strip().upper() for x in os.getenv("OPTION_TRENDOI_UNDERLYINGS", "NIFTY,BANKNIFTY").split(",")
+            if x.strip()]
+    todo = [sym for sym in syms if f"{slot}:{sym}" not in sent]
+    if not todo:
+        return []
+    if alerts is None:
+        from option_decision_journal import _option_alerts
+        alerts = _option_alerts()
+    if alerts is None:
+        return []
+    posted = []
+    for sym in todo:
+        try:
+            res = generate_oi_trend_chart(underlying=sym, day=day)
+            if res.ok and alerts.send_photo(res.path, caption=f"🕒 {slot} " + res.caption):
+                posted.append(f"{slot}:{sym}")
+            elif not res.ok:
+                logger.info("trending OI %s %s skipped: %s", slot, sym, res.reason)
+        except Exception as exc:
+            logger.warning("trending OI post %s %s failed: %s", slot, sym, exc)
+    if posted:
+        try:
+            _POST_STATE.write_text(json.dumps({"day": day, "sent": sent + posted}))
+        except OSError as exc:
+            logger.warning("trending OI state write failed: %s", exc)
+    return posted
 
 
 def main() -> int:

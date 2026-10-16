@@ -348,6 +348,12 @@ def run_snapshot_loop(
             continue
 
         last = record_option_chains(underlyings, db_path=db_path)
+        if db_path == DB_PATH:
+            try:  # hourly trending-OI chart to the option channel (own schedule/dedup)
+                from option_oi_trend_chart import post_trending_oi_if_due
+                post_trending_oi_if_due()
+            except Exception as exc:
+                logger.warning("trending OI post: %s", exc)
         rounds += 1
         ok_total += int(last.get("ok_count", 0) or 0)
         last.update({"rounds": rounds, "ok_total": ok_total})
