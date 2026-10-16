@@ -2388,6 +2388,7 @@ class AutonomousTradingSystem:
                                 "  /oisr — support/resistance image\n"
                                 "  /oichart — intraday OI line chart\n"
                                 "  /strikeflow — active CE/PE strikes\n"
+                                "  /trendoi [BANKNIFTY] [CE|PE] [23000CE,...] — trending OI\n"
                                 "  /straddle [BANKNIFTY] — ATM straddle + IV chart\n"
                                 "  /participants [days] — FII/DII/Pro/Client trend\n"
                                 "  /pcr — put/call ratio\n\n"
@@ -2433,7 +2434,7 @@ class AutonomousTradingSystem:
                             "help", "menu", "start", "status", "report", "signals", "all", "optionall", "eodall",
                             "optedge", "edge", "optpositions", "positions",
                             "controlroom", "readiness", "profitgate",
-                            "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr", "straddle", "participants",
+                            "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr", "straddle", "participants", "trendoi",
                             "spreads", "prepare", "orderstatus", "probability",
                             "scalp", "scalpstatus", "scalpsignals", "optscalp", "scalppnl",
                             "direction", "tradeview", "view", "nexttrade",
@@ -2458,6 +2459,7 @@ class AutonomousTradingSystem:
                                 ("orderstatus", "Order review and submission status"),
                                 ("probability", "Evidence and monthly target probability"),
                                 ("scalpsignals", "Recorded scalping signals and levels"),
+                                ("trendoi", "Trending OI: OI added per strike today"),
                                 ("straddle", "ATM straddle premium and IV chart"),
                                 ("participants", "FII/DII/Pro/Client positioning trend"),
                                 ("positions", "Open option positions"),

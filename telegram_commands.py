@@ -608,6 +608,7 @@ class TelegramCommandHandler:
                          [("Performance", "cmd:optscalp"), ("⬅️ Back", "menu:home")]],
             "options": [[("OI S/R", "cmd:oisr"), ("OI Chart", "cmd:oichart")],
                         [("Strike Flow", "cmd:strikeflow"), ("PCR", "cmd:pcr")],
+                        [("Trending OI", "cmd:trendoi"), ("BN Trending OI", "cmd:trendoi BANKNIFTY")],
                         [("Straddle", "cmd:straddle"), ("BN Straddle", "cmd:straddle BANKNIFTY")],
                         [("FII/DII/Pro/Client", "cmd:participants")],
                         [("Spreads", "cmd:spreads"), ("⬅️ Back", "menu:home")]],
@@ -893,6 +894,7 @@ class TelegramCommandHandler:
         self.register("oisr",        self._cmd_oi_sr)
         self.register("straddle",    self._cmd_straddle)
         self.register("participants", self._cmd_participants)
+        self.register("trendoi",     self._cmd_trend_oi)
         self.register("sr",          self._cmd_oi_sr)
         self.register("oiprofile",   self._cmd_oi_sr)
         self.register("chainsignals", self._cmd_chain_signals)
@@ -2172,6 +2174,29 @@ class TelegramCommandHandler:
             return f"⚠️ Straddle: {getattr(res, 'reason', 'unavailable')}"
         except Exception as e:
             return f"/straddle error: {e}"
+
+    def _cmd_trend_oi(self, args: str = "") -> str:
+        """Trending OI: OI added per strike since the day's first snapshot.
+          /trendoi                       (NIFTY, top 5 CE + top 5 PE)
+          /trendoi BANKNIFTY PE 8        /trendoi NIFTY 2026-10-15
+          /trendoi 23000CE,22800PE"""
+        try:
+            import re
+            from option_oi_trend_chart import generate_oi_trend_chart, parse_legs
+            text = str(args or "")
+            toks = text.upper().split()
+            sym = next((t for t in toks if t in {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX"}), "NIFTY")
+            day = next((t for t in toks if re.match(r"^\d{4}-\d{2}-\d{2}$", t)), None)
+            side = next((t for t in toks if t in {"CE", "PE"}), None)
+            top = next((int(t) for t in toks if t.isdigit() and len(t) <= 2), 5)
+            res = generate_oi_trend_chart(underlying=sym, day=day, legs=parse_legs(text) or None,
+                                          top=top, side=side)
+            if getattr(res, "ok", False) and res.path:
+                self.send_photo(res.path, caption=res.caption)
+                return ""
+            return f"⚠️ Trending OI: {getattr(res, 'reason', 'unavailable')}"
+        except Exception as e:
+            return f"/trendoi error: {e}"
 
     def _cmd_participants(self, args: str = "") -> str:
         """FII/DII/Pro/Client index F&O positioning trend chart (EOD, context only).
