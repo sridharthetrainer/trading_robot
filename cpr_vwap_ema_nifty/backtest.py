@@ -162,7 +162,7 @@ def run(cfg: Optional[dict] = None, conditions: Optional[List[dict]] = None, pre
                         continue
                     r = {"condition": cond["id"], "variant": vname, "vwap_set": vmode,
                          "matched": matched, "period": "OOS" if d >= oos else "IS", "year": d.year,
-                         "day_type": dtype, "cpr_width": lrow.cpr_width, **t.__dict__}
+                         "day_type": dtype, **{k: lrow[k] for k in en.SETUP_KEYS}, **t.__dict__}
                     r.pop("extra", None)
                     if with_options and vmode == "futures":
                         r.update(_option_layers(t, cfg, mod, real, real_days))
@@ -251,8 +251,42 @@ def summarize(trades: pd.DataFrame, prep: Dict, cfg: dict, conditions: List[dict
                 c["walk_forward"][int(yr)] = {"matched": _m(S[S.matched], "points"),
                                               "non_matched": _m(S[~S.matched], "points")}
         c["setup_sensitivity"] = _sensitivity(B, lev, cond) if not B.empty else {}
+        c["field_tests"] = _field_tests(T, cond, cfg) if not T.empty else {}
         out["conditions"][cid] = c
     return out
+
+
+def _field_tests(T: pd.DataFrame, cond: dict, cfg: dict) -> Dict:
+    """Pre-declared one-at-a-time field filters on a base variant (config
+    'field_tests'). Each test keeps the base variant's trades on sessions whose
+    field(s) equal the condition's setup value(s). No combinations."""
+    ft = cfg.get("field_tests") or {}
+    base = ft.get("base_variant")
+    tests = ft.get("tests") or {}
+    V = T[(T.variant == base) & (T.vwap_set == "futures")]
+    if V.empty or not tests:
+        return {}
+    out = {"base_variant": base, "tests_run": len(tests),
+           "reference_no_field_filter": _block(V)}
+    for name, fields in tests.items():
+        want = {f: cond["setup"][f] for f in fields}
+        mask = np.ones(len(V), dtype=bool)
+        for f, v in want.items():
+            mask &= (V[f].astype(str) == str(v)).to_numpy()
+        out[name] = {"filter": want, **_block(V[mask])}
+    return out
+
+
+def _block(S: pd.DataFrame) -> Dict:
+    return {
+        "A_points": _m(S, "points"), "B_modelled_rs": _m(S, "B_net"),
+        "C_real_rs": _m(S, "C_net") if "C_net" in S else {"trades": 0},
+        "IS_A_points": _m(S[S.period == "IS"], "points"), "OOS_A_points": _m(S[S.period == "OOS"], "points"),
+        "IS_B_rs": _m(S[S.period == "IS"], "B_net"), "OOS_B_rs": _m(S[S.period == "OOS"], "B_net"),
+        "by_year": {int(y): {"points": _m(S[S.year == y], "points"), "B_rs": _m(S[S.year == y], "B_net")}
+                    for y in sorted(S.year.unique())},
+        "bootstrap_points": _bootstrap(S["points"].tolist()),
+    }
 
 
 def _bootstrap(values: List[float], n: int = 5000, block: int = 5, seed: int = 7) -> Dict:
@@ -349,6 +383,21 @@ def to_markdown(s: Dict, prev: Optional[Dict]) -> str:
             L += ["", f"### {key.replace('_', ' ')} (base, points)"]
             for val, v in c[key].items():
                 L.append(f"- {val}: matched {_fmt(v['matched'])} || non-matched {_fmt(v['non_matched'])}")
+        if c.get("field_tests"):
+            ft = c["field_tests"]
+            L += ["", f"### Field tests on {ft['base_variant']} (pre-declared, one field at a time, "
+                  f"{ft['tests_run']} tests, no combinations)"]
+            for name in ["reference_no_field_filter"] + [k for k in ft if k not in
+                                                         ("base_variant", "tests_run", "reference_no_field_filter")]:
+                v = ft[name]
+                L.append(f"- **{name}** {v.get('filter', '')}")
+                for key in ("A_points", "B_modelled_rs", "C_real_rs", "IS_A_points", "OOS_A_points", "IS_B_rs", "OOS_B_rs"):
+                    L.append(f"  - {key}: {_fmt(v[key], key.endswith('_rs'))}")
+                L.append(f"  - bootstrap pts/trade: {v['bootstrap_points']}")
+                yrs = "; ".join(f"{y}: n={r['points'].get('trades', 0)} exp={r['points'].get('expectancy')} "
+                                f"PF={r['points'].get('profit_factor')} B={r['B_rs'].get('total')}"
+                                for y, r in v["by_year"].items())
+                L.append(f"  - by year: {yrs}")
         if c.get("setup_sensitivity"):
             L += ["", "### Setup sensitivity - EXPLORATORY, not rules (base, futures VWAP)",
                   "Each row loosens the setup; many looks at one dataset, so a single good row is weak evidence."]

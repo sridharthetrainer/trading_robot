@@ -6,6 +6,9 @@ CLI for CPR_VWAP_EMA_Nifty (research-only strategy).
   python -m cpr_vwap_ema_nifty add-condition FILE.json   validate, duplicate-check, append, re-run backtest
   python -m cpr_vwap_ema_nifty check-condition FILE.json duplicate/conflict check only (no write)
   python -m cpr_vwap_ema_nifty status                 config flags + data coverage
+  python -m cpr_vwap_ema_nifty forward-report [R001] [--no-fetch]
+                                                      forward PAPER evaluation of a pre-registered rule
+                                                      (counts nothing until the rule is approved)
 """
 from __future__ import annotations
 
@@ -44,6 +47,9 @@ def main(argv=None) -> int:
     c = sub.add_parser("check-condition")
     c.add_argument("file")
     sub.add_parser("status")
+    fr = sub.add_parser("forward-report")
+    fr.add_argument("rule", nargs="?", default="R001")
+    fr.add_argument("--no-fetch", action="store_true")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     for noisy in ("smartConnect", "angel", "urllib3", "matplotlib"):
@@ -60,6 +66,7 @@ def main(argv=None) -> int:
         print(json.dumps({"enabled_live": cfg["enabled_live"], "research_only": cfg["research_only"],
                           "live_active": bt.is_enabled_live(cfg),
                           "conditions": [x["id"] for x in rl.load()["conditions"]],
+                          "preregistered": {x["id"]: x.get("status") for x in rl.load().get("preregistered", [])},
                           "coverage": dm.coverage(cfg["window"]["warmup_start"], cfg["window"]["end"])}, indent=2))
         return 0
     if args.cmd == "check-condition":
@@ -79,6 +86,10 @@ def main(argv=None) -> int:
             print(f"FLAGGED CONFLICT with {res['with']}: same setup, different outcome. Added with conflict_with set.")
         print(_short(bt.run_and_save(cfg)))
         print("Comparison vs previous run: see 'Change vs previous run' in summary.md")
+        return 0
+    if args.cmd == "forward-report":
+        from .forward import evaluate
+        print(json.dumps(evaluate(args.rule, fetch=not args.no_fetch), indent=2, default=str))
         return 0
     if args.cmd == "backtest":
         print(_short(bt.run_and_save(cfg, with_options=not args.no_options)))

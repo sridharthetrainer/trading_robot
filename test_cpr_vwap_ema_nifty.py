@@ -219,7 +219,7 @@ def test_live_flag_off_and_not_registered():
 def test_package_imports_existing_code_read_only():
     """Only these existing modules may be imported, and only for read-only calls."""
     allowed = {"angel", "request_governor", "nse_cost_model", "option_intraday_pricer", "dotenv"}
-    stdlib_or_third = {"argparse", "json", "logging", "os", "sqlite3", "sys", "time", "shutil", "datetime",
+    stdlib_or_third = {"argparse", "copy", "csv", "json", "logging", "os", "sqlite3", "sys", "time", "shutil", "datetime",
                        "pathlib", "typing", "functools", "dataclasses", "__future__", "numpy", "pandas",
                        "matplotlib"}
     for py in PKG.glob("*.py"):
@@ -233,3 +233,72 @@ def test_package_imports_existing_code_read_only():
                 continue
             for n in names:
                 assert n in allowed | stdlib_or_third, f"{py.name} imports {n}"
+
+
+# ── field tests / pre-registered rule / forward evaluation ──────────────────
+
+def test_field_tests_are_one_field_subsets_of_base_variant():
+    from cpr_vwap_ema_nifty.backtest import _field_tests
+    cfg = load_config()
+    assert len(cfg["field_tests"]["tests"]) == 5
+    n = 40
+    T = pd.DataFrame({
+        "variant": ["+r1_pdh_break"] * n, "vwap_set": ["futures"] * n,
+        "points": np.linspace(-20, 30, n), "B_net": np.linspace(-500, 900, n), "C_net": np.nan,
+        "hold_min": 60.0, "mfe": 10.0, "mae": 5.0, "period": ["IS"] * 20 + ["OOS"] * 20,
+        "year": [2023] * 20 + [2025] * 20, "date": "2025-01-01",
+        "cpr_width": ["narrow", "wide"] * 20, "cpr_vs_prior_day": "higher", "cpr_vs_weekly": "above",
+        "cpr_vs_monthly": "below", "open_vs_cpr": "above", "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": ["below"] * 30 + ["above"] * 10,
+    })
+    out = _field_tests(T, _c001(), cfg)
+    assert out["tests_run"] == 5
+    assert out["reference_no_field_filter"]["A_points"]["trades"] == 40
+    assert out["cpr_width"]["A_points"]["trades"] == 20                 # narrow only
+    assert out["cpr_vs_prior_day"]["A_points"]["trades"] == 0           # C001 = overlapping_higher
+    assert out["cpr_vs_weekly"]["A_points"]["trades"] == 40
+    assert out["open_location"]["A_points"]["trades"] == 30             # all three open fields together
+    assert set(out["cpr_width"]["by_year"]) == {2023, 2025}
+
+
+def test_r001_is_proposed_frozen_and_not_counted():
+    from cpr_vwap_ema_nifty.forward import evaluate
+    r = json.loads((PKG / "rules.json").read_text())["preregistered"][0]
+    assert r["id"] == "R001" and r["mode"] == "paper_only"
+    assert r["engine_mapping"]["filters"] == ["r1_pdh_break"]
+    if r["status"] != "approved":
+        assert evaluate("R001", fetch=False)["status"] == "not_approved"
+
+
+def _fwd(points, c_net):
+    return pd.DataFrame({"points": points, "C_net": c_net,
+                         "entry_time": pd.date_range("2026-11-02 09:30", periods=len(points), freq="D").astype(str)})
+
+
+BAR = json.loads((PKG / "rules.json").read_text())["preregistered"][0]["forward_bar_proposed"]
+
+
+def test_forward_verdict_in_progress_kill_fail_pass():
+    from cpr_vwap_ema_nifty.forward import verdict
+    assert verdict(_fwd([5.0, -3.0], [300.0, -200.0]), BAR)["verdict"] == "IN_PROGRESS"
+    bad = _fwd([-10.0] * 30 + [5.0] * 10, [-100.0] * 40)                # PF 0.17 at the 40-trade check
+    v = verdict(bad, BAR)
+    assert v["verdict"] == "FAIL" and "kill" in v["reason"]
+    dd = _fwd([1.0] * 5, [-9000.0] * 5)                                  # real-option drawdown 45k
+    assert verdict(dd, BAR)["verdict"] == "FAIL"
+    rng = np.random.default_rng(0)
+    good_pts = list(rng.normal(12, 40, 150))
+    good = _fwd(good_pts, [p * 40 for p in good_pts])
+    assert verdict(good, BAR)["verdict"] in {"PASS", "FAIL"}
+    assert set(verdict(good, BAR).get("checks", {})) == {"pf_points", "t_stat_points", "real_option_net",
+                                                           "real_option_drawdown", "real_price_coverage"}
+
+
+def test_near_month_plan_picks_smallest_expiry_per_day():
+    from datetime import date
+    from cpr_vwap_ema_nifty.data import near_month_plan
+    contracts = [(date(2026, 10, 27), "48704", "OCT"), (date(2026, 11, 24), "61471", "NOV"),
+                 (date(2026, 12, 29), "58875", "DEC")]
+    plan = near_month_plan(date(2026, 10, 20), date(2026, 12, 5), contracts)
+    assert [(p[0].isoformat(), p[1].isoformat(), p[3]) for p in plan] == [
+        ("2026-10-20", "2026-10-27", "OCT"), ("2026-10-28", "2026-11-24", "NOV"), ("2026-11-25", "2026-12-05", "DEC")]

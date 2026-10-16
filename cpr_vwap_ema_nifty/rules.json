@@ -26,9 +26,24 @@
         "above_ema200_1m": true
       },
       "vwap_behavior": "above_vwap_at_entry",
-      "entry": {"type": "close_vs_vwap", "timeframe": "5m", "fill": "next_bar_open"},
-      "exit": {"type": "close_vs_ema", "timeframe": "5m", "period": 20, "wick_counts": false, "fill": "next_bar_open"},
-      "optional_filters": ["ema200_30m", "r1_pdh_break", "pwh_break", "target_r4_mh3"],
+      "entry": {
+        "type": "close_vs_vwap",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "exit": {
+        "type": "close_vs_ema",
+        "timeframe": "5m",
+        "period": 20,
+        "wick_counts": false,
+        "fill": "next_bar_open"
+      },
+      "optional_filters": [
+        "ema200_30m",
+        "r1_pdh_break",
+        "pwh_break",
+        "target_r4_mh3"
+      ],
       "observations": [
         "Price was below the 30m 200 EMA until 09:45, then the first 30m bar closed above it (22747.0 vs EMA 22744.1, only 3 points).",
         "Rally extended after R1 and PDH were crossed.",
@@ -37,6 +52,78 @@
       ],
       "outcome": "Rallied R1, H4, PDH, PWH, WR1, H5, WH4, R2, R3, R4/MH3, then reversed; first 5m close below the 5m 20 EMA at 14:20 (23015.05 vs 23019.0).",
       "outcome_class": "win"
+    }
+  ],
+  "preregistered": [
+    {
+      "id": "R001",
+      "name": "R1/PDH breakout with VWAP + EMA context",
+      "status": "proposed",
+      "proposed_on": "2026-10-16",
+      "approved_on": null,
+      "counting_starts": "first NSE session after approved_on; nothing before approval is counted",
+      "mode": "paper_only",
+      "derived_from": "C001 '+r1_pdh_break' variant, selected post-hoc (1 of 5 filter variants) in the 2026-10-16 backtest: all-days PF 1.42 points (IS 1.41 / OOS 1.44), modelled 1-lot ATM CE +Rs 141,963 over 612 trades, 10 real-price trades +Rs 5,050.",
+      "definition": {
+        "instrument": "NIFTY",
+        "timeframe": "5m",
+        "bias": "LONG",
+        "sessions": "every NSE session (no CPR / pivot setup filter)",
+        "signal_window": "5m bars starting 09:15 to 14:30",
+        "signal": "first 5m bar whose close satisfies ALL: futures close > futures session VWAP; spot close > 5m EMA20, 5m EMA50, 5m EMA200 and 1m EMA200; spot close > max(daily Traditional R1, PDH)",
+        "entry": "next 5m bar open (spot)",
+        "exit": "first 5m CLOSE below the 5m EMA20 at or after the entry bar -> next 5m bar open; wicks do not count; force exit at the 15:20 bar open",
+        "max_trades_per_session": 1,
+        "levels": "R1 = 2P - L and PDH from the previous session (spot 09:15-15:29)",
+        "option_traded": "1 lot (65) NIFTY CE, strike = entry spot rounded to nearest 50, nearest weekly expiry on/after the trade date",
+        "option_price": "real lastPrice from option_chain_snapshots.db at the first snapshot at/after each fill (max 10 min lag); modelled price reported alongside",
+        "costs": "nse_cost_model.NseCostModel, trade-date STT, plus 1 point premium slippage per side"
+      },
+      "engine_mapping": {
+        "context": {
+          "above_vwap": true,
+          "above_ema20_5m": true,
+          "above_ema50_5m": true,
+          "above_ema200_5m": true,
+          "above_ema200_1m": true
+        },
+        "filters": [
+          "r1_pdh_break"
+        ],
+        "exit": {
+          "type": "close_vs_ema",
+          "timeframe": "5m",
+          "period": 20
+        }
+      },
+      "forward_bar_proposed": {
+        "evaluation_trades": 150,
+        "kill_check_at_trades": 40,
+        "kill_if_any": {
+          "pf_points_below": 0.9,
+          "real_option_net_below_rs": -20000
+        },
+        "fail_immediately_if": {
+          "real_option_drawdown_beyond_rs": 40000
+        },
+        "pass_if_all_at_150": {
+          "pf_points_min": 1.15,
+          "t_stat_points_min": 1.65,
+          "real_option_net_min_rs": 0,
+          "real_option_drawdown_max_rs": 40000,
+          "real_price_coverage_min_pct": 80
+        },
+        "otherwise": "FAIL",
+        "simulated_from_backtest_trades": {
+          "method": "5-trade block bootstrap of the 612 backtest trades, 20k reps; 'no edge' = same trades de-meaned",
+          "pass_probability_if_backtest_edge_is_real": 0.35,
+          "pass_probability_if_no_edge": 0.016,
+          "killed_at_40_if_edge_real": 0.15,
+          "killed_at_40_if_no_edge": 0.43
+        },
+        "expected_duration": "about 22 months at the out-of-sample rate of 6.9 trades/month"
+      },
+      "frozen_after_approval": "definition, costs and bar may not change once approved; any change = a new rule id with its own fresh forward window"
     }
   ]
 }

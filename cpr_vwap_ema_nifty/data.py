@@ -120,6 +120,63 @@ def fetch(series: str, start: date, end: date, cfg: dict, force: bool = False) -
     return stats
 
 
+def nifty_futures_contracts(master_csv: Path = REPO_DIR / "MasterContract_NFO.csv") -> list:
+    """[(expiry_date, token, symbol)] for NIFTY index futures, ascending expiry
+    (read-only parse of the broker master-contract file)."""
+    import csv
+    out = []
+    if not Path(master_csv).exists():
+        return out
+    with open(master_csv, newline="") as fh:
+        for r in csv.DictReader(fh):
+            if r.get("name") == "NIFTY" and r.get("instrumenttype") == "FUTIDX":
+                try:
+                    out.append((datetime.strptime(r["expiry"], "%d%b%Y").date(), r["token"], r["symbol"]))
+                except (KeyError, ValueError):
+                    continue
+    return sorted(out)
+
+
+def near_month_plan(start: date, end: date, contracts: list) -> list:
+    """Split [start, end] into (from, to, token, symbol) pieces, each served by
+    the contract with the smallest expiry on/after that day (near month)."""
+    plan, cur = [], start
+    for exp, token, sym in contracts:
+        if exp < cur:
+            continue
+        stop = min(end, exp)
+        if cur <= stop:
+            plan.append((cur, stop, token, sym))
+        cur = exp + timedelta(days=1)
+        if cur > end:
+            break
+    return plan
+
+
+def fetch_futures_near_month(start: date, end: date, cfg: dict) -> Dict[str, int]:
+    """Forward futures 5m bars into the same fut_5m series, choosing the near-month
+    contract per day from MasterContract_NFO.csv (used after the configured
+    token's expiry)."""
+    con = _conn()
+    obj = None
+    stats = {"pieces": 0, "bars": 0}
+    for frm, to, token, sym in near_month_plan(start, end, nifty_futures_contracts()):
+        if obj is None:
+            obj = _angel_client()
+        rows, msg = _get_candles(obj, token, cfg["angel"]["futures_exchange"], "FIVE_MINUTE", frm, to,
+                                 float(cfg["angel"].get("min_interval_sec", 0.6)))
+        con.executemany("INSERT OR REPLACE INTO bars VALUES (?,?,?,?,?,?,?)",
+                        [("fut_5m", _norm_ts(r[0]), r[1], r[2], r[3], r[4], r[5]) for r in rows])
+        con.execute("INSERT OR REPLACE INTO fetch_log VALUES (?,?,?,?,?,?)",
+                    ("fut_5m", f"{frm.isoformat()}:{sym}", to.isoformat(), len(rows), msg, datetime.now().isoformat()))
+        con.commit()
+        stats["pieces"] += 1
+        stats["bars"] += len(rows)
+        logger.info("fetch fut_5m near-month %s %s..%s: %d bars", sym, frm, to, len(rows))
+    con.close()
+    return stats
+
+
 # ── Loading ─────────────────────────────────────────────────────────────────
 
 def _frame(rows, cols=("ts", "open", "high", "low", "close", "volume")) -> pd.DataFrame:

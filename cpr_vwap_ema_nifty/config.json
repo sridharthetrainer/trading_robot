@@ -3,10 +3,12 @@
   "enabled_live": false,
   "research_only": true,
   "instrument": "NIFTY",
-
-  "window": {"start": "2020-07-01", "end": "2026-10-15", "warmup_start": "2020-04-01"},
+  "window": {
+    "start": "2020-07-01",
+    "end": "2026-10-15",
+    "warmup_start": "2020-04-01"
+  },
   "out_of_sample_start": "2024-07-01",
-
   "levels": {
     "pivot_set": "traditional",
     "pivot_formulas": "P=(H+L+C)/3; R1=2P-L; S1=2P-H; R2=P+(H-L); S2=P-(H-L); R3=2P+(H-2L); S3=2P-(2H-L); R4=3P+(H-3L); S4=3P-(3H-L)",
@@ -14,15 +16,28 @@
     "camarilla_formulas": "H3=C+1.1(H-L)/4; H4=C+1.1(H-L)/2; H5=(H/L)*C; L3=C-1.1(H-L)/4; L4=C-1.1(H-L)/2; L5=C-(H5-C)",
     "period_source": "daily=prior session, weekly=prior calendar week (Mon-Sun), monthly=prior calendar month; all from spot 09:15-15:29 1m bars"
   },
-  "cpr_width_pct": {"narrow_below": 0.15, "wide_above": 0.35},
-
-  "indicators": {
-    "ema_5m": [20, 50, 200],
-    "ema_1m": [200],
-    "ema_30m": [200],
-    "disabled_not_used": {"ma20_1m": false, "daily_ma": false, "ema200_15m": false}
+  "cpr_width_pct": {
+    "narrow_below": 0.15,
+    "wide_above": 0.35
   },
-
+  "indicators": {
+    "ema_5m": [
+      20,
+      50,
+      200
+    ],
+    "ema_1m": [
+      200
+    ],
+    "ema_30m": [
+      200
+    ],
+    "disabled_not_used": {
+      "ma20_1m": false,
+      "daily_ma": false,
+      "ema200_15m": false
+    }
+  },
   "session": {
     "first_signal_bar": "09:15",
     "last_signal_bar": "14:30",
@@ -30,9 +45,7 @@
     "min_spot_1m_bars": 300,
     "min_fut_5m_bars": 60
   },
-
   "day_type_trend_ratio": 0.6,
-
   "options": {
     "underlying_index": "NIFTY",
     "lot_size": 65,
@@ -42,13 +55,36 @@
     "cost_model": "nse_cost_model.NseCostModel (read-only call; include_slippage=False; trade_date-aware STT)",
     "real_price_max_lag_minutes": 10
   },
-
   "angel": {
     "spot_token": "99926000",
     "spot_exchange": "NSE",
     "futures_token": "48704",
     "futures_exchange": "NFO",
     "futures_note": "Token 48704 (listed as NIFTY27OCT26FUT) returns a rolled near-month-like series back to 2020-07 (basis -40..+190 pts). Its contract expires 2026-10-27; history is cached locally in data_cache.db so later runs do not need it.",
-    "min_interval_sec": 0.6
+    "min_interval_sec": 0.6,
+    "futures_token_expiry": "2026-10-27"
+  },
+  "field_tests": {
+    "declared": "2026-10-16 by the user: 5 one-at-a-time field filters on the R1/PDH breakout variant, values taken from each condition's setup; no combinations.",
+    "base_variant": "+r1_pdh_break",
+    "tests": {
+      "cpr_width": [
+        "cpr_width"
+      ],
+      "cpr_vs_prior_day": [
+        "cpr_vs_prior_day"
+      ],
+      "cpr_vs_weekly": [
+        "cpr_vs_weekly"
+      ],
+      "cpr_vs_monthly": [
+        "cpr_vs_monthly"
+      ],
+      "open_location": [
+        "open_vs_cpr",
+        "open_vs_daily_h3",
+        "open_vs_weekly_h3"
+      ]
+    }
   }
 }

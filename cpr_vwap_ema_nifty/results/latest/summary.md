@@ -1,4 +1,4 @@
-# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T08:59:58
+# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T10:20:40
 
 Window 2020-07-01 to 2026-10-15; out-of-sample from 2024-07-01.
 Sessions: 1555; missing futures volume (skipped in 'futures' set, spot-TWAP in 'with_missing' set): 3.
@@ -141,6 +141,68 @@ Setup-matched sessions: 1 (2026-10-15)
 - normal: matched 0 trades || non-matched 457 trades | win 41.6% | avg win 52.81 / loss -32.03 pts | PF 1.17 | exp 3.24 pts | total 1481.7 | maxDD -1227.2 | hold 97.0m | MFE 49.7 / MAE 30.2 pts
 - wide: matched 0 trades || non-matched 151 trades | win 34.4% | avg win 52.96 / loss -46.04 pts | PF 0.6 | exp -11.95 pts | total -1804.05 | maxDD -1812.35 | hold 79.6m | MFE 51.0 / MAE 45.0 pts
 
+### Field tests on +r1_pdh_break (pre-declared, one field at a time, 5 tests, no combinations)
+- **reference_no_field_filter** 
+  - A_points: 615 trades | win 46.3% | avg win 56.88 / loss -34.57 pts | PF 1.42 | exp 7.81 pts | total 4803.75 | maxDD -565.45 | hold 120.0m | MFE 54.3 / MAE 30.4 pts
+  - B_modelled_rs: 612 trades | win 37.6% | avg win 2519.08 / loss -1145.09 Rs | PF 1.32 | exp 231.97 Rs | total 141962.91 | maxDD -30526.42 | hold 120.0m | MFE 54.4 / MAE 30.4 pts
+  - C_real_rs: 10 trades | win 30.0% | avg win 4121.47 / loss -1044.86 Rs | PF 1.69 | exp 505.04 Rs | total 5050.36 | maxDD -6723.2 | hold 118.5m | MFE 68.8 / MAE 24.2 pts
+  - IS_A_points: 424 trades | win 46.7% | avg win 50.48 / loss -31.37 pts | PF 1.41 | exp 6.85 pts | total 2905.2 | maxDD -462.7 | hold 120.9m | MFE 47.9 / MAE 27.3 pts
+  - OOS_A_points: 191 trades | win 45.5% | avg win 71.46 / loss -41.52 pts | PF 1.44 | exp 9.94 pts | total 1898.55 | maxDD -565.45 | hold 118.1m | MFE 68.5 / MAE 37.4 pts
+  - IS_B_rs: 421 trades | win 36.3% | avg win 2258.5 / loss -1021.24 Rs | PF 1.26 | exp 170.68 Rs | total 71858.15 | maxDD -30526.42 | hold 120.9m | MFE 48.0 / MAE 27.2 pts
+  - OOS_B_rs: 191 trades | win 40.3% | avg win 3036.85 / loss -1436.25 Rs | PF 1.43 | exp 367.04 Rs | total 70104.76 | maxDD -25603.76 | hold 118.1m | MFE 68.5 / MAE 37.4 pts
+  - bootstrap pts/trade: {'n': 615, 'mean': 7.81, 'ci95': [3.03, 12.43], 'p_mean_le_0': 0.0}
+  - by year: 2020: n=67 exp=-5.72 PF=0.58 B=-27479.96; 2021: n=111 exp=3.63 PF=1.21 B=1053.76; 2022: n=98 exp=13.57 PF=1.72 B=42607.01; 2023: n=103 exp=9.18 PF=1.74 B=26773.75; 2024: n=89 exp=8.58 PF=1.38 B=34186.17; 2025: n=89 exp=18.41 PF=1.85 B=72136.46; 2026: n=58 exp=1.82 PF=1.07 B=-7314.28
+- **cpr_width** {'cpr_width': 'narrow'}
+  - A_points: 307 trades | win 46.6% | avg win 52.78 / loss -33.06 pts | PF 1.39 | exp 6.92 pts | total 2124.8 | maxDD -714.1 | hold 119.4m | MFE 51.7 / MAE 28.5 pts
+  - B_modelled_rs: 306 trades | win 38.2% | avg win 2286.68 / loss -1094.15 Rs | PF 1.29 | exp 198.52 Rs | total 60748.5 | maxDD -21460.63 | hold 119.5m | MFE 51.8 / MAE 28.4 pts
+  - C_real_rs: 6 trades | win 33.3% | avg win 5281.2 / loss -954.79 Rs | PF 2.77 | exp 1123.88 Rs | total 6743.25 | maxDD -3465.57 | hold 115.8m | MFE 78.1 / MAE 21.7 pts
+  - IS_A_points: 198 trades | win 46.5% | avg win 45.85 / loss -29.75 pts | PF 1.34 | exp 5.38 pts | total 1064.6 | maxDD -329.45 | hold 121.2m | MFE 43.7 / MAE 26.0 pts
+  - OOS_A_points: 109 trades | win 46.8% | avg win 65.28 / loss -39.12 pts | PF 1.47 | exp 9.73 pts | total 1060.2 | maxDD -418.0 | hold 116.1m | MFE 66.1 / MAE 33.0 pts
+  - IS_B_rs: 197 trades | win 36.5% | avg win 1985.96 / loss -968.93 Rs | PF 1.18 | exp 111.03 Rs | total 21873.19 | maxDD -17233.12 | hold 121.4m | MFE 43.9 / MAE 25.8 pts
+  - OOS_B_rs: 109 trades | win 41.3% | avg win 2767.85 / loss -1338.71 Rs | PF 1.45 | exp 356.65 Rs | total 38875.31 | maxDD -17410.11 | hold 116.1m | MFE 66.1 / MAE 33.0 pts
+  - bootstrap pts/trade: {'n': 307, 'mean': 6.92, 'ci95': [-0.42, 13.99], 'p_mean_le_0': 0.0336}
+  - by year: 2020: n=25 exp=-9.59 PF=0.4 B=-12810.04; 2021: n=52 exp=14.44 PF=2.27 B=19066.58; 2022: n=37 exp=11.78 PF=1.67 B=14701.97; 2023: n=56 exp=3.4 PF=1.26 B=1351.83; 2024: n=57 exp=-3.87 PF=0.86 B=-3502.52; 2025: n=49 exp=17.62 PF=1.94 B=34595.11; 2026: n=31 exp=11.11 PF=1.59 B=7345.57
+- **cpr_vs_prior_day** {'cpr_vs_prior_day': 'overlapping_higher'}
+  - A_points: 35 trades | win 34.3% | avg win 69.1 / loss -35.05 pts | PF 1.03 | exp 0.66 pts | total 23.1 | maxDD -475.35 | hold 98.0m | MFE 50.9 / MAE 34.2 pts
+  - B_modelled_rs: 35 trades | win 28.6% | avg win 3029.46 / loss -1258.33 Rs | PF 0.96 | exp -33.25 Rs | total -1163.58 | maxDD -20462.31 | hold 98.0m | MFE 50.9 / MAE 34.2 pts
+  - C_real_rs: 2 trades | win 100.0% | avg win 6005.41 / loss 0.0 Rs | PF n/a | exp 6005.41 Rs | total 12010.82 | maxDD 0.0 | hold 235.0m | MFE 201.2 / MAE 20.4 pts
+  - IS_A_points: 22 trades | win 36.4% | avg win 46.32 / loss -28.94 pts | PF 0.91 | exp -1.57 pts | total -34.6 | maxDD -163.05 | hold 91.6m | MFE 39.5 / MAE 27.1 pts
+  - OOS_A_points: 13 trades | win 30.8% | avg win 114.65 / loss -44.54 pts | PF 1.14 | exp 4.44 pts | total 57.7 | maxDD -321.85 | hold 108.8m | MFE 70.4 / MAE 46.3 pts
+  - IS_B_rs: 22 trades | win 27.3% | avg win 2097.75 / loss -983.69 Rs | PF 0.8 | exp -143.3 Rs | total -3152.6 | maxDD -7344.31 | hold 91.6m | MFE 39.5 / MAE 27.1 pts
+  - OOS_B_rs: 13 trades | win 30.8% | avg win 4427.03 / loss -1746.57 Rs | PF 1.13 | exp 153.0 Rs | total 1989.02 | maxDD -13118.0 | hold 108.8m | MFE 70.4 / MAE 46.3 pts
+  - bootstrap pts/trade: {'n': 35, 'mean': 0.66, 'ci95': [-24.48, 15.09], 'p_mean_le_0': 0.7692}
+  - by year: 2020: n=3 exp=-4.35 PF=0.71 B=-248.08; 2021: n=6 exp=-16.78 PF=0.21 B=-4056.6; 2022: n=7 exp=20.94 PF=2.17 B=4681.64; 2023: n=4 exp=-2.74 PF=0.78 B=-1148.45; 2024: n=6 exp=-33.91 PF=0.0 B=-7960.09; 2025: n=3 exp=-11.88 PF=0.69 B=-1500.33; 2026: n=6 exp=40.05 PF=2.73 B=9068.33
+- **cpr_vs_weekly** {'cpr_vs_weekly': 'above'}
+  - A_points: 342 trades | win 45.6% | avg win 48.27 / loss -30.4 pts | PF 1.33 | exp 5.48 pts | total 1875.65 | maxDD -626.35 | hold 120.9m | MFE 48.2 / MAE 28.1 pts
+  - B_modelled_rs: 341 trades | win 36.1% | avg win 2212.48 / loss -1020.65 Rs | PF 1.22 | exp 145.56 Rs | total 49634.76 | maxDD -42021.32 | hold 121.1m | MFE 48.2 / MAE 28.0 pts
+  - C_real_rs: 2 trades | win 100.0% | avg win 5281.2 / loss 0.0 Rs | PF n/a | exp 5281.2 Rs | total 10562.4 | maxDD 0.0 | hold 237.5m | MFE 178.2 / MAE 20.7 pts
+  - IS_A_points: 257 trades | win 45.5% | avg win 43.83 / loss -29.34 pts | PF 1.25 | exp 3.97 pts | total 1020.25 | maxDD -626.35 | hold 119.7m | MFE 43.4 / MAE 26.3 pts
+  - OOS_A_points: 85 trades | win 45.9% | avg win 61.58 / loss -33.61 pts | PF 1.55 | exp 10.06 pts | total 855.4 | maxDD -346.6 | hold 124.8m | MFE 62.4 / MAE 33.3 pts
+  - IS_B_rs: 256 trades | win 34.8% | avg win 2008.61 / loss -963.53 Rs | PF 1.11 | exp 69.76 Rs | total 17857.39 | maxDD -42021.32 | hold 119.9m | MFE 43.5 / MAE 26.2 pts
+  - OOS_B_rs: 85 trades | win 40.0% | avg win 2746.15 / loss -1207.68 Rs | PF 1.52 | exp 373.85 Rs | total 31777.37 | maxDD -17020.06 | hold 124.8m | MFE 62.4 / MAE 33.3 pts
+  - bootstrap pts/trade: {'n': 342, 'mean': 5.48, 'ci95': [-0.59, 10.95], 'p_mean_le_0': 0.0426}
+  - by year: 2020: n=48 exp=-9.37 PF=0.39 B=-25724.13; 2021: n=69 exp=-0.15 PF=0.99 B=-8803.57; 2022: n=57 exp=2.28 PF=1.12 B=-2951.09; 2023: n=59 exp=16.65 PF=2.66 B=34535.62; 2024: n=52 exp=1.02 PF=1.05 B=4558.5; 2025: n=39 exp=21.88 PF=2.27 B=39274.62; 2026: n=18 exp=17.6 PF=2.13 B=8744.81
+- **cpr_vs_monthly** {'cpr_vs_monthly': 'below'}
+  - A_points: 138 trades | win 41.3% | avg win 73.94 / loss -44.99 pts | PF 1.16 | exp 4.14 pts | total 571.0 | maxDD -1067.95 | hold 118.4m | MFE 62.9 / MAE 41.0 pts
+  - B_modelled_rs: 138 trades | win 34.8% | avg win 3047.45 / loss -1495.35 Rs | PF 1.09 | exp 84.76 Rs | total 11696.6 | maxDD -45369.39 | hold 118.4m | MFE 62.9 / MAE 41.0 pts
+  - C_real_rs: 5 trades | win 20.0% | avg win 10208.82 / loss -1242.38 Rs | PF 2.05 | exp 1047.86 Rs | total 5239.31 | maxDD -4969.51 | hold 93.0m | MFE 77.6 / MAE 24.7 pts
+  - IS_A_points: 79 trades | win 46.8% | avg win 69.67 / loss -38.13 pts | PF 1.61 | exp 12.36 pts | total 976.4 | maxDD -396.35 | hold 128.4m | MFE 59.9 / MAE 33.3 pts
+  - OOS_A_points: 59 trades | win 33.9% | avg win 81.85 / loss -52.37 pts | PF 0.8 | exp -6.87 pts | total -405.4 | maxDD -679.85 | hold 105.0m | MFE 67.0 / MAE 51.3 pts
+  - IS_B_rs: 79 trades | win 40.5% | avg win 2755.69 / loss -1277.43 Rs | PF 1.47 | exp 356.24 Rs | total 28143.13 | maxDD -17747.28 | hold 128.4m | MFE 59.9 / MAE 33.3 pts
+  - OOS_B_rs: 59 trades | win 27.1% | avg win 3630.97 / loss -1733.54 Rs | PF 0.78 | exp -278.75 Rs | total -16446.53 | maxDD -30815.07 | hold 105.0m | MFE 67.0 / MAE 51.3 pts
+  - bootstrap pts/trade: {'n': 138, 'mean': 4.14, 'ci95': [-9.29, 14.26], 'p_mean_le_0': 0.3504}
+  - by year: 2020: n=4 exp=18.9 PF=2.19 B=2536.5; 2021: n=15 exp=42.69 PF=6.53 B=20859.25; 2022: n=29 exp=18.19 PF=1.68 B=17889.16; 2023: n=26 exp=-4.32 PF=0.75 B=-7601.58; 2024: n=18 exp=-22.4 PF=0.3 B=-15849.31; 2025: n=24 exp=4.99 PF=1.16 B=6624.54; 2026: n=22 exp=-12.58 PF=0.69 B=-12761.96
+- **open_location** {'open_vs_cpr': 'above', 'open_vs_daily_h3': 'below', 'open_vs_weekly_h3': 'below'}
+  - A_points: 81 trades | win 44.4% | avg win 88.66 / loss -30.95 pts | PF 2.29 | exp 22.21 pts | total 1798.95 | maxDD -276.7 | hold 121.7m | MFE 69.8 / MAE 31.4 pts
+  - B_modelled_rs: 81 trades | win 34.6% | avg win 4476.1 / loss -1084.12 Rs | PF 2.18 | exp 837.93 Rs | total 67872.32 | maxDD -13938.31 | hold 121.7m | MFE 69.8 / MAE 31.4 pts
+  - C_real_rs: 1 trades | win 100.0% | avg win 10208.82 / loss 0.0 Rs | PF n/a | exp 10208.82 Rs | total 10208.82 | maxDD 0.0 | hold 285.0m | MFE 295.8 / MAE 16.3 pts
+  - IS_A_points: 46 trades | win 39.1% | avg win 73.86 / loss -26.58 pts | PF 1.79 | exp 12.72 pts | total 585.3 | maxDD -276.7 | hold 114.9m | MFE 51.7 / MAE 26.0 pts
+  - OOS_A_points: 35 trades | win 51.4% | avg win 103.46 / loss -38.16 pts | PF 2.87 | exp 34.68 pts | total 1213.65 | maxDD -201.05 | hold 130.7m | MFE 93.5 / MAE 38.5 pts
+  - IS_B_rs: 46 trades | win 28.3% | avg win 4028.13 / loss -923.88 Rs | PF 1.72 | exp 475.6 Rs | total 21877.73 | maxDD -13938.31 | hold 114.9m | MFE 51.7 / MAE 26.0 pts
+  - OOS_B_rs: 35 trades | win 42.9% | avg win 4864.33 / loss -1348.52 Rs | PF 2.71 | exp 1314.13 Rs | total 45994.59 | maxDD -7977.81 | hold 130.7m | MFE 93.5 / MAE 38.5 pts
+  - bootstrap pts/trade: {'n': 81, 'mean': 22.21, 'ci95': [5.52, 37.38], 'p_mean_le_0': 0.0034}
+  - by year: 2020: n=5 exp=-17.78 PF=0.0 B=-4081.23; 2021: n=15 exp=-9.52 PF=0.52 B=-8983.04; 2022: n=7 exp=24.38 PF=2.31 B=6126.86; 2023: n=12 exp=-2.08 PF=0.87 B=-1844.59; 2024: n=17 exp=52.45 PF=5.07 B=38877.68; 2025: n=16 exp=48.55 PF=5.36 B=30483.75; 2026: n=9 exp=24.07 PF=1.74 B=7292.89
+
 ### Setup sensitivity - EXPLORATORY, not rules (base, futures VWAP)
 Each row loosens the setup; many looks at one dataset, so a single good row is weak evidence.
 - **drop cpr_width** (1 sessions): A 1 trades | win 100.0% | avg win 289.55 / loss 0.0 pts | PF n/a | exp 289.55 pts | total 289.55 | maxDD 0.0 | hold 305.0m | MFE 331.6 / MAE 44.4 pts
@@ -180,3 +242,7 @@ Each row loosens the setup; many looks at one dataset, so a single good row is w
 - 2025: matched 0 trades || non-matched 179 trades | win 41.3% | avg win 64.52 / loss -36.41 pts | PF 1.25 | exp 5.32 pts | total 951.45 | maxDD -531.6 | hold 89.4m | MFE 60.1 / MAE 34.8 pts
 - 2026: matched 1 trades | win 100.0% | avg win 289.55 / loss 0.0 pts | PF n/a | exp 289.55 pts | total 289.55 | maxDD 0.0 | hold 305.0m | MFE 331.6 / MAE 44.4 pts || non-matched 129 trades | win 33.3% | avg win 54.91 / loss -38.08 pts | PF 0.72 | exp -7.08 pts | total -913.25 | maxDD -1026.9 | hold 79.4m | MFE 50.1 / MAE 37.5 pts
 
+## Change vs previous run
+Previous run: 2026-10-16T08:59:58
+- C001 base|futures matched: trades 1 -> 1, expectancy 289.55 -> 289.55, PF None -> None
+- C001 base|futures non_matched: trades 1159 -> 1159, expectancy -0.48 -> -0.48, PF 0.98 -> 0.98
