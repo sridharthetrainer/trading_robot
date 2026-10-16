@@ -70,3 +70,27 @@ Write a JSON object with the same fields as C001 in `rules.json` (new `id`,
   included with a spot TWAP (labelled) in the `with_missing` set.
 * `options_nifty.db` has no underlying price for 2020-2023; layer B uses this
   package's own previous-session spot close there.
+
+## Pre-registered rules and forward paper evaluation
+
+`rules.json` -> `"preregistered"` holds frozen rules (R001 = R1/PDH breakout).
+A rule stays `"status": "proposed"` until the user approves its forward bar;
+approval = set `"status": "approved"` and `"approved_on"`. Counting starts the
+first session AFTER `approved_on`. Any later change to the definition, costs
+or bar needs a new rule id with a fresh forward window.
+
+```
+.venv/bin/python -m cpr_vwap_ema_nifty forward-report R001
+```
+
+Paper only: it re-runs the frozen rule on new sessions, prices the CE from
+real option-chain snapshots (layer C; needs the bot's snapshot recorder
+running) and the model (layer B), applies the bar and writes
+`results/forward/R001_trades.csv`, `R001_status.json`, `R001_status_log.jsonl`.
+Until approval it returns `not_approved` and counts nothing.
+
+## Field tests
+
+`config.json` -> `"field_tests"`: one-at-a-time filters (values from the
+condition's setup) applied to a base variant; reported under "Field tests" in
+`summary.md`. Combinations are deliberately not generated.
