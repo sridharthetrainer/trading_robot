@@ -1,0 +1,22 @@
+{
+  "rule": "R002",
+  "computed_on": "2026-10-16",
+  "candidate_basis": "E2 short passed the step-2 screen; day-clustered bootstrap p 0.0042 does NOT clear the 40-test threshold 0.00125",
+  "one_per_day_backtest": {
+    "trades": 645,
+    "pf_points": 1.39,
+    "is_pf": 1.27,
+    "oos_pf": 1.51,
+    "B_total_rs": 401611,
+    "oos_trades_per_month": 9.0,
+    "day_bootstrap_p": 0.0018
+  },
+  "bar_simulation": {
+    "method": "5-trade block bootstrap of the 645 one-per-day trades, 20k reps; no edge = de-meaned",
+    "pass_if_edge_real": 0.335,
+    "pass_if_no_edge": 0.012,
+    "killed_at_40_if_edge_real": 0.161,
+    "killed_at_40_if_no_edge": 0.756
+  },
+  "expected_duration": "about 17 months at 9 trades/month"
+}

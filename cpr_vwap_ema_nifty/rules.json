@@ -347,6 +347,108 @@
       "date": "2026-10-16",
       "fingerprint": "3c3daa6c033b15b43c0952d39e3f93544bb1afe0ca3c911d1ada5a7df5809ddf",
       "fingerprint_note": "Re-fingerprinted 2026-10-16 when backtest statistics were moved out of forward_bar under the storage rule; definition, engine_mapping and every pass/fail threshold are unchanged."
+    },
+    {
+      "id": "R002",
+      "name": "Pooled short entries with the 1m 200 EMA exit (E2)",
+      "status": "proposed",
+      "date": "2026-10-16",
+      "proposed_on": "2026-10-16",
+      "approved_on": null,
+      "frozen": false,
+      "mode": "paper_only",
+      "counting_starts": "first NSE session after approved_on; nothing before approval is counted",
+      "derived_from": "exit test E2 on the pooled short version-B entries (C002, C004, C006, C007, H-D); passed the user's step-2 screen",
+      "definition": {
+        "instrument": "NIFTY",
+        "timeframe": "5m",
+        "bias": "SHORT",
+        "sessions": "every NSE session",
+        "signal_window": "5m candles starting 09:15 to 14:30",
+        "signal": "the FIRST candle of the session on which ANY of the five short entries fires (sources below)",
+        "entry": "next 5m candle open (spot)",
+        "exit": "first 5m CLOSE back above the 1m 200 EMA at or after the entry candle -> next 5m open; force exit at the 15:20 candle open",
+        "max_trades_per_session": 1,
+        "option_traded": "1 lot (65) NIFTY PE, strike = entry spot rounded to nearest 50, nearest weekly expiry on/after the trade date",
+        "option_price": "real lastPrice from the bot's and the standalone recorder's option-chain snapshots at the first snapshot at/after each fill (max 10 min lag); modelled price reported alongside",
+        "costs": "nse_cost_model.NseCostModel, trade-date STT, plus 1 point premium slippage per side"
+      },
+      "engine_mapping": {
+        "sources": {
+          "C002": {
+            "entry_type": "weekly_pivot_break_short",
+            "primary_positions": {
+              "vwap": "below",
+              "ema200_1m": "below",
+              "ema200_5m": "below",
+              "cpr": "below",
+              "pdh_r1_zone": "below",
+              "pdl_s1_zone": "inside"
+            }
+          },
+          "C004": {
+            "entry_type": "strong_vwap_then_strong_emas_short",
+            "primary_positions": {
+              "vwap": "below",
+              "ema200_1m": "below",
+              "ema200_5m": "above",
+              "cpr": "inside",
+              "pdh_r1_zone": "below",
+              "pdl_s1_zone": "above"
+            }
+          },
+          "C006": {
+            "entry_type": "vwap_pdl_ema20_resistance_short",
+            "primary_positions": {
+              "vwap": "below",
+              "ema200_1m": "below",
+              "ema200_5m": "below",
+              "cpr": "below",
+              "pdh_r1_zone": "below",
+              "pdl_s1_zone": "below"
+            }
+          },
+          "C007": {
+            "entry_type": "rejections_then_strong_breakdown_short",
+            "primary_positions": {
+              "vwap": "below",
+              "ema200_1m": "below",
+              "ema200_5m": "above",
+              "cpr": "inside",
+              "pdh_r1_zone": "below",
+              "pdl_s1_zone": "above"
+            }
+          },
+          "H-D": {
+            "entry_type": "hd_short_mirror_of_R001",
+            "definition": "5m close below min(PDL, S1), futures close below futures VWAP, close below 5m 20/50/200 EMA and 1m 200 EMA"
+          }
+        },
+        "exit": {
+          "type": "E2_close_across_ema200_1m"
+        },
+        "one_trade_per_day": "earliest signal"
+      },
+      "forward_bar_proposed": {
+        "evaluation_trades": 150,
+        "kill_check_at_trades": 40,
+        "kill_if_any": {
+          "pf_points_below": 0.9,
+          "real_option_net_below_rs": -20000
+        },
+        "fail_immediately_if": {
+          "real_option_drawdown_beyond_rs": 40000
+        },
+        "pass_if_all_at_150": {
+          "pf_points_min": 1.15,
+          "t_stat_points_min": 1.65,
+          "real_option_net_min_rs": 0,
+          "real_option_drawdown_max_rs": 40000,
+          "real_price_coverage_min_pct": 80
+        },
+        "otherwise": "FAIL"
+      },
+      "note": "Proposed only. Not approved, not frozen, no forward trades counted. R001 is unchanged."
     }
   ],
   "hypotheses": [

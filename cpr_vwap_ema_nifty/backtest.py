@@ -82,7 +82,18 @@ def update_ledger(summary: Dict, run_id: str) -> Dict:
         if k not in led["tests"]:
             led["tests"][k] = {"first_run": run_id[:10], "run_id": run_id}
             new.append(k)
+    for key in summary.get("exits_run", {}).get("pooled", {}):
+        if key.startswith("REF"):
+            continue                          # reference exits: descriptive
+        k = f"exit:{key}"
+        if k not in led["tests"]:
+            led["tests"][k] = {"first_run": run_id[:10], "run_id": run_id}
+            new.append(k)
     looks = led.setdefault("descriptive_looks", {})
+    for key in summary.get("exits_run", {}).get("pooled", {}):
+        if key.startswith("REF"):
+            looks.setdefault(f"exit:{key}", {"first_run": run_id[:10], "note": "reference exit, descriptive"})
+    looks.setdefault("exit:per_condition_tables", {"first_run": run_id[:10], "note": "descriptive only"})
     for cid in summary.get("conditions_run", {}).get("conditions", {}):
         for v in ("A", "C_ema20", "C_ema50"):
             looks.setdefault(f"condition{v}:{cid}", {"first_run": run_id[:10], "note": "descriptive version"})
@@ -482,6 +493,9 @@ def to_markdown(s: Dict, prev: Optional[Dict]) -> str:
     if s.get("conditions_run"):
         from . import conditions_backtest as cb
         L.append(cb.to_markdown(s["conditions_run"], int(s.get("test_ledger", {}).get("total") or 0)))
+    if s.get("exits_run"):
+        from . import exits_test as xt
+        L.append(xt.to_markdown(s["exits_run"], int(s.get("test_ledger", {}).get("total") or 0)))
     fwd = RESULTS_DIR / "forward" / "R001_status.json"
     if fwd.exists():
         st = json.loads(fwd.read_text())
@@ -564,6 +578,10 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
         multi = cb.run_conditions(prep, cfg, all_conditions)
         multi_trades = multi.pop("trades")
         summary["conditions_run"] = multi
+        from . import exits_test as xt
+        exits = xt.run(prep, cfg, all_conditions)
+        exit_trades = exits.pop("_trades", None)
+        summary["exits_run"] = exits
         summary["test_ledger"] = update_ledger(summary, summary["generated_at"])
         doc = rl.load()
         summary["registry"] = {
@@ -588,6 +606,8 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
             hd_trades.to_csv(latest / "h_d_short_trades.csv", index=False)
         if multi_trades is not None and not multi_trades.empty:
             multi_trades.to_csv(latest / "conditions_trades.csv", index=False)
+        if exit_trades is not None and not exit_trades.empty:
+            exit_trades.to_csv(latest / "exit_test_trades.csv", index=False)
         (latest / "summary.json").write_text(json.dumps(summary, indent=2, default=str))
         (latest / "summary.md").write_text(to_markdown(summary, prev))
         if not trades.empty:

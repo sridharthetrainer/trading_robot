@@ -155,3 +155,17 @@ A exact (stored fields all match; no significance below 10 sessions), B primary
 pre-declared tests 25-30 for C002-C007), C fixed exits (5m 20 EMA and 5m 50
 EMA; descriptive). Trades: `results/latest/conditions_trades.csv`. Mirror runs
 were skipped by the user's decision. R001 is untouched.
+
+## Exit test E1-E5 (exits_test.py) and R002 (proposed)
+
+Pre-declared alternative exits on the UNCHANGED version-B entries, pooled by
+direction (long: base rule, C003, C005; short: C002, C004, C006, C007, H-D):
+E1 close back across VWAP, E2 across the 1m 200 EMA, E3 across the 5m 200 EMA,
+E4 3 x ATR(14) Wilder trailing stop (ATR at the signal candle), E5 nearest
+primary level beyond entry with a VWAP close stop; REF20/REF50 for reference.
+Tests 31-40; split IS 2020-07..2023-12 / OOS 2024-01..; screen and a
+day-clustered bootstrap (pooled trades share days) in `summary.md`; trades in
+`results/latest/exit_test_trades.csv`. E2-short passed the screen, so R002
+(first short signal of the day, E2 exit, ATM put) is drafted in `rules.json`
+as **proposed** (not approved, not frozen, nothing counted); its bar rationale
+is in `results/preregistration/R002_bar_rationale.json`. R001 is unchanged.

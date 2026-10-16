@@ -1,13 +1,13 @@
-# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T22:50:51
+# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T23:37:33
 
 Window 2020-07-01 to 2026-10-16; out-of-sample from 2024-07-01.
 Sessions: 1556; missing futures volume (skipped in 'futures' set, spot-TWAP in 'with_missing' set): 3.
 Spot data source per session: {'angel': 1615, 'insufficient': 4}.
 
-**Tests run on this dataset so far: 30** (new this run: 6; ledger: test_ledger.json). Hypotheses and forward paper trades are not counted.
+**Tests run on this dataset so far: 40** (new this run: 0; ledger: test_ledger.json). Hypotheses and forward paper trades are not counted.
 Conditions logged (observations): [{'id': 'C001', 'date': '2026-10-15', 'role': 'observation'}, {'id': 'C002', 'date': '2026-10-08', 'role': 'observation'}, {'id': 'C003', 'date': '2026-10-16', 'role': 'observation'}, {'id': 'C004', 'date': '2026-10-14', 'role': 'observation'}, {'id': 'C005', 'date': '2026-10-13', 'role': 'observation'}, {'id': 'C006', 'date': '2026-10-01', 'role': 'observation'}, {'id': 'C007', 'date': '2026-09-22', 'role': 'observation'}]
 Hypotheses (observation only, not tested, not counted): [{'id': 'H001', 'date': '2026-10-16', 'status': 'observation_only'}]
-Pre-registered rules: [{'id': 'R001', 'status': 'approved', 'approved_on': '2026-10-16', 'frozen_ok': True}] (forward status: results/forward/<id>_status.json)
+Pre-registered rules: [{'id': 'R001', 'status': 'approved', 'approved_on': '2026-10-16', 'frozen_ok': True}, {'id': 'R002', 'status': 'proposed', 'approved_on': None, 'frozen_ok': False}] (forward status: results/forward/<id>_status.json)
 
 Layer A = NIFTY index points, no costs. B = modelled 1-lot ATM option, net of costs and 1pt/side slippage (prior-session IV held constant). C = real option prices from 5-min chain snapshots (2026-06-19 onward only).
 
@@ -299,7 +299,7 @@ C001 exact-match sessions: 1 of 1556
   - inside: 11 tr | win 36.4% | PF 1.51 | exp 9.25 pts | B +5,228 | IS PF 1.06 (n=7, B +2,655) | OOS PF 2.54 (n=4, B +2,573)
   - below: 18 tr | win 33.3% | PF 0.71 | exp -5.28 pts | B -5,573 | IS PF 1.32 (n=13, B +774) | OOS PF 0.12 (n=5, B -6,348)
 
-## Pre-declared tests (exploratory; Bonferroni threshold for 30 tests: p < 0.00167)
+## Pre-declared tests (exploratory; Bonferroni threshold for 40 tests: p < 0.00125)
 
 ### H-A golden pivot zone — bullish: daily Camarilla L3 inside daily CPR; bearish: H3 inside; none otherwise. Day direction = session close vs session open (and vs prior close).
 - bullish: 485 sessions | close>open 48.2% | avg C-O -12.23 pts | close>prior close 56.9%
@@ -337,8 +337,8 @@ C001 exact-match sessions: 1 of 1556
 - by year: 2020: n=33 PF=1.47 exp=12.27 B=+26,513; 2021: n=75 PF=1.06 exp=1.58 B=+5,612; 2022: n=91 PF=0.81 exp=-5.25 B=-17,427; 2023: n=76 PF=1.5 exp=8.16 B=+21,805; 2024: n=79 PF=1.59 exp=18.37 B=+76,721; 2025: n=79 PF=0.96 exp=-0.81 B=-15,645; 2026: n=81 PF=1.28 exp=7.74 B=+29,759
 
 
-Descriptive looks (priority-focus splits, not counted as tests): 27. Everything in this report is EXPLORATORY; only R001's forward paper result is confirmatory.
-## All conditions C001-C007 (versions A/B/C) — Bonferroni threshold for 30 tests: p < 0.00167
+Descriptive looks (priority-focus splits, not counted as tests): 32. Everything in this report is EXPLORATORY; only R001's forward paper result is confirmatory.
+## All conditions C001-C007 (versions A/B/C) — Bonferroni threshold for 40 tests: p < 0.00125
 Version B for C002-C007 = pre-declared tests 25-30. Versions A and C are descriptive (not counted). Every result is EXPLORATORY unless a version-B bootstrap p (mean <= 0) is below the threshold.
 
 Unfiltered base rule (C001 B): 1161 tr | win 37.8% | avg W 53.11 / L -32.68 | PF 0.99 | exp -0.24 | maxDD -1370.75 | hold 90.4m | B -94,666 (PF 0.89) | C -2,666 (28/1161 trades priced from real snapshots) | IS PF 0.99 / OOS PF 0.98 | {'n': 1161, 'mean': -0.24, 'ci95': [-3.24, 2.51], 'p_mean_le_0': 0.5996}
@@ -414,13 +414,109 @@ Unfiltered base rule (C001 B): 1161 tr | win 37.8% | avg W 53.11 / L -32.68 | PF
 - **C fixed exit 50 EMA**: 41 tr | win 14.6% | avg W 94.23 / L -15.75 | PF 1.03 | exp 0.34 | maxDD -171.25 | hold 52.8m | B -2,703 (PF 0.89) | C -571 (1/41 trades priced from real snapshots) | IS PF 1.26 / OOS PF 0.48 | {'n': 41, 'mean': 0.34, 'ci95': [-11.86, 17.82], 'p_mean_le_0': 0.4656}  (fixed exits replace the condition's own exit (staged_zones))
 
 
+## Alternative exits E1-E5 on unchanged version-B entries (tests 31-40; threshold p < 0.00125)
+Entries per source: {'C001': 1161, 'H-D': 514, 'C006': 361, 'C003': 329, 'C004': 133, 'C005': 119, 'C002': 99, 'C007': 41}. Split: IS 2020-07..2023-12, OOS 2024-01..2026-10-16. Screen = PF>1.15 both periods, layer B > 0 both, OOS bootstrap CI above zero (screen, not proof). REF20/REF50 and per-condition rows are descriptive. Everything is EXPLORATORY.
+
+Pooled sources often fire on the same day, so trades are not independent: the DAY-clustered p (resampling whole sessions) is the one compared with the threshold.
+
+| Exit | Side | Trades | Win% | PF | Exp pts | B total | IS PF / OOS PF | IS B / OOS B | OOS CI (trade blocks) | trade p | day-clustered p | Screen |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| E1 | long | 1609 | 31.0 | 1.06 | 1.03 | -64,689 | 1.14 / 0.99 | -15,687 / -49,002 | [-5.89, 5.46] | 0.283 | 0.2854 | fail |
+| E2 | long | 1609 | 32.8 | 1.0 | -0.09 | -40,251 | 1.06 / 0.94 | +966 / -41,217 | [-8.47, 4.65] | 0.5332 | 0.5162 | fail |
+| E3 | long | 1609 | 37.1 | 0.95 | -1.5 | +43,604 | 0.96 / 0.94 | +5,485 / +38,119 | [-11.26, 5.8] | 0.7822 | 0.722 | fail |
+| E4 | long | 1609 | 39.2 | 1.09 | 2.22 | +66,626 | 1.1 / 1.08 | +24,909 / +41,717 | [-5.48, 8.51] | 0.18 | 0.1582 | fail |
+| E5 | long | 1609 | 51.3 | 0.99 | -0.1 | -231,323 | 1.02 / 0.97 | -118,599 / -112,724 | [-3.63, 2.85] | 0.5466 | 0.541 | fail |
+| REF20 | long | 1609 | 35.7 | 0.94 | -1.21 | -186,316 | 1.03 / 0.86 | -67,365 / -118,951 | [-8.7, 1.51] | 0.8138 | 0.7612 | fail |
+| REF50 | long | 1609 | 32.4 | 1.0 | 0.12 | -19,003 | 1.09 / 0.93 | +34,706 / -53,710 | [-9.12, 3.98] | 0.511 | 0.4766 | fail |
+| E1 | short | 1148 | 38.3 | 1.24 | 5.56 | +320,271 | 1.17 / 1.32 | +129,794 / +190,477 | [-1.7, 16.74] | 0.03 | 0.0378 | fail |
+| E2 | short | 1148 | 41.4 | 1.37 | 11.12 | +704,477 | 1.22 / 1.51 | +249,960 / +454,517 | [4.53, 29.16] | 0.0004 | 0.0042 | PASS |
+| E3 | short | 1148 | 44.0 | 1.19 | 6.83 | +624,813 | 1.09 / 1.28 | +200,141 / +424,672 | [-3.58, 26.25] | 0.0574 | 0.077 | fail |
+| E4 | short | 1148 | 41.6 | 1.23 | 6.5 | +388,240 | 1.07 / 1.38 | +97,945 / +290,295 | [-0.1, 23.34] | 0.0244 | 0.0284 | fail |
+| E5 | short | 1148 | 44.9 | 1.2 | 4.23 | +211,168 | 1.13 / 1.27 | +80,954 / +130,214 | [-2.18, 14.12] | 0.051 | 0.065 | fail |
+| REF20 | short | 1148 | 41.4 | 1.18 | 4.56 | +256,248 | 1.08 / 1.29 | +65,675 / +190,574 | [-3.21, 19.52] | 0.0696 | 0.0824 | fail |
+| REF50 | short | 1148 | 40.9 | 1.33 | 10.57 | +707,679 | 1.16 / 1.49 | +222,223 / +485,456 | [4.59, 30.22] | 0.001 | 0.0078 | PASS |
+
+Per pooled group detail (avg win/loss, max DD, hold, layer C coverage, by year):
+- E1|long: avg W 58.52 / L -24.81 | maxDD -2720.6 | hold 82.7m | C -5,402 (42/1609 trades priced from real snapshots) | years 2020: n=150 PF=1.04 B=-21,354; 2021: n=261 PF=1.23 B=+15,646; 2022: n=226 PF=0.98 B=-19,851; 2023: n=261 PF=1.27 B=+9,874; 2024: n=269 PF=1.0 B=-4,412; 2025: n=264 PF=1.03 B=-10,052; 2026: n=178 PF=0.92 B=-34,538
+- E2|long: avg W 70.8 / L -34.71 | maxDD -3051.75 | hold 124.0m | C +14,440 (41/1609 trades priced from real snapshots) | years 2020: n=150 PF=0.87 B=-34,937; 2021: n=261 PF=1.14 B=+25,697; 2022: n=226 PF=0.97 B=-17,250; 2023: n=261 PF=1.17 B=+27,456; 2024: n=269 PF=0.97 B=+17,730; 2025: n=264 PF=1.1 B=+7,625; 2026: n=178 PF=0.7 B=-66,572
+- E3|long: avg W 81.43 / L -50.42 | maxDD -3715.85 | hold 209.9m | C +27,403 (38/1609 trades priced from real snapshots) | years 2020: n=150 PF=0.96 B=-14,598; 2021: n=261 PF=0.82 B=-32,008; 2022: n=226 PF=0.91 B=-13,905; 2023: n=261 PF=1.24 B=+65,995; 2024: n=269 PF=0.87 B=-9,890; 2025: n=264 PF=1.04 B=+48,576; 2026: n=178 PF=0.91 B=-567
+- E4|long: avg W 70.48 / L -41.82 | maxDD -1703.65 | hold 153.2m | C +35,746 (39/1609 trades priced from real snapshots) | years 2020: n=150 PF=1.03 B=-19,136; 2021: n=261 PF=1.09 B=+4,247; 2022: n=226 PF=1.03 B=+4,594; 2023: n=261 PF=1.23 B=+35,203; 2024: n=269 PF=1.06 B=+11,497; 2025: n=264 PF=1.1 B=+12,033; 2026: n=178 PF=1.06 B=+18,188
+- E5|long: avg W 23.42 / L -24.91 | maxDD -2214.15 | hold 34.7m | C -20,582 (43/1609 trades priced from real snapshots) | years 2020: n=150 PF=0.91 B=-27,743; 2021: n=261 PF=0.99 B=-33,427; 2022: n=226 PF=0.96 B=-33,161; 2023: n=261 PF=1.2 B=-24,269; 2024: n=269 PF=0.78 B=-65,254; 2025: n=264 PF=1.23 B=-2,684; 2026: n=178 PF=0.88 B=-44,786
+- REF20|long: avg W 52.52 / L -31.09 | maxDD -2630.95 | hold 82.0m | C +3,475 (41/1609 trades priced from real snapshots) | years 2020: n=150 PF=0.77 B=-39,397; 2021: n=261 PF=1.03 B=-22,962; 2022: n=226 PF=1.02 B=-6,503; 2023: n=261 PF=1.21 B=+1,496; 2024: n=269 PF=0.74 B=-68,554; 2025: n=264 PF=1.03 B=-4,799; 2026: n=178 PF=0.82 B=-45,599
+- REF50|long: avg W 75.49 / L -36.08 | maxDD -3212.65 | hold 137.2m | C +24,477 (42/1609 trades priced from real snapshots) | years 2020: n=150 PF=0.84 B=-36,762; 2021: n=261 PF=1.1 B=+20,219; 2022: n=226 PF=1.09 B=+13,937; 2023: n=261 PF=1.22 B=+37,313; 2024: n=269 PF=0.89 B=-5,488; 2025: n=264 PF=1.11 B=+16,655; 2026: n=178 PF=0.75 B=-64,877
+- E1|short: avg W 74.86 / L -37.51 | maxDD -928.7 | hold 102.6m | C +15,587 (30/1148 trades priced from real snapshots) | years 2020: n=82 PF=1.45 B=+58,279; 2021: n=166 PF=1.17 B=+23,871; 2022: n=207 PF=0.96 B=+9,562; 2023: n=164 PF=1.38 B=+38,082; 2024: n=177 PF=1.49 B=+101,450; 2025: n=174 PF=0.89 B=-23,571; 2026: n=178 PF=1.59 B=+112,598
+- E2|short: avg W 100.46 / L -51.93 | maxDD -1305.95 | hold 158.1m | C +28,501 (30/1148 trades priced from real snapshots) | years 2020: n=82 PF=1.59 B=+76,629; 2021: n=166 PF=1.31 B=+79,865; 2022: n=207 PF=0.99 B=+39,919; 2023: n=164 PF=1.38 B=+53,547; 2024: n=177 PF=1.4 B=+152,248; 2025: n=174 PF=1.13 B=+35,850; 2026: n=178 PF=2.01 B=+266,420
+- E3|short: avg W 98.22 / L -64.95 | maxDD -2321.85 | hold 194.0m | C +9,540 (32/1148 trades priced from real snapshots) | years 2020: n=82 PF=2.02 B=+85,996; 2021: n=166 PF=1.35 B=+99,056; 2022: n=207 PF=0.79 B=-11,133; 2023: n=164 PF=1.04 B=+26,222; 2024: n=177 PF=1.39 B=+207,323; 2025: n=174 PF=0.94 B=-110; 2026: n=178 PF=1.43 B=+217,459
+- E4|short: avg W 84.61 / L -49.02 | maxDD -1175.0 | hold 130.8m | C +6,382 (30/1148 trades priced from real snapshots) | years 2020: n=82 PF=1.14 B=+28,488; 2021: n=166 PF=1.27 B=+58,094; 2022: n=207 PF=0.8 B=-40,133; 2023: n=164 PF=1.37 B=+51,496; 2024: n=177 PF=1.66 B=+141,082; 2025: n=174 PF=0.93 B=-14,310; 2026: n=178 PF=1.56 B=+163,523
+- E5|short: avg W 56.8 / L -38.68 | maxDD -868.58 | hold 85.2m | C +16,531 (32/1148 trades priced from real snapshots) | years 2020: n=82 PF=1.38 B=+47,972; 2021: n=166 PF=1.08 B=-165; 2022: n=207 PF=0.91 B=-8,130; 2023: n=164 PF=1.5 B=+41,277; 2024: n=177 PF=1.45 B=+82,133; 2025: n=174 PF=0.8 B=-45,804; 2026: n=178 PF=1.6 B=+93,885
+- REF20|short: avg W 71.87 / L -42.95 | maxDD -1001.5 | hold 103.4m | C +11,987 (30/1148 trades priced from real snapshots) | years 2020: n=82 PF=1.67 B=+67,892; 2021: n=166 PF=0.98 B=+1,525; 2022: n=207 PF=0.82 B=-44,829; 2023: n=164 PF=1.4 B=+41,086; 2024: n=177 PF=1.4 B=+129,270; 2025: n=174 PF=1.01 B=-19,469; 2026: n=178 PF=1.38 B=+80,773
+- REF50|short: avg W 104.72 / L -54.46 | maxDD -1577.9 | hold 170.8m | C +30,365 (29/1148 trades priced from real snapshots) | years 2020: n=82 PF=1.54 B=+74,178; 2021: n=166 PF=1.26 B=+74,247; 2022: n=207 PF=0.96 B=+37,012; 2023: n=164 PF=1.24 B=+36,786; 2024: n=177 PF=1.39 B=+173,225; 2025: n=174 PF=1.23 B=+57,775; 2026: n=178 PF=1.85 B=+254,456
+
+Per-condition (DESCRIPTIVE, small samples, not for choosing an exit):
+- C001|E1: n=1161 PF=1.17 B=+14,341
+- C001|E2: n=1161 PF=1.04 B=+8,964
+- C001|E3: n=1161 PF=0.98 B=+49,315
+- C001|E4: n=1161 PF=1.13 B=+80,245
+- C001|E5: n=1161 PF=1.12 B=-106,975
+- C001|REF20: n=1161 PF=0.99 B=-94,666
+- C001|REF50: n=1161 PF=1.05 B=+33,859
+- C003|E1: n=329 PF=0.67 B=-93,262
+- C003|E2: n=329 PF=0.79 B=-60,433
+- C003|E3: n=329 PF=0.81 B=-46,407
+- C003|E4: n=329 PF=0.91 B=-43,903
+- C003|E5: n=329 PF=0.67 B=-97,911
+- C003|REF20: n=329 PF=0.79 B=-69,494
+- C003|REF50: n=329 PF=0.78 B=-70,901
+- C005|E1: n=119 PF=1.24 B=+14,232
+- C005|E2: n=119 PF=1.13 B=+11,217
+- C005|E3: n=119 PF=1.17 B=+40,696
+- C005|E4: n=119 PF=1.22 B=+30,284
+- C005|E5: n=119 PF=0.85 B=-26,437
+- C005|REF20: n=119 PF=0.83 B=-22,157
+- C005|REF50: n=119 PF=1.22 B=+18,038
+- C002|E1: n=99 PF=1.09 B=+14,696
+- C002|E2: n=99 PF=1.1 B=+35,890
+- C002|E3: n=99 PF=0.83 B=+27,418
+- C002|E4: n=99 PF=1.1 B=+20,927
+- C002|E5: n=99 PF=1.1 B=+1,228
+- C002|REF20: n=99 PF=1.05 B=+16,870
+- C002|REF50: n=99 PF=0.95 B=+27,356
+- C004|E1: n=133 PF=1.38 B=+49,695
+- C004|E2: n=133 PF=1.47 B=+51,084
+- C004|E3: n=133 PF=0.76 B=-30,186
+- C004|E4: n=133 PF=1.49 B=+68,143
+- C004|E5: n=133 PF=0.73 B=-34,431
+- C004|REF20: n=133 PF=1.11 B=+5,470
+- C004|REF50: n=133 PF=1.75 B=+65,242
+- C006|E1: n=361 PF=1.23 B=+92,389
+- C006|E2: n=361 PF=1.39 B=+256,915
+- C006|E3: n=361 PF=1.29 B=+271,500
+- C006|E4: n=361 PF=1.17 B=+100,525
+- C006|E5: n=361 PF=1.26 B=+96,669
+- C006|REF20: n=361 PF=1.25 B=+115,079
+- C006|REF50: n=361 PF=1.36 B=+259,350
+- C007|E1: n=41 PF=0.91 B=+3,398
+- C007|E2: n=41 PF=0.87 B=-3,911
+- C007|E3: n=41 PF=1.45 B=+40
+- C007|E4: n=41 PF=0.75 B=-5,468
+- C007|E5: n=41 PF=0.62 B=-12,976
+- C007|REF20: n=41 PF=0.67 B=-8,508
+- C007|REF50: n=41 PF=1.03 B=-2,703
+- H-D|E1: n=514 PF=1.27 B=+160,093
+- H-D|E2: n=514 PF=1.41 B=+364,500
+- H-D|E3: n=514 PF=1.22 B=+356,041
+- H-D|E4: n=514 PF=1.28 B=+204,113
+- H-D|E5: n=514 PF=1.29 B=+160,678
+- H-D|REF20: n=514 PF=1.2 B=+127,337
+- H-D|REF50: n=514 PF=1.36 B=+358,433
+
 
 ## R001 forward status (paper)
 - IN_PROGRESS: 0/150 trades (evaluated 2026-10-16T16:00:09)
 - Snapshot coverage: 0/0 sessions full, 0 partial, 0 with no snapshots; trade price coverage n/a (need >= 80%). OK
 
 ## Change vs previous run
-Previous run: 2026-10-16T22:37:37
-- tests on dataset: 24 -> 30
+Previous run: 2026-10-16T23:30:07
+- tests on dataset: 40 -> 40
 - C001 base|futures matched: trades 1 -> 1, expectancy 289.55 -> 289.55, PF None -> None
-- C001 base|futures non_matched: trades 1159 -> 1160, expectancy -0.48 -> -0.49, PF 0.98 -> 0.98
+- C001 base|futures non_matched: trades 1160 -> 1160, expectancy -0.49 -> -0.49, PF 0.98 -> 0.98

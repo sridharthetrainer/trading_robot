@@ -511,7 +511,7 @@ def test_storage_rule_optional_fields_and_no_results_in_rules():
     for c in doc["conditions"]:
         assert rl.validate(c) == [], c["id"]
     raw = (PKG / "rules.json").read_text()
-    for banned in ("H-A", "H-D", "priority_focus", "\"points\":", "B_net", "entry_px", "exit_px"):
+    for banned in ("H-A", "priority_focus", "\"points\":", "B_net", "entry_px", "exit_px"):   # H-D is now an R002 entry source (rule field)
         assert banned not in raw, banned
 
 

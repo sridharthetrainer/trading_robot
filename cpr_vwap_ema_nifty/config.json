@@ -139,5 +139,18 @@
     "rejection_candle": "5m high reaches the PDH/R1 zone (>= its lower edge) and the close is below the zone",
     "c007_staged_exit": "USER ASSUMPTION: three equal parts at the first touch of the 5m 200 EMA, the weekly CPR top, the PDL/S1 zone top; a part whose level is not below the entry price uses the next stage's level; remainder at 15:20",
     "touch": "short: candle low reaches the level (fill at the level, or the open if it opened beyond); long: high reaches it"
+  },
+  "exit_test": {
+    "declared": "2026-10-16 by the user: E1-E5 on unchanged version-B entries, pooled long/short; tests 31-40",
+    "E1": "5m close back across futures VWAP against the trade",
+    "E2": "5m close back across the 1m 200 EMA",
+    "E3": "5m close back across the 5m 200 EMA",
+    "E4": "trailing stop 3 x ATR(14) Wilder 5m from best price since entry; ATR at the signal candle; intrabar",
+    "E5": "target = nearest primary level beyond entry at entry; stop = 5m close back across VWAP",
+    "split": {
+      "in_sample_end": "2023-12-31",
+      "out_of_sample_start": "2024-01-01"
+    },
+    "screen": "PF(points) > 1.15 in both periods, layer B > 0 in both, OOS block-bootstrap 95% CI above zero"
   }
 }
