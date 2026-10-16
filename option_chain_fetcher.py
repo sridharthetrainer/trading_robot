@@ -16,6 +16,61 @@ from option_chain_intelligence import OptionChainIntelligence
 
 logger = logging.getLogger(__name__)
 
+_SNAPSHOT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "option_chain_snapshots.db")
+_PREV_SESSION_OI: Dict[Tuple[str, str, str], Dict[float, Tuple[float, float]]] = {}
+
+
+def _previous_session_oi(underlying: str, expiry: str) -> Dict[float, Tuple[float, float]]:
+    """{strike: (CE OI, PE OI)} from the last recorded snapshot (after 15:00) of
+    an earlier day (<= 4 days back) for the same underlying and expiry -- the
+    previous session's closing OI, which is NSE's baseline for change in OI.
+    Empty when no such snapshot exists; cached per day."""
+    from datetime import date, timedelta
+    import sqlite3
+    today = date.today().isoformat()
+    key = (underlying, expiry, today)
+    if key in _PREV_SESSION_OI:
+        return _PREV_SESSION_OI[key]
+    out: Dict[float, Tuple[float, float]] = {}
+    try:
+        con = sqlite3.connect(f"file:{_SNAPSHOT_DB}?mode=ro", uri=True, timeout=5)
+        row = con.execute(
+            "SELECT snapshot_time, rows_json FROM option_chain_snapshots WHERE ok=1 AND underlying=? "
+            "AND expiry=? AND substr(snapshot_time,1,10) < ? AND substr(snapshot_time,1,10) >= ? "
+            "AND substr(snapshot_time,12,5) >= '15:00' ORDER BY snapshot_time DESC LIMIT 1",
+            (underlying, expiry, today, (date.today() - timedelta(days=4)).isoformat())).fetchone()
+        con.close()
+        for r in json.loads(row[1]) if row else []:
+            out[float(r["strikePrice"])] = (float(r.get("CE_openInterest") or 0), float(r.get("PE_openInterest") or 0))
+    except Exception:
+        logger.debug("previous-session OI lookup failed for %s %s", underlying, expiry, exc_info=True)
+    _PREV_SESSION_OI[key] = out
+    return out
+
+
+def _fill_change_oi_from_previous_session(underlying: str, expiry: str, data: list, payload: dict) -> None:
+    """Angel FULL quotes carry no change-in-OI (it was 0 in 100% of snapshots,
+    which broke OI build-up / strike-flow views). When every row is 0, derive it
+    as current OI minus the previous session's closing OI per strike; strikes
+    without a baseline stay 0. Marked in payload so consumers know the source."""
+    if any(float(d["CE"].get("changeinOpenInterest") or 0) or float(d["PE"].get("changeinOpenInterest") or 0)
+           for d in data):
+        return
+    base = _previous_session_oi(underlying, expiry)
+    if not base:
+        payload["_change_oi_source"] = "unavailable"
+        return
+    filled = 0
+    for d in data:
+        prev = base.get(float(d["strikePrice"]))
+        if prev is None:
+            continue
+        d["CE"]["changeinOpenInterest"] = float(d["CE"].get("openInterest") or 0) - prev[0]
+        d["PE"]["changeinOpenInterest"] = float(d["PE"].get("openInterest") or 0) - prev[1]
+        filled += 1
+    payload["_change_oi_source"] = f"previous_session_snapshot ({filled}/{len(data)} strikes)"
+
+
 def _angel_exchange_timestamp(value):
     """SmartAPI's timezone-less exchange feed strings denote Indian exchange time."""
     if not value:
@@ -450,6 +505,7 @@ class NSEOptionChainFetcher:
             # the OLDER of call and put so a stale leg still reads as stale.
             # No exchange time -> no timestamp: option_quality keeps rejecting
             # rather than accepting fetch time as quote time.
+            _fill_change_oi_from_previous_session(self.underlying, exp_str, data, payload)
             atm_row = min(chain, key=lambda r: abs(float(r.get("strike") or 0) - spot))
             times = [t for t in (atm_row.get("CE_exch_time"), atm_row.get("PE_exch_time")) if t]
             if len(times) == 2:
