@@ -169,3 +169,12 @@ day-clustered bootstrap (pooled trades share days) in `summary.md`; trades in
 (first short signal of the day, E2 exit, ATM put) is drafted in `rules.json`
 as **proposed** (not approved, not frozen, nothing counted); its bar rationale
 is in `results/preregistration/R002_bar_rationale.json`. R001 is unchanged.
+
+## R002 random-entry control (r002_control.py)
+
+`python -m cpr_vwap_ema_nifty r002-control`: on R002's trading days, R002's
+entry is replaced by a random 09:20-14:00 short entry (seed 20261017, 1,000
+draws), with the E2 / 5m 20 / 50 / 200 EMA exits; R002's real result is placed
+as a percentile. Descriptive only, not counted as a test. Results and the
+write-up (including the lookahead split: random candles before vs after the
+real signal) in `results/r002_control/latest/`, earlier runs in its `history/`.
