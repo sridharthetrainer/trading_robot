@@ -1,9 +1,21 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from market_context_builder import build_market_context
 from mtf_context import build_mtf_context
 from signal_engine import _passes_volume_gate
+
+
+@pytest.fixture(autouse=True)
+def _isolated_cwd(tmp_path, monkeypatch):
+    """generate_signal() reads and WRITES relative-path runtime state (trades.db,
+    candle_cache.db, bulk_deals_cache.json, meta_learner_state.json, ...). Run
+    from the repo, this test read the live bot's intraday state (failing from
+    midday 2026-10-16 when live modifiers pushed the vote below threshold) and
+    wrote into the live bot's files. An empty working directory makes it
+    deterministic and keeps the bot's data untouched."""
+    monkeypatch.chdir(tmp_path)
 
 
 def _df(volume_ratio=1.3):
