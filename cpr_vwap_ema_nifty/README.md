@@ -64,8 +64,10 @@ Write a JSON object with the same fields as C001 in `rules.json` (new `id`,
 * VWAP comes from futures 5m with volume (Angel token 48704). That token
   returns a near-month-like rolled series back to 2020-07 (basis -40..+190
   pts); Angel does not document this. Its contract expires 2026-10-27; the
-  history is cached locally. A later `fetch` past that date needs the new
-  near-month token in `config.json`.
+  history is cached locally. After that date `forward-report` fetches each
+  day from the near-month contract listed in `MasterContract_NFO.csv`
+  (`data.fetch_futures_near_month`); the bulk `fetch` command still uses the
+  configured token.
 * Days without usable futures volume are skipped in the `futures` set and
   included with a spot TWAP (labelled) in the `with_missing` set.
 * `options_nifty.db` has no underlying price for 2020-2023; layer B uses this
