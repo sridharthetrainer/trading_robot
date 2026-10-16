@@ -218,7 +218,7 @@ def test_live_flag_off_and_not_registered():
 
 def test_package_imports_existing_code_read_only():
     """Only these existing modules may be imported, and only for read-only calls."""
-    allowed = {"angel", "request_governor", "nse_cost_model", "option_intraday_pricer", "dotenv"}
+    allowed = {"angel", "request_governor", "nse_cost_model", "option_intraday_pricer", "dotenv", "alerts"}
     stdlib_or_third = {"argparse", "copy", "csv", "hashlib", "json", "logging", "os", "sqlite3", "sys", "time", "shutil", "datetime",
                        "pathlib", "typing", "functools", "dataclasses", "__future__", "numpy", "pandas",
                        "matplotlib"}
@@ -342,6 +342,7 @@ def test_snapshot_coverage_flags_risk(tmp_path, monkeypatch):
     con.executemany("INSERT INTO option_chain_snapshots VALUES (?,?,?)", full + part)
     con.commit(); con.close()
     monkeypatch.setattr(ol, "SNAPSHOT_DB", db)
+    monkeypatch.setattr(ol, "STANDALONE_SNAPSHOT_DB", tmp_path / "none.db")
     sessions = [date(2026, 10, 19), date(2026, 10, 20), date(2026, 10, 21)]
     cov = snapshot_coverage(sessions, load_config(), None, 80)
     assert cov["full"] == 1 and cov["partial_days"] == ["2026-10-20"] and cov["no_snapshot_days"] == ["2026-10-21"]
@@ -382,3 +383,28 @@ def test_near_month_plan_picks_smallest_expiry_per_day():
     plan = near_month_plan(date(2026, 10, 20), date(2026, 12, 5), contracts)
     assert [(p[0].isoformat(), p[1].isoformat(), p[3]) for p in plan] == [
         ("2026-10-20", "2026-10-27", "OCT"), ("2026-10-28", "2026-11-24", "NOV"), ("2026-11-25", "2026-12-05", "DEC")]
+
+
+
+def test_forward_report_never_writes_rules_and_notify_text(tmp_path, monkeypatch):
+    from cpr_vwap_ema_nifty import forward as fw
+    rules_file = PKG / "rules.json"
+    before = rules_file.read_bytes()
+    monkeypatch.setattr(fw, "FORWARD_DIR", tmp_path)
+    st = fw.evaluate("R001", fetch=False)
+    assert rules_file.read_bytes() == before
+    assert "snapshot_coverage" in st and st["tests_on_backtest_dataset"] >= 20
+    sent = []
+
+    class FakeAM:
+        def __init__(self, **kw):
+            pass
+
+        def send(self, text, **kw):
+            sent.append(text)
+            return True
+
+    import alerts
+    monkeypatch.setattr(alerts, "AlertManager", FakeAM)
+    assert fw.notify(st) is True
+    assert "R001 forward (paper)" in sent[0] and "Snapshot coverage" in sent[0] and "Tests run" in sent[0]

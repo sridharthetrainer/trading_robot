@@ -6,9 +6,10 @@ ATM at entry, nearest weekly expiry; CE for LONG, PE for SHORT).
      (solved from the real EOD settle in options_nifty.db) via the existing
      option_intraday_pricer.DayPricer (read-only call). IV is held constant
      through the day -- intraday IV moves are not modelled.
-  C (real):     the option's lastPrice from option_chain_snapshots.db at the
-     first snapshot at/after the entry and exit fills (5-min snapshots; only
-     2026-06-19 onward).
+  C (real):     the option's lastPrice at the first snapshot at/after the entry
+     and exit fills, from option_chain_snapshots.db (bot recorder, 2026-06-19
+     onward) and standalone_recorder/option_chain_snapshots_standalone.db
+     (standalone recorder, fills the gaps while the bot is down).
 
 Costs: 1 point of premium slippage per side, then nse_cost_model.NseCostModel
 single_leg_cost (OPT_BUY, include_slippage=False, trade_date-aware STT).
@@ -26,6 +27,7 @@ from .data import REPO_DIR
 
 OPTIONS_DB = REPO_DIR / "options_nifty.db"
 SNAPSHOT_DB = REPO_DIR / "option_chain_snapshots.db"
+STANDALONE_SNAPSHOT_DB = REPO_DIR / "standalone_recorder" / "option_chain_snapshots_standalone.db"
 
 
 def _ro(path: Path) -> Optional[sqlite3.Connection]:
@@ -103,35 +105,57 @@ class ModelledLayer:
 
 
 class RealLayer:
+    """Reads BOTH snapshot stores read-only: the bot's option_chain_snapshots.db
+    and the standalone recorder's standalone_recorder/option_chain_snapshots_standalone.db
+    (which only records while the bot's recorder is idle)."""
+
     def __init__(self, cfg: dict):
         self.cfg = cfg
-        self.con = _ro(SNAPSHOT_DB)
+        self.cons = [c for c in (_ro(SNAPSHOT_DB), _ro(STANDALONE_SNAPSHOT_DB)) if c is not None]
+        self.con = self.cons[0] if self.cons else None
         self._day_cache: Dict[str, List[Tuple[datetime, str, Dict[float, dict]]]] = {}
 
     def days(self) -> List[str]:
-        if self.con is None:
-            return []
-        return [r[0] for r in self.con.execute(
-            "SELECT DISTINCT substr(snapshot_time,1,10) FROM option_chain_snapshots "
-            "WHERE ok=1 AND underlying='NIFTY' ORDER BY 1")]
+        out = set()
+        for con in self.cons:
+            out |= {r[0] for r in con.execute(
+                "SELECT DISTINCT substr(snapshot_time,1,10) FROM option_chain_snapshots "
+                "WHERE ok=1 AND underlying='NIFTY'")}
+        return sorted(out)
+
+    def day_counts(self, days: List[str]) -> Dict[str, int]:
+        """Distinct ok NIFTY snapshot minutes per day within 09:15-15:30, both stores combined."""
+        if not days:
+            return {}
+        marks = ",".join("?" * len(days))
+        minutes: Dict[str, set] = {}
+        for con in self.cons:
+            for st in con.execute(
+                    "SELECT snapshot_time FROM option_chain_snapshots WHERE ok=1 AND underlying='NIFTY' "
+                    f"AND substr(snapshot_time,12,5) BETWEEN '09:15' AND '15:30' AND substr(snapshot_time,1,10) IN ({marks})",
+                    days):
+                minutes.setdefault(st[0][:10], set()).add(st[0][11:16])
+        return {d: len(v) for d, v in minutes.items()}
 
     def _snaps(self, d: str):
         if d not in self._day_cache:
             out = []
-            for st, exp, rows in self.con.execute(
-                    "SELECT snapshot_time, expiry, rows_json FROM option_chain_snapshots WHERE ok=1 "
-                    "AND underlying='NIFTY' AND substr(snapshot_time,1,10)=? ORDER BY snapshot_time", (d,)):
-                try:
-                    data = {float(r["strikePrice"]): r for r in json.loads(rows or "[]")}
-                except Exception:
-                    continue
-                out.append((datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S"), str(exp), data))
+            for con in self.cons:
+                for st, exp, rows in con.execute(
+                        "SELECT snapshot_time, expiry, rows_json FROM option_chain_snapshots WHERE ok=1 "
+                        "AND underlying='NIFTY' AND substr(snapshot_time,1,10)=? ORDER BY snapshot_time", (d,)):
+                    try:
+                        data = {float(r["strikePrice"]): r for r in json.loads(rows or "[]")}
+                    except Exception:
+                        continue
+                    out.append((datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S"), str(exp), data))
+            out.sort(key=lambda x: x[0])
             self._day_cache[d] = out
         return self._day_cache[d]
 
     def price(self, d: str, strike: float, opt_type: str, when: datetime) -> Tuple[Optional[float], Optional[str]]:
         """lastPrice at the first snapshot at/after `when` (within the max lag)."""
-        if self.con is None:
+        if not self.cons:
             return None, None
         lag = float(self.cfg["options"].get("real_price_max_lag_minutes", 10)) * 60
         for ts, exp, data in self._snaps(d):

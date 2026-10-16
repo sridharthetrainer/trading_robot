@@ -91,15 +91,7 @@ def snapshot_coverage(sessions, cfg: dict, trade_cov_pct: Optional[float], need_
     o = cfg["options"]
     expected = int(o.get("snapshot_expected_per_session", 66))
     partial_below = expected * float(o.get("snapshot_partial_below_pct", 50)) / 100
-    counts: Dict[str, int] = {}
-    con = RealLayer(cfg).con
-    if con is not None and sessions:
-        days = [d.isoformat() for d in sessions]
-        marks = ",".join("?" * len(days))
-        counts = dict(con.execute(
-            "SELECT substr(snapshot_time,1,10), COUNT(*) FROM option_chain_snapshots WHERE ok=1 AND "
-            f"underlying='NIFTY' AND substr(snapshot_time,12,5) BETWEEN '09:15' AND '15:30' "
-            f"AND substr(snapshot_time,1,10) IN ({marks}) GROUP BY 1", days).fetchall())
+    counts = RealLayer(cfg).day_counts([d.isoformat() for d in sessions])
     none = [d.isoformat() for d in sessions if counts.get(d.isoformat(), 0) == 0]
     partial = [d.isoformat() for d in sessions if 0 < counts.get(d.isoformat(), 0) < partial_below]
     n = len(sessions)
@@ -173,3 +165,27 @@ def evaluate(rule_id: str = "R001", fetch: bool = True, today: Optional[date] = 
     with open(FORWARD_DIR / f"{rule_id}_status_log.jsonl", "a") as fh:
         fh.write(json.dumps(status, default=str) + "\n")
     return status
+
+
+def notify(status: Dict) -> bool:
+    """One Telegram line per scheduled run (main bot token/chat). Alert state
+    files go to this package's logs/ folder. Read-only w.r.t. rules.json."""
+    import os
+    from dotenv import load_dotenv
+    load_dotenv(dm.REPO_DIR / ".env")
+    cov = status.get("snapshot_coverage", {})
+    text = (f"{'⚠️' if cov.get('at_risk') else '📋'} <b>R001 forward (paper)</b> — {status.get('verdict', status.get('status'))}: "
+            f"{status.get('reason', status.get('note', ''))}\n"
+            f"{cov.get('line', 'Snapshot coverage: n/a')}\n"
+            f"Tests run on the backtest dataset: {status.get('tests_on_backtest_dataset', bt.ledger_total())}")
+    logs = Path(__file__).resolve().parent / "logs"
+    logs.mkdir(exist_ok=True)
+    prev = os.getcwd()
+    os.chdir(logs)
+    try:
+        from alerts import AlertManager
+        am = AlertManager(bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""), chat_id=os.getenv("TELEGRAM_CHAT_ID", ""),
+                          name="cpr_forward")
+        return bool(am.send(text))
+    finally:
+        os.chdir(prev)

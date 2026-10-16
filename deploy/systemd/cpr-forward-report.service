@@ -1,0 +1,13 @@
+[Unit]
+Description=R001 forward PAPER report (read-only: never modifies rules.json, the R001 definition or its bar)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/owner/Desktop/trading_robot
+Environment=PATH=/home/owner/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 -m cpr_vwap_ema_nifty forward-report R001 --notify
+TimeoutStartSec=1800
+StandardOutput=append:/home/owner/Desktop/trading_robot/cpr_vwap_ema_nifty/logs/forward_timer.log
+StandardError=append:/home/owner/Desktop/trading_robot/cpr_vwap_ema_nifty/logs/forward_timer.log

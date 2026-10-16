@@ -1,0 +1,19 @@
+[Unit]
+Description=Standalone RECORD-ONLY NIFTY option-chain snapshot recorder (no trading; own DB/log; idle while the bot's recorder is active)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/owner/Desktop/trading_robot/standalone_recorder
+Environment=PATH=/home/owner/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+Environment=RUNTIME_TELEMETRY_DB=/home/owner/Desktop/trading_robot/standalone_recorder/runtime_telemetry_standalone.db
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/standalone_snapshot_recorder.py
+Restart=always
+RestartSec=30
+StandardOutput=append:/home/owner/Desktop/trading_robot/standalone_recorder/service.out.log
+StandardError=append:/home/owner/Desktop/trading_robot/standalone_recorder/service.out.log
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=Every 5 minutes on weekdays 09:00-15:55 IST: check the option snapshot recorder
+
+[Timer]
+OnCalendar=Mon..Fri 09..15:00/5
+AccuracySec=30s
+Unit=option-snapshot-watchdog.service
+
+[Install]
+WantedBy=timers.target

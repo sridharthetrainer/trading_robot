@@ -1,0 +1,12 @@
+[Unit]
+Description=Alert (Telegram) when option-chain snapshots stop during NSE market hours
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/owner/Desktop/trading_robot/standalone_recorder
+Environment=PATH=/home/owner/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/standalone_recorder_watchdog.py
+TimeoutStartSec=120
+StandardOutput=append:/home/owner/Desktop/trading_robot/standalone_recorder/watchdog.log
+StandardError=append:/home/owner/Desktop/trading_robot/standalone_recorder/watchdog.log

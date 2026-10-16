@@ -6,7 +6,7 @@ CLI for CPR_VWAP_EMA_Nifty (research-only strategy).
   python -m cpr_vwap_ema_nifty add-condition FILE.json   validate, duplicate-check, append, re-run backtest
   python -m cpr_vwap_ema_nifty check-condition FILE.json duplicate/conflict check only (no write)
   python -m cpr_vwap_ema_nifty status                 config flags + data coverage
-  python -m cpr_vwap_ema_nifty forward-report [R001] [--no-fetch]
+  python -m cpr_vwap_ema_nifty forward-report [R001] [--no-fetch] [--notify]
                                                       forward PAPER evaluation of a pre-registered rule
                                                       (counts nothing until the rule is approved)
 """
@@ -52,6 +52,7 @@ def main(argv=None) -> int:
     fr = sub.add_parser("forward-report")
     fr.add_argument("rule", nargs="?", default="R001")
     fr.add_argument("--no-fetch", action="store_true")
+    fr.add_argument("--notify", action="store_true", help="send a one-line Telegram summary (scheduled run)")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     for noisy in ("smartConnect", "angel", "urllib3", "matplotlib"):
@@ -90,8 +91,11 @@ def main(argv=None) -> int:
         print("Comparison vs previous run: see 'Change vs previous run' in summary.md")
         return 0
     if args.cmd == "forward-report":
-        from .forward import evaluate
-        print(json.dumps(evaluate(args.rule, fetch=not args.no_fetch), indent=2, default=str))
+        from .forward import evaluate, notify
+        st = evaluate(args.rule, fetch=not args.no_fetch)
+        print(json.dumps(st, indent=2, default=str))
+        if args.notify:
+            print("telegram sent:", notify(st))
         return 0
     if args.cmd == "backtest":
         print(_short(bt.run_and_save(cfg, with_options=not args.no_options)))
