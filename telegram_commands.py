@@ -608,6 +608,7 @@ class TelegramCommandHandler:
                          [("Performance", "cmd:optscalp"), ("⬅️ Back", "menu:home")]],
             "options": [[("OI S/R", "cmd:oisr"), ("OI Chart", "cmd:oichart")],
                         [("Strike Flow", "cmd:strikeflow"), ("PCR", "cmd:pcr")],
+                        [("Straddle", "cmd:straddle"), ("BN Straddle", "cmd:straddle BANKNIFTY")],
                         [("Spreads", "cmd:spreads"), ("⬅️ Back", "menu:home")]],
             "control": [[("Set Lots", "prompt:optlots"), ("Readiness", "cmd:controlroom")],
                         [("⏸ Pause", "confirm:pause"), ("▶️ Resume", "confirm:resume")],
@@ -889,6 +890,7 @@ class TelegramCommandHandler:
         self.register("smi",         self._cmd_smi)
         self.register("cepe",        self._cmd_strikeflow)
         self.register("oisr",        self._cmd_oi_sr)
+        self.register("straddle",    self._cmd_straddle)
         self.register("sr",          self._cmd_oi_sr)
         self.register("oiprofile",   self._cmd_oi_sr)
         self.register("chainsignals", self._cmd_chain_signals)
@@ -2149,6 +2151,25 @@ class TelegramCommandHandler:
             return f"⚠️ OI S/R: {getattr(res, 'reason', 'unavailable')}"
         except Exception as e:
             return f"/oisr error: {e}"
+
+    def _cmd_straddle(self, args: str = "") -> str:
+        """ATM straddle premium + Black-Scholes IV chart for a day (context only).
+          /straddle                 (NIFTY, today)
+          /straddle BANKNIFTY       /straddle NIFTY 2026-10-15"""
+        try:
+            import re
+            toks = [t.strip() for t in str(args or "").split() if t.strip()]
+            sym = next((t.upper() for t in toks if t.upper() in
+                        {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX"}), "NIFTY")
+            day = next((t for t in toks if re.match(r"^\d{4}-\d{2}-\d{2}$", t)), None)
+            from option_straddle_chart import generate_straddle_chart
+            res = generate_straddle_chart(underlying=sym, day=day)
+            if getattr(res, "ok", False) and res.path:
+                self.send_photo(res.path, caption=res.caption)
+                return ""
+            return f"⚠️ Straddle: {getattr(res, 'reason', 'unavailable')}"
+        except Exception as e:
+            return f"/straddle error: {e}"
 
     def _cmd_oi_chart(self, args: str = "") -> str:
         """
