@@ -45,6 +45,239 @@
       ],
       "outcome_class": "win",
       "role": "observation"
+    },
+    {
+      "added": "2026-10-16",
+      "instrument": "NIFTY",
+      "timeframe": "5m",
+      "role": "observation",
+      "id": "C002",
+      "date": "2026-10-08",
+      "bias": "SHORT",
+      "setup": {
+        "cpr_width": "narrow",
+        "cpr_vs_prior_day": "lower",
+        "cpr_vs_weekly": "overlapping",
+        "cpr_vs_monthly": "below",
+        "open_vs_cpr": "below",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "below",
+        "weekly_cpr_vs_monthly": "below",
+        "daily_cpr_inside_weekly": true
+      },
+      "context": {
+        "above_vwap": false,
+        "above_ema20_5m": false,
+        "above_ema50_5m": false,
+        "above_ema200_5m": false,
+        "above_ema200_1m": false
+      },
+      "vwap_behavior": "below_vwap_at_entry",
+      "entry": {
+        "type": "weekly_pivot_break_short",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "exit": {
+        "type": "close_vs_ema",
+        "timeframe": "5m",
+        "fill": "next_bar_open",
+        "period": 20,
+        "wick_counts": false
+      },
+      "outcome_class": "win"
+    },
+    {
+      "added": "2026-10-16",
+      "instrument": "NIFTY",
+      "timeframe": "5m",
+      "role": "observation",
+      "id": "C003",
+      "date": "2026-10-16",
+      "bias": "LONG",
+      "setup": {
+        "cpr_width": "wide",
+        "cpr_vs_prior_day": "higher",
+        "cpr_vs_weekly": "above",
+        "cpr_vs_monthly": "overlapping",
+        "open_vs_cpr": "above",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "above",
+        "golden_pivot_zone": "bullish"
+      },
+      "context": {
+        "above_vwap": true,
+        "above_ema200_1m": true
+      },
+      "vwap_behavior": "break_above_vwap_after_cpr_support",
+      "entry": {
+        "type": "cpr_support_reclaim_long",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "exit": {
+        "type": "close_vs_ema",
+        "timeframe": "5m",
+        "fill": "next_bar_open",
+        "period": 50,
+        "wick_counts": false
+      },
+      "outcome_class": "flat"
+    },
+    {
+      "added": "2026-10-16",
+      "instrument": "NIFTY",
+      "timeframe": "5m",
+      "role": "observation",
+      "id": "C004",
+      "date": "2026-10-14",
+      "bias": "SHORT",
+      "setup": {
+        "cpr_width": "wide",
+        "cpr_vs_prior_day": "higher",
+        "cpr_vs_weekly": "overlapping",
+        "cpr_vs_monthly": "below",
+        "open_vs_cpr": "above",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "above",
+        "golden_pivot_zone": "bullish"
+      },
+      "context": {
+        "above_vwap": false,
+        "above_ema200_1m": false,
+        "above_ema50_5m": false
+      },
+      "vwap_behavior": "strong_close_below_vwap",
+      "entry": {
+        "type": "strong_vwap_then_strong_emas_short",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "exit": {
+        "type": "green_after_reds",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "outcome_class": "win"
+    },
+    {
+      "added": "2026-10-16",
+      "instrument": "NIFTY",
+      "timeframe": "5m",
+      "role": "observation",
+      "id": "C005",
+      "date": "2026-10-13",
+      "bias": "LONG",
+      "setup": {
+        "cpr_width": "normal",
+        "cpr_vs_prior_day": "overlapping_lower",
+        "cpr_vs_weekly": "below",
+        "cpr_vs_monthly": "below",
+        "open_vs_cpr": "below",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "below",
+        "golden_pivot_zone": "bearish"
+      },
+      "context": {
+        "above_vwap": true,
+        "above_ema20_5m": true,
+        "above_ema50_5m": true,
+        "above_ema200_5m": true,
+        "above_ema200_1m": true
+      },
+      "vwap_behavior": "above_vwap_at_entry",
+      "entry": {
+        "type": "reclaim_all_from_0920_long",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "exit": {
+        "type": "red_at_pdh_r1_zone",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "outcome_class": "win"
+    },
+    {
+      "added": "2026-10-16",
+      "instrument": "NIFTY",
+      "timeframe": "5m",
+      "role": "observation",
+      "id": "C006",
+      "date": "2026-10-01",
+      "bias": "SHORT",
+      "setup": {
+        "cpr_width": "normal",
+        "cpr_vs_prior_day": "outside",
+        "cpr_vs_weekly": "below",
+        "cpr_vs_monthly": "below",
+        "open_vs_cpr": "below",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "below",
+        "golden_pivot_zone": "bearish",
+        "weekly_cpr_vs_monthly": "inside"
+      },
+      "context": {
+        "above_vwap": false,
+        "above_ema20_5m": false,
+        "above_ema50_5m": false,
+        "above_ema200_5m": false,
+        "above_ema200_1m": false
+      },
+      "vwap_behavior": "below_vwap_at_entry",
+      "entry": {
+        "type": "vwap_pdl_ema20_resistance_short",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "exit": {
+        "type": "two_strong_bullish",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "outcome_class": "win"
+    },
+    {
+      "added": "2026-10-16",
+      "instrument": "NIFTY",
+      "timeframe": "5m",
+      "role": "observation",
+      "id": "C007",
+      "date": "2026-09-22",
+      "bias": "SHORT",
+      "setup": {
+        "cpr_width": "narrow",
+        "cpr_vs_prior_day": "higher",
+        "cpr_vs_weekly": "above",
+        "cpr_vs_monthly": "below",
+        "open_vs_cpr": "above",
+        "open_vs_daily_h3": "below",
+        "open_vs_weekly_h3": "below",
+        "golden_pivot_zone": "none"
+      },
+      "context": {
+        "above_vwap": false,
+        "above_ema20_5m": false,
+        "above_ema50_5m": false,
+        "above_ema200_1m": false
+      },
+      "vwap_behavior": "strong_close_below_vwap",
+      "entry": {
+        "type": "rejections_then_strong_breakdown_short",
+        "timeframe": "5m",
+        "fill": "next_bar_open"
+      },
+      "exit": {
+        "type": "staged_zones",
+        "timeframe": "5m",
+        "fill": "next_bar_open",
+        "stages": [
+          "ema200_5m",
+          "weekly_cpr",
+          "pdl_s1_zone"
+        ]
+      },
+      "outcome_class": "win"
     }
   ],
   "preregistered": [

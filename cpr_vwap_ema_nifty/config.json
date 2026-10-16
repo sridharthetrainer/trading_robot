@@ -5,7 +5,7 @@
   "instrument": "NIFTY",
   "window": {
     "start": "2020-07-01",
-    "end": "2026-10-15",
+    "end": "2026-10-16",
     "warmup_start": "2020-04-01"
   },
   "out_of_sample_start": "2024-07-01",
@@ -126,5 +126,18 @@
       "status": "run",
       "definition": "short mirror of R001 (ATM put): close < min(PDL, S1), below futures VWAP and below 5m 20/50/200 and 1m 200 EMAs; next-open entry; exit on a 5m close above the 5m 20 EMA; force exit 15:20; one trade per day"
     }
+  },
+  "fixed_definitions": {
+    "approved": "2026-10-16 by the user",
+    "strong_body_min_frac": 0.6,
+    "strong_close_below_vwap": "futures close below futures VWAP on a red spot candle whose body is >= 60% of its high-low range",
+    "two_strong_bullish": "two consecutive 5m candles, each green with body >= 60% of range",
+    "red_run_min": 3,
+    "first_green_after_reds": "a green 5m candle right after >= 3 consecutive red candles (counted from the entry candle)",
+    "c005_first_signal_bar": "09:20",
+    "c007_min_rejections": 2,
+    "rejection_candle": "5m high reaches the PDH/R1 zone (>= its lower edge) and the close is below the zone",
+    "c007_staged_exit": "USER ASSUMPTION: three equal parts at the first touch of the 5m 200 EMA, the weekly CPR top, the PDL/S1 zone top; a part whose level is not below the entry price uses the next stage's level; remainder at 15:20",
+    "touch": "short: candle low reaches the level (fill at the level, or the open if it opened beyond); long: high reaches it"
   }
 }

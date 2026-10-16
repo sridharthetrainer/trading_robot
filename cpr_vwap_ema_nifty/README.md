@@ -140,3 +140,18 @@ sideways zones, H-C final 1m close vs 1m 200 EMA -> next-session gap, H-D short 
 puts; trades in `results/latest/h_d_short_trades.csv`). Pre-declared tests are
 added to `test_ledger.json`; the priority-focus splits are recorded as
 descriptive looks. None of this touches R001's frozen definition.
+
+## Conditions C001-C007 (conditions_backtest.py)
+
+C002-C007 were added 2026-10-16 from the user's chart analysis, stored with the
+data-verified rule fields and trade dates only (optional setup fields
+`golden_pivot_zone`, `weekly_cpr_vs_monthly`, `daily_cpr_inside_weekly` where
+the description states them). Each condition has its own entry and exit type;
+the user-approved fixed definitions (strong candle = body >= 60% of range,
+green after >= 3 reds, two strong bullish candles, C007 staged thirds) live in
+`config.json` -> `"fixed_definitions"`. Every backtest runs, per condition:
+A exact (stored fields all match; no significance below 10 sessions), B primary
+(own entry + exit + six primary-level positions from its own signal candle;
+pre-declared tests 25-30 for C002-C007), C fixed exits (5m 20 EMA and 5m 50
+EMA; descriptive). Trades: `results/latest/conditions_trades.csv`. Mirror runs
+were skipped by the user's decision. R001 is untouched.

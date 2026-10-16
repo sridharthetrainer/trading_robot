@@ -42,9 +42,21 @@ ALLOWED = {
     "open_vs_weekly_h3": {"above", "below"},
 }
 FILTERS = {"ema200_30m", "r1_pdh_break", "pwh_break", "target_r4_mh3"}
+# Optional setup fields (approved 2026-10-16 for C002-C007): stored only when the
+# condition's description states them; version A matches only stored fields.
+OPTIONAL_SETUP = {
+    "golden_pivot_zone": {"bullish", "bearish", "none"},
+    "weekly_cpr_vs_monthly": {"above", "below", "overlapping", "inside"},
+    "daily_cpr_inside_weekly": {True, False},
+}
+ENTRY_TYPES = {"close_vs_vwap", "weekly_pivot_break_short", "cpr_support_reclaim_long",
+               "strong_vwap_then_strong_emas_short", "reclaim_all_from_0920_long",
+               "vwap_pdl_ema20_resistance_short", "rejections_then_strong_breakdown_short"}
+EXIT_TYPES = {"close_vs_ema", "green_after_reds", "red_at_pdh_r1_zone", "two_strong_bullish", "staged_zones"}
+STAGES = {"ema200_5m", "weekly_cpr", "pdl_s1_zone"}
 OUTCOME_CLASSES = {"win", "loss", "flat", "unknown"}
 ENTRY_KEYS = {"type", "timeframe", "fill"}
-EXIT_KEYS = {"type", "timeframe", "period", "wick_counts", "fill"}
+EXIT_KEYS = {"type", "timeframe", "period", "wick_counts", "fill", "stages"}
 TIMEFRAMES = {"1m", "5m", "15m", "30m"}
 
 
@@ -101,9 +113,13 @@ def validate(cond: dict) -> List[str]:
             errs.append(f"setup.{k} missing")
         elif v not in ALLOWED[k]:
             errs.append(f"setup.{k}={v!r} not in {sorted(ALLOWED[k])}")
-    for k in cond["setup"]:
-        if k not in SETUP_KEYS:
+    for k, v in cond["setup"].items():
+        if k in SETUP_KEYS:
+            continue
+        if k not in OPTIONAL_SETUP:
             errs.append(f"setup.{k} unknown")
+        elif v not in OPTIONAL_SETUP[k] or (isinstance(v, bool) != (k == "daily_cpr_inside_weekly")):
+            errs.append(f"setup.{k}={v!r} not allowed")
     for k, v in cond["context"].items():
         if k not in CONTEXT_KEYS:
             errs.append(f"context.{k} unknown (allowed {list(CONTEXT_KEYS)})")
@@ -113,10 +129,15 @@ def validate(cond: dict) -> List[str]:
         errs.append("bias must be LONG or SHORT")
     if cond["timeframe"] not in TIMEFRAMES:
         errs.append(f"timeframe must be one of {sorted(TIMEFRAMES)}")
-    if cond["entry"].get("type") != "close_vs_vwap":
-        errs.append("entry.type must be close_vs_vwap (only entry implemented)")
-    if cond["exit"].get("type") != "close_vs_ema":
-        errs.append("exit.type must be close_vs_ema (only exit implemented)")
+    if cond["entry"].get("type") not in ENTRY_TYPES:
+        errs.append(f"entry.type must be one of {sorted(ENTRY_TYPES)}")
+    if cond["exit"].get("type") not in EXIT_TYPES:
+        errs.append(f"exit.type must be one of {sorted(EXIT_TYPES)}")
+    if cond["exit"].get("type") == "close_vs_ema" and not isinstance(cond["exit"].get("period"), int):
+        errs.append("exit.period (int) required for close_vs_ema")
+    for st in cond["exit"].get("stages", []):
+        if st not in STAGES:
+            errs.append(f"exit stage {st!r} unknown (allowed {sorted(STAGES)})")
     if cond["outcome_class"] not in OUTCOME_CLASSES:
         errs.append(f"outcome_class must be one of {sorted(OUTCOME_CLASSES)}")
     for f in cond.get("optional_filters", []):
@@ -128,7 +149,7 @@ def validate(cond: dict) -> List[str]:
 def signature(cond: dict) -> Tuple:
     return (
         cond.get("timeframe"),
-        tuple(sorted((k, cond["setup"].get(k)) for k in SETUP_KEYS)),
+        tuple(sorted((k, str(v)) for k, v in cond["setup"].items())),
         tuple(sorted((k, bool(v)) for k, v in cond.get("context", {}).items())),
         cond.get("vwap_behavior"),
     )

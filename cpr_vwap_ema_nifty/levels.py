@@ -163,5 +163,11 @@ def build_day_levels(daily: pd.DataFrame, narrow_below: float, wide_above: float
         }
         row.update(open_location(o, d_cpr, d_cam["H3"], w_cam["H3"]))
         row["golden_pivot_zone"] = golden_pivot_zone(d_cpr, d_cam)
+        # Optional condition fields (approved 2026-10-16 for C002-C007)
+        if w_cpr["BC"] >= m_cpr["BC"] and w_cpr["TC"] <= m_cpr["TC"]:
+            row["weekly_cpr_vs_monthly"] = "inside"
+        else:
+            row["weekly_cpr_vs_monthly"] = cpr_vs(w_cpr, m_cpr)
+        row["daily_cpr_inside_weekly"] = bool(d_cpr["BC"] >= w_cpr["BC"] and d_cpr["TC"] <= w_cpr["TC"])
         rows.append(row)
     return pd.DataFrame(rows).set_index("date")

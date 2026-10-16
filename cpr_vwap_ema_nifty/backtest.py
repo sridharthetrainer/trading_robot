@@ -75,7 +75,17 @@ def update_ledger(summary: Dict, run_id: str) -> Dict:
         if k not in led["tests"]:
             led["tests"][k] = {"first_run": run_id[:10], "run_id": run_id}
             new.append(k)
+    for cid in summary.get("conditions_run", {}).get("conditions", {}):
+        if cid == "C001":
+            continue                         # C001's B is the base rule, already counted
+        k = f"conditionB:{cid}"
+        if k not in led["tests"]:
+            led["tests"][k] = {"first_run": run_id[:10], "run_id": run_id}
+            new.append(k)
     looks = led.setdefault("descriptive_looks", {})
+    for cid in summary.get("conditions_run", {}).get("conditions", {}):
+        for v in ("A", "C_ema20", "C_ema50"):
+            looks.setdefault(f"condition{v}:{cid}", {"first_run": run_id[:10], "note": "descriptive version"})
     for lvl in pr.get("priority_focus", {}):
         looks.setdefault(f"priority_focus:{lvl}", {"first_run": run_id[:10],
                                                      "note": "descriptive split, not a pre-declared test"})
@@ -469,6 +479,9 @@ def to_markdown(s: Dict, prev: Optional[Dict]) -> str:
         L.append(ht.to_markdown(pr, total, 0.05 / total if total else 0.05))
         L.append(f"Descriptive looks (priority-focus splits, not counted as tests): {tl.get('descriptive_looks')}. "
                  "Everything in this report is EXPLORATORY; only R001's forward paper result is confirmatory.")
+    if s.get("conditions_run"):
+        from . import conditions_backtest as cb
+        L.append(cb.to_markdown(s["conditions_run"], int(s.get("test_ledger", {}).get("total") or 0)))
     fwd = RESULTS_DIR / "forward" / "R001_status.json"
     if fwd.exists():
         st = json.loads(fwd.read_text())
@@ -536,7 +549,10 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
     logger.addHandler(fh)
     logger.setLevel(logging.INFO)
     try:
-        conditions = rl.load()["conditions"]
+        all_conditions = rl.load()["conditions"]
+        # The original C001 engine (variants, field tests, setup sensitivity) runs only for
+        # close_vs_vwap conditions; C002-C007 use conditions_backtest (separate path).
+        conditions = [c for c in all_conditions if c["entry"]["type"] == "close_vs_vwap"]
         prep = prepare(cfg)
         trades = run(cfg, conditions, prep, with_options=with_options)
         summary = summarize(trades, prep, cfg, conditions)
@@ -544,6 +560,10 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
         priority = ht.run_all(trades, prep, cfg, conditions)
         hd_trades = priority.pop("_hd_trades", None)
         summary["priority_run"] = priority
+        from . import conditions_backtest as cb
+        multi = cb.run_conditions(prep, cfg, all_conditions)
+        multi_trades = multi.pop("trades")
+        summary["conditions_run"] = multi
         summary["test_ledger"] = update_ledger(summary, summary["generated_at"])
         doc = rl.load()
         summary["registry"] = {
@@ -566,6 +586,8 @@ def run_and_save(cfg: Optional[dict] = None, with_options: bool = True) -> Dict:
         trades.to_csv(latest / "trades.csv", index=False)
         if hd_trades is not None:
             hd_trades.to_csv(latest / "h_d_short_trades.csv", index=False)
+        if multi_trades is not None and not multi_trades.empty:
+            multi_trades.to_csv(latest / "conditions_trades.csv", index=False)
         (latest / "summary.json").write_text(json.dumps(summary, indent=2, default=str))
         (latest / "summary.md").write_text(to_markdown(summary, prev))
         if not trades.empty:

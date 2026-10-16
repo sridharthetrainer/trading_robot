@@ -176,17 +176,19 @@ def test_rules_file_valid_and_c001_open_location_recorded():
 def test_duplicate_conflict_and_new(tmp_path):
     path = tmp_path / "rules.json"
     path.write_text((PKG / "rules.json").read_text())
-    dup = {**_c001(), "id": "C002", "date": "2026-10-20"}
+    before = [c["id"] for c in json.loads(path.read_text())["conditions"]]
+    dup = {**_c001(), "id": "T002", "date": "2026-10-20"}
     assert rl.add_condition(dup, path)["status"] == "duplicate"
-    conf = {**_c001(), "id": "C003", "outcome_class": "loss"}
+    conf = {**_c001(), "id": "T003", "outcome_class": "loss"}
     res = rl.add_condition(conf, path)
     assert res["status"] == "conflict" and res["with"] == "C001"
-    new = {**_c001(), "id": "C004", "setup": {**_c001()["setup"], "cpr_width": "wide"}}
+    new = {**_c001(), "id": "T004", "setup": {**_c001()["setup"], "cpr_width": "wide"}}
     assert rl.add_condition(new, path)["status"] == "new"
     ids = [c["id"] for c in json.loads(path.read_text())["conditions"]]
-    assert ids == ["C001", "C003", "C004"]                                # duplicate not written
-    bad = {**_c001(), "id": "C005", "setup": {**_c001()["setup"], "cpr_width": "tiny"}}
+    assert ids == before + ["T003", "T004"]                                # duplicate not written
+    bad = {**_c001(), "id": "T005", "setup": {**_c001()["setup"], "cpr_width": "tiny"}}
     assert rl.add_condition(bad, path)["status"] == "invalid"
+    assert rl.add_condition({**_c001(), "id": "C002"}, path)["status"] == "id_taken"
 
 
 # ── metrics / costs ─────────────────────────────────────────────────────────
@@ -493,13 +495,23 @@ def test_r001_fingerprint_and_bar_unchanged():
     assert rl.fingerprint(r) == r["fingerprint"] and rl.frozen_ok(r)
 
 
-def test_storage_rule_rejects_golden_field_and_results_in_rules():
-    bad = {**_c001(), "id": "C012", "setup": {**_c001()["setup"], "golden_pivot_zone": "none"}}
-    assert any("setup.golden_pivot_zone unknown" in e for e in rl.validate(bad))
-    bad2 = {**_c001(), "id": "C013", "verification": {"open": 22671.3}}
+def test_storage_rule_optional_fields_and_no_results_in_rules():
+    ok = {**_c001(), "id": "T012", "setup": {**_c001()["setup"], "golden_pivot_zone": "none",
+                                             "weekly_cpr_vs_monthly": "inside", "daily_cpr_inside_weekly": True}}
+    assert rl.validate(ok) == []                                          # approved optional fields
+    bad = {**_c001(), "id": "T013", "setup": {**_c001()["setup"], "golden_pivot_zone": "maybe"}}
+    assert any("golden_pivot_zone" in e for e in rl.validate(bad))
+    bad_bool = {**_c001(), "id": "T014", "setup": {**_c001()["setup"], "daily_cpr_inside_weekly": "yes"}}
+    assert any("daily_cpr_inside_weekly" in e for e in rl.validate(bad_bool))
+    unknown = {**_c001(), "id": "T015", "setup": {**_c001()["setup"], "prior_day_cpr_width": "narrow"}}
+    assert any("prior_day_cpr_width unknown" in e for e in rl.validate(unknown))
+    bad2 = {**_c001(), "id": "T016", "verification": {"open": 22671.3}}
     assert any("verification" in e for e in rl.validate(bad2))
+    doc = json.loads((PKG / "rules.json").read_text())
+    for c in doc["conditions"]:
+        assert rl.validate(c) == [], c["id"]
     raw = (PKG / "rules.json").read_text()
-    for banned in ("golden_pivot_zone", "H-A", "H-D", "priority_focus"):
+    for banned in ("H-A", "H-D", "priority_focus", "\"points\":", "B_net", "entry_px", "exit_px"):
         assert banned not in raw, banned
 
 
