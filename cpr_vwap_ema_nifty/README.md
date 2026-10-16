@@ -136,7 +136,7 @@ backtest re-verifies C001 (duplicate check, field-by-field from data incl.
 position at the signal bar for each primary level (descriptive), the C001
 exact-match and one-field-at-a-time counts, and the pre-declared tests declared
 in `config.json` -> `"predeclared_tests"` (H-A golden pivot zone, H-B Camarilla
-sideways zones, H-C awaiting definition, H-D short mirror of R001 with ATM
+sideways zones, H-C final 1m close vs 1m 200 EMA -> next-session gap, H-D short mirror of R001 with ATM
 puts; trades in `results/latest/h_d_short_trades.csv`). Pre-declared tests are
 added to `test_ledger.json`; the priority-focus splits are recorded as
 descriptive looks. None of this touches R001's frozen definition.

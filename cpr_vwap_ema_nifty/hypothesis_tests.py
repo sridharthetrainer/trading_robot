@@ -225,6 +225,64 @@ def h_b(A: pd.DataFrame) -> Dict:
             "answer": None}
 
 
+def _binom_p(hits: int, n: int, p0: float) -> Optional[float]:
+    """One-sided exact binomial p-value P(X >= hits | n, p0)."""
+    if n == 0:
+        return None
+    from scipy.stats import binomtest
+    return round(float(binomtest(hits, n, p0, alternative="greater").pvalue), 5)
+
+
+def late_close_pairs(prep: Dict, oos_start: str) -> pd.DataFrame:
+    """One row per (session, next session) pair. final_close = the session's last
+    1m close (= close of the 15:25 5m bar), ema = the 1m 200 EMA at that minute.
+    A pair counts only when the next session is the very next session seen in the
+    data (no pair spans a missing / insufficient-data session)."""
+    all_sessions = sorted(pd.Timestamp(d) for d in prep["spot_source"])
+    usable = set(prep["by_day"])
+    rows = []
+    for d, nxt in zip(all_sessions[:-1], all_sessions[1:]):
+        if d not in usable or nxt not in usable or d not in set(prep["days"]):
+            continue
+        day, nday = prep["by_day"][d], prep["by_day"][nxt]
+        last = day.iloc[-1]
+        if pd.isna(last["ema200_1m"]):
+            continue
+        final_close, nxt_open = float(last["close"]), float(nday.iloc[0]["open"])
+        rows.append({"date": d, "next": nxt, "final_close": final_close, "ema200_1m": float(last["ema200_1m"]),
+                     "above": final_close > float(last["ema200_1m"]), "below": final_close < float(last["ema200_1m"]),
+                     "gap_up": nxt_open > final_close, "gap_down": nxt_open < final_close,
+                     "period": "OOS" if d >= pd.Timestamp(oos_start) else "IS"})
+    return pd.DataFrame(rows)
+
+
+def h_c(prep: Dict, cfg: dict) -> Dict:
+    """Run once (user definition 2026-10-16): signal = session's final 1m close above the 1m 200 EMA;
+    hit = next session's open strictly above that close (gap up, no threshold). Mirror: final close
+    below the EMA, hit = gap down. Baselines: share of all pairs that gap up / gap down."""
+    P = late_close_pairs(prep, cfg["out_of_sample_start"])
+
+    def block(S: pd.DataFrame) -> Dict:
+        n_all = len(S)
+        base_up = S.gap_up.mean() if n_all else None
+        base_dn = S.gap_down.mean() if n_all else None
+        up, dn = S[S.above], S[S.below]
+        return {
+            "pairs": int(n_all),
+            "baseline_gap_up_pct": round(float(base_up * 100), 1) if n_all else None,
+            "baseline_gap_down_pct": round(float(base_dn * 100), 1) if n_all else None,
+            "final_close_above_ema": {"sessions": int(len(up)), "gap_up": int(up.gap_up.sum()),
+                                      "hit_rate_pct": round(float(up.gap_up.mean() * 100), 1) if len(up) else None,
+                                      "p_vs_baseline": _binom_p(int(up.gap_up.sum()), len(up), float(base_up)) if len(up) else None},
+            "final_close_below_ema": {"sessions": int(len(dn)), "gap_down": int(dn.gap_down.sum()),
+                                      "hit_rate_pct": round(float(dn.gap_down.mean() * 100), 1) if len(dn) else None,
+                                      "p_vs_baseline": _binom_p(int(dn.gap_down.sum()), len(dn), float(base_dn)) if len(dn) else None},
+        }
+    return {"definition": h_c.__doc__.strip(), "all": block(P),
+            "IS": block(P[P.period == "IS"]), "OOS": block(P[P.period == "OOS"]),
+            "equal_open_pairs": int((~P.gap_up & ~P.gap_down).sum()) if len(P) else 0}
+
+
 def h_d(prep: Dict, cfg: dict) -> Dict:
     """Short mirror of R001, run once: close < min(PDL, S1), below futures VWAP and below
     5m 20/50/200 + 1m 200 EMAs; next-open entry; exit on a 5m close above the 5m 20 EMA;
@@ -287,9 +345,9 @@ def run_all(trades: pd.DataFrame, prep: Dict, cfg: dict, conditions: List[dict])
         "c001_counts": c001_counts(cond, prep["levels"].loc[prep["days"]]),
         "priority_focus": priority_focus(A, cond),
         "tests": {"H-A": h_a(A, prep), "H-B": hb,
-                  "H-C": {"status": ptests.get("H-C", {}).get("status", "awaiting_definition"),
-                          "note": "Not run: definition ambiguous (which closes in the last 30 minutes; what counts "
-                                  "as a bullish next-day open). Runs once the user defines it; counted then."},
+                  "H-C": (h_c(prep, cfg) if ptests.get("H-C", {}).get("status") == "run" else
+                          {"status": "awaiting_definition",
+                           "note": "Not run until the user defines it; counted then."}),
                   "H-D": hd},
         "_hd_trades": hd_trades,
     }
@@ -336,7 +394,20 @@ def to_markdown(r: Dict, ledger_total: int, threshold: float) -> str:
           f"- inside: {_g(hb['inside_either'])} (H3-H4: {hb['inside_h3_h4_only_count']}, L3-L4: {hb['inside_l3_l4_only_count']})",
           f"- outside: {_g(hb['outside'])}",
           f"- inside minus outside (pts/trade): {hb['inside_minus_outside_points']} -> {hb['answer']}", "",
-          f"### H-C — {t['H-C']['status']}: {t['H-C']['note']}", ""]
+          ]
+    hc = t["H-C"]
+    if "all" in hc:
+        L.append(f"### H-C late close vs 1m 200 EMA -> next open (run once) — {hc['definition']}")
+        for per in ("all", "IS", "OOS"):
+            b = hc[per]
+            L.append(f"- {per}: {b['pairs']} session pairs | baseline gap up {b['baseline_gap_up_pct']}% / "
+                     f"gap down {b['baseline_gap_down_pct']}%")
+            L.append(f"  - final close ABOVE EMA: {b['final_close_above_ema']}")
+            L.append(f"  - final close BELOW EMA: {b['final_close_below_ema']}")
+        L.append(f"- pairs with next open exactly equal to the close (neither): {hc['equal_open_pairs']}")
+    else:
+        L.append(f"### H-C — {hc['status']}: {hc['note']}")
+    L.append("")
     hd = t["H-D"]
     L += [f"### H-D short mirror of R001 (ATM put) — run once", f"- A: {_g(hd['A_points'])}",
           f"- B modelled: {hd['B_modelled_rs']}", f"- C real: {hd['C_real_rs']}",

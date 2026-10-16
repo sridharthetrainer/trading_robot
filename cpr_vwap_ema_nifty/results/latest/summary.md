@@ -1,10 +1,10 @@
-# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T22:15:41
+# CPR_VWAP_EMA_Nifty backtest - 2026-10-16T22:25:34
 
 Window 2020-07-01 to 2026-10-15; out-of-sample from 2024-07-01.
 Sessions: 1555; missing futures volume (skipped in 'futures' set, spot-TWAP in 'with_missing' set): 3.
 Spot data source per session: {'angel': 1614, 'insufficient': 4}.
 
-**Tests run on this dataset so far: 23** (new this run: 3; ledger: test_ledger.json). Hypotheses and forward paper trades are not counted.
+**Tests run on this dataset so far: 24** (new this run: 1; ledger: test_ledger.json). Hypotheses and forward paper trades are not counted.
 Conditions logged (observations): [{'id': 'C001', 'date': '2026-10-15', 'role': 'observation'}]
 Hypotheses (observation only, not tested, not counted): [{'id': 'H001', 'date': '2026-10-16', 'status': 'observation_only'}]
 Pre-registered rules: [{'id': 'R001', 'status': 'approved', 'approved_on': '2026-10-16', 'frozen_ok': True}] (forward status: results/forward/<id>_status.json)
@@ -299,7 +299,7 @@ C001 exact-match sessions: 1 of 1555
   - inside: 11 tr | win 36.4% | PF 1.51 | exp 9.25 pts | B +5,228 | IS PF 1.06 (n=7, B +2,655) | OOS PF 2.54 (n=4, B +2,573)
   - below: 18 tr | win 33.3% | PF 0.71 | exp -5.28 pts | B -5,573 | IS PF 1.32 (n=13, B +774) | OOS PF 0.12 (n=5, B -6,348)
 
-## Pre-declared tests (exploratory; Bonferroni threshold for 23 tests: p < 0.00217)
+## Pre-declared tests (exploratory; Bonferroni threshold for 24 tests: p < 0.00208)
 
 ### H-A golden pivot zone — bullish: daily Camarilla L3 inside daily CPR; bearish: H3 inside; none otherwise. Day direction = session close vs session open (and vs prior close).
 - bullish: 484 sessions | close>open 48.1% | avg C-O -12.42 pts | close>prior close 56.8%
@@ -314,7 +314,19 @@ C001 exact-match sessions: 1 of 1555
 - outside: 795 tr | win 38.4% | PF 1.02 | exp 0.44 pts | B -51,274 | IS PF 1.03 (n=526, B -35,774) | OOS PF 1.01 (n=269, B -15,500)
 - inside minus outside (pts/trade): {'diff_mean': -2.14, 'ci95': [-9.51, 5.39], 'p_diff_ge_0': 0.2916} -> inside worse than outside
 
-### H-C — awaiting_definition: Not run: definition ambiguous (which closes in the last 30 minutes; what counts as a bullish next-day open). Runs once the user defines it; counted then.
+### H-C late close vs 1m 200 EMA -> next open (run once) — Run once (user definition 2026-10-16): signal = session's final 1m close above the 1m 200 EMA;
+    hit = next session's open strictly above that close (gap up, no threshold). Mirror: final close
+    below the EMA, hit = gap down. Baselines: share of all pairs that gap up / gap down.
+- all: 1550 session pairs | baseline gap up 63.2% / gap down 36.6%
+  - final close ABOVE EMA: {'sessions': 821, 'gap_up': 534, 'hit_rate_pct': 65.0, 'p_vs_baseline': 0.14831}
+  - final close BELOW EMA: {'sessions': 729, 'gap_down': 283, 'hit_rate_pct': 38.8, 'p_vs_baseline': 0.11917}
+- IS: 984 session pairs | baseline gap up 68.1% / gap down 31.9%
+  - final close ABOVE EMA: {'sessions': 538, 'gap_up': 378, 'hit_rate_pct': 70.3, 'p_vs_baseline': 0.15048}
+  - final close BELOW EMA: {'sessions': 446, 'gap_down': 154, 'hit_rate_pct': 34.5, 'p_vs_baseline': 0.1284}
+- OOS: 566 session pairs | baseline gap up 54.8% / gap down 44.9%
+  - final close ABOVE EMA: {'sessions': 283, 'gap_up': 156, 'hit_rate_pct': 55.1, 'p_vs_baseline': 0.47695}
+  - final close BELOW EMA: {'sessions': 283, 'gap_down': 129, 'hit_rate_pct': 45.6, 'p_vs_baseline': 0.4281}
+- pairs with next open exactly equal to the close (neither): 2
 
 ### H-D short mirror of R001 (ATM put) — run once
 - A: 514 tr | win 42.2% | PF 1.2 | exp 5.21 pts | B +127,337 | IS PF 1.22 (n=311, B +87,431) | OOS PF 1.18 (n=203, B +39,906)
@@ -332,8 +344,7 @@ Descriptive looks (priority-focus splits, not counted as tests): 6. Everything i
 - Snapshot coverage: 0/0 sessions full, 0 partial, 0 with no snapshots; trade price coverage n/a (need >= 80%). OK
 
 ## Change vs previous run
-Previous run: 2026-10-16T11:19:09
-- NEW this run: golden_pivot_zone field, C001 re-verification, priority-focus splits, pre-declared tests H-A, H-B, H-D (H-C awaiting definition)
-- tests on dataset: 20 -> 23
+Previous run: 2026-10-16T22:15:41
+- tests on dataset: 23 -> 24
 - C001 base|futures matched: trades 1 -> 1, expectancy 289.55 -> 289.55, PF None -> None
 - C001 base|futures non_matched: trades 1159 -> 1159, expectancy -0.48 -> -0.48, PF 0.98 -> 0.98

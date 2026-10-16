@@ -118,8 +118,9 @@
       "definition": "base rule with the signal-bar close inside daily Camarilla [H3,H4] or [L4,L3] vs outside"
     },
     "H-C": {
-      "status": "awaiting_definition",
-      "definition": "late-day close above the 1m 200 EMA (last 30 minutes) vs a bullish next-day open -- exact definition requested from the user before running"
+      "status": "run",
+      "defined": "2026-10-16 by the user",
+      "definition": "signal: the session's final 1-minute close is above the 1m 200 EMA; hit: the next session's open is strictly above that close (gap up, no threshold). Mirror: final close below the EMA followed by a gap down. Baselines: share of all session pairs that gap up / gap down. Run once, no variants, no tuning."
     },
     "H-D": {
       "status": "run",

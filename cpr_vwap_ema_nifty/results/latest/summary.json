@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-16T22:15:41",
+  "generated_at": "2026-10-16T22:25:34",
   "window": {
     "start": "2020-07-01",
     "end": "2026-10-15",
@@ -5445,8 +5445,59 @@
         "answer": "inside worse than outside"
       },
       "H-C": {
-        "status": "awaiting_definition",
-        "note": "Not run: definition ambiguous (which closes in the last 30 minutes; what counts as a bullish next-day open). Runs once the user defines it; counted then."
+        "definition": "Run once (user definition 2026-10-16): signal = session's final 1m close above the 1m 200 EMA;\n    hit = next session's open strictly above that close (gap up, no threshold). Mirror: final close\n    below the EMA, hit = gap down. Baselines: share of all pairs that gap up / gap down.",
+        "all": {
+          "pairs": 1550,
+          "baseline_gap_up_pct": 63.2,
+          "baseline_gap_down_pct": 36.6,
+          "final_close_above_ema": {
+            "sessions": 821,
+            "gap_up": 534,
+            "hit_rate_pct": 65.0,
+            "p_vs_baseline": 0.14831
+          },
+          "final_close_below_ema": {
+            "sessions": 729,
+            "gap_down": 283,
+            "hit_rate_pct": 38.8,
+            "p_vs_baseline": 0.11917
+          }
+        },
+        "IS": {
+          "pairs": 984,
+          "baseline_gap_up_pct": 68.1,
+          "baseline_gap_down_pct": 31.9,
+          "final_close_above_ema": {
+            "sessions": 538,
+            "gap_up": 378,
+            "hit_rate_pct": 70.3,
+            "p_vs_baseline": 0.15048
+          },
+          "final_close_below_ema": {
+            "sessions": 446,
+            "gap_down": 154,
+            "hit_rate_pct": 34.5,
+            "p_vs_baseline": 0.1284
+          }
+        },
+        "OOS": {
+          "pairs": 566,
+          "baseline_gap_up_pct": 54.8,
+          "baseline_gap_down_pct": 44.9,
+          "final_close_above_ema": {
+            "sessions": 283,
+            "gap_up": 156,
+            "hit_rate_pct": 55.1,
+            "p_vs_baseline": 0.47695
+          },
+          "final_close_below_ema": {
+            "sessions": 283,
+            "gap_down": 129,
+            "hit_rate_pct": 45.6,
+            "p_vs_baseline": 0.4281
+          }
+        },
+        "equal_open_pairs": 2
       },
       "H-D": {
         "definition": "Short mirror of R001, run once: close < min(PDL, S1), below futures VWAP and below\n    5m 20/50/200 + 1m 200 EMAs; next-open entry; exit on a 5m close above the 5m 20 EMA;\n    force 15:20; one trade per day; ATM put.",
@@ -5547,11 +5598,9 @@
     }
   },
   "test_ledger": {
-    "total": 23,
+    "total": 24,
     "new_this_run": [
-      "predeclared:H-A",
-      "predeclared:H-B",
-      "predeclared:H-D"
+      "predeclared:H-C"
     ],
     "descriptive_looks": 6
   },

@@ -220,7 +220,7 @@ def test_package_imports_existing_code_read_only():
     """Only these existing modules may be imported, and only for read-only calls."""
     allowed = {"angel", "request_governor", "nse_cost_model", "option_intraday_pricer", "dotenv", "alerts"}
     stdlib_or_third = {"argparse", "copy", "csv", "hashlib", "json", "logging", "os", "sqlite3", "sys", "time", "shutil", "datetime",
-                       "pathlib", "typing", "functools", "dataclasses", "__future__", "numpy", "pandas",
+                       "pathlib", "typing", "functools", "dataclasses", "__future__", "numpy", "pandas", "scipy",
                        "matplotlib"}
     for py in PKG.glob("*.py"):
         tree = ast.parse(py.read_text())
@@ -501,3 +501,30 @@ def test_storage_rule_rejects_golden_field_and_results_in_rules():
     raw = (PKG / "rules.json").read_text()
     for banned in ("golden_pivot_zone", "H-A", "H-D", "priority_focus"):
         assert banned not in raw, banned
+
+
+def test_h_c_pairs_strict_gap_and_no_span_over_missing_sessions():
+    from cpr_vwap_ema_nifty.hypothesis_tests import h_c, late_close_pairs
+
+    def day(d, open_, last_close, ema):
+        idx = pd.date_range(f"{d} 09:15", f"{d} 15:25", freq="5min")
+        df = pd.DataFrame({"open": open_, "high": open_ + 1, "low": open_ - 1, "close": open_, "ema200_1m": ema},
+                          index=idx)
+        df.iloc[-1, df.columns.get_loc("close")] = last_close
+        return df
+
+    by_day = {pd.Timestamp("2026-10-12"): day("2026-10-12", 100, 105, 100),   # final close above EMA
+              pd.Timestamp("2026-10-13"): day("2026-10-13", 106, 95, 100),    # next open 106 > 105: gap up; close below
+              pd.Timestamp("2026-10-14"): day("2026-10-14", 95, 99, 98),      # next open 95 == 95: neither
+              pd.Timestamp("2026-10-16"): day("2026-10-16", 120, 121, 100)}   # 15th missing -> no 14->16 pair
+    prep = {"by_day": by_day, "days": list(by_day),
+            "spot_source": {"2026-10-12": "angel", "2026-10-13": "angel", "2026-10-14": "angel",
+                            "2026-10-15": "insufficient", "2026-10-16": "angel"}}
+    P = late_close_pairs(prep, "2026-10-14")
+    assert [d.strftime("%m-%d") for d in P.date] == ["10-12", "10-13"]
+    assert P.iloc[0].above and P.iloc[0].gap_up
+    assert P.iloc[1].below and not P.iloc[1].gap_up and not P.iloc[1].gap_down   # strictly above / below only
+    r = h_c(prep, {"out_of_sample_start": "2026-10-14"})
+    assert r["all"]["final_close_above_ema"] == {"sessions": 1, "gap_up": 1, "hit_rate_pct": 100.0,
+                                                 "p_vs_baseline": 0.5}   # baseline 1 of 2 pairs gap up
+    assert r["equal_open_pairs"] == 1
