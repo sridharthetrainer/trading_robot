@@ -2177,7 +2177,7 @@ class TelegramCommandHandler:
 
     def _cmd_trend_oi(self, args: str = "") -> str:
         """Trending OI: OI added per strike since the day's first snapshot.
-          /trendoi                       (NIFTY, top 5 CE + top 5 PE)
+          /trendoi                       (NIFTY, top 5 strikes by OI change)
           /trendoi BANKNIFTY PE 8        /trendoi NIFTY 2026-10-15
           /trendoi 23000CE,22800PE"""
         try:

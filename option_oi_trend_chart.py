@@ -94,15 +94,14 @@ def generate_oi_trend_chart(
         chosen = [leg for leg in legs if leg in series]
         if not chosen:
             return OIChartResult(False, reason="requested_strikes_not_in_snapshots")
-    else:
-        # Largest build/unwind, `top` per side (5 CE + 5 PE by default) so the
-        # call-writing vs put-writing balance is visible; one side if asked.
-        sides = [side.upper()] if side else ["CE", "PE"]
-        per_side = {sd: max(1, min(10 if side else 5, top)) for sd in sides}
-        chosen = []
-        for sd in sides:
-            pool = [leg for leg in series if leg[1] == sd]
-            chosen += sorted(pool, key=lambda leg: abs(_last(series[leg])), reverse=True)[:per_side[sd]]
+    # Direction read uses the 5 largest CE and 5 largest PE moves, whatever is drawn.
+    by_side = {sd: sorted([leg for leg in series if leg[1] == sd],
+                          key=lambda leg: abs(_last(series[leg])), reverse=True)[:5] for sd in ("CE", "PE")}
+    if not legs:
+        # Draw only the `top` (default 5) largest builds/unwinds across both
+        # sides, or within one side if asked.
+        pool = [leg for leg in series if not side or leg[1] == side.upper()]
+        chosen = sorted(pool, key=lambda leg: abs(_last(series[leg])), reverse=True)[:max(1, min(10, top))]
 
     import matplotlib
     matplotlib.use("Agg")
@@ -147,8 +146,8 @@ def generate_oi_trend_chart(
     ranked = sorted(chosen, key=lambda leg: _last(series[leg]), reverse=True)
     lines = [f"{underlying} trending OI {day} ({labels[0]} to {labels[-1]}), spot {spot:,.0f}"]
     lines += [f"{leg[1]} {int(leg[0])}: {_last(series[leg]) / 1e5:+.1f}L shares" for leg in ranked]
-    ce_add = sum(_last(series[leg]) for leg in chosen if leg[1] == "CE")
-    pe_add = sum(_last(series[leg]) for leg in chosen if leg[1] == "PE")
+    ce_add = sum(_last(series[leg]) for leg in by_side["CE"])
+    pe_add = sum(_last(series[leg]) for leg in by_side["PE"])
     if not legs and not side:
         if pe_add > 0 and pe_add > ce_add * 1.5:
             read = "put writing dominant (support building, bullish lean)"
@@ -156,7 +155,7 @@ def generate_oi_trend_chart(
             read = "call writing dominant (resistance building, bearish lean)"
         else:
             read = "no clear side"
-        lines.append(f"OI read: PE {pe_add / 1e5:+.1f}L vs CE {ce_add / 1e5:+.1f}L -> {read}")
+        lines.append(f"OI read (top 5 each side): PE {pe_add / 1e5:+.1f}L vs CE {ce_add / 1e5:+.1f}L -> {read}")
     lines.append("Solid = CE, dashed = PE. Context only: OI bias was tested (Test 23) "
                  "and showed no trading edge.")
     return OIChartResult(True, path=str(out_path), caption="\n".join(lines), points=len(labels))
@@ -167,7 +166,7 @@ def main() -> int:
     p.add_argument("--underlying", default="NIFTY")
     p.add_argument("--date", default=None)
     p.add_argument("--legs", default="", help="e.g. 23000CE,22800PE")
-    p.add_argument("--top", type=int, default=6)
+    p.add_argument("--top", type=int, default=5)
     p.add_argument("--side", choices=["CE", "PE"], default=None)
     p.add_argument("--output-dir", default=None)
     a = p.parse_args()

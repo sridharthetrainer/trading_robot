@@ -42,9 +42,10 @@ def test_parse_legs():
 def test_auto_pick_balances_sides_and_explicit_legs(tmp_path):
     db = tmp_path / "s.db"
     _db(db)
-    res = generate_oi_trend_chart(day="2026-10-15", top=1, db_path=str(db), output_dir=str(tmp_path))
-    assert res.ok and "PE 25000" in res.caption and "CE 25050" in res.caption
-    assert "OI read: PE +0.0L vs CE +0.0L -> put writing dominant" in res.caption
+    res = generate_oi_trend_chart(day="2026-10-15", top=2, db_path=str(db), output_dir=str(tmp_path))
+    drawn = res.caption.split("\n")[1:3]
+    assert drawn == ["PE 25000: +0.0L shares", "CE 25050: +0.0L shares"]   # 1000 and 400: top 2 overall
+    assert "OI read (top 5 each side): PE +0.0L vs CE +0.0L -> put writing dominant" in res.caption
     res = generate_oi_trend_chart(day="2026-10-15", legs=[(25000.0, "PE")], db_path=str(db), output_dir=str(tmp_path))
     assert res.ok and "PE 25000: +0.0L" in res.caption and "CE" not in res.caption.split("\n")[1]
     assert not generate_oi_trend_chart(day="2026-10-15", legs=[(1.0, "CE")], db_path=str(db)).ok
