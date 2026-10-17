@@ -97,3 +97,8 @@ option_decision_journal.jsonl
 
 # Manual forward trade journal (user data; /journal)
 trade_journal/
+
+# CPR research: large trade tables stay on disk, not in git (2026-10-17).
+# Summaries/reports (json, md, png) and the official forward record stay tracked.
+cpr_vwap_ema_nifty/results/**/*.csv
+!cpr_vwap_ema_nifty/results/forward/*.csv
