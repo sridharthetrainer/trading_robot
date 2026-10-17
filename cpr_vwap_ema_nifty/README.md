@@ -178,3 +178,11 @@ draws), with the E2 / 5m 20 / 50 / 200 EMA exits; R002's real result is placed
 as a percentile. Descriptive only, not counted as a test. Results and the
 write-up (including the lookahead split: random candles before vs after the
 real signal) in `results/r002_control/latest/`, earlier runs in its `history/`.
+
+## Confirmation-candle test (confirmation_test.py)
+
+`python -m cpr_vwap_ema_nifty confirmation-test`: tests 41-42 (user, 2026-10-17).
+On R001's (long) and R002's (short) unchanged signals, the next candle must also
+close on the right side of futures VWAP and the 1m 200 EMA; entry at the open of
+the candle after that, else no trade; exits unchanged. Results and report in
+`results/confirmation/latest/` (history kept). R001/R002 untouched; no R003.

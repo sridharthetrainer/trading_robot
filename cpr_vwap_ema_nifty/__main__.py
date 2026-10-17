@@ -8,6 +8,7 @@ CLI for CPR_VWAP_EMA_Nifty (research-only strategy).
   python -m cpr_vwap_ema_nifty status                 config flags + data coverage
   python -m cpr_vwap_ema_nifty forward-report [R001] [--no-fetch] [--notify]
   python -m cpr_vwap_ema_nifty r002-control           random-entry control for R002 (descriptive, seed fixed)
+  python -m cpr_vwap_ema_nifty confirmation-test      confirmation-candle tests on R001/R002 entries (tests 41-42)
                                                       forward PAPER evaluation of a pre-registered rule
                                                       (counts nothing until the rule is approved)
 """
@@ -55,6 +56,7 @@ def main(argv=None) -> int:
     fr.add_argument("--no-fetch", action="store_true")
     fr.add_argument("--notify", action="store_true", help="send a one-line Telegram summary (scheduled run)")
     sub.add_parser("r002-control")
+    sub.add_parser("confirmation-test")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     for noisy in ("smartConnect", "angel", "urllib3", "matplotlib"):
@@ -104,6 +106,14 @@ def main(argv=None) -> int:
         res = rc.run(bt.prepare(cfg), cfg, rl.load()["conditions"])
         out = rc.save(res)
         print(json.dumps(res["exits"], indent=2), "\nsaved:", out)
+        return 0
+    if args.cmd == "confirmation-test":
+        from . import confirmation_test as ct
+        res = ct.run(bt.prepare(cfg), cfg, rl.load()["conditions"])
+        res["test_ledger"] = ct.update_ledger()
+        out = ct.save(res)
+        print(json.dumps({k: {kk: vv for kk, vv in v.items() if kk in ("signal_days", "removed_by_filter", "removed_pct")}
+                          for k, v in res["rules"].items()}, indent=2), "\nledger:", res["test_ledger"], "\nsaved:", out)
         return 0
     if args.cmd == "backtest":
         print(_short(bt.run_and_save(cfg, with_options=not args.no_options)))
