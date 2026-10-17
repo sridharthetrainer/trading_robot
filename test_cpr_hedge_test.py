@@ -29,3 +29,10 @@ def test_spread_caps_profit_relative_to_naked():
 
 def test_ledger_key():
     assert ht.TEST_KEY == "hedge:R002_bear_put_spread_200"
+
+
+def test_ledger_counts_hedge_as_test_43():
+    import json
+    from pathlib import Path
+    led = json.loads((Path(__file__).resolve().parent / "cpr_vwap_ema_nifty" / "test_ledger.json").read_text())
+    assert ht.TEST_KEY in led["tests"] and len(led["tests"]) >= 43
