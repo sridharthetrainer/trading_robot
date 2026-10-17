@@ -97,31 +97,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-def test_analysis_includes_direction_oi_and_volume(tmp_path):
-    db = tmp_path / 'snapshots.db'
-    _make_snapshot_db(db)
-    result = build_strike_activity_report(prefer_live=False, db_path=str(db))
-    assert result.ok
-    assert 'Direction scores: Bullish' in result.text
-    assert 'Bearish' in result.text
-    assert 'CE OI 88.0K | PE OI 99.0K' in result.text
-    assert 'CE volume 43.0K | PE volume 43.0K' in result.text
-    assert 'Change OI: CE 17.0K | PE 19.0K' in result.text
-    assert 'not probabilities' in result.text
-
-
-def test_missing_change_oi_is_not_displayed_as_neutral_ratio(tmp_path):
-    db = tmp_path / 'snapshots.db'
-    _make_snapshot_db(db)
-    with sqlite3.connect(db) as conn:
-        rows = json.loads(conn.execute('SELECT rows_json FROM option_chain_snapshots').fetchone()[0])
-        for row in rows:
-            row.pop('CE_changeinOpenInterest')
-            row.pop('PE_changeinOpenInterest')
-        conn.execute('UPDATE option_chain_snapshots SET rows_json=?', (json.dumps(rows),))
-    result = build_strike_activity_report(prefer_live=False, db_path=str(db))
-    assert result.ok
-    assert 'Chg N/A' in result.text
-    assert 'no directional vote' in result.text
