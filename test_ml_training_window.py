@@ -56,3 +56,9 @@ def test_self_learning_skips_outside_window(monkeypatch):
     eng = self_learning_engine.SelfLearningEngine.__new__(self_learning_engine.SelfLearningEngine)
     out = eng.run(force=False)
     assert out.get("status") == "skipped_outside_training_window"
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

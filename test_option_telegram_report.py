@@ -54,3 +54,9 @@ def test_option_trade_pnl_uses_closed_option_rows_only(tmp_path, monkeypatch):
     assert data["realized_pnl"] == 500
     assert data["charges"] == 35
     assert data["wins"] == 1
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

@@ -84,3 +84,9 @@ def test_close_single_trade_paper_fill_applies_slippage_to_exit_price(tmp_path):
     expected = 1020.0 + estimate_slippage("RELIANCE", 1020.0, "SELL")
     assert closed.exit_price == pytest.approx(expected)
     assert closed.exit_price < 1020.0  # selling to close: realistic fill is worse (lower)
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

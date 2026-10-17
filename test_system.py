@@ -734,7 +734,7 @@ def test_walk_forward():
 
 def test_main_autonomous_imports():
     """main_autonomous.py — verify it imports without executing."""
-    fname = "main_autonomous.py"
+    fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main_autonomous.py")
     if not os.path.exists(fname):
         record(fname, "WARN", "file not found")
         pytest.skip("optional module unavailable")
@@ -962,3 +962,9 @@ if __name__ == "__main__":
 
     all_pass = print_summary()
     sys.exit(0 if all_pass else 1)
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

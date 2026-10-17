@@ -11,7 +11,14 @@ from __future__ import annotations
 from autonomous_learning_cycle import render_summary, run_autonomous_learning_cycle
 
 
-def test_cycle_dry_run_has_required_steps() -> None:
+def test_cycle_dry_run_has_required_steps(monkeypatch) -> None:
+    # A dry run must not log in to the broker: angel.connect() otherwise retries
+    # 3 times, 60 s apart, through the shared login pacer (2026-10-17 audit).
+    try:
+        import angel
+        monkeypatch.setattr(angel.AngelOne, "connect", lambda self, *a, **k: False)
+    except Exception:
+        pass
     report = run_autonomous_learning_cycle(dry_run=True)
     steps = report.get("steps", {})
     summary = render_summary(report)
@@ -80,3 +87,9 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

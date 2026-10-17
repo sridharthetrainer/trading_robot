@@ -207,3 +207,9 @@ def test_shadow_option_execution_rejects_unexecutable_spread():
     assert rejected["execution_status"] == "REJECTED"
     assert rejected["label"] == -2
     assert rejected["net_pnl"] == 0
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

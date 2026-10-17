@@ -317,3 +317,9 @@ def test_limit_price_is_not_fabricated_into_missing_fill_price():
     report = execute_option_entry(broker=broker, symbol="TESTCE", qty=50, decision_price=100)
     assert report.filled_qty == 50
     assert report.fill_price == 0 and report.reconciliation_required
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

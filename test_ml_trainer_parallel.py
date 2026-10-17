@@ -214,3 +214,9 @@ def test_economically_rejected_tournament_is_reported_not_crashed(monkeypatch):
     assert result["model"] is None
     assert result["rejected_reason"] == "no_candidate_with_positive_calibrated_after_cost_utility"
     assert result["candidate_leaderboard"] == tournament["leaderboard"]
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

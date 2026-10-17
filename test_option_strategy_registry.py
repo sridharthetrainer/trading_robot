@@ -240,3 +240,9 @@ def test_evaluate_catalog_threads_gap_risk_manager_to_evaluate_fn():
         reg.OPTION_STRATEGY_CATALOG[idx] = original
         reg._BY_ID["D1"] = original
         reg._SELECTED_TODAY.clear()
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")

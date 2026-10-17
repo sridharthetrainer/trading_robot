@@ -453,3 +453,9 @@ def test_d1_net_debit_equals_max_loss_defined_risk(monkeypatch):
 
     assert result["status"] == "selected"
     assert fake.calls[0]["selected"]["max_loss"] == result["net_debit"]
+
+
+# Run in an empty working directory so this file never writes into the live bot's
+# relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
+import pytest as _pytest_iso  # noqa: E402
+pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")
