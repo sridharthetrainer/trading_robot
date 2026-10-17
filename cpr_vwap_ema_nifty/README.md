@@ -186,3 +186,11 @@ On R001's (long) and R002's (short) unchanged signals, the next candle must also
 close on the right side of futures VWAP and the 1m 200 EMA; entry at the open of
 the candle after that, else no trade; exits unchanged. Results and report in
 `results/confirmation/latest/` (history kept). R001/R002 untouched; no R003.
+
+## Model calibration (calibration.py)
+
+Compares modelled (layer B) and real-price (layer C) option P&L on every trade
+in the result files that has both (de-duplicated). 2026-10-17: 282 trades,
+real = 33% of modelled in total, -219 Rs/trade (CE -187, PE -263); the gap is
+on winning trades. Treat modelled option P&L as optimistic; the forward bars
+use real prices. The daily 16:00 forward report prints the current line.

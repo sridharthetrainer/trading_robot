@@ -167,6 +167,14 @@ def evaluate(rule_id: str = "R001", fetch: bool = True, today: Optional[date] = 
     return status
 
 
+def _calibration_line() -> str:
+    try:
+        from .calibration import line, report
+        return line(report())
+    except Exception as exc:  # never block the daily report on the calibration summary
+        return f"Model calibration unavailable: {exc}"
+
+
 def notify(status: Dict) -> bool:
     """One Telegram line per scheduled run (main bot token/chat). Alert state
     files go to this package's logs/ folder. Read-only w.r.t. rules.json."""
@@ -177,7 +185,8 @@ def notify(status: Dict) -> bool:
     text = (f"{'⚠️' if cov.get('at_risk') else '📋'} <b>R001 forward (paper)</b> — {status.get('verdict', status.get('status'))}: "
             f"{status.get('reason', status.get('note', ''))}\n"
             f"{cov.get('line', 'Snapshot coverage: n/a')}\n"
-            f"Tests run on the backtest dataset: {status.get('tests_on_backtest_dataset', bt.ledger_total())}")
+            f"Tests run on the backtest dataset: {status.get('tests_on_backtest_dataset', bt.ledger_total())}\n"
+            f"{_calibration_line()}")
     logs = Path(__file__).resolve().parent / "logs"
     logs.mkdir(exist_ok=True)
     prev = os.getcwd()
