@@ -93,3 +93,14 @@ if __name__ == "__main__":
 # relative-path runtime state (2026-10-17 write audit; see conftest.isolated_cwd).
 import pytest as _pytest_iso  # noqa: E402
 pytestmark = _pytest_iso.mark.usefixtures("isolated_cwd")
+
+
+def test_dry_run_never_reaches_broker_login(monkeypatch) -> None:
+    """2026-10-17: the data_pipeline step called run_audit(), whose broker-wiring
+    check built a BrokerManager -> AngelOne -> real login (3 x 60 s retries)."""
+    import angel
+    calls = []
+    monkeypatch.setattr(angel.AngelOne, "connect", lambda self, *a, **k: calls.append(1) or False)
+    report = run_autonomous_learning_cycle(dry_run=True)
+    assert calls == []
+    assert report["steps"]["data_pipeline"]["result"].get("skipped") is True

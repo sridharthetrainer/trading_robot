@@ -624,6 +624,7 @@ def run_autonomous_learning_cycle(
     def _data_pipeline() -> Dict[str, Any]:
         from data_pipeline_audit import run_audit
 
+        if dry_run: return {"skipped": True, "reason": "dry_run"}  # run_audit builds a BrokerManager -> real Angel login
         audit = run_audit(fetch_sample=0)
         return {
             "ok": bool(audit.get("ok")),
