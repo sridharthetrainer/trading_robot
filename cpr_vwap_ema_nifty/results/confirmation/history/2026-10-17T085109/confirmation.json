@@ -1,0 +1,579 @@
+{
+  "declared": "2026-10-17 by the user; applied every day; 2 tests",
+  "rules": {
+    "R001_long": {
+      "signal_days": 615,
+      "unconfirmed": {
+        "A_points": {
+          "trades": 615,
+          "win_rate": 46.3,
+          "avg_win": 56.88,
+          "avg_loss": -34.57,
+          "profit_factor": 1.42,
+          "expectancy": 7.81,
+          "total": 4803.75,
+          "max_drawdown": -565.45,
+          "avg_hold_min": 120.0,
+          "avg_mfe_pts": 54.3,
+          "avg_mae_pts": 30.4
+        },
+        "B_modelled_rs": {
+          "trades": 612,
+          "win_rate": 37.6,
+          "avg_win": 2519.08,
+          "avg_loss": -1145.09,
+          "profit_factor": 1.32,
+          "expectancy": 231.97,
+          "total": 141962.91,
+          "max_drawdown": -30526.42,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_real_rs": {
+          "trades": 10,
+          "win_rate": 30.0,
+          "avg_win": 4121.47,
+          "avg_loss": -1044.86,
+          "profit_factor": 1.69,
+          "expectancy": 505.04,
+          "total": 5050.36,
+          "max_drawdown": -6723.2,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_coverage": "10/615",
+        "day_bootstrap": {
+          "days": 615,
+          "mean": 7.81,
+          "ci95": [
+            2.5,
+            13.33
+          ],
+          "p_mean_le_0": 0.0012
+        },
+        "IS": {
+          "A_points": {
+            "trades": 424,
+            "win_rate": 46.7,
+            "avg_win": 50.48,
+            "avg_loss": -31.37,
+            "profit_factor": 1.41,
+            "expectancy": 6.85,
+            "total": 2905.2,
+            "max_drawdown": -462.7,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 71858.15,
+          "day_bootstrap": {
+            "days": 424,
+            "mean": 6.85,
+            "ci95": [
+              1.22,
+              12.68
+            ],
+            "p_mean_le_0": 0.0086
+          }
+        },
+        "OOS": {
+          "A_points": {
+            "trades": 191,
+            "win_rate": 45.5,
+            "avg_win": 71.46,
+            "avg_loss": -41.52,
+            "profit_factor": 1.44,
+            "expectancy": 9.94,
+            "total": 1898.55,
+            "max_drawdown": -565.45,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 70104.76,
+          "day_bootstrap": {
+            "days": 191,
+            "mean": 9.94,
+            "ci95": [
+              -1.27,
+              21.77
+            ],
+            "p_mean_le_0": 0.0414
+          }
+        },
+        "by_year": {
+          "2020": {
+            "trades": 67,
+            "pf": 0.58,
+            "B": -27479.96
+          },
+          "2021": {
+            "trades": 111,
+            "pf": 1.21,
+            "B": 1053.76
+          },
+          "2022": {
+            "trades": 98,
+            "pf": 1.72,
+            "B": 42607.01
+          },
+          "2023": {
+            "trades": 103,
+            "pf": 1.74,
+            "B": 26773.75
+          },
+          "2024": {
+            "trades": 89,
+            "pf": 1.38,
+            "B": 34186.17
+          },
+          "2025": {
+            "trades": 89,
+            "pf": 1.85,
+            "B": 72136.46
+          },
+          "2026": {
+            "trades": 58,
+            "pf": 1.07,
+            "B": -7314.28
+          }
+        }
+      },
+      "confirmed": {
+        "A_points": {
+          "trades": 546,
+          "win_rate": 44.3,
+          "avg_win": 55.04,
+          "avg_loss": -31.39,
+          "profit_factor": 1.4,
+          "expectancy": 6.92,
+          "total": 3778.15,
+          "max_drawdown": -659.9,
+          "avg_hold_min": 115.9,
+          "avg_mfe_pts": 51.2,
+          "avg_mae_pts": 29.3
+        },
+        "B_modelled_rs": {
+          "trades": 543,
+          "win_rate": 35.9,
+          "avg_win": 2444.64,
+          "avg_loss": -1081.8,
+          "profit_factor": 1.27,
+          "expectancy": 184.6,
+          "total": 100237.83,
+          "max_drawdown": -43551.72,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_real_rs": {
+          "trades": 9,
+          "win_rate": 22.2,
+          "avg_win": 5761.55,
+          "avg_loss": -1049.22,
+          "profit_factor": 1.57,
+          "expectancy": 464.29,
+          "total": 4178.57,
+          "max_drawdown": -7013.93,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_coverage": "9/546",
+        "day_bootstrap": {
+          "days": 546,
+          "mean": 6.92,
+          "ci95": [
+            1.77,
+            12.36
+          ],
+          "p_mean_le_0": 0.0044
+        },
+        "IS": {
+          "A_points": {
+            "trades": 369,
+            "win_rate": 43.9,
+            "avg_win": 48.92,
+            "avg_loss": -27.12,
+            "profit_factor": 1.41,
+            "expectancy": 6.26,
+            "total": 2311.0,
+            "max_drawdown": -659.9,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 49372.64,
+          "day_bootstrap": {
+            "days": 369,
+            "mean": 6.26,
+            "ci95": [
+              0.63,
+              12.19
+            ],
+            "p_mean_le_0": 0.0148
+          }
+        },
+        "OOS": {
+          "A_points": {
+            "trades": 177,
+            "win_rate": 45.2,
+            "avg_win": 67.43,
+            "avg_loss": -40.48,
+            "profit_factor": 1.37,
+            "expectancy": 8.29,
+            "total": 1467.15,
+            "max_drawdown": -533.15,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 50865.19,
+          "day_bootstrap": {
+            "days": 177,
+            "mean": 8.29,
+            "ci95": [
+              -2.72,
+              20.13
+            ],
+            "p_mean_le_0": 0.073
+          }
+        },
+        "by_year": {
+          "2020": {
+            "trades": 61,
+            "pf": 0.46,
+            "B": -28800.41
+          },
+          "2021": {
+            "trades": 101,
+            "pf": 1.11,
+            "B": -5809.01
+          },
+          "2022": {
+            "trades": 79,
+            "pf": 1.47,
+            "B": 22196.32
+          },
+          "2023": {
+            "trades": 93,
+            "pf": 2.16,
+            "B": 26829.97
+          },
+          "2024": {
+            "trades": 77,
+            "pf": 1.54,
+            "B": 32717.37
+          },
+          "2025": {
+            "trades": 83,
+            "pf": 1.78,
+            "B": 55825.31
+          },
+          "2026": {
+            "trades": 52,
+            "pf": 1.13,
+            "B": -2721.72
+          }
+        }
+      },
+      "removed_by_filter": 69,
+      "removed_pct": 11.2,
+      "exit": "REF20",
+      "split_is_end": "2024-06-30"
+    },
+    "R002_short": {
+      "signal_days": 645,
+      "unconfirmed": {
+        "A_points": {
+          "trades": 645,
+          "win_rate": 40.3,
+          "avg_win": 101.58,
+          "avg_loss": -49.19,
+          "profit_factor": 1.39,
+          "expectancy": 11.59,
+          "total": 7475.7,
+          "max_drawdown": -563.5,
+          "avg_hold_min": 152.1,
+          "avg_mfe_pts": 84.7,
+          "avg_mae_pts": 44.5
+        },
+        "B_modelled_rs": {
+          "trades": 645,
+          "win_rate": 34.6,
+          "avg_win": 4606.71,
+          "avg_loss": -1482.67,
+          "profit_factor": 1.64,
+          "expectancy": 622.65,
+          "total": 401611.25,
+          "max_drawdown": -21275.08,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_real_rs": {
+          "trades": 16,
+          "win_rate": 31.2,
+          "avg_win": 4699.33,
+          "avg_loss": -1060.35,
+          "profit_factor": 2.01,
+          "expectancy": 739.55,
+          "total": 11832.82,
+          "max_drawdown": -4959.74,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_coverage": "16/645",
+        "day_bootstrap": {
+          "days": 645,
+          "mean": 11.59,
+          "ci95": [
+            3.92,
+            19.56
+          ],
+          "p_mean_le_0": 0.0014
+        },
+        "IS": {
+          "A_points": {
+            "trades": 345,
+            "win_rate": 39.4,
+            "avg_win": 85.1,
+            "avg_loss": -43.55,
+            "profit_factor": 1.27,
+            "expectancy": 7.17,
+            "total": 2472.6,
+            "max_drawdown": -558.15,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 141009.27,
+          "day_bootstrap": {
+            "days": 345,
+            "mean": 7.17,
+            "ci95": [
+              -2.05,
+              16.4
+            ],
+            "p_mean_le_0": 0.0686
+          }
+        },
+        "OOS": {
+          "A_points": {
+            "trades": 300,
+            "win_rate": 41.3,
+            "avg_win": 119.66,
+            "avg_loss": -55.88,
+            "profit_factor": 1.51,
+            "expectancy": 16.68,
+            "total": 5003.1,
+            "max_drawdown": -563.5,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 260601.98,
+          "day_bootstrap": {
+            "days": 300,
+            "mean": 16.68,
+            "ci95": [
+              4.1,
+              30.46
+            ],
+            "p_mean_le_0": 0.0052
+          }
+        },
+        "by_year": {
+          "2020": {
+            "trades": 44,
+            "pf": 1.23,
+            "B": 20716.37
+          },
+          "2021": {
+            "trades": 99,
+            "pf": 1.35,
+            "B": 49056.92
+          },
+          "2022": {
+            "trades": 108,
+            "pf": 1.12,
+            "B": 35469.14
+          },
+          "2023": {
+            "trades": 94,
+            "pf": 1.46,
+            "B": 35766.84
+          },
+          "2024": {
+            "trades": 100,
+            "pf": 1.45,
+            "B": 96112.72
+          },
+          "2025": {
+            "trades": 107,
+            "pf": 1.14,
+            "B": 25250.4
+          },
+          "2026": {
+            "trades": 93,
+            "pf": 1.99,
+            "B": 139238.86
+          }
+        }
+      },
+      "confirmed": {
+        "A_points": {
+          "trades": 553,
+          "win_rate": 40.5,
+          "avg_win": 97.16,
+          "avg_loss": -46.92,
+          "profit_factor": 1.41,
+          "expectancy": 11.44,
+          "total": 6327.25,
+          "max_drawdown": -665.65,
+          "avg_hold_min": 150.9,
+          "avg_mfe_pts": 81.8,
+          "avg_mae_pts": 43.4
+        },
+        "B_modelled_rs": {
+          "trades": 553,
+          "win_rate": 34.7,
+          "avg_win": 4373.18,
+          "avg_loss": -1437.34,
+          "profit_factor": 1.62,
+          "expectancy": 580.06,
+          "total": 320772.25,
+          "max_drawdown": -25275.49,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_real_rs": {
+          "trades": 15,
+          "win_rate": 26.7,
+          "avg_win": 1425.38,
+          "avg_loss": -1085.03,
+          "profit_factor": 0.48,
+          "expectancy": -415.59,
+          "total": -6233.79,
+          "max_drawdown": -6233.79,
+          "avg_hold_min": null,
+          "avg_mfe_pts": null,
+          "avg_mae_pts": null
+        },
+        "C_coverage": "15/553",
+        "day_bootstrap": {
+          "days": 553,
+          "mean": 11.44,
+          "ci95": [
+            3.54,
+            19.79
+          ],
+          "p_mean_le_0": 0.0028
+        },
+        "IS": {
+          "A_points": {
+            "trades": 295,
+            "win_rate": 39.3,
+            "avg_win": 82.78,
+            "avg_loss": -41.21,
+            "profit_factor": 1.3,
+            "expectancy": 7.55,
+            "total": 2226.4,
+            "max_drawdown": -665.65,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 112840.86,
+          "day_bootstrap": {
+            "days": 295,
+            "mean": 7.55,
+            "ci95": [
+              -1.77,
+              17.47
+            ],
+            "p_mean_le_0": 0.0574
+          }
+        },
+        "OOS": {
+          "A_points": {
+            "trades": 258,
+            "win_rate": 41.9,
+            "avg_win": 112.6,
+            "avg_loss": -53.73,
+            "profit_factor": 1.51,
+            "expectancy": 15.89,
+            "total": 4100.85,
+            "max_drawdown": -569.65,
+            "avg_hold_min": null,
+            "avg_mfe_pts": null,
+            "avg_mae_pts": null
+          },
+          "B_net_rs": 207931.39,
+          "day_bootstrap": {
+            "days": 258,
+            "mean": 15.89,
+            "ci95": [
+              2.87,
+              29.25
+            ],
+            "p_mean_le_0": 0.009
+          }
+        },
+        "by_year": {
+          "2020": {
+            "trades": 34,
+            "pf": 1.43,
+            "B": 18348.47
+          },
+          "2021": {
+            "trades": 85,
+            "pf": 1.25,
+            "B": 25723.81
+          },
+          "2022": {
+            "trades": 89,
+            "pf": 1.18,
+            "B": 33759.71
+          },
+          "2023": {
+            "trades": 87,
+            "pf": 1.52,
+            "B": 35008.87
+          },
+          "2024": {
+            "trades": 89,
+            "pf": 1.54,
+            "B": 88357.13
+          },
+          "2025": {
+            "trades": 89,
+            "pf": 1.15,
+            "B": 18597.2
+          },
+          "2026": {
+            "trades": 80,
+            "pf": 1.85,
+            "B": 100977.06
+          }
+        }
+      },
+      "removed_by_filter": 92,
+      "removed_pct": 14.3,
+      "exit": "E2",
+      "split_is_end": "2023-12-31"
+    }
+  },
+  "test_ledger": {
+    "total": 42,
+    "new_this_run": [
+      "confirm:R001_long",
+      "confirm:R002_short"
+    ]
+  },
+  "generated_at": "2026-10-17T08:51:09"
+}
