@@ -534,8 +534,8 @@ class TelegramCommandHandler:
         # Extract command
         cmd = text.split()[0].lower().lstrip("/").split("@")[0]
         logger.info("CMD RECEIVED: /%s from chat=%s user=%s", cmd, chat_id, from_id)
-        if cmd in {"prepare", "orderstatus"} and not self._order_owner(from_id):
-            self.send("Order review requires the configured owner's Telegram user ID.", chat_id=chat_id)
+        if cmd in {"prepare", "orderstatus", "journal"} and not self._order_owner(from_id):
+            self.send("This command requires the configured owner's Telegram user ID.", chat_id=chat_id)
             return
         handler = self._handlers.get(cmd)
         if handler:
@@ -895,6 +895,7 @@ class TelegramCommandHandler:
         self.register("straddle",    self._cmd_straddle)
         self.register("participants", self._cmd_participants)
         self.register("trendoi",     self._cmd_trend_oi)
+        self.register("journal",     self._cmd_journal)
         self.register("sr",          self._cmd_oi_sr)
         self.register("oiprofile",   self._cmd_oi_sr)
         self.register("chainsignals", self._cmd_chain_signals)
@@ -2174,6 +2175,16 @@ class TelegramCommandHandler:
             return f"⚠️ Straddle: {getattr(res, 'reason', 'unavailable')}"
         except Exception as e:
             return f"/straddle error: {e}"
+
+    def _cmd_journal(self, args: str = "") -> str:
+        """Forward trade journal (owner-only): plan before the result, then the result.
+          /journal plan <text>   /journal result <ID> <text>   /journal list"""
+        try:
+            import manual_journal
+            text = args if str(args or "").lstrip().startswith("/journal") else f"/journal {args or ''}"
+            return manual_journal.handle(text, user=str(self.chat_id))
+        except Exception as e:
+            return f"/journal error: {e}"
 
     def _cmd_trend_oi(self, args: str = "") -> str:
         """Trending OI: OI added per strike since the day's first snapshot.

@@ -2382,6 +2382,7 @@ class AutonomousTradingSystem:
                                 "📝 <b>ORDER REVIEWS</b>\n"
                                 "  /prepare SYMBOL LOTS LIMIT — review, then confirm\n"
                                 "  /orderstatus — recent reviews and submission state\n"
+                                "  /journal plan|result|list — your own trade journal (owner)\n"
                                 "  /probability — evidence and monthly target probability\n"
                                 "  Single-leg NFO buy-limit entries; no stop attached.\n\n"
                                 "📈 <b>OI &amp; MARKET</b>\n"
@@ -2434,7 +2435,7 @@ class AutonomousTradingSystem:
                             "help", "menu", "start", "status", "report", "signals", "all", "optionall", "eodall",
                             "optedge", "edge", "optpositions", "positions",
                             "controlroom", "readiness", "profitgate",
-                            "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr", "straddle", "participants", "trendoi",
+                            "optionedge", "optionhealth", "optlots", "oisr", "oichart", "strikeflow", "pcr", "straddle", "participants", "trendoi", "journal",
                             "spreads", "prepare", "orderstatus", "probability",
                             "scalp", "scalpstatus", "scalpsignals", "optscalp", "scalppnl",
                             "direction", "tradeview", "view", "nexttrade",
