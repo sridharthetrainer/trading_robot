@@ -7,6 +7,8 @@
 #   deploy/snapshot_recorder_ctl.sh status
 #   deploy/snapshot_recorder_ctl.sh forward-enable   # weekdays 16:00 R001 forward report
 #   deploy/snapshot_recorder_ctl.sh forward-disable
+#   deploy/snapshot_recorder_ctl.sh brief-enable     # weekdays 08:50 morning research brief
+#   deploy/snapshot_recorder_ctl.sh brief-disable
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
@@ -20,9 +22,11 @@ case "${1:-status}" in
   disable)         systemctl --user disable --now option-snapshot-recorder.service option-snapshot-watchdog.timer ;;
   forward-enable)  install_units; systemctl --user enable --now cpr-forward-report.timer ;;
   forward-disable) systemctl --user disable --now cpr-forward-report.timer ;;
+  brief-enable)    install_units; systemctl --user enable --now research-brief.timer ;;
+  brief-disable)   systemctl --user disable --now research-brief.timer ;;
   status)
     systemctl --user --no-pager status option-snapshot-recorder.service | head -5 || true
     systemctl --user list-timers --no-pager option-snapshot-watchdog.timer cpr-forward-report.timer || true
     "$REPO/.venv/bin/python3" "$REPO/standalone_snapshot_recorder.py" --status ;;
-  *) echo "usage: $0 enable|disable|status|forward-enable|forward-disable"; exit 2 ;;
+  *) echo "usage: $0 enable|disable|status|forward-enable|forward-disable|brief-enable|brief-disable"; exit 2 ;;
 esac

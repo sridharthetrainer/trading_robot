@@ -1,0 +1,13 @@
+[Unit]
+Description=Morning research brief to Telegram (read-only: R001/R002 status, coverage, calibration, journal, momentum)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/owner/Desktop/trading_robot
+Environment=PATH=/home/owner/Desktop/trading_robot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/owner/Desktop/trading_robot/.venv/bin/python3 /home/owner/Desktop/trading_robot/morning_research_brief.py --send
+TimeoutStartSec=600
+StandardOutput=append:/home/owner/Desktop/trading_robot/cpr_vwap_ema_nifty/logs/research_brief.log
+StandardError=append:/home/owner/Desktop/trading_robot/cpr_vwap_ema_nifty/logs/research_brief.log

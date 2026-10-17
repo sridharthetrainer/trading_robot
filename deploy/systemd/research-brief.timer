@@ -1,0 +1,10 @@
+[Unit]
+Description=Morning research brief on weekdays at 08:50 IST
+
+[Timer]
+OnCalendar=Mon..Fri 08:50
+Persistent=true
+Unit=research-brief.service
+
+[Install]
+WantedBy=timers.target
