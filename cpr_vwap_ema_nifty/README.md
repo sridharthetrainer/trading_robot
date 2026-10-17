@@ -194,3 +194,12 @@ in the result files that has both (de-duplicated). 2026-10-17: 282 trades,
 real = 33% of modelled in total, -219 Rs/trade (CE -187, PE -263); the gap is
 on winning trades. Treat modelled option P&L as optimistic; the forward bars
 use real prices. The daily 16:00 forward report prints the current line.
+
+## Hedge test #43 (hedge_test.py)
+
+`python -m cpr_vwap_ema_nifty hedge-test`: R002's unchanged entries and exit as
+a bear put spread (buy ATM put, sell the put 200 points lower, same expiry),
+both legs costed. 2026-10-17 result: modelled +54k vs +400k for the naked put on
+the same 632 trades (-547 Rs/trade, 95% range -730..-375); real prices on 16
+trades +7.8k vs +11.8k. The hedge cuts wins more than losses. Results in
+`results/hedge_test/latest/`.

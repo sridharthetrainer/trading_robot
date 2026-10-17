@@ -9,6 +9,7 @@ CLI for CPR_VWAP_EMA_Nifty (research-only strategy).
   python -m cpr_vwap_ema_nifty forward-report [R001] [--no-fetch] [--notify]
   python -m cpr_vwap_ema_nifty r002-control           random-entry control for R002 (descriptive, seed fixed)
   python -m cpr_vwap_ema_nifty confirmation-test      confirmation-candle tests on R001/R002 entries (tests 41-42)
+  python -m cpr_vwap_ema_nifty hedge-test             R002 as a 200-pt bear put spread (test 43)
                                                       forward PAPER evaluation of a pre-registered rule
                                                       (counts nothing until the rule is approved)
 """
@@ -57,6 +58,7 @@ def main(argv=None) -> int:
     fr.add_argument("--notify", action="store_true", help="send a one-line Telegram summary (scheduled run)")
     sub.add_parser("r002-control")
     sub.add_parser("confirmation-test")
+    sub.add_parser("hedge-test")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     for noisy in ("smartConnect", "angel", "urllib3", "matplotlib"):
@@ -114,6 +116,14 @@ def main(argv=None) -> int:
         out = ct.save(res)
         print(json.dumps({k: {kk: vv for kk, vv in v.items() if kk in ("signal_days", "removed_by_filter", "removed_pct")}
                           for k, v in res["rules"].items()}, indent=2), "\nledger:", res["test_ledger"], "\nsaved:", out)
+        return 0
+    if args.cmd == "hedge-test":
+        from . import hedge_test as ht
+        res = ht.run(bt.prepare(cfg), cfg, rl.load()["conditions"])
+        summ = ht.summarize(res["trades"])
+        summ["test_ledger"] = ht.update_ledger()
+        out = ht.save(summ, res["trades"])
+        print(json.dumps(summ, indent=2, default=str), "\nsaved:", out)
         return 0
     if args.cmd == "backtest":
         print(_short(bt.run_and_save(cfg, with_options=not args.no_options)))

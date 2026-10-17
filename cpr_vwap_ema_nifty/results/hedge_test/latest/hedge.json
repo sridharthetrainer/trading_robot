@@ -1,0 +1,112 @@
+{
+  "width_points": 200.0,
+  "r002_trades": 645,
+  "priced_both_ways": 632,
+  "B_naked": {
+    "trades": 632,
+    "win_rate": 34.5,
+    "avg_win": 4674.15,
+    "avg_loss": -1495.99,
+    "profit_factor": 1.65,
+    "expectancy": 632.32,
+    "total": 399625.0,
+    "max_drawdown": -20257.54,
+    "avg_hold_min": null,
+    "avg_mfe_pts": null,
+    "avg_mae_pts": null,
+    "IS_total": 143705.16,
+    "OOS_total": 255919.85,
+    "day_bootstrap": {
+      "days": 632,
+      "mean": 632.32,
+      "ci95": [
+        308.8,
+        971.25
+      ],
+      "p_mean_le_0": 0.0
+    }
+  },
+  "B_spread": {
+    "trades": 632,
+    "win_rate": 31.3,
+    "avg_win": 2667.38,
+    "avg_loss": -1092.0,
+    "profit_factor": 1.11,
+    "expectancy": 85.78,
+    "total": 54215.44,
+    "max_drawdown": -35823.35,
+    "avg_hold_min": null,
+    "avg_mfe_pts": null,
+    "avg_mae_pts": null,
+    "IS_total": 8450.63,
+    "OOS_total": 45764.8,
+    "day_bootstrap": {
+      "days": 632,
+      "mean": 85.78,
+      "ci95": [
+        -97.86,
+        274.08
+      ],
+      "p_mean_le_0": 0.1782
+    }
+  },
+  "spread_minus_naked_per_trade": {
+    "mean": -546.53,
+    "ci95": [
+      -730.32,
+      -374.5
+    ],
+    "p_le_0": 1.0
+  },
+  "avg_debit_rs": 3517.43,
+  "by_year": {
+    "2020": {
+      "n": 43,
+      "naked": 19508.33,
+      "spread": 732.62
+    },
+    "2021": {
+      "n": 97,
+      "naked": 49709.27,
+      "spread": -401.24
+    },
+    "2022": {
+      "n": 106,
+      "naked": 36533.16,
+      "spread": -736.87
+    },
+    "2023": {
+      "n": 89,
+      "naked": 37954.4,
+      "spread": 8856.13
+    },
+    "2024": {
+      "n": 100,
+      "naked": 96112.69,
+      "spread": 21447.03
+    },
+    "2025": {
+      "n": 106,
+      "naked": 25400.77,
+      "spread": -18932.36
+    },
+    "2026": {
+      "n": 91,
+      "naked": 134406.39,
+      "spread": 43250.14
+    }
+  },
+  "C_real": {
+    "trades": 16,
+    "naked_total": 11832.82,
+    "spread_total": 7832.69,
+    "spread_pf": 2.0
+  },
+  "test_ledger": {
+    "total": 43,
+    "new_this_run": [
+      "hedge:R002_bear_put_spread_200"
+    ]
+  },
+  "generated_at": "2026-10-17T19:53:41"
+}
