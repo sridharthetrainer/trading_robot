@@ -90,3 +90,7 @@ cpr_vwap_ema_nifty/logs/
 
 # Standalone option snapshot recorder: own DB, logs, heartbeat, cache, alert state
 standalone_recorder/
+
+# Option decision journal: live runtime log (~74 MB, grows daily). Kept on disk,
+# not versioned (2026-10-17). Back up separately if needed.
+option_decision_journal.jsonl
